@@ -1,0 +1,3 @@
+## don't import(parallel), to avoid in-package name conflicts
+import(parallel)
+export(mclapply, pvec)
