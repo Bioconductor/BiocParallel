@@ -10,7 +10,7 @@
 }
 
 \usage{
-pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE)
+pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE, mc.preschedule=FALSE, num.chunks, chunk.size)
 }
 
 \arguments{
@@ -27,7 +27,21 @@ pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE, mc.cores = getOption("m
   \item{mc.cores}{{}}
   \item{mc.cleanup}{
     These arguments are as documented in
+    \code{\link[parallel]{pvec}} in the \code{parallel} package.
+  }
+  \item{mc.preschedule}{
+    This argument is as documented in
     \code{\link[parallel]{mclapply}} in the \code{parallel} package.
+  }
+  \item{num.chunks}{
+    Specify the exact number of chunks to split the input into. The
+    default is to make exactly one chunk per core. If supplied
+    explicitly, this option takes precedence over \code{chunk.size}.
+  }
+  \item{chunk.size}{
+    Size of chunks to split the input into. Note that not all chunks
+    will be exactly the specified size unless the chunk size exactly
+    divides the length of the input.
   }
 }
 
