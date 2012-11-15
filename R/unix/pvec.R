@@ -21,7 +21,7 @@
 
 pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
                  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
-                 mc.preschedule=FALSE, num.chunks, chunk.size)
+                 mc.preschedule=FALSE, mc.num.chunks, mc.chunk.size)
 {
     env <- parent.frame()
     cores <- as.integer(mc.cores)
@@ -31,15 +31,16 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     if(mc.set.seed) mc.reset.stream()
 
     n <- length(v)
-    if (missing(num.chunks)) {
-        if (missing(chunk.size)) {
-            num.chunks <- cores
+    if (missing(mc.num.chunks)) {
+        if (missing(mc.chunk.size)) {
+            mc.num.chunks <- cores
             mc.preschedule <- TRUE
         } else {
-            num.chunks <- ceiling(n/chunk.size)
+            mc.num.chunks <- ceiling(n/mc.chunk.size)
         }
     }
-    si <- splitIndices(n, num.chunks)
+    si <- tryCatch(splitIndices(n, mc.num.chunks),
+                   error=function(...) list(1:n))
     res <- do.call(c,
                    mclapply(si, function(i) FUN(v[i], ...),
                             mc.set.seed=mc.set.seed,
