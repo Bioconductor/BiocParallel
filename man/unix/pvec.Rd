@@ -10,7 +10,9 @@
 }
 
 \usage{
-pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE, mc.preschedule=FALSE, num.chunks, chunk.size)
+pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
+     mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
+     mc.preschedule=FALSE, num.chunks, chunk.size)
 }
 
 \arguments{
