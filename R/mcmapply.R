@@ -1,3 +1,4 @@
+### Derived from parallel version 2.14.1 by R Core Team
 mcmapply <- function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE) {
     FUN <- match.fun(FUN)
     dots <- list(...)
