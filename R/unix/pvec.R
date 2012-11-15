@@ -20,7 +20,8 @@
 ### Derived from multicore version 0.1-6 by Simon Urbanek
 
 pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
-                 mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE)
+                 mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
+                 mc.preschedule=FALSE, num.chunks, chunk.size)
 {
     env <- parent.frame()
     cores <- as.integer(mc.cores)
@@ -30,32 +31,22 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     if(mc.set.seed) mc.reset.stream()
 
     n <- length(v)
-    si <- splitIndices(n, cores)
-    jobs <- NULL
-    cleanup <- function() {
-        ## kill children if cleanup is requested
-        if (length(jobs) && mc.cleanup) {
-            ## first take care of uncollected children
-            mccollect(children(jobs), FALSE)
-            mckill(children(jobs),
-                   if (is.integer(mc.cleanup)) mc.cleanup else 15L)
-            mccollect(children(jobs))
-        }
-        if (length(jobs)) {
-            ## just in case there are zombies
-            mccollect(children(jobs), FALSE)
+    if (missing(num.chunks)) {
+        if (missing(chunk.size)) {
+            num.chunks <- cores
+            mc.preschedule <- TRUE
+        } else {
+            num.chunks <- ceiling(n/chunk.size)
         }
     }
-    on.exit(cleanup())
-    FUN <- match.fun(FUN)
-    ## may have more cores than tasks ....
-    jobs <- lapply(si,
-                   function(i) mcparallel(FUN(v[i], ...),
-                                          mc.set.seed = mc.set.seed,
-                                          silent = mc.silent))
-    res <- mccollect(jobs)
-    names(res) <- NULL
-    res <- do.call(c, res)
+    si <- splitIndices(n, num.chunks)
+    res <- do.call(c,
+                   mclapply(si, function(i) FUN(v[i], ...),
+                            mc.set.seed=mc.set.seed,
+                            mc.silent=mc.silent,
+                            mc.cores=mc.cores,
+                            mc.cleanup=mc.cleanup,
+                            mc.preschedule=mc.preschedule))
     if (length(res) != n)
         warning("some results may be missing, folded or caused an error")
     res
