@@ -1,10 +1,25 @@
 test_pvec <- function() {
-  v <- 1:1000
+  ## Ensure that parallelism is actually tested
+  options(cores=2, mc.cores=2)
+
+  v <- setNames(1:12, letters[1:12])
   res1 <- sqrt(v)
   res2 <- parallel::pvec(v, sqrt)
   res3 <- BiocParallel::pvec(v, sqrt)
   checkIdentical(res1, res3)
   checkIdentical(res2, res3)
+
+  ## Check on 1-element vectors
+  checkIdentical(sqrt(5), parallel::pvec(5, sqrt))
+
+  ## Check when forcing a single chunk
+  checkIdentical(sqrt(v), parallel::pvec(v, sqrt, mc.num.chunks=1))
+
+  ## Check when forcing more chunks than cores
+  checkIdentical(sqrt(v), parallel::pvec(v, sqrt, mc.num.chunks=6))
+
+  ## Check when forcing more chunks than elements in v
+  checkIdentical(sqrt(v), parallel::pvec(v, sqrt, mc.num.chunks=20))
 }
 
 ## test_pvec_bioc <- function() {
