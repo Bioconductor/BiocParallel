@@ -24,7 +24,6 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
                  mc.preschedule=FALSE, mc.num.chunks, mc.chunk.size)
 {
     if(length(v) <= 1) return(FUN(v, ...))
-    env <- parent.frame()
     cores <- as.integer(mc.cores)
     if(cores < 1L) stop("'mc.cores' must be >= 1")
     if(cores > length(v)) cores <- length(v)
