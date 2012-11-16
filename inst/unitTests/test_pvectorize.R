@@ -1,7 +1,9 @@
 test_pvectorize <- function() {
+  ## Ensure that parallelism is actually tested
+  options(cores=2, mc.cores=2)
 
   psqrt <- pvectorize(sqrt)
-  checkIdentical(psqrt(1:1000), sqrt(1:1000))
+  checkIdentical(psqrt(1:20), sqrt(1:20))
 
   # Contrived example with a vectorized second argument and scalar
   # first argument
