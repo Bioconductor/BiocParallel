@@ -41,7 +41,7 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
             n <- max(sapply(args[dovec], length))
             ## Don't parallelize if the args are scalars
             if (n <= 1) {
-                return do.call(FUN, args)
+                return(do.call(FUN, args))
             }
             for (arg in args[dovec]) {
                 if (n %% length(arg) != 0) {
