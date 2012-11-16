@@ -32,10 +32,6 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     ## Don't use more chunks than there are elements in v
     if (cores > length(v))
         cores <- length(v)
-
-    if (mc.set.seed)
-        mc.reset.stream()
-
     n <- length(v)
     if (missing(mc.num.chunks)) {
         if (missing(mc.chunk.size)) {
@@ -51,9 +47,7 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     ## If only one chunk, don't attempt parallelism
     if (mc.num.chunks == 1L)
         return(FUN(v, ...))
-
     si <- splitIndices(n, mc.num.chunks)
-
     res <- do.call(c,
                    mclapply(si, function(i) FUN(v[i], ...),
                             mc.set.seed=mc.set.seed,
