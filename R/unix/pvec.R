@@ -27,6 +27,8 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     cores <- as.integer(mc.cores)
     if(cores < 1L) stop("'mc.cores' must be >= 1")
     if(cores == 1L) return(FUN(v, ...))
+    if(length(v) <= 1) return(FUN(v, ...))
+    if(cores > length(v)) cores <- length(v)
 
     if(mc.set.seed) mc.reset.stream()
 
