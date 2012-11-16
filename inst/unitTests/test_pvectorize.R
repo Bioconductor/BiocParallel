@@ -3,19 +3,20 @@ test_pvectorize <- function() {
   options(cores=2, mc.cores=2)
 
   psqrt <- pvectorize(sqrt)
-  checkIdentical(psqrt(1:20), sqrt(1:20))
+  v <- setNames(1:20, letters(1:20))
+  checkIdentical(psqrt(v), sqrt(v))
 
   # Contrived example with a vectorized second argument and scalar
   # first argument
-  myfun <- function(offset, v) v + offset[[1]]
+  myfun <- function(offset, x) x + offset[[1]]
   res1 <- myfun(2, 1:50)
-  pmyfun <- pvectorize(myfun, vectorized.arg="v")
-  # Argument "v" comes first now
+  pmyfun <- pvectorize(myfun, vectorized.arg="x")
+  # Argument "x" comes first now
   res2 <- pmyfun(2, 1:50)
   # Make sure named out-of-order args work
-  res3 <- pmyfun(v=1:50, offset=2)
+  res3 <- pmyfun(x=1:50, offset=2)
   # Make sure mc.* args are accepted
-  res4 <- pmyfun(2, 1:50, mc.preschedule=FALSE, mc.chunk.size=10)
+  res4 <- pmyfun(2, 1:50, mc.preschedule=FALSE, mc.chunk.size=10, mc.cores=2)
 
   checkIdentical(res1, res2)
   checkIdentical(res1, res3)

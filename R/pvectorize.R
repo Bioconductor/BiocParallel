@@ -1,4 +1,5 @@
-pvectorize <- function(FUN, vectorize.args = arg.names) {
+pvectorize <- function(FUN, vectorize.args = arg.names)
+{
     ## This works like the real formals function, but it also works on
     ## most primitives where formals does not.
     formals <- function(fun) as.pairlist(head(as.list(args(fun)), -1))
@@ -11,9 +12,10 @@ pvectorize <- function(FUN, vectorize.args = arg.names) {
     arg.names <- names(arg.names)
     vectorize.args <- as.character(vectorize.args)
 
-    mcformals <- formals(function(mc.set.seed = TRUE, mc.silent = FALSE,
-                                  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
-                                  mc.preschedule=FALSE, mc.num.chunks, mc.chunk.size) NULL)
+    mcformals <-
+      alist(mc.set.seed = TRUE, mc.silent = FALSE,
+            mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
+            mc.preschedule=FALSE, mc.num.chunks=, mc.chunk.size=)
 
     if (!all(vectorize.args %in% arg.names))
         stop("must specify formal argument names to vectorize")
