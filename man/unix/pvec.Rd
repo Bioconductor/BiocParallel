@@ -35,12 +35,12 @@ pvec(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     This argument is as documented in
     \code{\link[parallel]{mclapply}} in the \code{parallel} package.
   }
-  \item{num.chunks}{
+  \item{mc.num.chunks}{
     Specify the exact number of chunks to split the input into. The
     default is to make exactly one chunk per core. If supplied
     explicitly, this option takes precedence over \code{chunk.size}.
   }
-  \item{chunk.size}{
+  \item{mc.chunk.size}{
     Size of chunks to split the input into. Note that not all chunks
     will be exactly the specified size unless the chunk size exactly
     divides the length of the input.
