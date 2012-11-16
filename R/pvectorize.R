@@ -72,12 +72,17 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
                 return(do.call(FUN, args))
             si <- splitIndices(n, mc.num.chunks)
 
-            mclapply.extra.args <- mc.args[names(mc.args) %in% names(formals(mclapply))]
-            reslist <- do.call(mclapply,
-                               c(list(X=si, FUN=function(i)
-                                      do.call(FUN, c(lapply(args[dovec], function(vec) vec[(i-1) %% length(vec) + 1]),
-                                                     args[!dovec]))),
-                                 mclapply.extra.args))
+            mclapply.extra.args <-
+                mc.args[names(mc.args) %in% names(formals(mclapply))]
+            reslist <-
+                do.call(mclapply, c(list(X=si, FUN=function(i) {
+                    ## Extract the correct slice of each vector arg
+                    vector.chunks <-
+                        lapply(args[dovec],
+                               function(vec) vec[(i-1) %% length(vec) + 1])
+                    scalar.args <- args[!dovec]
+                    do.call(FUN, c(vector.chunks, scalar.args))
+                }), mclapply.extra.args))
             res <- do.call(c, reslist)
             if (length(res) != n)
                 warning("some results may be missing, folded or caused an error")
@@ -85,7 +90,8 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
         }
     }
     funformals <- formals(FUN)
-    funformals <- c(funformals, mcformals[! names(mcformals) %in% names(funformals)])
+    funformals <- c(funformals,
+                    mcformals[! names(mcformals) %in% names(funformals)])
     formals(FUNPV) <- as.pairlist(funformals)
     FUNPV
 }
