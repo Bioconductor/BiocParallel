@@ -13,9 +13,9 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
     vectorize.args <- as.character(vectorize.args)
 
     mcformals <-
-      alist(mc.set.seed = TRUE, mc.silent = FALSE,
-            mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
-            mc.preschedule=FALSE, mc.num.chunks=, mc.chunk.size=)
+        alist(mc.set.seed = TRUE, mc.silent = FALSE,
+              mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
+              mc.preschedule=FALSE, mc.num.chunks=, mc.chunk.size=)
 
     if (!all(vectorize.args %in% arg.names))
         stop("must specify formal argument names to vectorize")
@@ -26,6 +26,7 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
         ## for compatibility, but they will have no effect.
         FUNPV <- FUN
     } else {
+
         FUNPV <- function() {
             args <- lapply(as.list(match.call())[-1L], eval, parent.frame())
             ## Split into mc.args and args for FUN. Techincally they can
@@ -34,10 +35,14 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
             mc.args <- args[names(args) %in% names(mcformals)]
             args <- args[names(args) %in% names(formals(FUN))]
             names <- if (is.null(names(args)))
-              character(length(args))
+                character(length(args))
             else names(args)
             dovec <- names %in% vectorize.args
             n <- max(sapply(args[dovec], length))
+            ## Don't parallelize if the args are scalars
+            if (n <= 1) {
+                return do.call(FUN, args)
+            }
             for (arg in args[dovec]) {
                 if (n %% length(arg) != 0) {
                     warning("longer argument not a multiple of length of shorter")
@@ -45,10 +50,11 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
                 }
             }
             cores <- as.integer(mc.cores)
-            if(cores < 1L) stop("'mc.cores' must be >= 1")
-            if(cores == 1L) return(do.call(FUN, args))
-
-            if(mc.set.seed) mc.reset.stream()
+            if (cores < 1L)
+                stop("'mc.cores' must be >= 1")
+            ## Don't use more cores than there are elements
+            if (cores > n)
+                cores <- n
 
             if (missing(mc.num.chunks)) {
                 if (missing(mc.chunk.size)) {
@@ -58,12 +64,14 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
                     mc.num.chunks <- ceiling(n/mc.chunk.size)
                 }
             }
-            if (mc.num.chunks > 1) {
-                si <- tryCatch(splitIndices(n, mc.num.chunks),
-                               error=function(...) list(1:n))
-            } else {
-                si <- list(1:n)
-            }
+            ## Don't allow more chunks than there are elements in v
+            if (mc.num.chunks > n)
+                mc.num.chunks <- n
+            ## If only one chunk, don't attempt parallelism
+            if (mc.num.chunks <= 1L)
+                return(do.call(FUN, args))
+            si <- splitIndices(n, mc.num.chunks)
+
             mclapply.extra.args <- mc.args[names(mc.args) %in% names(formals(mclapply))]
             reslist <- do.call(mclapply,
                                c(list(X=si, FUN=function(i)
@@ -72,7 +80,7 @@ pvectorize <- function(FUN, vectorize.args = arg.names)
                                  mclapply.extra.args))
             res <- do.call(c, reslist)
             if (length(res) != n)
-              warning("some results may be missing, folded or caused an error")
+                warning("some results may be missing, folded or caused an error")
             res
         }
     }
