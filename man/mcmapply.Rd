@@ -12,9 +12,24 @@ mcmapply(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
 }
 
 \arguments{
-  All arguments are as in \code{mapply}. In addition, \code{mcmapply}
-  supports all the "mc.*" arguments of \code{\link{mclapply}}, which can
-  be used to control how the calculation is parallelized.
+  \item{FUN}{{}}
+  \item{...}{{}}
+  \item{MoreArgs}{{}}
+  \item{SIMPLIFY}{{}}
+  \item{USE.NAMES}{
+    These arguments are as documented in
+    \code{\link{mapply}}.
+  }
+
+  \item{mc.set.seed}{{}}
+  \item{mc.silent}{{}}
+  \item{mc.cores}{{}}
+  \item{mc.cleanup}{{}}
+  \item{mc.preschedule}{
+   These arguments are as documented in
+    \code{\link[parallel]{mclapply}} in the \code{parallel} package.
+  }
+
 }
 
 \details{
