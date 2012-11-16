@@ -29,7 +29,7 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
     cores <- as.integer(mc.cores)
     if (cores < 1L)
         stop("'mc.cores' must be >= 1")
-    ## Don't use more chunks than there are elements in v
+    ## Don't use more cores than there are elements in v
     if (cores > length(v))
         cores <- length(v)
     n <- length(v)
