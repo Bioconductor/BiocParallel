@@ -23,12 +23,18 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
                  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
                  mc.preschedule=FALSE, mc.num.chunks, mc.chunk.size)
 {
-    if(length(v) <= 1) return(FUN(v, ...))
+    ## Don't vectorize if arg is a scalar
+    if (length(v) <= 1)
+        return(FUN(v, ...))
     cores <- as.integer(mc.cores)
-    if(cores < 1L) stop("'mc.cores' must be >= 1")
-    if(cores > length(v)) cores <- length(v)
+    if (cores < 1L)
+        stop("'mc.cores' must be >= 1")
+    ## Don't use more chunks than there are elements in v
+    if (cores > length(v))
+        cores <- length(v)
 
-    if(mc.set.seed) mc.reset.stream()
+    if (mc.set.seed)
+        mc.reset.stream()
 
     n <- length(v)
     if (missing(mc.num.chunks)) {
@@ -39,8 +45,12 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
             mc.num.chunks <- ceiling(n/mc.chunk.size)
         }
     }
-    if(mc.num.chunks > length(v)) mc.num.chunks <- length(v)
-    if(mc.num.chunks == 1L) return(FUN(v, ...))
+    ## Don't allow more chunks than there are elements in v
+    if (mc.num.chunks > length(v))
+        mc.num.chunks <- length(v)
+    ## If only one chunk, don't attempt parallelism
+    if (mc.num.chunks == 1L)
+        return(FUN(v, ...))
 
     si <- splitIndices(n, mc.num.chunks)
 
