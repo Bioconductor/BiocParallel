@@ -9,3 +9,5 @@ Description: This package provides modified versions and novel
   with Bioconductor objects.
 biocViews: HighThroughputSequencing, Infrastructure
 License: GPL-2 | GPL-3
+Imports: methods, parallel, tools
+Suggests: BiocGenerics
