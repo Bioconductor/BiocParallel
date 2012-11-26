@@ -11,6 +11,5 @@ setMethod(bparallelize, c("ANY", "missing"),
 {
     FUN <- match.fun(FUN)
     param <- registered()[[1]]
-    function(...)
-        bpvec(FUN=FUN, ..., param=param)
+    bparallelize(FUN, ..., param=param)
 })

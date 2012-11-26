@@ -30,7 +30,7 @@ setValidity("MulticoreParam",
     function(object)
 {
     msg <- NULL
-    
+
     slts <- sapply(slotNames(object), slot, object=object)
     isScalar <- sapply(slts, length) == 1L
     if (!all(isScalar)) {
@@ -38,7 +38,7 @@ setValidity("MulticoreParam",
                        paste(sQuote(names(slts)[!isScalar]), collapse=", "))
         msg <- c(msg, txt)
     }
-    
+
     if (isScalar[["cores"]] && (object@cores < 1L))
         msg <- c(msg, "'cores' must be integer(1), > 0")
 

@@ -5,4 +5,3 @@ setMethod(show, "BiocParallelParam",
 {
     cat("class:", class(object), "\n")
 })
-                           

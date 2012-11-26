@@ -4,7 +4,7 @@ setMethod(bpvec, c("ANY", "ANY", "ANY"),
     FUN <- match.fun(FUN)
     FUN(X, ...)
 })
-          
+
 setMethod(bpvec, c("ANY", "ANY", "missing"),
     function(X, FUN, ..., param)
 {
