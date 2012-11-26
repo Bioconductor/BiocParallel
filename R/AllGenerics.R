@@ -4,5 +4,5 @@ setGeneric("bplapply",
 setGeneric("bpvec",
     function(X, FUN, ..., param) standardGeneric("bpvec"))
 
-setGeneric("bparallelize",
-    function(FUN, ..., param) standardGeneric("bparallelize"))
+setGeneric("bpvectorize",
+    function(FUN, ..., param) standardGeneric("bpvectorize"))

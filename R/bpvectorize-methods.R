@@ -1,4 +1,4 @@
-setMethod(bparallelize, c("ANY", "ANY"),
+setMethod(bpvectorize, c("ANY", "ANY"),
     function(FUN, ..., param)
 {
     FUN <- match.fun(FUN)
@@ -6,10 +6,10 @@ setMethod(bparallelize, c("ANY", "ANY"),
         bpvec(FUN=FUN, ..., param=param)
 })
 
-setMethod(bparallelize, c("ANY", "missing"),
+setMethod(bpvectorize, c("ANY", "missing"),
     function(FUN, ..., param)
 {
     FUN <- match.fun(FUN)
     param <- registered()[[1]]
-    bparallelize(FUN, ..., param=param)
+    bpvectorize(FUN, ..., param=param)
 })

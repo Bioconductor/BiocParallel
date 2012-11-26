@@ -1,7 +1,7 @@
-\name{bparallelize}
-\alias{bparallelize}
-\alias{bparallelize,ANY,ANY-method}
-\alias{bparallelize,ANY,missing-method}
+\name{bpvectorize}
+\alias{bpvectorize}
+\alias{bpvectorize,ANY,ANY-method}
+\alias{bpvectorize,ANY,missing-method}
 
 \title{Transform vectorized functions into parallelized, vectorized function}
 
@@ -16,11 +16,11 @@
 }
 
 \usage{
-bparallelize(FUN, ..., param)
+bpvectorize(FUN, ..., param)
 
-\S4method{bparallelize}{ANY,ANY}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., param)
 
-\S4method{bparallelize}{ANY,missing}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., param)
 
 }
 
@@ -41,18 +41,18 @@ bparallelize(FUN, ..., param)
 
 \details{
 
-  The result of \code{bparallelize} is a function with signature
+  The result of \code{bpvectorize} is a function with signature
   \code{\dots}; arguments to the returned function are the original
   arugments \code{FUN}. \code{param} is used for parallel evaluation.
 
-  When \code{param} is \code{missing}, \code{bparallelize} uses
+  When \code{param} is \code{missing}, \code{bpvectorize} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
 
   When \code{param} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
 
-  See \code{showMethods{bparallelize}} for additional methods, if any.
+  See \code{showMethods{bpvectorize}} for additional methods, if any.
 
 }
 
@@ -71,7 +71,7 @@ bparallelize(FUN, ..., param)
 \seealso{\code{pvec}}
 
 \examples{
-psqrt <- bparallelize(sqrt) ## default parallelization
+psqrt <- bpvectorize(sqrt) ## default parallelization
 psqrt(1:10)
 }
 
