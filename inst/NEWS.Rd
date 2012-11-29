@@ -12,10 +12,12 @@
       \item \code{pvectorize()} creates a parallel version of its
       vectorized function argument.
 
+    }
+
   }
 
-  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{}
+%%  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{}
 
-  \subsection{BUG FIXES}{}
+%%  \subsection{BUG FIXES}{}
 
 }
