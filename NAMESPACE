@@ -1,3 +1,17 @@
 ## don't import(parallel), to avoid in-package name conflicts
+
+import(methods)
+
 import(parallel)
-export(mclapply, pvec, pvectorize)
+
+importFrom(tools, SIGTERM)
+
+exportClass(BiocParallelParam, MulticoreParam, SnowParam, SerialParam)
+
+export(
+    MulticoreParam, SnowParam, SerialParam,
+    bplapply, bpvec, bpvectorize,
+    register, registered)
+
+exportMethods(
+    show)
