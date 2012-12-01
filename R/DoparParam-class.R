@@ -4,13 +4,14 @@
     contains = "BiocParallelParam")
 
 .DoparParamSingleton <- .DoparParam()
+
 DoparParam <- function() .DoparParamSingleton
 
 .doParBackendRegistered <- function() {
     "package:foreach" %in% search() &&
-    foreach::getDoParRegistered() &&
-    foreach::getDoParName() != "doSEQ" &&
-    foreach::getDoParWorkers() > 1
+        foreach::getDoParRegistered() &&
+            foreach::getDoParName() != "doSEQ" &&
+                foreach::getDoParWorkers() > 1
 }
 
 setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
@@ -20,10 +21,10 @@ setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
     ## If no parallel backend is registered for foreach, fall back to
     ## the serial backend.
     if (!.doParBackendRegistered())
-      return callGeneric(X, FUN, ..., param=SerialParam())
+        return(bplapply(X, FUN, ..., param=SerialParam()))
 
-    setNames(foreach(x=X) %dopar% FUN(x, ...),
-             names(X))
+    ans <- foreach(x=X) %dopar% FUN(x, ...)
+    setNames(ans, names(X))
 })
 
 setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
@@ -33,7 +34,7 @@ setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
     ## If no parallel backend is registered for foreach, fall back to
     ## the serial backend.
     if (!.doParBackendRegistered())
-      return callGeneric(X, FUN, ..., param=SerialParam())
+        return(bpvec(X, FUN, ..., param=SerialParam()))
 
     n <- length(X)
     nodes <- min(n, getDoParWorkers())
