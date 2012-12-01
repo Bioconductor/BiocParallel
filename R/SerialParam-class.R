@@ -4,6 +4,7 @@
     contains = "BiocParallelParam")
 
 .SerialParamSingleton <- .SerialParam()
+
 SerialParam <- function() .SerialParamSingleton
 
 ## methods are usually implemented as c("ANY", "ANY", "ANY") in
