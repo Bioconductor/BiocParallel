@@ -1,3 +1,6 @@
+splitIndices <- parallel::splitIndices
+splitList <- parallel:::splitList
+
 .onLoad <-
     function(libname, pkgname)
 {

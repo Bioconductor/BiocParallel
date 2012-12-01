@@ -87,8 +87,8 @@ setMethod(bpvec, c("ANY", "ANY", "SnowParam"),
 
     n <- length(X)
     nodes <- min(n, bpworkers(param))
-    si <- splitIndices(n, nodes)
-    ans <- bplapply(si, function(i, ...) FUN(X[i], ...), ..., param=param)
+    sx <- splitList(X, nodes)
+    ans <- bplapply(sx, function(x, ...) FUN(x, ...), ..., param=param)
     do.call(c, ans)
 })
 

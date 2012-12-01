@@ -55,9 +55,7 @@ setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
 
     n <- length(X)
     nodes <- min(n, bpworkers(param))
-    si <- splitIndices(n, nodes)
-    ans <- bplapply(si, function(i, X, ...) {
-        FUN(X[i], ...)
-    }, X=X, ..., param=param)
+    sx <- splitList(X, nodes)
+    ans <- bplapply(sx, function(x, ...) FUN(x, ...), ..., param=param)
     do.call(c, ans)
 })
