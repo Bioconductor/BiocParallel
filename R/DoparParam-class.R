@@ -8,13 +8,27 @@
 DoparParam <- function() .DoparParamSingleton
 
 .doParBackendRegistered <- function() {
-    "package:foreach" %in% search() &&
-        foreach::getDoParRegistered() &&
-            foreach::getDoParName() != "doSEQ" &&
-                foreach::getDoParWorkers() > 1
+    "package:foreach" %in% search() && getDoParRegistered() &&
+        getDoParName() != "doSEQ" && getDoParWorkers() > 1
 }
 
 ## control
+
+setMethod(bpworkers, "DoparParam",
+    function(param, ...)
+{
+    if (bpisup(param))
+        getDoParWorkers()
+    else 0L
+})
+
+setMethod(bpisup, "DoparParam",
+    function(param, ...)
+{
+    ("package:foreach" %in% search()) &&
+        getDoParRegistered() && (getDoParName() != "doSEQ") &&
+            getDoParWorkers() > 1L
+})
 
 ## evaluation
 
@@ -24,9 +38,10 @@ setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
     FUN <- match.fun(FUN)
     ## If no parallel backend is registered for foreach, fall back to
     ## the serial backend.
-    if (!.doParBackendRegistered())
+    if (!bpisup(param))
         return(bplapply(X, FUN, ..., param=SerialParam()))
 
+    x <- NULL                           # quieten R CMD check
     ans <- foreach(x=X) %dopar% FUN(x, ...)
     setNames(ans, names(X))
 })
@@ -35,15 +50,14 @@ setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
     function(X, FUN, ..., param)
 {
     FUN <- match.fun(FUN)
-    ## If no parallel backend is registered for foreach, fall back to
-    ## the serial backend.
-    if (!.doParBackendRegistered())
+    if (!bpisup(param))
         return(bpvec(X, FUN, ..., param=SerialParam()))
 
     n <- length(X)
-    nodes <- min(n, getDoParWorkers())
+    nodes <- min(n, bpworkers(param))
     si <- splitIndices(n, nodes)
-    sx <- lapply(si, function(i) X[i])
-    ans <- bplapply(sx, function(x, ...) FUN(x, ...), ..., param=param)
+    ans <- bplapply(si, function(i, X, ...) {
+        FUN(X[i], ...)
+    }, X=X, ..., param=param)
     do.call(c, ans)
 })
