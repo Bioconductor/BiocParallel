@@ -14,6 +14,10 @@ DoparParam <- function() .DoparParamSingleton
                 foreach::getDoParWorkers() > 1
 }
 
+## control
+
+## evaluation
+
 setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
     function(X, FUN, ..., param)
 {

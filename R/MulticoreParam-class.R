@@ -1,13 +1,12 @@
 .MulticoreParam <- setClass("MulticoreParam",
     representation(
-        cores = "integer",
         setSeed = "logical",
         recursive = "logical",
         cleanup = "logical",
         cleanupSignal = "integer",
         verbose = "logical"),
     prototype(
-        cores = getOption("mc.cores", 2L),
+        workers = getOption("mc.cores", 2L),
         setSeed = TRUE,
         recursive = TRUE,
         cleanup=TRUE,
@@ -16,12 +15,12 @@
     "BiocParallelParam")
 
 MulticoreParam <-
-    function(cores=detectCores(), setSeed=TRUE, recursive=TRUE,
+    function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
              cleanup=TRUE, cleanupSignal=tools::SIGTERM,
              verbose=FALSE, ...)
 {
-    cores <- as.integer(cores)
-    .MulticoreParam(cores=cores, setSeed=setSeed, recursive=recursive,
+    workers <- as.integer(workers)
+    .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
                     cleanup=cleanup, cleanupSignal=cleanupSignal,
                     verbose=verbose, ...)
 }
@@ -39,11 +38,14 @@ setValidity("MulticoreParam",
         msg <- c(msg, txt)
     }
 
-    if (isScalar[["cores"]] && (object@cores < 1L))
-        msg <- c(msg, "'cores' must be integer(1), > 0")
-
     if (!is.null(msg)) msg else TRUE
 })
+
+## control
+
+setMethod(bpisup, "MulticoreParam", function(param, ...) TRUE)
+
+## evaluation
 
 setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
     function(X, FUN, ..., param)
@@ -54,7 +56,7 @@ setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
 
     cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
     mclapply(X, FUN, ..., mc.set.seed=param@setSeed,
-             mc.silent=!param@verbose, mc.cores=param@cores,
+             mc.silent=!param@verbose, mc.cores=bpworkers(param),
              mc.cleanup=cleanup)
 })
 
@@ -67,7 +69,7 @@ setMethod(bpvec, c("ANY", "ANY", "MulticoreParam"),
 
     cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
     pvec(X, FUN, ..., mc.set.seed=param@setSeed,
-         mc.silent=!param@verbose, mc.cores=param@cores,
+         mc.silent=!param@verbose, mc.cores=bpworkers(param),
          mc.cleanup=cleanup)
 })
 

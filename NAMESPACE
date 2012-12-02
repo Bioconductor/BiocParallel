@@ -11,6 +11,10 @@ exportClass(BiocParallelParam, MulticoreParam, SnowParam, SerialParam)
 export(
     MulticoreParam, SnowParam, SerialParam,
     bplapply, bpvec, bpvectorize,
+    ## bp-controls
+    bpworkers, bpbackend, "bpbackend<-",
+    bpstart, bpstop, bpisup,
+    ## register
     register, registered)
 
 exportMethods(

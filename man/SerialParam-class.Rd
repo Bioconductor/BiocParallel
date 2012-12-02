@@ -4,6 +4,9 @@
 \alias{SerialParam-class}
 \alias{SerialParam}
 
+\alias{bpisup,SerialParam-method}
+\alias{bpworkers,SerialParam-method}
+
 \title{Enable serial evaluation}
 
 \description{
@@ -14,13 +17,7 @@
 }
 
 \usage{
-SerialParam(...) 
-}
-
-\arguments{
-
-  \item{...}{Additional arguments, not yet implemented.}
-
+SerialParam() 
 }
 
 \section{SerialParam constructor}{
@@ -29,11 +26,23 @@ SerialParam(...)
   parallel functions such as \code{\link{bplapply}},
   \code{\link{bpvec}}.
 
+  The object is \sQuote{read-only}.
+
+}
+
+
+\section{Methods}{
+
+  The following generics are implemented and perform as documented on
+  the corresonding help page (e.g., \code{?bpworkers}):
+  \code{\link{bpworkers}}. \code{\link{bpisup}}, \code{\link{bpstart}},
+  \code{\link{bpstop}}, are implemented, but do not have any
+  side-effects.
+
 }
 
 \section{Methods}{
 
-  The object is \sQuote{read-only}.
 
 }
 

@@ -59,8 +59,8 @@ bpvectorize(FUN, ..., param)
 \value{
 
   A function taking the same arguments as \code{FUN}, but evaluated
-  using \code{\link{pvec}} to parallelize evaluation across available
-  cores. 
+  using \code{\link{bpvec}} to parallelize evaluation across available
+  cores.
 
 }
 
@@ -68,7 +68,7 @@ bpvectorize(FUN, ..., param)
   Ryan Thompson \url{mailto:rct@thompsonclan.org}
 }
 
-\seealso{\code{pvec}}
+\seealso{\code{bpvec}}
 
 \examples{
 psqrt <- bpvectorize(sqrt) ## default parallelization
