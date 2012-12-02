@@ -1,0 +1,22 @@
+## don't import(parallel), to avoid in-package name conflicts
+
+import(methods)
+
+import(parallel)
+
+importFrom(foreach, "%dopar%", foreach, getDoParName,
+    getDoParRegistered, getDoParWorkers)
+
+importFrom(tools, SIGTERM)
+
+exportClass(BiocParallelParam, MulticoreParam, SnowParam, SerialParam)
+
+export(MulticoreParam, SnowParam, SerialParam,
+    bplapply, bpvec, bpvectorize,
+    ## bp-controls
+    bpworkers, bpbackend, "bpbackend<-",
+    bpstart, bpstop, bpisup,
+    ## register
+    register, registered)
+
+exportMethods(show)
