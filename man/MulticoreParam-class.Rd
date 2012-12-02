@@ -5,6 +5,8 @@
 \alias{MulticoreParam}
 \alias{MulticoreParam-class}
 
+\alias{bpisup,MulticoreParam-method}
+
 \alias{bplapply,ANY,ANY,MulticoreParam-method}
 \alias{bpvec,ANY,ANY,MulticoreParam-method}
 \alias{bparallelize,ANY,MulticoreParam-method}
@@ -21,7 +23,7 @@
 }
 
 \usage{
-MulticoreParam(cores = detectCores(), setSeed = TRUE, recursive = TRUE, 
+MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE, 
     cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
     ...) 
 
@@ -45,7 +47,7 @@ MulticoreParam(cores = detectCores(), setSeed = TRUE, recursive = TRUE,
 
   \item{param}{An \code{MulticoreParam}-class instance.}
 
-  \item{cores}{\code{integer(1)} number of cores to use for parallel
+  \item{workers}{\code{integer(1)} number of cores to use for parallel
     evaluation.}
 
   \item{setSeed}{\code{logical(1)}, as described in
@@ -74,6 +76,15 @@ MulticoreParam(cores = detectCores(), setSeed = TRUE, recursive = TRUE,
 
   Return an object with specified values. The object may be saved to
   disk or reused within a session.
+
+}
+
+\section{Methods}{
+
+  The following generics are implemented and perform as documented on
+  the corresonding help page (e.g., \code{?bpisup}):
+  \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
+  \code{\link{bpisup}}, \code{\link{bpbackend}}.
 
 }
 

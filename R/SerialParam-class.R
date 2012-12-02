@@ -1,11 +1,12 @@
-.SerialParam <- setClass("SerialParam",
+.SerialParamSingleton <- setClass("SerialParam",
     representation(),
     prototype(),
-    contains = "BiocParallelParam")
-
-.SerialParamSingleton <- .SerialParam()
+    contains = "BiocParallelParam")()
 
 SerialParam <- function() .SerialParamSingleton
 
-## methods are usually implemented as c("ANY", "ANY", "ANY") in
-## corresponding generic.R file
+## control
+
+setMethod(bpworkers, "SerialParam", function(param, ...) 1L)
+
+setMethod(bpisup, "SerialParam", function(param, ...) TRUE)

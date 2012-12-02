@@ -5,9 +5,16 @@
 \alias{SnowParam}
 \alias{SnowParam-class}
 
+\alias{bpbackend,SnowParam-method}
+\alias{bpbackend<-,SnowParam,SOCKcluster-method}
+
+\alias{bpisup,SnowParam-method}
+\alias{bpstart,SnowParam-method}
+\alias{bpstop,SnowParam-method}
+\alias{bpworkers,SnowParam-method}
+
 \alias{bplapply,ANY,ANY,SnowParam-method}
 \alias{bpvec,ANY,ANY,SnowParam-method}
-\alias{bparallelize,ANY,SnowParam-method}
 
 \alias{show,SnowParam-method}
 
@@ -21,13 +28,12 @@
 }
 
 \usage{
-SnowParam(spec, type, ...) 
+SnowParam(workers = 0L, type, ...) 
 
 \S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
 
 \S4method{bpvec}{ANY,ANY,SnowParam}(X, FUN, ..., param)
 
-\S4method{bparallelize}{ANY,SnowParam}(X, ..., param)
 }
 
 \arguments{
@@ -43,7 +49,7 @@ SnowParam(spec, type, ...)
 
   \item{param}{An \code{MulticoreParam}-class instance.}
 
-  \item{spec}{A cluster specification, as in
+  \item{workers}{Number of workers to start the cluster, as in
     \code{\link[parallel]{makeCluster}} argument \code{spec}.}
 
   \item{type}{\code{character(1)} type of cluster to use, as described
@@ -53,10 +59,22 @@ SnowParam(spec, type, ...)
 
 \section{SnowParam constructor}{
 
-  Return an object resulting from invoking \code{makeCluster} with
-  arguments \code{spec} and \code{type}. The cluster is created when the
-  object is instantiated. It does not make sense to save the object
-  across sessions, but it may be used multiple times in a session.
+  Return an object representing a SNOW cluster. The cluster is not
+  created until \code{bpstart} is called.
+
+  \code{bpstart} creates the cluster by invoking \code{makeCluster} with
+  arguments \code{spec=workers}, \code{type}, and other arguments passed
+  to \code{...} in \code{SnowParam}.
+
+}
+
+\section{Methods}{
+
+  The following generics are implemented and perform as documented on
+  the corresonding help page (e.g., \code{?bpisup}):
+  \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
+  \code{\link{bpisup}}, \code{\link{bpbackend}},
+  \code{\link{bpbackend<-}}.
 
 }
 

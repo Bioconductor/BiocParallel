@@ -4,6 +4,7 @@
 
 \alias{BiocParallelParam}
 \alias{BiocParallelParam-class}
+\alias{bpworkers,BiocParallelParam-method}
 \alias{show,BiocParallelParam-method}
 
 \title{Virtual classes (for developer reference)}
