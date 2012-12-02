@@ -8,7 +8,7 @@ setOldClass(c("SOCKcluster", "cluster"))
     "BiocParallelParam")
 
 .nullCluster <- function(type)
-    parallel:::makeCluster(0L, type)
+    makeCluster(0L, type)
 
 SnowParam <-
     function(workers = 0L, type, ...)
@@ -34,14 +34,14 @@ setMethod(bpworkers, "SnowParam",
 setMethod(bpstart, "SnowParam",
     function(param, ...)
 {
-    bpbackend(param) <- do.call(parallel::makeCluster, param@.clusterargs)
+    bpbackend(param) <- do.call(makeCluster, param@.clusterargs)
     invisible(param)
 })
 
 setMethod(bpstop, "SnowParam",
     function(param, ...)
 {
-    parallel::stopCluster(param@cluster)
+    stopCluster(param@cluster)
     bpbackend(param) <- .nullCluster(param@.clusterargs$type)
     invisible(param)
 })

@@ -41,11 +41,6 @@ SerialParam()
 
 }
 
-\section{Methods}{
-
-
-}
-
 \author{Martin Morgan \url{mailto:mtmorgan@fhcrc.org}}
 
 \seealso{
