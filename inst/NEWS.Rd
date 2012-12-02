@@ -12,6 +12,15 @@
       \item \code{pvectorize()} creates a parallel version of its
       vectorized function argument.
 
+      \item \code{MulticoreParam}, \code{SnowParam}, \code{DoparParam}
+      (foreach-derived), \code{SerialParam} to parameterize back-ends.
+
+      \item \code{bplapply}, \code{bpvec} as parallel evaluation
+      models.
+
+      \item \code{bpstart}, \code{bpstop}, \code{bpisup} for back-end
+      management.
+
     }
 
   }

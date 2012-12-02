@@ -61,9 +61,8 @@ bplapply(X, FUN, ..., param)
 
 \seealso{
 
-  \code{\link{pvec}} for parallel, vectorized
-  calculations. \code{\link{parLapply}} for parallel lapply across
-  separate processes.
+  \code{\link{bpvec}} for parallel, vectorized
+  calculations.
 
   \code{\link{BiocParallelParam}} for possible values of \code{param}.
 
@@ -73,7 +72,7 @@ bplapply(X, FUN, ..., param)
 showMethods("bplappy")
 
 ## ten tasks (1:10) so ten calls to FUN default registered parallel
-## back-end. Compare with pvec.
+## back-end. Compare with bpvec.
 system.time(result <- bplapply(1:10, function(v) {
     message("working") ## 10 tasks
     sqrt(v)
