@@ -45,13 +45,19 @@ setValidity("MulticoreParam",
 
 setMethod(bpisup, "MulticoreParam", function(param, ...) TRUE)
 
+setMethod(bpschedule, "MulticoreParam",
+    function(param, ...)
+{
+    (.Platform$OS.type != "windows") && (param@recursive || !isChild())
+})
+
 ## evaluation
 
 setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
     function(X, FUN, ..., param)
 {
     FUN <- match.fun(FUN)
-    if (isChild() && !isTRUE(param@recursive))
+    if (!bpschedule(param))
         return(lapply(X = X, FUN = FUN, ...))
 
     cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
@@ -64,7 +70,7 @@ setMethod(bpvec, c("ANY", "ANY", "MulticoreParam"),
     function(X, FUN, ..., param)
 {
     FUN <- match.fun(FUN)
-    if (isChild() && !isTRUE(param@recursive))
+    if (!bpschedule(param))
         return(FUN(X, ...))
 
     cleanup <- if (param@cleanup) param@cleanupSignal else FALSE

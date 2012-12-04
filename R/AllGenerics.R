@@ -24,3 +24,8 @@ setGeneric("bpbackend",
 
 setGeneric("bpbackend<-",
     function(param, ..., value) standardGeneric("bpbackend<-"))
+
+## scheduling
+
+setGeneric("bpschedule",
+    function(param, ...) standardGeneric("bpschedule"))

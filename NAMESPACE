@@ -16,6 +16,8 @@ export(MulticoreParam, SnowParam, SerialParam,
     ## bp-controls
     bpworkers, bpbackend, "bpbackend<-",
     bpstart, bpstop, bpisup,
+    ## schedule
+    bpschedule,
     ## register
     register, registered)
 
