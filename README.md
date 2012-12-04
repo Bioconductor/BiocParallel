@@ -6,19 +6,20 @@ Bioconductor facilities for parallel evaluation (experimental)
 Possible TODO
 -------------
 
-+ encapsulate arguments as ParallelParam()
-
-+ Standardize signatures
-+ Make functions generics
-+ parLapply-like function
 + map/reduce-like function
- 
++ bpforeach?
 + Abstract scheduler
-
-TOOD
-----
-
-+ MulticoreParam on Windows -- at least fall back gracefully to single-core
++ lazy DoparParam
 + SnowParam support for setSeed, recursive, cleanup
 + subset SnowParam
 + elaborate SnowParam for SnowSocketParam, SnowForkParam, SnowMpiParam, ...
++ MulticoreParam on Windows
++ Short vignette
+
+DONE
+----
+
++ encapsulate arguments as ParallelParam()
++ Standardize signatures
++ Make functions generics
++ parLapply-like function
