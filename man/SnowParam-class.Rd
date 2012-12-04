@@ -14,7 +14,6 @@
 \alias{bpworkers,SnowParam-method}
 
 \alias{bplapply,ANY,ANY,SnowParam-method}
-\alias{bpvec,ANY,ANY,SnowParam-method}
 
 \alias{show,SnowParam-method}
 
@@ -31,8 +30,6 @@
 SnowParam(workers = 0L, type, ...) 
 
 \S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
-
-\S4method{bpvec}{ANY,ANY,SnowParam}(X, FUN, ..., param)
 
 }
 
@@ -74,7 +71,7 @@ SnowParam(workers = 0L, type, ...)
   the corresonding help page (e.g., \code{?bpisup}):
   \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
   \code{\link{bpisup}}, \code{\link{bpbackend}},
-  \code{\link{bpbackend<-}}.
+  \code{\link{bpbackend<-}}, \code{\link{bpvec}}.
 
 }
 

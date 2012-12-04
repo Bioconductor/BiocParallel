@@ -1,19 +1,22 @@
-## This one method will work for any param type. Methods should only
-## be defined for specific param classes for the purpose of improving
-## efficiency.
 setMethod(bpvec, c("ANY", "ANY", "ANY"),
     function(X, FUN, ..., param)
 {
     FUN <- match.fun(FUN)
+    FUN(X, ...)
+})
 
-    nodes <- min(length(X), bpworkers(param))
-    if (nodes <= 1)
-        return(FUN(X, ...))
+setMethod(bpvec, c("ANY", "ANY", "BiocParallelParam"),
+    function(X, FUN, ..., param)
+{
+    FUN <- match.fun(FUN)
 
-    sx <- splitList(X, nodes)
-    ans <- bplapply(sx, function(x, ...) FUN(x, ...), ..., param=param)
+    tasks <- length(X)
+    workers <- min(tasks, bpworkers(param))
+    si <- .splitIndex(tasks, workers)
+    ans <- bplapply(si, function(i, x, ...) {
+        FUN(X[i], ...)
+    }, X=X, ..., param=param)
     do.call(c, ans)
-
 })
 
 setMethod(bpvec, c("ANY", "ANY", "missing"),
