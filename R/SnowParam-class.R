@@ -78,20 +78,6 @@ setMethod(bplapply, c("ANY", "ANY", "SnowParam"),
     parLapply(bpbackend(param), X, FUN, ...)
 })
 
-setMethod(bpvec, c("ANY", "ANY", "SnowParam"),
-    function(X, FUN, ..., param)
-{
-    FUN <- match.fun(FUN)
-    if (bpworkers(param) == 0L)
-        return(FUN(X, ...))
-
-    n <- length(X)
-    nodes <- min(n, bpworkers(param))
-    si <- splitIndices(n, nodes)
-    ans <- bplapply(si, function(i, ...) FUN(X[i], ...), ..., param=param)
-    do.call(c, ans)
-})
-
 setMethod(show, "SnowParam",
     function(object)
 {
