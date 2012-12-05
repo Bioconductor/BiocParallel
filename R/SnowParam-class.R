@@ -8,7 +8,11 @@ setOldClass(c("SOCKcluster", "cluster"))
     "BiocParallelParam")
 
 .nullCluster <- function(type)
+{
+    if (type == "FORK")
+        type <- "PSOCK"
     makeCluster(0L, type)
+}
 
 SnowParam <-
     function(workers = 0L, type, ...)
