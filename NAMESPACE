@@ -4,14 +4,21 @@ import(methods)
 
 import(parallel)
 
+importFrom(foreach, "%dopar%", foreach, getDoParName,
+    getDoParRegistered, getDoParWorkers)
+
 importFrom(tools, SIGTERM)
 
 exportClass(BiocParallelParam, MulticoreParam, SnowParam, SerialParam)
 
-export(
-    MulticoreParam, SnowParam, SerialParam,
+export(MulticoreParam, SnowParam, SerialParam,
     bplapply, bpvec, bpvectorize,
+    ## bp-controls
+    bpworkers, bpbackend, "bpbackend<-",
+    bpstart, bpstop, bpisup,
+    ## schedule
+    bpschedule,
+    ## register
     register, registered)
 
-exportMethods(
-    show)
+exportMethods(show)
