@@ -6,4 +6,3 @@ setMethod(bpstart, "missing",
     param <- registered()[[1]]
     bpstart(param, ...)
 })
-

@@ -45,19 +45,3 @@ setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
     ans <- foreach(x=X) %dopar% FUN(x, ...)
     setNames(ans, names(X))
 })
-
-setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
-    function(X, FUN, ..., param)
-{
-    FUN <- match.fun(FUN)
-    if (!bpisup(param))
-        return(bpvec(X, FUN, ..., param=SerialParam()))
-
-    n <- length(X)
-    nodes <- min(n, bpworkers(param))
-    si <- splitIndices(n, nodes)
-    ans <- bplapply(si, function(i, X, ...) {
-        FUN(X[i], ...)
-    }, X=X, ..., param=param)
-    do.call(c, ans)
-})

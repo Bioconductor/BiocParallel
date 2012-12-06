@@ -8,7 +8,11 @@ setOldClass(c("SOCKcluster", "cluster"))
     "BiocParallelParam")
 
 .nullCluster <- function(type)
+{
+    if (type == "FORK")
+        type <- "PSOCK"
     makeCluster(0L, type)
+}
 
 SnowParam <-
     function(workers = 0L, type, ...)
@@ -19,6 +23,10 @@ SnowParam <-
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster)
 }
+
+setAs("SOCKcluster", "SnowParam", function(from) {
+    .SnowParam(cluster=from, .controlled=FALSE)
+})
 
 ## control
 
@@ -34,6 +42,8 @@ setMethod(bpworkers, "SnowParam",
 setMethod(bpstart, "SnowParam",
     function(param, ...)
 {
+    if (!.controlled(param))
+        stop("'bpstart' not available; instance from outside BiocParallel?")
     bpbackend(param) <- do.call(makeCluster, param@.clusterargs)
     invisible(param)
 })
@@ -41,6 +51,8 @@ setMethod(bpstart, "SnowParam",
 setMethod(bpstop, "SnowParam",
     function(param, ...)
 {
+    if (!.controlled(param))
+        stop("'bpstop' not available; instance from outside BiocParallel?")
     stopCluster(param@cluster)
     bpbackend(param) <- .nullCluster(param@.clusterargs$type)
     invisible(param)
@@ -76,20 +88,6 @@ setMethod(bplapply, c("ANY", "ANY", "SnowParam"),
         on.exit(bpstop(param))
     }
     parLapply(bpbackend(param), X, FUN, ...)
-})
-
-setMethod(bpvec, c("ANY", "ANY", "SnowParam"),
-    function(X, FUN, ..., param)
-{
-    FUN <- match.fun(FUN)
-    if (bpworkers(param) == 0L)
-        return(FUN(X, ...))
-
-    n <- length(X)
-    nodes <- min(n, bpworkers(param))
-    si <- splitIndices(n, nodes)
-    ans <- bplapply(si, function(i, ...) FUN(X[i], ...), ..., param=param)
-    do.call(c, ans)
 })
 
 setMethod(show, "SnowParam",
