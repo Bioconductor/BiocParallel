@@ -13,9 +13,9 @@ setMethod(bpvec, c("ANY", "ANY", "BiocParallelParam"),
     tasks <- length(X)
     workers <- min(tasks, bpworkers(param))
     si <- .splitIndices(tasks, workers)
-    ans <- bplapply(si, function(i, ...) {
+    ans <- bplapply(si, function(i, X, FUN, ...) {
         FUN(X[i], ...)
-    }, ..., param=param)
+    }, X, FUN, ..., param=param)
     do.call(c, ans)
 })
 
