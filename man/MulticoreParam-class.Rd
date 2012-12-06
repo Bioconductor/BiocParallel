@@ -6,6 +6,7 @@
 \alias{MulticoreParam-class}
 
 \alias{bpisup,MulticoreParam-method}
+\alias{bpschedule,MulticoreParam-method}
 
 \alias{bplapply,ANY,ANY,MulticoreParam-method}
 \alias{bpvec,ANY,ANY,MulticoreParam-method}
@@ -84,7 +85,8 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
   The following generics are implemented and perform as documented on
   the corresonding help page (e.g., \code{?bpisup}):
   \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
-  \code{\link{bpisup}}, \code{\link{bpbackend}}.
+  \code{\link{bpisup}}, \code{\link{bpschedule}},
+  \code{\link{bpbackend}}.
 
 }
 
