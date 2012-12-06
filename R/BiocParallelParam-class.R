@@ -1,6 +1,9 @@
 setClass("BiocParallelParam",
-    representation("VIRTUAL", workers="integer"),
-    prototype(workers=0L))
+    representation(
+        "VIRTUAL",
+        .controlled="logical",
+        workers="integer"),
+    prototype(.controlled=TRUE, workers=0L))
 
 setValidity("BiocParallelParam", function(object) 
 {
@@ -9,6 +12,12 @@ setValidity("BiocParallelParam", function(object)
         msg <- c(msg, "'workers' must be integer(1) and >= 0")
     if (is.null(msg)) TRUE else msg
 })
+
+.controlled <-
+    function(param)
+{
+    param@.controlled
+}
 
 setMethod(bpworkers, "BiocParallelParam",
    function(param, ...)

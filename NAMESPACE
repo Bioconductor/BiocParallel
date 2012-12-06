@@ -9,9 +9,10 @@ importFrom(foreach, "%dopar%", foreach, getDoParName,
 
 importFrom(tools, SIGTERM)
 
-exportClass(BiocParallelParam, MulticoreParam, SnowParam, SerialParam)
+exportClass(BiocParallelParam, MulticoreParam, SnowParam,
+            DoparParam, SerialParam)
 
-export(MulticoreParam, SnowParam, SerialParam,
+export(MulticoreParam, SnowParam, DoparParam, SerialParam,
     bplapply, bpvec, bpvectorize,
     ## bp-controls
     bpworkers, bpbackend, "bpbackend<-",

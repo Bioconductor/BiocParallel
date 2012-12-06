@@ -1,6 +1,7 @@
 \name{bpvec}
 \alias{bpvec}
 \alias{bpvec,ANY,ANY,ANY-method}
+\alias{bpvec,ANY,ANY,BiocParallelParam-method}
 \alias{bpvec,ANY,ANY,missing-method}
 
 \title{Parallel, vectorized evaluation}
@@ -18,6 +19,8 @@
 bpvec(X, FUN, ..., param)
 
 \S4method{bpvec}{ANY,ANY,ANY}(X, FUN, ..., param)
+
+\S4method{bpvec}{ANY,ANY,BiocParallelParam}(X, FUN, ..., param)
 
 \S4method{bpvec}{ANY,ANY,missing}(X, FUN, ..., param)
 }
@@ -42,6 +45,11 @@ bpvec(X, FUN, ..., param)
   When \code{param} is \code{missing}, \code{bpvec} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
+
+  When \code{param} is an instance of a class derived from
+  \code{BiocParallelParam} for which no other method applies, this
+  method creates a vector of indicies and uses these in conjuction with
+  \code{bplapply} to arrange for parallelized evaluation.
 
   When \code{param} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
