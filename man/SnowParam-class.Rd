@@ -2,8 +2,9 @@
 \Rdversion{1.1}
 \docType{class}
 
-\alias{SnowParam}
 \alias{SnowParam-class}
+\alias{SnowParam}
+\alias{coerce,SOCKcluster,SnowParam-method}
 
 \alias{bpbackend,SnowParam-method}
 \alias{bpbackend<-,SnowParam,SOCKcluster-method}
@@ -29,11 +30,25 @@
 \usage{
 SnowParam(workers = 0L, type, ...) 
 
-\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
+## invoke as(cl, "SnowParam")
+\S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 
+\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
 }
 
 \arguments{
+
+  \item{workers}{Number of workers to start the cluster, as in
+    \code{\link[parallel]{makeCluster}} argument \code{spec}.}
+
+  \item{type}{\code{character(1)} type of cluster to use, as described
+    in \code{\link[parallel]{parLapply}} argument \code{type}.}
+
+  \item{from, to}{(N.B. Use \code{as(from, "SnowParam")} to coerce from
+    a cluster created with, e.g.,
+    \code{parallel::makeCluster}). \code{from} is a \code{SOCKcluster}
+    or derived instance (e.g., from \code{parallel::makeCluster}), to be
+    coerced to a \code{SnowParam} instance.}
 
   \item{X}{A vector-like object supporting \code{length}, \code{[},
     and, for \code{bplapply}, \code{[[}.}
@@ -46,12 +61,6 @@ SnowParam(workers = 0L, type, ...)
 
   \item{param}{An \code{MulticoreParam}-class instance.}
 
-  \item{workers}{Number of workers to start the cluster, as in
-    \code{\link[parallel]{makeCluster}} argument \code{spec}.}
-
-  \item{type}{\code{character(1)} type of cluster to use, as described
-    in \code{\link[parallel]{parLapply}} argument \code{type}.}
-
 }
 
 \section{SnowParam constructor}{
@@ -62,6 +71,10 @@ SnowParam(workers = 0L, type, ...)
   \code{bpstart} creates the cluster by invoking \code{makeCluster} with
   arguments \code{spec=workers}, \code{type}, and other arguments passed
   to \code{...} in \code{SnowParam}.
+
+  Use \code{as(cl, "SnowParam")} to coerce a cluster created directly by
+  \code{parallel::param} to a \code{SnowParam} instance. Instances
+  created in this way cannot be started or stopped.
 
 }
 

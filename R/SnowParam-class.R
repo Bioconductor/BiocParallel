@@ -24,6 +24,10 @@ SnowParam <-
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster)
 }
 
+setAs("SOCKcluster", "SnowParam", function(from) {
+    .SnowParam(cluster=from, .controlled=FALSE)
+})
+
 ## control
 
 setMethod(bpworkers, "SnowParam",
@@ -38,6 +42,8 @@ setMethod(bpworkers, "SnowParam",
 setMethod(bpstart, "SnowParam",
     function(param, ...)
 {
+    if (!.controlled(param))
+        stop("'bpstart' not available; instance from outside BiocParallel?")
     bpbackend(param) <- do.call(makeCluster, param@.clusterargs)
     invisible(param)
 })
@@ -45,6 +51,8 @@ setMethod(bpstart, "SnowParam",
 setMethod(bpstop, "SnowParam",
     function(param, ...)
 {
+    if (!.controlled(param))
+        stop("'bpstop' not available; instance from outside BiocParallel?")
     stopCluster(param@cluster)
     bpbackend(param) <- .nullCluster(param@.clusterargs$type)
     invisible(param)
