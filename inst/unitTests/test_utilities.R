@@ -1,6 +1,6 @@
 test_splitIndicies <- function()
 {
-    .splitIndices <- BiocParallel:::.splitIndicies
+    .splitIndices <- BiocParallel:::.splitIndices
 
     checkIdentical(integer(), .splitIndices(0, 0))
     checkIdentical(integer(), .splitIndices(0, 1))
