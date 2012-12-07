@@ -53,7 +53,7 @@ setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
     if (!bpisup(param))
         return(bpvec(X, FUN, ..., param=SerialParam()))
     si <- .splitIndices(length(X), bpworkers(param))
-    sf <- factor(rep(seq_along(si), elementLengths(si)))
+    sf <- factor(rep(seq_along(si), sapply(si, length)))
     X.iter <- isplit(X, sf)
     res <- bplapply(X.iter, FUN, ..., param)
     do.call(c, unname(res))
