@@ -54,7 +54,6 @@ setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
         return(bpvec(X, FUN, ..., param=SerialParam()))
     si <- .splitIndices(length(X), bpworkers(param))
     sf <- factor(rep(seq_along(si), sapply(si, length)))
-    X.iter <- isplit(X, sf)
-    res <- bplapply(X.iter, FUN, ..., param)
-    do.call(c, unname(res))
+    x <- NULL                           # For R CMD check
+    foreach(x=isplit(X, sf), .combine=c) %dopar% FUN(x$value, ...)
 })
