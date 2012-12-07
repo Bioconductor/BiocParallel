@@ -7,6 +7,8 @@ import(parallel)
 importFrom(foreach, "%dopar%", foreach, getDoParName,
     getDoParRegistered, getDoParWorkers)
 
+importFrom(iterators, isplit)
+
 importFrom(tools, SIGTERM)
 
 exportClass(BiocParallelParam, MulticoreParam, SnowParam,
