@@ -90,6 +90,21 @@ setMethod(bplapply, c("ANY", "ANY", "SnowParam"),
     parLapply(bpbackend(param), X, FUN, ...)
 })
 
+setMethod(bpvec, c("ANY", "ANY", "SnowParam"),
+    function(X, FUN, ..., param)
+{
+    FUN <- match.fun(FUN)
+    if (!bpisup(param)) {
+        param <- bpstart(param)
+        on.exit(bpstop(param))
+    }
+    cl <- bpbackend(param)
+    si <- .splitIndices(length(X), bpworkers(param))
+    argfun <- function(i) c(list(X[si[[i]]]), list(...))
+    res <- parallel:::staticClusterApply(cl, FUN, length(si), argfun)
+    do.call(c, unname(res))
+})
+
 setMethod(show, "SnowParam",
     function(object)
 {

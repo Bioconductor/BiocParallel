@@ -45,3 +45,15 @@ setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
     ans <- foreach(x=X) %dopar% FUN(x, ...)
     setNames(ans, names(X))
 })
+
+setMethod(bpvec, c("ANY", "ANY", "DoparParam"),
+    function(X, FUN, ..., param)
+{
+    FUN <- match.fun(FUN)
+    if (!bpisup(param))
+        return(bpvec(X, FUN, ..., param=SerialParam()))
+    si <- .splitIndices(length(X), bpworkers(param))
+    sf <- factor(rep(seq_along(si), sapply(si, length)))
+    x <- NULL                           # For R CMD check
+    foreach(x=isplit(X, sf), .combine=c) %dopar% FUN(x$value, ...)
+})
