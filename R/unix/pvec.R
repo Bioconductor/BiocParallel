@@ -19,7 +19,8 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 ### Derived from multicore version 0.1-6 by Simon Urbanek
 
-pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
+pvec <- function(v, FUN, ..., AGGREGATE=c,
+                 mc.set.seed = TRUE, mc.silent = FALSE,
                  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
                  mc.preschedule=FALSE, num.chunks, chunk.size)
 {
@@ -40,14 +41,11 @@ pvec <- function(v, FUN, ..., mc.set.seed = TRUE, mc.silent = FALSE,
         }
     }
     si <- splitIndices(n, num.chunks)
-    res <- do.call(c,
-                   mclapply(si, function(i) FUN(v[i], ...),
-                            mc.set.seed=mc.set.seed,
-                            mc.silent=mc.silent,
-                            mc.cores=mc.cores,
-                            mc.cleanup=mc.cleanup,
-                            mc.preschedule=mc.preschedule))
-    if (length(res) != n)
-        warning("some results may be missing, folded or caused an error")
-    res
+    res0 <- mclapply(si, function(i) FUN(v[i], ...),
+                     mc.set.seed=mc.set.seed,
+                     mc.silent=mc.silent,
+                     mc.cores=mc.cores,
+                     mc.cleanup=mc.cleanup,
+                     mc.preschedule=mc.preschedule)
+    do.call(AGGREGATE, res0)
 }

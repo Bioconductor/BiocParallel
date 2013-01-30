@@ -1,4 +1,7 @@
 mclapply <- parallel::mclapply
 
-pvec <- function(..., mc.preschedule, num.chunks, chunk.size)
-  parallel::pvec(...)
+pvec <-
+    function(..., AGGREGATE, mc.preschedule, num.chunks, chunk.size)
+{
+    parallel::pvec(...)
+}

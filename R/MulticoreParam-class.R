@@ -67,14 +67,17 @@ setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
 })
 
 setMethod(bpvec, c("ANY", "ANY", "MulticoreParam"),
-    function(X, FUN, ..., param)
+    function(X, FUN, ..., AGGREGATE=c, param)
 {
     FUN <- match.fun(FUN)
+    AGGREGATE <- match.fun(AGGREGATE)
+
     if (!bpschedule(param))
         return(FUN(X, ...))
 
     cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
-    pvec(X, FUN, ..., mc.set.seed=param@setSeed,
+    pvec(X, FUN, ..., AGGREGATE=AGGREGATE,
+         mc.set.seed=param@setSeed,
          mc.silent=!param@verbose, mc.cores=bpworkers(param),
          mc.cleanup=cleanup)
 })
