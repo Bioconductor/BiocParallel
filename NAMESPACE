@@ -2,7 +2,9 @@
 
 import(methods)
 
-import(parallel)
+importFrom(parallel, detectCores, makeCluster, mccollect,
+           mcparallel, mc.reset.stream, nextRNGStream, parLapply,
+           splitIndices, stopCluster)
 
 importFrom(foreach, "%dopar%", foreach, getDoParName,
     getDoParRegistered, getDoParWorkers)
