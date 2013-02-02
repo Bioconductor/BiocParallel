@@ -43,42 +43,42 @@ setValidity("MulticoreParam",
 
 ## control
 
-setMethod(bpisup, "MulticoreParam", function(param, ...) TRUE)
+setMethod(bpisup, "MulticoreParam", function(x, ...) TRUE)
 
 setMethod(bpschedule, "MulticoreParam",
-    function(param, ...)
+    function(x, ...)
 {
-    (.Platform$OS.type != "windows") && (param@recursive || !isChild())
+    (.Platform$OS.type != "windows") && (x@recursive || !isChild())
 })
 
 ## evaluation
 
 setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
-    function(X, FUN, ..., param)
+    function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
-    if (!bpschedule(param))
+    if (!bpschedule(BPPARAM))
         return(lapply(X = X, FUN = FUN, ...))
 
-    cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
-    mclapply(X, FUN, ..., mc.set.seed=param@setSeed,
-             mc.silent=!param@verbose, mc.cores=bpworkers(param),
+    cleanup <- if (BPPARAM@cleanup) BPPARAM@cleanupSignal else FALSE
+    mclapply(X, FUN, ..., mc.set.seed=BPPARAM@setSeed,
+             mc.silent=!BPPARAM@verbose, mc.cores=bpworkers(BPPARAM),
              mc.cleanup=cleanup)
 })
 
 setMethod(bpvec, c("ANY", "ANY", "MulticoreParam"),
-    function(X, FUN, ..., AGGREGATE=c, param)
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
 
-    if (!bpschedule(param))
+    if (!bpschedule(BPPARAM))
         return(FUN(X, ...))
 
-    cleanup <- if (param@cleanup) param@cleanupSignal else FALSE
+    cleanup <- if (BPPARAM@cleanup) BPPARAM@cleanupSignal else FALSE
     pvec(X, FUN, ..., AGGREGATE=AGGREGATE,
-         mc.set.seed=param@setSeed,
-         mc.silent=!param@verbose, mc.cores=bpworkers(param),
+         mc.set.seed=BPPARAM@setSeed,
+         mc.silent=!BPPARAM@verbose, mc.cores=bpworkers(BPPARAM),
          mc.cleanup=cleanup)
 })
 

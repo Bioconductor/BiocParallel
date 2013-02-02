@@ -31,63 +31,63 @@ setAs("SOCKcluster", "SnowParam", function(from) {
 ## control
 
 setMethod(bpworkers, "SnowParam",
-    function(param, ...)
+    function(x, ...)
 {
-    if (bpisup(param))
-        length(bpbackend(param))
+    if (bpisup(x))
+        length(bpbackend(x))
     else
-        param@.clusterargs$spec
+        x@.clusterargs$spec
 })
 
 setMethod(bpstart, "SnowParam",
-    function(param, ...)
+    function(x, ...)
 {
-    if (!.controlled(param))
+    if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
-    bpbackend(param) <- do.call(makeCluster, param@.clusterargs)
-    invisible(param)
+    bpbackend(x) <- do.call(makeCluster, x@.clusterargs)
+    invisible(x)
 })
 
 setMethod(bpstop, "SnowParam",
-    function(param, ...)
+    function(x, ...)
 {
-    if (!.controlled(param))
+    if (!.controlled(x))
         stop("'bpstop' not available; instance from outside BiocParallel?")
-    stopCluster(param@cluster)
-    bpbackend(param) <- .nullCluster(param@.clusterargs$type)
-    invisible(param)
+    stopCluster(x@cluster)
+    bpbackend(x) <- .nullCluster(x@.clusterargs$type)
+    invisible(x)
 })
 
 setMethod(bpisup, "SnowParam",
-    function(param, ...)
+    function(x, ...)
 {
-    length(bpbackend(param)) != 0
+    length(bpbackend(x)) != 0
 })
 
 setMethod(bpbackend, "SnowParam",
-    function(param, ...)
+    function(x, ...)
 {
-    param@cluster
+    x@cluster
 })
 
 setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
-    function(param, ..., value)
+    function(x, ..., value)
 {
-    param@cluster <- value
-    param
+    x@cluster <- value
+    x
 })
 
 ## evaluation
 
 setMethod(bplapply, c("ANY", "ANY", "SnowParam"),
-    function(X, FUN, ..., param)
+    function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
-    if (!bpisup(param)) {
-        param <- bpstart(param)
-        on.exit(bpstop(param))
+    if (!bpisup(BPPARAM)) {
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM))
     }
-    parLapply(bpbackend(param), X, FUN, ...)
+    parLapply(bpbackend(BPPARAM), X, FUN, ...)
 })
 
 setMethod(show, "SnowParam",

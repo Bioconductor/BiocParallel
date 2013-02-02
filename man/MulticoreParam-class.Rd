@@ -28,11 +28,11 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
     cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
     ...) 
 
-\S4method{bplapply}{ANY,ANY,MulticoreParam}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,MulticoreParam}(X, FUN, ..., param)
+\S4method{bpvec}{ANY,ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
 
-\S4method{bparallelize}{ANY,MulticoreParam}(X, ..., param)
+\S4method{bparallelize}{ANY,MulticoreParam}(X, ..., BPPARAM)
 }
 
 \arguments{
@@ -46,7 +46,7 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
   \item{...}{Additional arguments to \code{FUN}, or for classes derived
     from \code{MulticoreParam}.}
 
-  \item{param}{An \code{MulticoreParam}-class instance.}
+  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
   \item{workers}{\code{integer(1)} number of cores to use for parallel
     evaluation.}
@@ -102,9 +102,9 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
 }
 
 \examples{
-param <- MulticoreParam()
-bplapply(1:10, sqrt, param=param)
-bpvec(1:10, sqrt, param=param)
+p <- MulticoreParam()
+bplapply(1:10, sqrt, BPPARAM=p)
+bpvec(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
 register(MulticoreParam(), default=TRUE)

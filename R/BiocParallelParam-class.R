@@ -14,15 +14,15 @@ setValidity("BiocParallelParam", function(object)
 })
 
 .controlled <-
-    function(param)
+    function(x)
 {
-    param@.controlled
+    x@.controlled
 }
 
 setMethod(bpworkers, "BiocParallelParam",
-   function(param, ...)
+   function(x, ...)
 {
-    param@workers
+    x@workers
 })
 
 setMethod(show, "BiocParallelParam",

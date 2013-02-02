@@ -1,9 +1,9 @@
-setMethod(bpisup, "ANY", function(param, ...) FALSE)
+setMethod(bpisup, "ANY", function(x, ...) FALSE)
 
 setMethod(bpisup, "missing",
-    function(param, ...)
+    function(x, ...)
 {
-    param <- registered()[[1]]
-    bpisup(param, ...)
+    x <- registered()[[1]]
+    bpisup(x, ...)
 })
 

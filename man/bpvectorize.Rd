@@ -16,11 +16,11 @@
 }
 
 \usage{
-bpvectorize(FUN, ..., param)
+bpvectorize(FUN, ..., BPPARAM)
 
-\S4method{bpvectorize}{ANY,ANY}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPPARAM)
 
-\S4method{bpvectorize}{ANY,missing}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPPARAM)
 
 }
 
@@ -34,7 +34,7 @@ bpvectorize(FUN, ..., param)
 
   \item{...}{Additional arguments to parallization, unused.}
 
-  \item{param}{An optional \code{\link{BiocParallelParam}} instance
+  \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evalutation.}
 
 }
@@ -43,13 +43,13 @@ bpvectorize(FUN, ..., param)
 
   The result of \code{bpvectorize} is a function with signature
   \code{\dots}; arguments to the returned function are the original
-  arugments \code{FUN}. \code{param} is used for parallel evaluation.
+  arugments \code{FUN}. \code{BPPARAM} is used for parallel evaluation.
 
-  When \code{param} is \code{missing}, \code{bpvectorize} uses
+  When \code{BPPARAM} is \code{missing}, \code{bpvectorize} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
 
-  When \code{param} is a class for which no method is defined (e.g.,
+  When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
 
   See \code{showMethods{bpvectorize}} for additional methods, if any.

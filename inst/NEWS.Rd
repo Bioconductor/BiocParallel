@@ -21,11 +21,22 @@
       \item \code{bpstart}, \code{bpstop}, \code{bpisup} for back-end
       management.
 
+      \item \code{bpvec} has a new argument \code{AGGREGATE}, a function
+      to specify how results are to be combined.
+
     }
 
   }
 
-%%  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{}
+  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
+
+    \itemize{
+
+      \item \code{BPPARM} is now used as the argument name for passing
+      BiocParallelParam instances to functions.
+
+    }
+  }
 
 %%  \subsection{BUG FIXES}{}
 

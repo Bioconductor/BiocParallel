@@ -14,7 +14,7 @@ test_bplapply_Params <- function()
     x <- 1:10
     expected <- lapply(x, sqrt)
     for (ptype in names(params)) {
-        obs <- bplapply(x, sqrt, param=params[[ptype]])
+        obs <- bplapply(x, sqrt, BPPARAM=params[[ptype]])
         checkIdentical(expected, obs)
     }
 }

@@ -53,9 +53,9 @@ SerialParam()
 }
 
 \examples{
-param <- SerialParam()
-simplify2array(bplapply(1:10, sqrt, param=param))
-bpvec(1:10, sqrt, param=param)
+p <- SerialParam()
+simplify2array(bplapply(1:10, sqrt, BPPARAM=p))
+bpvec(1:10, sqrt, PBPARAM=p)
 
 \dontrun{
 register(SerialParam(), default=TRUE)

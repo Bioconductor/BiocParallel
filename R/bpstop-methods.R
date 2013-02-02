@@ -1,9 +1,9 @@
-setMethod(bpstop, "ANY", function(param, ...) invisible(param))
+setMethod(bpstop, "ANY", function(x, ...) invisible(x))
 
 setMethod(bpstop, "missing",
-    function(param, ...)
+    function(x, ...)
 {
-    param <- registered()[[1]]
-    bpstop(param, ...)
+    x <- registered()[[1]]
+    bpstop(x, ...)
 })
 

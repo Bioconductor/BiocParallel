@@ -28,25 +28,25 @@
 }
 
 \usage{
-bpworkers(param, ...)
+bpworkers(x, ...)
 
-bpstart(param, ...)
-bpstop(param, ...)
-bpisup(param, ...)
+bpstart(x, ...)
+bpstop(x, ...)
+bpisup(x, ...)
 
-bpbackend(param, ...)
-bpbackend(param, ...) <- value
+bpbackend(x, ...)
+bpbackend(x, ...) <- value
 }
 
 \arguments{
   
-  \item{param}{
+  \item{x}{
 
     An instance of a \code{BiocParallelParam} class, e.g.,
     \code{\link{MulticoreParam}}, \code{\link{SnowParam}},
     \code{\link{DoparParam}}.
 
-    \code{param} can be missing, in which case the default back-end (see
+    \code{x} can be missing, in which case the default back-end (see
     \code{\link{register}}) is used.
 
   }
@@ -87,7 +87,7 @@ bpbackend(param, ...) <- value
 
   \code{bpisup} returns a scalar logical.
 
-  \code{bpstart}, \code{bpstop} return an updated \code{param},
+  \code{bpstart}, \code{bpstop} return an updated \code{x},
   invisibly.
 
   \code{bpbackend}, \code{bpbackend<-} return or accept back
@@ -101,7 +101,7 @@ bpbackend(param, ...) <- value
 
 \seealso{
 
-  \code{\link{BiocParallelParam}} for possible values of \code{param}.
+  \code{\link{BiocParallelParam}} for possible values of \code{x}.
 
 }
 
@@ -112,11 +112,11 @@ bpworkers(SerialParam())
   p <- SnowParam(2L)
   bpworkers(p)          # 2 local nodes, communicating via sockets
   bpstart(p)            # start cluster
-  bplapply(1:10, sqrt, param=p)
+  bplapply(1:10, sqrt, BPPARAM=p)
   bpstop(p)             # stop cluster
 
   p <- SnowParam(4L)
-  bplapply(1:10, sqrt, param=p)  # automatically start / stop cluster
+  bplapply(1:10, sqrt, BPPARAM=p)  # automatically start / stop cluster
 }  
 
 }

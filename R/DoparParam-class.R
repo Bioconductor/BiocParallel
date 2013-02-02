@@ -15,15 +15,15 @@ DoparParam <- function() .DoparParamSingleton
 ## control
 
 setMethod(bpworkers, "DoparParam",
-    function(param, ...)
+    function(x, ...)
 {
-    if (bpisup(param))
+    if (bpisup(x))
         getDoParWorkers()
     else 0L
 })
 
 setMethod(bpisup, "DoparParam",
-    function(param, ...)
+    function(x, ...)
 {
     ("package:foreach" %in% search()) &&
         getDoParRegistered() && (getDoParName() != "doSEQ") &&
@@ -33,13 +33,13 @@ setMethod(bpisup, "DoparParam",
 ## evaluation
 
 setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
-    function(X, FUN, ..., param)
+    function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
     ## If no parallel backend is registered for foreach, fall back to
     ## the serial backend.
-    if (!bpisup(param))
-        return(bplapply(X, FUN, ..., param=SerialParam()))
+    if (!bpisup(BPPARAM))
+        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     x <- NULL                           # quieten R CMD check
     ans <- foreach(x=X) %dopar% FUN(x, ...)

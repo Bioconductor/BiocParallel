@@ -33,7 +33,7 @@ SnowParam(workers = 0L, type, ...)
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 
-\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
@@ -59,7 +59,7 @@ SnowParam(workers = 0L, type, ...)
   \item{...}{Additional arguments to \code{FUN}, or for classes derived
     from \code{MulticoreParam}.}
 
-  \item{param}{An \code{MulticoreParam}-class instance.}
+  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
 }
 
@@ -100,9 +100,9 @@ SnowParam(workers = 0L, type, ...)
 }
 
 \examples{
-param <- SnowParam(2L)
-bplapply(1:10, sqrt, param=param)
-bpvec(1:10, sqrt, param=param)
+p <- SnowParam(2L)
+bplapply(1:10, sqrt, BPPARAM=p)
+bpvec(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
 register(SnowParam(2L), default=TRUE)

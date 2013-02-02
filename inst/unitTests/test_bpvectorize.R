@@ -8,6 +8,7 @@ params <- list(mc=MulticoreParam(2),
 x <- 1:10
 expected <- sqrt(x)
 for (ptype in names(params)) {
-    psqrt <- bpvectorize(sqrt, param=params[[ptype]])
-    checkIdentical(expected, psqrt(x), paste(ptype, "param works with bplapply"))
+    psqrt <- bpvectorize(sqrt, BPPARAM=params[[ptype]])
+    checkIdentical(expected, psqrt(x),
+                   paste(ptype, "BPPARAM works with bplapply"))
 }

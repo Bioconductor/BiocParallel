@@ -7,6 +7,6 @@ SerialParam <- function() .SerialParamSingleton
 
 ## control
 
-setMethod(bpworkers, "SerialParam", function(param, ...) 1L)
+setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
 
-setMethod(bpisup, "SerialParam", function(param, ...) TRUE)
+setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
