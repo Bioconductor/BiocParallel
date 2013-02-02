@@ -7,7 +7,7 @@
 
 \description{
 
-  This transforms a vectorized function into a parallelized, vectorized
+  This transforms a vectorized function into a parallel, vectorized
   function. Any function \code{FUN} can be used, provided its
   parallelized argument (by default, the first argument) has a
   \code{length} and \code{[} method defined, and the return value of
@@ -35,7 +35,7 @@ bpvectorize(FUN, ..., BPPARAM)
   \item{...}{Additional arguments to parallization, unused.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evalutation.}
+    determining the parallel back-end to be used during evaluation.}
 
 }
 
@@ -43,7 +43,7 @@ bpvectorize(FUN, ..., BPPARAM)
 
   The result of \code{bpvectorize} is a function with signature
   \code{\dots}; arguments to the returned function are the original
-  arugments \code{FUN}. \code{BPPARAM} is used for parallel evaluation.
+  arguments \code{FUN}. \code{BPPARAM} is used for parallel evaluation.
 
   When \code{BPPARAM} is \code{missing}, \code{bpvectorize} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
@@ -59,7 +59,7 @@ bpvectorize(FUN, ..., BPPARAM)
 \value{
 
   A function taking the same arguments as \code{FUN}, but evaluated
-  using \code{\link{bpvec}} to parallelize evaluation across available
+  using \code{\link{bpvec}} for parallel evaluation across available
   cores.
 
 }

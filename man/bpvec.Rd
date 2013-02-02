@@ -16,13 +16,13 @@
 }
 
 \usage{
-bpvec(X, FUN, ..., BPPARAM)
+bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,ANY}(X, FUN, ..., BPPARAM)
+\S4method{bpvec}{ANY,ANY}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., BPPARAM)
+\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,missing}(X, FUN, ..., BPPARAM)
+\S4method{bpvec}{ANY,missing}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 }
 
 \arguments{
@@ -34,6 +34,12 @@ bpvec(X, FUN, ..., BPPARAM)
   \item{FUN}{The \code{function} to be applied to subsets of \code{X}.}
 
   \item{\dots}{Additional arguments for \code{FUN}.}
+
+  \item{AGGREGATE}{A function taking any number of arguments \code{...}
+    called to reduce results (elements of the \code{...} argument of
+    \code{AGGREGATE} from parallel jobs. The default, \code{c},
+    concatenates objects and is appropriate for vectors; \code{rbind}
+    might be appropriate for data frames.}
 
   \item{BPPARAM}{A optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
@@ -48,8 +54,8 @@ bpvec(X, FUN, ..., BPPARAM)
 
   When \code{BPPARAM} is an instance of a class derived from
   \code{BiocParallelParam} for which no other method applies, this
-  method creates a vector of indicies and uses these in conjuction with
-  \code{bplapply} to arrange for parallelized evaluation.
+  method creates a vector of indexes and uses these in conjunction with
+  \code{bplapply} to arrange for parallel evaluation.
 
   When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.

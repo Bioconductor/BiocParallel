@@ -1,7 +1,7 @@
 \name{bplapply}
 \alias{bplapply}
-\alias{bplapply,ANY-method}
-\alias{bplapply,missing-method}
+\alias{bplapply,ANY,ANY-method}
+\alias{bplapply,ANY,missing-method}
 
 \title{Parallel lapply-like functionality}
 

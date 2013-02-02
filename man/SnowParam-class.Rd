@@ -18,12 +18,12 @@
 
 \alias{show,SnowParam-method}
 
-\title{Enable simple network of workstations (SNOW) parallelism}
+\title{Enable simple network of workstations (SNOW) parallel evaluation}
 
 \description{
 
   This class is used to parameterize simple network of workstations
-  (SNOW) parallelism on one or several physical computers.
+  (SNOW) parallel evaluation on one or several physical computers.
 
 }
 
@@ -81,7 +81,7 @@ SnowParam(workers = 0L, type, ...)
 \section{Methods}{
 
   The following generics are implemented and perform as documented on
-  the corresonding help page (e.g., \code{?bpisup}):
+  the corresponding help page (e.g., \code{?bpisup}):
   \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
   \code{\link{bpisup}}, \code{\link{bpbackend}},
   \code{\link{bpbackend<-}}, \code{\link{bpvec}}.

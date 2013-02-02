@@ -23,7 +23,7 @@
 \description{
 
   Use functions on this page to start, stop, and query the
-  \sQuote{back-ends} that performa parallel evaluation.
+  \sQuote{back-ends} that perform a parallel evaluation.
 
 }
 
@@ -53,7 +53,7 @@ bpbackend(x, ...) <- value
 
   \item{...}{Additional arguments, perhaps used by methods.}
 
-  \item{value}{Replace value for backend.}
+  \item{value}{Replace value for back-end.}
 
 }
 
