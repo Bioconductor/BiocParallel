@@ -8,8 +8,8 @@
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
 
-\alias{bplapply,ANY,ANY,MulticoreParam-method}
-\alias{bpvec,ANY,ANY,MulticoreParam-method}
+\alias{bplapply,ANY,MulticoreParam-method}
+\alias{bpvec,ANY,MulticoreParam-method}
 \alias{bparallelize,ANY,MulticoreParam-method}
 
 \alias{show,MulticoreParam-method}
@@ -28,9 +28,9 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
     cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
     ...) 
 
-\S4method{bplapply}{ANY,ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
+\S4method{bpvec}{ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
 
 \S4method{bparallelize}{ANY,MulticoreParam}(X, ..., BPPARAM)
 }

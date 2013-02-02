@@ -53,7 +53,7 @@ setMethod(bpschedule, "MulticoreParam",
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
+setMethod(bplapply, c("ANY", "MulticoreParam"),
     function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
@@ -66,7 +66,7 @@ setMethod(bplapply, c("ANY", "ANY", "MulticoreParam"),
              mc.cleanup=cleanup)
 })
 
-setMethod(bpvec, c("ANY", "ANY", "MulticoreParam"),
+setMethod(bpvec, c("ANY", "MulticoreParam"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)

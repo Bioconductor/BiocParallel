@@ -14,7 +14,7 @@
 \alias{bpstop,SnowParam-method}
 \alias{bpworkers,SnowParam-method}
 
-\alias{bplapply,ANY,ANY,SnowParam-method}
+\alias{bplapply,ANY,SnowParam-method}
 
 \alias{show,SnowParam-method}
 
@@ -33,7 +33,7 @@ SnowParam(workers = 0L, type, ...)
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 
-\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,SnowParam}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{

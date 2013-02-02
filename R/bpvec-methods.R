@@ -1,4 +1,4 @@
-setMethod(bpvec, c("ANY", "ANY", "ANY"),
+setMethod(bpvec, c("ANY", "ANY"),
     function(X, FUN, ..., AGGREGATE=c,  BPPARAM)
 {
     FUN <- match.fun(FUN)
@@ -6,7 +6,7 @@ setMethod(bpvec, c("ANY", "ANY", "ANY"),
     FUN(X, ..., AGGREGATE=AGGREGATE)
 })
 
-setMethod(bpvec, c("ANY", "ANY", "BiocParallelParam"),
+setMethod(bpvec, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)
@@ -21,7 +21,7 @@ setMethod(bpvec, c("ANY", "ANY", "BiocParallelParam"),
     do.call(AGGREGATE, ans)
 })
 
-setMethod(bpvec, c("ANY", "ANY", "missing"),
+setMethod(bpvec, c("ANY", "missing"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)

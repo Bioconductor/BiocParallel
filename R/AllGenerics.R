@@ -1,7 +1,7 @@
-setGeneric("bplapply",
+setGeneric("bplapply", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., BPPARAM) standardGeneric("bplapply"))
 
-setGeneric("bpvec", signature=c("X", "FUN", "param"),
+setGeneric("bpvec", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvec"))
 
 setGeneric("bpvectorize",

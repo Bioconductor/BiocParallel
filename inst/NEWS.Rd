@@ -35,6 +35,9 @@
       \item \code{BPPARM} is now used as the argument name for passing
       BiocParallelParam instances to functions.
 
+      \item \code{bplapply} and \code{bpvec} now only dispatch on
+      \code{X} and \code{BPPARAM}.
+
     }
   }
 

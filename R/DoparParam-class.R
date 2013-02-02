@@ -32,7 +32,7 @@ setMethod(bpisup, "DoparParam",
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "ANY", "DoparParam"),
+setMethod(bplapply, c("ANY", "DoparParam"),
     function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)

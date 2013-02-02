@@ -79,7 +79,7 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "ANY", "SnowParam"),
+setMethod(bplapply, c("ANY", "SnowParam"),
     function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)

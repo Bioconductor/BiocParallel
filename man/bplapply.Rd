@@ -1,7 +1,7 @@
 \name{bplapply}
 \alias{bplapply}
-\alias{bplapply,ANY,ANY,ANY-method}
-\alias{bplapply,ANY,ANY,missing-method}
+\alias{bplapply,ANY-method}
+\alias{bplapply,missing-method}
 
 \title{Parallel lapply-like functionality}
 
@@ -17,9 +17,9 @@
 \usage{
 bplapply(X, FUN, ..., BPPARAM)
 
-\S4method{bplapply}{ANY,ANY,ANY}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM)
 
-\S4method{bplapply}{ANY,ANY,missing}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
