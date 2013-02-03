@@ -7,7 +7,7 @@
 
 \description{
 
-  This transforms a vectorized function into a parallelized, vectorized
+  This transforms a vectorized function into a parallel, vectorized
   function. Any function \code{FUN} can be used, provided its
   parallelized argument (by default, the first argument) has a
   \code{length} and \code{[} method defined, and the return value of
@@ -16,11 +16,11 @@
 }
 
 \usage{
-bpvectorize(FUN, ..., param)
+bpvectorize(FUN, ..., BPPARAM)
 
-\S4method{bpvectorize}{ANY,ANY}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPPARAM)
 
-\S4method{bpvectorize}{ANY,missing}(FUN, ..., param)
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPPARAM)
 
 }
 
@@ -34,8 +34,8 @@ bpvectorize(FUN, ..., param)
 
   \item{...}{Additional arguments to parallization, unused.}
 
-  \item{param}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evalutation.}
+  \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
+    determining the parallel back-end to be used during evaluation.}
 
 }
 
@@ -43,13 +43,13 @@ bpvectorize(FUN, ..., param)
 
   The result of \code{bpvectorize} is a function with signature
   \code{\dots}; arguments to the returned function are the original
-  arugments \code{FUN}. \code{param} is used for parallel evaluation.
+  arguments \code{FUN}. \code{BPPARAM} is used for parallel evaluation.
 
-  When \code{param} is \code{missing}, \code{bpvectorize} uses
+  When \code{BPPARAM} is \code{missing}, \code{bpvectorize} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
 
-  When \code{param} is a class for which no method is defined (e.g.,
+  When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
 
   See \code{showMethods{bpvectorize}} for additional methods, if any.
@@ -59,7 +59,7 @@ bpvectorize(FUN, ..., param)
 \value{
 
   A function taking the same arguments as \code{FUN}, but evaluated
-  using \code{\link{bpvec}} to parallelize evaluation across available
+  using \code{\link{bpvec}} for parallel evaluation across available
   cores.
 
 }

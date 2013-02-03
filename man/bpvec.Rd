@@ -1,8 +1,8 @@
 \name{bpvec}
 \alias{bpvec}
-\alias{bpvec,ANY,ANY,ANY-method}
-\alias{bpvec,ANY,ANY,BiocParallelParam-method}
-\alias{bpvec,ANY,ANY,missing-method}
+\alias{bpvec,ANY,ANY-method}
+\alias{bpvec,ANY,BiocParallelParam-method}
+\alias{bpvec,ANY,missing-method}
 
 \title{Parallel, vectorized evaluation}
 
@@ -16,13 +16,13 @@
 }
 
 \usage{
-bpvec(X, FUN, ..., param)
+bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,ANY}(X, FUN, ..., param)
+\S4method{bpvec}{ANY,ANY}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,BiocParallelParam}(X, FUN, ..., param)
+\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,missing}(X, FUN, ..., param)
+\S4method{bpvec}{ANY,missing}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 }
 
 \arguments{
@@ -35,23 +35,29 @@ bpvec(X, FUN, ..., param)
 
   \item{\dots}{Additional arguments for \code{FUN}.}
 
-  \item{param}{A optional \code{\link{BiocParallelParam}} instance
+  \item{AGGREGATE}{A function taking any number of arguments \code{...}
+    called to reduce results (elements of the \code{...} argument of
+    \code{AGGREGATE} from parallel jobs. The default, \code{c},
+    concatenates objects and is appropriate for vectors; \code{rbind}
+    might be appropriate for data frames.}
+
+  \item{BPPARAM}{A optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
 
 }
 
 \details{
 
-  When \code{param} is \code{missing}, \code{bpvec} uses
+  When \code{BPPARAM} is \code{missing}, \code{bpvec} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
 
-  When \code{param} is an instance of a class derived from
+  When \code{BPPARAM} is an instance of a class derived from
   \code{BiocParallelParam} for which no other method applies, this
-  method creates a vector of indicies and uses these in conjuction with
-  \code{bplapply} to arrange for parallelized evaluation.
+  method creates a vector of indexes and uses these in conjunction with
+  \code{bplapply} to arrange for parallel evaluation.
 
-  When \code{param} is a class for which no method is defined (e.g.,
+  When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
 
   See \code{showMethods{bpvec}} for additional methods, e.g.,
@@ -75,7 +81,7 @@ bpvec(X, FUN, ..., param)
 
   \code{\link{bplapply}} for parallel lapply.
 
-  \code{\link{BiocParallelParam}} for possible values of \code{param}.
+  \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
 
 }
 
@@ -83,7 +89,7 @@ bpvec(X, FUN, ..., param)
 showMethods("bpvec")
 
 ## ten tasks (1:10), called with as many back-end elements are specified
-## by param.  Compare with bplapply
+## by BPPARAM.  Compare with bplapply
 system.time(result <- bpvec(1:10, function(v) {
     message("working") ## 10 tasks
     sqrt(v)

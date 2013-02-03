@@ -1,31 +1,31 @@
-setGeneric("bplapply",
-    function(X, FUN, ..., param) standardGeneric("bplapply"))
+setGeneric("bplapply", signature=c("X", "BPPARAM"),
+    function(X, FUN, ..., BPPARAM) standardGeneric("bplapply"))
 
-setGeneric("bpvec",
-    function(X, FUN, ..., param) standardGeneric("bpvec"))
+setGeneric("bpvec", signature=c("X", "BPPARAM"),
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvec"))
 
 setGeneric("bpvectorize",
-    function(FUN, ..., param) standardGeneric("bpvectorize"))
+    function(FUN, ..., BPPARAM) standardGeneric("bpvectorize"))
 
 setGeneric("bpworkers",
-    function(param, ...) standardGeneric("bpworkers"))
+    function(x, ...) standardGeneric("bpworkers"))
 
 setGeneric("bpstart",
-    function(param, ...) standardGeneric("bpstart"))
+    function(x, ...) standardGeneric("bpstart"))
 
 setGeneric("bpstop",
-    function(param, ...) standardGeneric("bpstop"))
+    function(x, ...) standardGeneric("bpstop"))
 
 setGeneric("bpisup",
-    function(param, ...) standardGeneric("bpisup"))
+    function(x, ...) standardGeneric("bpisup"))
 
 setGeneric("bpbackend",
-    function(param, ...) standardGeneric("bpbackend"))
+    function(x, ...) standardGeneric("bpbackend"))
 
 setGeneric("bpbackend<-",
-    function(param, ..., value) standardGeneric("bpbackend<-"))
+    function(x, ..., value) standardGeneric("bpbackend<-"))
 
 ## scheduling
 
 setGeneric("bpschedule",
-    function(param, ...) standardGeneric("bpschedule"))
+    function(x, ...) standardGeneric("bpschedule"))

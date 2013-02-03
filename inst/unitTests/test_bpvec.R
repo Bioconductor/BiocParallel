@@ -14,7 +14,7 @@ test_bpvec_Params <- function()
     x <- 1:10
     expected <- sqrt(x)
     for (ptype in names(params)) {
-        obs <- bpvec(x, sqrt, param=params[[ptype]])
+        obs <- bpvec(x, sqrt, BPPARAM=params[[ptype]])
         checkIdentical(expected, obs)
     }
 }
