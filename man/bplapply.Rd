@@ -1,7 +1,7 @@
 \name{bplapply}
 \alias{bplapply}
-\alias{bplapply,ANY,ANY,ANY-method}
-\alias{bplapply,ANY,ANY,missing-method}
+\alias{bplapply,ANY,ANY-method}
+\alias{bplapply,ANY,missing-method}
 
 \title{Parallel lapply-like functionality}
 
@@ -15,11 +15,11 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., param)
+bplapply(X, FUN, ..., BPPARAM)
 
-\S4method{bplapply}{ANY,ANY,ANY}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM)
 
-\S4method{bplapply}{ANY,ANY,missing}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
@@ -33,18 +33,18 @@ bplapply(X, FUN, ..., param)
   \item{\dots}{Additional arguments for \code{FUN}, as in
     \code{\link{lapply}}}
 
-  \item{param}{An optional \code{\link{BiocParallelParam}} instance
+  \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
 
 }
 
 \details{
 
-  When \code{param} is \code{missing}, \code{bplapply} uses
+  When \code{BPPARAM} is \code{missing}, \code{bplapply} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
 
-  When \code{param} is a class for which no method is defined (e.g.,
+  When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{\link[base]{lapply}} is used.
 
   See \code{showMethods{bplapply}} for additional methods, e.g.,
@@ -64,7 +64,7 @@ bplapply(X, FUN, ..., param)
   \code{\link{bpvec}} for parallel, vectorized
   calculations.
 
-  \code{\link{BiocParallelParam}} for possible values of \code{param}.
+  \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
 
 }
 

@@ -14,16 +14,16 @@
 \alias{bpstop,SnowParam-method}
 \alias{bpworkers,SnowParam-method}
 
-\alias{bplapply,ANY,ANY,SnowParam-method}
+\alias{bplapply,ANY,SnowParam-method}
 
 \alias{show,SnowParam-method}
 
-\title{Enable simple network of workstations (SNOW) parallelism}
+\title{Enable simple network of workstations (SNOW) parallel evaluation}
 
 \description{
 
   This class is used to parameterize simple network of workstations
-  (SNOW) parallelism on one or several physical computers.
+  (SNOW) parallel evaluation on one or several physical computers.
 
 }
 
@@ -33,7 +33,7 @@ SnowParam(workers = 0L, type, ...)
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 
-\S4method{bplapply}{ANY,ANY,SnowParam}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,SnowParam}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
@@ -59,7 +59,7 @@ SnowParam(workers = 0L, type, ...)
   \item{...}{Additional arguments to \code{FUN}, or for classes derived
     from \code{MulticoreParam}.}
 
-  \item{param}{An \code{MulticoreParam}-class instance.}
+  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
 }
 
@@ -81,7 +81,7 @@ SnowParam(workers = 0L, type, ...)
 \section{Methods}{
 
   The following generics are implemented and perform as documented on
-  the corresonding help page (e.g., \code{?bpisup}):
+  the corresponding help page (e.g., \code{?bpisup}):
   \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
   \code{\link{bpisup}}, \code{\link{bpbackend}},
   \code{\link{bpbackend<-}}, \code{\link{bpvec}}.
@@ -100,9 +100,9 @@ SnowParam(workers = 0L, type, ...)
 }
 
 \examples{
-param <- SnowParam(2L)
-bplapply(1:10, sqrt, param=param)
-bpvec(1:10, sqrt, param=param)
+p <- SnowParam(2L)
+bplapply(1:10, sqrt, BPPARAM=p)
+bpvec(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
 register(SnowParam(2L), default=TRUE)

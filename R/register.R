@@ -1,20 +1,20 @@
 .registry <- setRefClass(".BiocParallelRegistry",
-    fields = list(params = "list"),
+    fields = list(bpparams = "list"),
     methods = list(
-      register = function(param, default = TRUE) {
-          if ((!length(param) == 1) || (!is(param, "BiocParallelParam")))
-              stop("'param' must be a 'BiocParallelParam' instance")
-          .self$params[[class(param)]] <- param
+      register = function(BPPARAM, default = TRUE) {
+          if ((!length(BPPARAM) == 1) || (!is(BPPARAM, "BiocParallelParam")))
+              stop("'BPPARAM' must be a 'BiocParallelParam' instance")
+          .self$bpparams[[class(BPPARAM)]] <- BPPARAM
           if (default) {
-              idx <- match(class(param), names(.self$params))
-              .self$params <- c(.self$params[idx], .self$params[-idx])
+              idx <- match(class(BPPARAM), names(.self$bpparams))
+              .self$bpparams <- c(.self$bpparams[idx], .self$bpparams[-idx])
           }
           invisible(registered())
       },
-      registered = function(paramClass) {
-          if (missing(paramClass))
-              params
-          else params[[paramClass]]
+      registered = function(bpparamClass) {
+          if (missing(bpparamClass))
+              bpparams
+          else bpparams[[bpparamClass]]
       }))$new()                         # Singleton
 
 register <- .registry$register

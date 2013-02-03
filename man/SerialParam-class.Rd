@@ -34,7 +34,7 @@ SerialParam()
 \section{Methods}{
 
   The following generics are implemented and perform as documented on
-  the corresonding help page (e.g., \code{?bpworkers}):
+  the corresponding help page (e.g., \code{?bpworkers}):
   \code{\link{bpworkers}}. \code{\link{bpisup}}, \code{\link{bpstart}},
   \code{\link{bpstop}}, are implemented, but do not have any
   side-effects.
@@ -53,9 +53,9 @@ SerialParam()
 }
 
 \examples{
-param <- SerialParam()
-simplify2array(bplapply(1:10, sqrt, param=param))
-bpvec(1:10, sqrt, param=param)
+p <- SerialParam()
+simplify2array(bplapply(1:10, sqrt, BPPARAM=p))
+bpvec(1:10, sqrt, PBPARAM=p)
 
 \dontrun{
 register(SerialParam(), default=TRUE)

@@ -8,13 +8,13 @@
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
 
-\alias{bplapply,ANY,ANY,MulticoreParam-method}
-\alias{bpvec,ANY,ANY,MulticoreParam-method}
+\alias{bplapply,ANY,MulticoreParam-method}
+\alias{bpvec,ANY,MulticoreParam-method}
 \alias{bparallelize,ANY,MulticoreParam-method}
 
 \alias{show,MulticoreParam-method}
 
-\title{Enable multi-core parallelism}
+\title{Enable multi-core parallel evaluation}
 
 \description{
 
@@ -28,11 +28,11 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
     cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
     ...) 
 
-\S4method{bplapply}{ANY,ANY,MulticoreParam}(X, FUN, ..., param)
+\S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
 
-\S4method{bpvec}{ANY,ANY,MulticoreParam}(X, FUN, ..., param)
+\S4method{bpvec}{ANY,MulticoreParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
-\S4method{bparallelize}{ANY,MulticoreParam}(X, ..., param)
+\S4method{bparallelize}{ANY,MulticoreParam}(X, ..., BPPARAM)
 }
 
 \arguments{
@@ -46,7 +46,13 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
   \item{...}{Additional arguments to \code{FUN}, or for classes derived
     from \code{MulticoreParam}.}
 
-  \item{param}{An \code{MulticoreParam}-class instance.}
+  \item{AGGREGATE}{A function taking any number of arguments \code{...}
+    called to reduce results (elements of the \code{...} argument of
+    \code{AGGREGATE} from parallel jobs. The default, \code{c},
+    concatenates objects and is appropriate for vectors; \code{rbind}
+    might be appropriate for data frames.}
+
+  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
   \item{workers}{\code{integer(1)} number of cores to use for parallel
     evaluation.}
@@ -55,8 +61,8 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
     \code{\link[parallel]{mcparallel}} argument \code{mc.set.seed}.}
 
   \item{recursive}{\code{logical(1)} indicating whether recursive calls
-    are parallelized; see \code{\link[parallel]{mclapply}} argument
-    \code{mc.allow.recursive}.}
+    are evaluated in parallel; see \code{\link[parallel]{mclapply}}
+    argument \code{mc.allow.recursive}.}
 
   \item{cleanup}{\code{logical(1)} indicating whether forked children
     will be terminated before \code{bplapply} returns, as for
@@ -83,7 +89,7 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
 \section{Methods}{
 
   The following generics are implemented and perform as documented on
-  the corresonding help page (e.g., \code{?bpisup}):
+  the corresponding help page (e.g., \code{?bpisup}):
   \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
   \code{\link{bpisup}}, \code{\link{bpschedule}},
   \code{\link{bpbackend}}.
@@ -102,9 +108,9 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
 }
 
 \examples{
-param <- MulticoreParam()
-bplapply(1:10, sqrt, param=param)
-bpvec(1:10, sqrt, param=param)
+p <- MulticoreParam()
+bplapply(1:10, sqrt, BPPARAM=p)
+bpvec(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
 register(MulticoreParam(), default=TRUE)

@@ -14,18 +14,18 @@
 }
 
 \usage{
-bpschedule(param, ...)
+bpschedule(x, ...)
 }
 
 \arguments{
   
-  \item{param}{
+  \item{x}{
 
     An instance of a \code{BiocParallelParam} class, e.g.,
     \code{\link{MulticoreParam}}, \code{\link{SnowParam}},
     \code{\link{DoparParam}}.
 
-    \code{param} can be missing, in which case the default back-end (see
+    \code{x} can be missing, in which case the default back-end (see
     \code{\link{register}}) is used.
 
   }
@@ -53,7 +53,7 @@ bpschedule(param, ...)
 
 \seealso{
 
-  \code{\link{BiocParallelParam}} for possible values of \code{param}.
+  \code{\link{BiocParallelParam}} for possible values of \code{x}.
 
 }
 
@@ -65,7 +65,7 @@ p <- MulticoreParam(recursive=FALSE)
 bpschedule(p)                           # TRUE
 bplapply(1:2, function(i, p) {
     bpschedule(p)                       # FALSE
-}, p = p, param=p)
+}, p = p, BPPARAM=p)
 }
 
 \keyword{manip}

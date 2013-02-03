@@ -1,14 +1,14 @@
-setMethod(bplapply, c("ANY", "ANY", "ANY"),
-    function(X, FUN, ..., param)
+setMethod(bplapply, c("ANY", "ANY"),
+    function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
     lapply(X, FUN, ...)
 })
 
-setMethod(bplapply, c("ANY", "ANY", "missing"),
-    function(X, FUN, ..., param)
+setMethod(bplapply, c("ANY", "missing"),
+    function(X, FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
-    param <- registered()[[1]]
-    bplapply(X, FUN, ..., param=param)
+    x <- registered()[[1]]
+    bplapply(X, FUN, ..., BPPARAM=x)
 })

@@ -1,9 +1,9 @@
-setMethod(bpschedule, "ANY", function(param, ...) TRUE)
+setMethod(bpschedule, "ANY", function(x, ...) TRUE)
 
 setMethod(bpschedule, "missing",
-    function(param, ...)
+    function(x, ...)
 {
-    param <- registered()[[1]]
-    bpschedule(param, ...)
+    x <- registered()[[1]]
+    bpschedule(x, ...)
 })
 
