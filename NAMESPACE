@@ -2,9 +2,12 @@
 
 import(methods)
 
-importFrom(parallel, detectCores, makeCluster, mccollect,
-           mcparallel, mc.reset.stream, nextRNGStream, parLapply,
-           splitIndices, stopCluster)
+importFrom(parallel, detectCores, makeCluster, nextRNGStream,
+           parLapply, splitIndices, stopCluster)
+
+if (tools:::.OStype() == "unix") {
+    importFrom(parallel, mccollect, mcparallel, mc.reset.stream)
+}
 
 importFrom(foreach, "%dopar%", foreach, getDoParName,
     getDoParRegistered, getDoParWorkers)
