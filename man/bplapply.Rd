@@ -69,7 +69,7 @@ bplapply(X, FUN, ..., BPPARAM)
 }
 
 \examples{
-showMethods("bplappy")
+showMethods("bplapply")
 
 ## ten tasks (1:10) so ten calls to FUN default registered parallel
 ## back-end. Compare with bpvec.
