@@ -58,15 +58,15 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
     evaluation.}
 
   \item{setSeed}{\code{logical(1)}, as described in
-    \code{\link[parallel]{mcparallel}} argument \code{mc.set.seed}.}
+    \code{parallel::mcparallel} argument \code{mc.set.seed}.}
 
   \item{recursive}{\code{logical(1)} indicating whether recursive calls
-    are evaluated in parallel; see \code{\link[parallel]{mclapply}}
+    are evaluated in parallel; see \code{parallel::mclapply}
     argument \code{mc.allow.recursive}.}
 
   \item{cleanup}{\code{logical(1)} indicating whether forked children
     will be terminated before \code{bplapply} returns, as for
-    \code{\link[parallel]{mclapply}} argument \code{cleanup}. If
+    \code{parallel::mclapply} argument \code{cleanup}. If
     \code{TRUE}, then the signal sent to the child is
     \code{cleanupSignal}.}
 
@@ -75,7 +75,7 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
 
   \item{verbose}{\code{logical(1)} when \code{TRUE} echo stdout of
     forked processes. This is the complement of
-    \code{\link[parallel]{mclapply}}'s argument \code{mc.silent}.}
+    \code{parallel::mclapply}'s argument \code{mc.silent}.}
 
 }
 
