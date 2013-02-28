@@ -1,5 +1,18 @@
 library(doParallel)                     # FIXME: unload?
 
+.fork_not_windows <- function(expected, expr)
+{
+    err <- NULL
+    obs <- tryCatch(expr, error=function(e) {
+        if (!all(grepl("fork clusters are not supported on Windows",
+                       conditionMessage(e))))
+            err <<- conditionMessage(e)
+        expected
+    })
+    checkTrue(is.null(err))
+    checkIdentical(expected, obs)
+}
+
 test_bplapply_Params <- function()
 {
     params <- list(serial=SerialParam(),
@@ -14,7 +27,8 @@ test_bplapply_Params <- function()
     x <- 1:10
     expected <- lapply(x, sqrt)
     for (ptype in names(params)) {
-        obs <- bplapply(x, sqrt, BPPARAM=params[[ptype]])
-        checkIdentical(expected, obs)
+        .fork_not_windows(expected,
+                          bplapply(x, sqrt, BPPARAM=params[[ptype]]))
     }
+    TRUE
 }
