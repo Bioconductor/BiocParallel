@@ -9,3 +9,9 @@ pvec <-
 {
     parallel::pvec(...)
 }
+
+.onLoad <-
+    function(libname, pkgname)
+{
+    register(getOption("SnowParam", SnowParam(workers=detectCores())))
+}

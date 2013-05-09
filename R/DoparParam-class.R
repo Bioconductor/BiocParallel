@@ -1,6 +1,5 @@
-.DoparParamSingleton <-
-    setRefClass("DoparParam",
-                contains="BiocParallelParam")$new()
+.DoparParamSingleton <- setRefClass("DoparParam",
+    contains="BiocParallelParam")$new()
 
 DoparParam <- function() .DoparParamSingleton
 

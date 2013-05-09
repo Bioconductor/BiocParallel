@@ -1,12 +1,28 @@
-.MulticoreParam <-
-    setRefClass("MulticoreParam",
-                contains="BiocParallelParam",
-                fields=list(
-                setSeed = "logical",
-                recursive = "logical",
-                cleanup = "logical",
-                cleanupSignal = "integer",
-                verbose = "logical"))
+.MulticoreParam <- setRefClass("MulticoreParam",
+    contains="BiocParallelParam",
+    fields=list(
+      setSeed = "logical",
+      recursive = "logical",
+      cleanup = "logical",
+      cleanupSignal = "integer",
+      verbose = "logical"),
+    methods=list(
+      initialize = function(workers=detectCores(), setSeed=TRUE,
+          recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+          verbose=FALSE, ...)
+      {
+          initFields(workers=workers, setSeed=setSeed,
+                     recursive=recursive, cleanup=cleanup,
+                     cleanupSignal=cleanupSignal, verbose=verbose)
+          callSuper(workers=workers, ...)
+      },
+      show = function() {
+          callSuper()
+          fields <- names(.MulticoreParam_fields())
+          vals <- sapply(fields, function(fld) as.character(.self$field(fld)))
+          txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
+          cat(strwrap(txt, exdent=2), sep="\n")
+      }))
 
 MulticoreParam <-
     function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
@@ -14,24 +30,37 @@ MulticoreParam <-
              verbose=FALSE, ...)
 {
     workers <- as.integer(workers)
-    .MulticoreParam$new(workers=workers, setSeed=setSeed, recursive=recursive,
-                        cleanup=cleanup, cleanupSignal=cleanupSignal,
-                        verbose=verbose, ...)
+    .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
+                    cleanup=cleanup, cleanupSignal=cleanupSignal,
+                    verbose=verbose, ...)
+}
+
+.MulticoreParam_fields <-
+    function()
+{
+    result <- .MulticoreParam$fields()
+    result[setdiff(names(result), names(.BiocParallelParam$fields()))]
 }
 
 setValidity("MulticoreParam",
     function(object)
 {
     msg <- NULL
+    txt <- function(fmt, flds)
+        sprintf(fmt, paste(sQuote(flds), collapse=", "))
 
-    fields <- names(x$.refClassDef@fieldClasses)
-    for (f in fields) {
-        if (length(object$field(f)) != 1) {
-            msg <- c(msg, sprintf("%s must be length 1", f))
-        } else if (is.na(object$field(f))) {
-            msg <- c(msg, sprintf("%s must not be NA", f))
-        }
-    }
+    fields <- .MulticoreParam_fields()
+
+    FUN <- function(i, x) length(x[[i]])
+    isScalar <- sapply(fields, FUN, object) == 1L
+    if (!all(isScalar))
+        msg <- c(msg, txt("%s must be length 1", fields[!isScalar]))
+
+    FUN <- function(i, x) is.na(x[[i]])
+    isNA <- sapply(fields[isScalar], FUN, object)
+    if (any(isNA))
+        msg <- c(msg, txt("%s must be length 1", fields[isNA]))
+
     if (!is.null(msg)) msg else TRUE
 })
 
@@ -74,14 +103,4 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
          mc.set.seed=BPPARAM$setSeed,
          mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
          mc.cleanup=cleanup)
-})
-
-setMethod(show, "MulticoreParam",
-    function(object)
-{
-    callNextMethod()
-    txt <- sapply(names(object$.refClassDef@fieldClasses), function(nm) {
-        sprintf("%s: %s", nm, object$field(nm))
-    })
-    cat(strwrap(paste(txt, collapse="; "), exdent=2), sep="\n")
 })

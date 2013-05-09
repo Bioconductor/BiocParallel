@@ -24,3 +24,9 @@ selectChildren <- parallel:::selectChildren
 
 sendMaster <- parallel:::sendMaster
     
+.onLoad <-
+    function(libname, pkgname)
+{
+    register(getOption("SnowParam", SnowParam(workers=detectCores())))
+    register(getOption("MulticoreParam", MulticoreParam()))
+}
