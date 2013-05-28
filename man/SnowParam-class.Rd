@@ -57,9 +57,9 @@ SnowParam(workers = 0L, type, ...)
     \code{...}.}
 
   \item{...}{Additional arguments to \code{FUN}, or for classes derived
-    from \code{MulticoreParam}.}
+    from \code{SnowParam}.}
 
-  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
+  \item{BPPARAM}{An \code{SnowParam}-class instance.}
 
 }
 
