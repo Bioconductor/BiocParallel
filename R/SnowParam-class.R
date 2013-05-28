@@ -21,11 +21,11 @@ SnowParam <-
         type <- parallel:::getClusterOption("type")
     clusterargs <- lapply(c(list(spec=workers, type=type), list(...)), force)
     cluster <- .nullCluster(type)
-    .SnowParam$new(clusterargs=clusterargs, cluster=cluster, controlled=TRUE, workers=workers)
+    .SnowParam(clusterargs=clusterargs, cluster=cluster, controlled=TRUE, workers=workers)
 }
 
 setAs("cluster", "SnowParam", function(from) {
-    .SnowParam$new(clusterargs=list(spec=length(from)), cluster=from, controlled=FALSE, workers=length(from))
+    .SnowParam(clusterargs=list(spec=length(from)), cluster=from, controlled=FALSE, workers=length(from))
 })
 
 ## control

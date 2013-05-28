@@ -1,6 +1,6 @@
 .SerialParamSingleton <-
     setRefClass("SerialParam",
-                contains="BiocParallelParam")$new(workers=1)
+                contains="BiocParallelParam")(workers=1)
 
 SerialParam <- function() .SerialParamSingleton
 

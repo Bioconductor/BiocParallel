@@ -14,9 +14,9 @@ MulticoreParam <-
              verbose=FALSE, ...)
 {
     workers <- as.integer(workers)
-    .MulticoreParam$new(workers=workers, setSeed=setSeed, recursive=recursive,
-                        cleanup=cleanup, cleanupSignal=cleanupSignal,
-                        verbose=verbose, ...)
+    .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
+                    cleanup=cleanup, cleanupSignal=cleanupSignal,
+                    verbose=verbose, ...)
 }
 
 setValidity("MulticoreParam",

@@ -15,7 +15,7 @@
           if (missing(bpparamClass))
               bpparams
           else bpparams[[bpparamClass]]
-      }))$new()                         # Singleton
+      }))()                         # Singleton
 
 register <- .registry$register
 
