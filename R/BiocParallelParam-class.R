@@ -1,28 +1,33 @@
-setClass("BiocParallelParam",
-    representation(
-        "VIRTUAL",
-        .controlled="logical",
-        workers="integer"),
-    prototype(.controlled=TRUE, workers=0L))
+BiocParallelParam <-
+    setRefClass("BiocParallelParam",
+                contains="VIRTUAL",
+                fields=list(
+                controlled="logical",
+                workers="numeric"),
+                methods=list(initialize=function(..., workers=0, controlled=TRUE) {
+                    callSuper(..., workers=workers, controlled=controlled)
+                }))
 
-setValidity("BiocParallelParam", function(object) 
+setValidity("BiocParallelParam", function(object)
 {
     msg <- NULL
-    if (length(object@workers) != 1L || object@workers < 0)
+    if (length(object$workers) != 1L || object$workers < 0)
         msg <- c(msg, "'workers' must be integer(1) and >= 0")
+    if (length(object$controlled) != 1L || is.na(object$controlled))
+        msg <- c(msg, "'controlled' must be TRUE or FALSE")
     if (is.null(msg)) TRUE else msg
 })
 
 .controlled <-
     function(x)
 {
-    x@.controlled
+    x$controlled
 }
 
 setMethod(bpworkers, "BiocParallelParam",
    function(x, ...)
 {
-    x@workers
+    x$workers
 })
 
 setMethod(show, "BiocParallelParam",
