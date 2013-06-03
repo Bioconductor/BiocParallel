@@ -10,8 +10,6 @@ pvec <-
     parallel::pvec(...)
 }
 
-.onLoad <-
-    function(libname, pkgname)
-{
+setLoadActions(.registerDefaultParams = function(nmspc) {
     register(getOption("SnowParam", SnowParam(workers=detectCores())))
-}
+})
