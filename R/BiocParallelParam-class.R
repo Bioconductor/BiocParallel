@@ -5,7 +5,7 @@
       workers="numeric"),
     methods=list(
       initialize = function(..., workers=0, .controlled=TRUE) {
-          initFields(workers=0, .controlled=TRUE)
+          initFields(workers=workers, .controlled=TRUE)
           callSuper(...)
       },
       show = function() {
