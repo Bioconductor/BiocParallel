@@ -10,7 +10,7 @@ setOldClass(c("SOCKcluster", "cluster"))
       show = function() {
           callSuper()
           if (bpisup(.self))
-              show(bpbackend(.self))
+              print(bpbackend(.self))
           else {
               cat("cluster 'spec': ", .clusterargs$spec,
                   "; 'type': ", .clusterargs$type, "\n", sep="")
@@ -20,7 +20,7 @@ setOldClass(c("SOCKcluster", "cluster"))
 .nullCluster <-
     function(type)
 {
-    if (type == "FORK")
+    if (type == "FORK" || type == "SOCK")
         type <- "PSOCK"
     makeCluster(0L, type)
 }
@@ -39,7 +39,7 @@ SnowParam <-
 
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
-                         type=sub("cluster$", "", class(from)))
+                         type=sub("cluster$", "", class(from)[1]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from,
                .controlled=FALSE, workers=length(from))
 })
@@ -60,6 +60,8 @@ setMethod(bpstart, "SnowParam",
 {
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
+    if (bpisup(x))
+        stop("cluster already started")
     bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
     invisible(x)
 })
@@ -69,6 +71,8 @@ setMethod(bpstop, "SnowParam",
 {
     if (!.controlled(x))
         stop("'bpstop' not available; instance from outside BiocParallel?")
+    if (!bpisup(x))
+        stop("cluster already stopped")
     stopCluster(bpbackend(x))
     bpbackend(x) <- .nullCluster(x$.clusterargs$type)
     invisible(x)
