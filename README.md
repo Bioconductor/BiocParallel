@@ -23,3 +23,10 @@ DONE
 + Standardize signatures
 + Make functions generics
 + parLapply-like function
+
+github notes
+------------
+
++ commit one-liners with names
+
+    git log --pretty=format:"- %h %an: %s"
