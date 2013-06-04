@@ -10,4 +10,4 @@ Description: This package provides modified versions and novel
 biocViews: HighThroughputSequencing, Infrastructure
 License: GPL-2 | GPL-3
 Imports: methods, parallel, foreach, tools
-Suggests: BiocGenerics, doParallel
+Suggests: BiocGenerics, doParallel, RUnit
