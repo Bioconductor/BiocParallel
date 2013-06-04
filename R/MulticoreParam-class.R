@@ -1,18 +1,28 @@
-.MulticoreParam <- setClass("MulticoreParam",
-    representation(
-        setSeed = "logical",
-        recursive = "logical",
-        cleanup = "logical",
-        cleanupSignal = "integer",
-        verbose = "logical"),
-    prototype(
-        workers = getOption("mc.cores", 2L),
-        setSeed = TRUE,
-        recursive = TRUE,
-        cleanup=TRUE,
-        cleanupSignal = tools::SIGTERM,
-        verbose = FALSE),
-    "BiocParallelParam")
+.MulticoreParam <- setRefClass("MulticoreParam",
+    contains="BiocParallelParam",
+    fields=list(
+      setSeed = "logical",
+      recursive = "logical",
+      cleanup = "logical",
+      cleanupSignal = "integer",
+      verbose = "logical"),
+    methods=list(
+      initialize = function(workers=detectCores(), setSeed=TRUE,
+          recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+          verbose=FALSE, ...)
+      {
+          initFields(workers=workers, setSeed=setSeed,
+                     recursive=recursive, cleanup=cleanup,
+                     cleanupSignal=cleanupSignal, verbose=verbose)
+          callSuper(workers=workers, ...)
+      },
+      show = function() {
+          callSuper()
+          fields <- names(.MulticoreParam_fields())
+          vals <- sapply(fields, function(fld) as.character(.self$field(fld)))
+          txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
+          cat(strwrap(txt, exdent=2), sep="\n")
+      }))
 
 MulticoreParam <-
     function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
@@ -25,18 +35,31 @@ MulticoreParam <-
                     verbose=verbose, ...)
 }
 
+.MulticoreParam_fields <-
+    function()
+{
+    result <- .MulticoreParam$fields()
+    result[setdiff(names(result), names(.BiocParallelParam$fields()))]
+}
+
 setValidity("MulticoreParam",
     function(object)
 {
     msg <- NULL
+    txt <- function(fmt, flds)
+        sprintf(fmt, paste(sQuote(flds), collapse=", "))
 
-    slts <- sapply(slotNames(object), slot, object=object)
-    isScalar <- sapply(slts, length) == 1L
-    if (!all(isScalar)) {
-        txt <- sprintf("%s must be length 1",
-                       paste(sQuote(names(slts)[!isScalar]), collapse=", "))
-        msg <- c(msg, txt)
-    }
+    fields <- .MulticoreParam_fields()
+
+    FUN <- function(i, x) length(x[[i]])
+    isScalar <- sapply(fields, FUN, object) == 1L
+    if (!all(isScalar))
+        msg <- c(msg, txt("%s must be length 1", fields[!isScalar]))
+
+    FUN <- function(i, x) is.na(x[[i]])
+    isNA <- sapply(fields[isScalar], FUN, object)
+    if (any(isNA))
+        msg <- c(msg, txt("%s must be length 1", fields[isNA]))
 
     if (!is.null(msg)) msg else TRUE
 })
@@ -48,7 +71,7 @@ setMethod(bpisup, "MulticoreParam", function(x, ...) TRUE)
 setMethod(bpschedule, "MulticoreParam",
     function(x, ...)
 {
-    (.Platform$OS.type != "windows") && (x@recursive || !isChild())
+    (.Platform$OS.type != "windows") && (x$recursive || !isChild())
 })
 
 ## evaluation
@@ -60,9 +83,9 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     if (!bpschedule(BPPARAM))
         return(lapply(X = X, FUN = FUN, ...))
 
-    cleanup <- if (BPPARAM@cleanup) BPPARAM@cleanupSignal else FALSE
-    mclapply(X, FUN, ..., mc.set.seed=BPPARAM@setSeed,
-             mc.silent=!BPPARAM@verbose, mc.cores=bpworkers(BPPARAM),
+    cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
+    mclapply(X, FUN, ..., mc.set.seed=BPPARAM$setSeed,
+             mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
              mc.cleanup=cleanup)
 })
 
@@ -75,19 +98,9 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
     if (!bpschedule(BPPARAM))
         return(FUN(X, ...))
 
-    cleanup <- if (BPPARAM@cleanup) BPPARAM@cleanupSignal else FALSE
+    cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
     pvec(X, FUN, ..., AGGREGATE=AGGREGATE,
-         mc.set.seed=BPPARAM@setSeed,
-         mc.silent=!BPPARAM@verbose, mc.cores=bpworkers(BPPARAM),
+         mc.set.seed=BPPARAM$setSeed,
+         mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
          mc.cleanup=cleanup)
-})
-
-setMethod(show, "MulticoreParam",
-    function(object)
-{
-    callNextMethod()
-    txt <- sapply(slotNames(object), function(nm) {
-        paste(nm, slot(object, nm), sep=": ")
-    })
-    cat(strwrap(paste(txt, collapse="; "), exdent=2), sep="\n")
 })

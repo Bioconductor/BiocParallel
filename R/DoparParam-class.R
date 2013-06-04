@@ -1,16 +1,7 @@
-.DoparParam <- setClass("DoparParam",
-    representation(),
-    prototype(),
-    contains = "BiocParallelParam")
-
-.DoparParamSingleton <- .DoparParam()
+.DoparParamSingleton <- setRefClass("DoparParam",
+    contains="BiocParallelParam")$new()
 
 DoparParam <- function() .DoparParamSingleton
-
-.doParBackendRegistered <- function() {
-    "package:foreach" %in% search() && getDoParRegistered() &&
-        getDoParName() != "doSEQ" && getDoParWorkers() > 1
-}
 
 ## control
 
