@@ -23,7 +23,7 @@
 \description{
 
   This class is used to dispatch parallel operations to the dopar
-  backend registerd with the foreach package. TODO LINK
+  backend registerd with the foreach package.
 
 }
 
@@ -52,7 +52,7 @@ DoparParam()
   Return a proxy object that dispatches parallel evaluation to the
   registered foreach parallel backend.
 
-  There are not options to the constructor. All configuration should be
+  There are no options to the constructor. All configuration should be
   done through the normal interface to the foreach parallel backends.
 
 }
