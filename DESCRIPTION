@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 0.3.1
+Version: 0.3.2
 Author: Martin Morgan
 Maintainer: Bioconductor Package Maintainer <maintainer@bioconductor.org>
 Description: This package provides modified versions and novel
@@ -11,3 +11,16 @@ biocViews: HighThroughputSequencing, Infrastructure
 License: GPL-2 | GPL-3
 Imports: methods, parallel, foreach, tools
 Suggests: BiocGenerics, doParallel, RUnit
+Collate.unix: AllGenerics.R BiocParallelParam-class.R
+    bpbackend-methods.R bpisup-methods.R bplapply-methods.R
+    bpschedule-methods.R bpstart-methods.R bpstop-methods.R
+    bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
+    DoparParam-class.R MulticoreParam-class.R pvectorize.R register.R
+    SerialParam-class.R SnowParam-class.R utilities.R unix/mclapply.R
+    unix/pvec.R unix/zzz.R
+Collate.windows: AllGenerics.R BiocParallelParam-class.R
+    bpbackend-methods.R bpisup-methods.R bplapply-methods.R
+    bpschedule-methods.R bpstart-methods.R bpstop-methods.R
+    bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
+    DoparParam-class.R MulticoreParam-class.R pvectorize.R register.R
+    SerialParam-class.R SnowParam-class.R utilities.R windows/zzz.R
