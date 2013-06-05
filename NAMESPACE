@@ -12,12 +12,16 @@ if (tools:::.OStype() == "unix") {
 importFrom(foreach, "%dopar%", foreach, getDoParName,
     getDoParRegistered, getDoParWorkers)
 
+importFrom(BatchJobs, getConfig, loadConfig, setConfig, makeRegistry, 
+           batchMap, submitJobs, waitForJobs, findErrors, findDone, 
+           loadResults)
+
 importFrom(tools, SIGTERM)
 
 exportClass(BiocParallelParam, MulticoreParam, SnowParam,
-            DoparParam, SerialParam)
+            DoparParam, SerialParam, BatchJobsParam)
 
-export(MulticoreParam, SnowParam, DoparParam, SerialParam,
+export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     bplapply, bpvec, bpvectorize,
     ## bp-controls
     bpworkers, bpbackend, "bpbackend<-",
