@@ -86,12 +86,14 @@ DoparParam()
 
 # First register a parallel backend with foreach
 library(doParallel)
-registerDoParallel(cl=makeCluster(2))
+cl <- makeCluster(2)
+registerDoParallel(cl)
 
 p <- DoparParam()
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
 
+stopCluster(cl)
 \dontrun{
 register(DoparParam(), default=TRUE)
 }
