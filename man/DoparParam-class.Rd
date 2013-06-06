@@ -93,9 +93,7 @@ p <- DoparParam()
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
 
-# Workaround for doParallel bug on Windows
-if (.Platform$OS == "windows") stopCluster(cl)
-
+stopCluster(cl)
 \dontrun{
 register(DoparParam(), default=TRUE)
 }
