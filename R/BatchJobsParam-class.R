@@ -3,20 +3,28 @@
 # - more generics: bpvectorize, bpvectorize, bpmapply/bpmap
 # - flag to turn progressbar off / reduce verbosity?
 # - support chunking / write helper for all classes?
+# - better error handling
 .BatchJobsParam <- setRefClass("BatchJobsParam",
     contains="BiocParallelParam",
     fields=list(
       reg.pars = "list",
       submit.pars = "list",
+      conf = "list",
       cleanup = "logical",
-      temp.dir = "character"
+      temp.dir = "character",
+      stop.on.error = "logical"
     ),
     methods=list(
-      initialize = function(reg.pars, submit.pars, conf.pars, cleanup, temp.dir) {
+      initialize = function(reg.pars, submit.pars, conf.pars, cleanup, temp.dir, stop.on.error) {
         callSuper()
+
+        # save user config and reset it on exit
+        prev.config <- getConfig()
+        on.exit(do.call(setConfig, prev.config))
+
         if (!is.null(conf.pars$conffile))
           loadConfig(conf.pars$conffile)
-        conf <- do.call(setConfig, conf.pars[setdiff(names(conf.pars), "conffile")])
+        new.conf <- unclass(do.call(setConfig, conf.pars[setdiff(names(conf.pars), "conffile")]))
 
         # TODO get number of workers for clusterfunctionsSSH and clusterFunctionsMulticore
         # other cluster functions: not possible
@@ -24,12 +32,11 @@
         # variable name matches a field name?
         # -> m/b always use ".[fieldname]"?
         n.workers <- NA_integer_
-        if (conf$cluster.functions$name == "Interactive")
+        if (new.conf$cluster.functions$name == "Interactive")
           n.workers <- 1L
 
-        initFields(workers = n.workers, reg.pars = reg.pars,
-                   submit.pars = submit.pars, cleanup = cleanup,
-                   temp.dir = temp.dir)
+        initFields(workers = n.workers, reg.pars = reg.pars, submit.pars = submit.pars,
+                   conf = new.conf, cleanup = cleanup, temp.dir = temp.dir, stop.on.error = stop.on.error)
       },
       show = function() {
         callSuper()
@@ -38,16 +45,16 @@
       }))
 
 
-BatchJobsParam <- function(cleanup = TRUE, temp.dir = getwd(), seed = NULL,
-                           resources = NULL, conffile = NULL) {
+BatchJobsParam <- function(cleanup = TRUE, temp.dir = getwd(), stop.on.error = TRUE, seed = NULL,
+                           resources = NULL, conffile = NULL, cluster.functions = NULL) {
   not_null <- Negate(is.null)
   reg.pars <- Filter(not_null, list(seed = seed))
   submit.pars <- Filter(not_null, list(resources = resources))
-  conf.pars <- Filter(not_null, list(conffile = conffile))
+  conf.pars <- Filter(not_null, list(conffile = conffile, cluster.functions = cluster.functions))
 
   .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
                   conf.pars = conf.pars, cleanup = cleanup,
-                  temp.dir = temp.dir)
+                  temp.dir = temp.dir, stop.on.error = stop.on.error)
 }
 
 
@@ -77,15 +84,25 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     if (BPPARAM$cleanup)
       on.exit(unlink(file.dir, recursive = TRUE))
 
+    # switch config
+    prev.config <- getConfig()
+    on.exit(do.call(setConfig, prev.config), add = TRUE)
+    do.call(setConfig, BPPARAM$conf)
+
     ids <- batchMap(reg, FUN, X, more.args = list(...))
     pars <- c(list(reg = reg, ids = ids), BPPARAM$submit.pars)
     do.call(submitJobs, pars)
-    waitForJobs(reg, timeout = Inf, stop.on.error = FALSE)
+    all.done <- waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
 
-    error <- findErrors(reg)
-    done <- findDone(reg)
+    if (!all.done && BPPARAM$stop.on.error) {
+      msg <- BatchJobs:::dbGetErrorMsgs(reg, filter = TRUE, limit = 1L)$error
+      killJobs(reg, ids)
+      stop(simpleError(msg))
+    }
+
     result <- vector("list", length(ids))
-    result[done] <- loadResults(reg, done, use.names = FALSE)
-    result[error] <- lapply(getErrors(reg, error, print = FALSE), .getErrorObj, val = NA)
+    ok <- ids %in% findDone(reg)
+    result[ok] <- loadResults(reg, ids[ok], use.names = FALSE)
+    result[!ok] <- lapply(getErrors(reg, ids[!ok], print = FALSE), .getErrorObj, val = NA)
     return(result)
 })
