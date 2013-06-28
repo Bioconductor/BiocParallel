@@ -9,7 +9,7 @@ Description: This package provides modified versions and novel
   with Bioconductor objects.
 biocViews: HighThroughputSequencing, Infrastructure
 License: GPL-2 | GPL-3
-Imports: methods, parallel, foreach, tools, BatchJobs
+Imports: methods, parallel, foreach, tools, BatchJobs, BBmisc
 Suggests: BiocGenerics, doParallel, RUnit
 Collate.unix: AllGenerics.R BiocParallelParam-class.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R

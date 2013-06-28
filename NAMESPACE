@@ -14,7 +14,9 @@ importFrom(foreach, "%dopar%", foreach, getDoParName,
 
 importFrom(BatchJobs, getConfig, loadConfig, setConfig, makeRegistry, 
            batchMap, submitJobs, waitForJobs, findErrors, findDone, 
-           loadResults)
+           loadResults, getErrorMessages, killJobs)
+
+importFrom(BBmisc, chunk)
 
 importFrom(tools, SIGTERM)
 
@@ -29,6 +31,8 @@ export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     ## schedule
     bpschedule,
     ## register
-    register, registered)
+    register, registered,
+    ## error handlers
+    lastError)
 
 exportMethods(show)
