@@ -1,31 +1,4 @@
 # TODO move this to a separate file
-.lastError = setRefClass("lastError",
-  fields = list(
-    obj = "ANY",
-    results = "list",
-    error = "integer"),
-  methods = list(
-    initialize = function() {
-      reset()
-    },
-    store = function(obj, results, error) {
-      .self$obj = obj
-      .self$results = results
-      .self$error = error
-      invisible(NULL)
-    },
-    reset = function() {
-      .self$obj = NULL
-      .self$results = list()
-      .self$error = integer(0L)
-      invisible(NULL)
-    },
-    isEmpty = function() {
-      length(error) == 0L
-    }
-  )
-)
-lastError = .lastError()
 
 .BatchJobsParam = setRefClass("BatchJobsParam",
   contains="BiocParallelParam",
@@ -118,13 +91,13 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     do.call(setConfig, BPPARAM$conf.pars)
 
     # check if X is error object
-    recover = "lastError" %in% class(X)
+    recover = "LastError" %in% class(X)
     if (recover) {
-      X = lastError$obj
-      done = setdiff(seq_along(X), lastError$error)
+      X = LastError$obj
+      done = setdiff(seq_along(X), LastError$error)
     } else {
       done = integer(0L)
-      lastError$reset()
+      LastError$reset()
     }
 
     # define jobs and submit
@@ -144,8 +117,8 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     if (all.done) {
       if (!recover)
         return(loadResults(reg, submitted, use.names = FALSE))
-      results = replace(lastError$results, lastError$error, loadResults(reg, submitted, use.names = FALSE))
-      lastError$reset()
+      results = replace(LastError$results, LastError$error, loadResults(reg, submitted, use.names = FALSE))
+      LastError$reset()
       return(results)
     }
 
@@ -153,14 +126,14 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     results = vector("list", length(ids))
     ok = findDone(reg)
     error = setdiff(seq_along(ids), union(ok, done))
-    results[done] = lastError$results[done]
+    results[done] = LastError$results[done]
     results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
     results[error] = lapply(getErrorMessages(reg, ids[error]), simpleError)
 
     # safe mode: store partial results, kill jobs and raise error
-    lastError$store(X, results, error)
+    LastError$store(X, results, error)
     killJobs(reg, submitted)
     stop("Errors occurred during execution. First error message:\n",
          as.character(results[error][[1L]]),
-         "You can resume calculation by re-calling 'bplapply' with 'lastError' as first argument.")
+         "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
 })

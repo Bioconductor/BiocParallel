@@ -84,9 +84,20 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
         return(lapply(X = X, FUN = FUN, ...))
 
     cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
-    mclapply(X, FUN, ..., mc.set.seed=BPPARAM$setSeed,
-             mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
-             mc.cleanup=cleanup)
+    results <- mclapply(X, FUN, ..., mc.set.seed=BPPARAM$setSeed,
+                        mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
+                        mc.cleanup=cleanup)
+    is.error <- vapply(results, inherits, TRUE, what = "try-error")
+    if (any(is.error)) {
+      if (all(is.error))
+        stop("All cores produced errors")
+      # -> save partial results in LastError
+      LastError$store(obj = X, results = replace(results, is.error, list(NULL)), is.error = is.error)
+      stop("Errors occurred during execution. First error message:\n",
+           as.character(results[is.error][[1L]]),
+           "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
+    }
+    return(results)
 })
 
 setMethod(bpvec, c("ANY", "MulticoreParam"),
