@@ -94,7 +94,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     recover = "LastError" %in% class(X)
     if (recover) {
       X = LastError$obj
-      done = setdiff(seq_along(X), LastError$error)
+      done = setdiff(seq_along(X), LastError$is.error)
     } else {
       done = integer(0L)
       LastError$reset()
@@ -117,7 +117,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     if (all.done) {
       if (!recover)
         return(loadResults(reg, submitted, use.names = FALSE))
-      results = replace(LastError$results, LastError$error, loadResults(reg, submitted, use.names = FALSE))
+      results = replace(LastError$results, LastError$is.error, loadResults(reg, submitted, use.names = FALSE))
       LastError$reset()
       return(results)
     }
@@ -125,15 +125,15 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     # construct result list
     results = vector("list", length(ids))
     ok = findDone(reg)
-    error = setdiff(seq_along(ids), union(ok, done))
+    is.error = setdiff(seq_along(ids), union(ok, done))
     results[done] = LastError$results[done]
     results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
-    results[error] = lapply(getErrorMessages(reg, ids[error]), simpleError)
+    results[is.error] = lapply(getErrorMessages(reg, ids[is.error]), simpleError)
 
     # safe mode: store partial results, kill jobs and raise error
-    LastError$store(X, results, error)
-    killJobs(reg, submitted)
+    LastError$store(obj = X, results = results, is.error = is.error)
+    suppressMessages(killJobs(reg, submitted))
     stop("Errors occurred during execution. First error message:\n",
-         as.character(results[error][[1L]]),
+         as.character(results[is.error][[1L]]),
          "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
 })

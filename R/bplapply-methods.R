@@ -20,7 +20,7 @@ setMethod(bplapply, c("LastError", "missing"),
     bplapply(X, FUN, ..., BPPARAM=x)
 })
 
-setMethod(bplapply, c("LastError", "ANY"),
+setMethod(bplapply, c("LastError", "BPPARAM"),
   function(X, FUN, ..., BPPARAM) {
     FUN = match.fun(FUN)
     obj = X$obj

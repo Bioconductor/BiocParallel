@@ -90,9 +90,12 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     is.error <- vapply(results, inherits, TRUE, what = "try-error")
     if (any(is.error)) {
       if (all(is.error))
-        stop("All cores produced errors")
+        stop("All cores produced errors. First error message:\n",
+             as.character(results[[1L]]),
+             "You can retrieve other error messages from 'LastError'")
+
       # -> save partial results in LastError
-      LastError$store(obj = X, results = replace(results, is.error, list(NULL)), is.error = is.error)
+      LastError$store(obj = X, results = results, is.error = is.error)
       stop("Errors occurred during execution. First error message:\n",
            as.character(results[is.error][[1L]]),
            "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
@@ -100,6 +103,7 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     return(results)
 })
 
+# re-implementation necessary to include LastError
 setMethod(bpvec, c("ANY", "MulticoreParam"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
