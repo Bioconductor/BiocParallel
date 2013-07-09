@@ -81,7 +81,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     # create registry, handle cleanup
     file.dir = file.path(BPPARAM$reg.pars$work.dir, tempfile("BiocParallel_tmp_", ""))
     pars = c(list(id = "bplapply", file.dir = file.dir, skip = FALSE), BPPARAM$reg.pars)
-    reg = do.call("makeRegistry", pars)
+    reg = suppressMessages(do.call("makeRegistry", pars))
     if (BPPARAM$cleanup)
       on.exit(unlink(file.dir, recursive = TRUE), add = TRUE)
 
@@ -110,7 +110,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
       pars$ids = submitted
     else
       pars$ids = chunk(submitted, n.chunks = BPPARAM$workers, shuffle = TRUE)
-    do.call(submitJobs, pars)
+    suppressMessages(do.call(submitJobs, pars))
     all.done = waitForJobs(reg, submitted, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
 
     # if everything worked out fine we are done here and don't need the error handling overhead
@@ -133,7 +133,9 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     # safe mode: store partial results, kill jobs and raise error
     LastError$store(obj = X, results = results, is.error = is.error)
     suppressMessages(killJobs(reg, submitted))
-    stop("Errors occurred during execution. First error message:\n",
-         as.character(results[is.error][[1L]]),
-         "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
+    msg = strwrap(c("Errors occurred during execution. First error message:",
+                    as.character(results[is.error][[1L]]),
+                    "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument."),
+                  indent = 2L)
+    stop(paste(msg, collapse = "\n"))
 })

@@ -20,10 +20,12 @@ setMethod(bplapply, c("LastError", "missing"),
     bplapply(X, FUN, ..., BPPARAM=x)
 })
 
-setMethod(bplapply, c("LastError", "BPPARAM"),
+setMethod(bplapply, c("LastError", "BiocParallelParam"),
   function(X, FUN, ..., BPPARAM) {
     FUN = match.fun(FUN)
     obj = X$obj
+    if (is.null(obj))
+      stop("LastError is empty")
     results = X$results
     is.error = X$is.error
 

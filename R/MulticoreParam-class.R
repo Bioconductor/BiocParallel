@@ -96,9 +96,11 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
 
       # -> save partial results in LastError
       LastError$store(obj = X, results = results, is.error = is.error)
-      stop("Errors occurred during execution. First error message:\n",
-           as.character(results[is.error][[1L]]),
-           "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
+      msg = strwrap(c("Errors occurred during execution. First error message:",
+                      as.character(results[is.error][[1L]]),
+                      "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument."),
+                    indent = 2L)
+      stop(paste(msg, collapse = "\n"))
     }
     return(results)
 })
