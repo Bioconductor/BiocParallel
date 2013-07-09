@@ -88,46 +88,26 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     on.exit(do.call(setConfig, prev.config), add = TRUE)
     do.call(setConfig, BPPARAM$conf.pars)
 
-    # check if X is error object
-    recover = "LastError" %in% class(X)
-    if (recover) {
-      X = LastError$obj
-      done = setdiff(seq_along(X), LastError$is.error)
-    } else {
-      done = integer(0L)
-      LastError$reset()
-    }
-
     # define jobs and submit
     ids = batchMap(reg, FUN, X, more.args = list(...))
-    submitted = setdiff(ids, done)
 
     # submit, possibly chunked
     pars = c(list(reg = reg), BPPARAM$submit.pars)
     if (is.na(BPPARAM$workers))
-      pars$ids = submitted
+      pars$ids = ids
     else
-      pars$ids = chunk(submitted, n.chunks = BPPARAM$workers, shuffle = TRUE)
+      pars$ids = chunk(ids, n.chunks = BPPARAM$workers, shuffle = TRUE)
     suppressMessages(do.call(submitJobs, pars))
-    all.done = waitForJobs(reg, submitted, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
+    all.done = waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
 
     # if everything worked out fine we are done here and don't need the error handling overhead
     if (all.done) {
-      if (!recover)
-        return(loadResults(reg, submitted, use.names = FALSE))
-      results = replace(LastError$results, LastError$is.error, loadResults(reg, submitted, use.names = FALSE))
-      LastError$reset()
-      return(results)
+      return(loadResults(reg, ids, use.names = FALSE))
+    } else {
+      ok = ids %in% findDone(reg)
+      results = vector("list", length(ids))
+      results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
+      results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
+      LastError$store(obj = X, results = results, is.error = !ok, throw.error = TRUE)
     }
-
-    # construct result list
-    results = vector("list", length(ids))
-    ok = findDone(reg)
-    is.error = setdiff(seq_along(ids), union(ok, done))
-    results[done] = LastError$results[done]
-    results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
-    results[is.error] = lapply(getErrorMessages(reg, ids[is.error]), simpleError)
-
-    # safe mode: store partial results, kill jobs and raise error
-    LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
 })

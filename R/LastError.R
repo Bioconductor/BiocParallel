@@ -18,7 +18,7 @@
           n.print = min(n, 10L)
           msg = paste(msg, sprintf("First %i error messages:", n.print))
           msg = c(msg, vapply(head(which(is.error), n.print),
-                              function(i) sprintf("[%i]: %s", i, as.character(results[i])),
+                              function(i) sprintf("[%i]: %s", i, as.character(results[[i]])),
                               character(1L)))
           message(paste(msg, collapse = "\n"))
         }
@@ -26,7 +26,7 @@
     },
     store = function(obj, results, is.error, extra = list(), throw.error = FALSE) {
       .self$obj = obj
-      .self$results = results
+      .self$results = replace(results, is.error, lapply(results[is.error], .convertToSimpleError))
       .self$is.error = is.error
       .self$extra = extra
       if (throw.error) {
@@ -45,4 +45,11 @@
     }
   )
 )
+
 LastError = .LastError()
+
+
+.convertToSimpleError = function(x) {
+  x = as.character(x)
+  simpleError(x)
+}
