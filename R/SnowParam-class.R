@@ -5,8 +5,7 @@ setOldClass(c("SOCKcluster", "cluster"))
     contains="BiocParallelParam",
     fields=list(
       .clusterargs="list",
-      cluster="SOCKcluster",
-      catch.errors = "logical"),
+      cluster="SOCKcluster"),
     methods=list(
       show = function() {
           callSuper()
@@ -24,9 +23,7 @@ setOldClass(c("SOCKcluster", "cluster"))
     makeCluster(0L, type)
 }
 
-SnowParam <-
-    function(workers = 0L, type, catch.errors = FALSE, ...)
-{
+SnowParam <- function(workers = 0L, catch.errors = TRUE, type, ...) {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
@@ -94,14 +91,13 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
-    if (isTRUE(BPPARAM$catch.errors)) {
-      wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
-      results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ...)
-      is.error = vapply(results, inherits, logical(1L), what = "try-error")
-      LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
-    } else {
-      results = parLapply(bpbackend(BPPARAM), X, FUN, ...)
+    wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
+    results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ...)
+    is.error = vapply(results, inherits, logical(1L), what = "try-error")
+    if (any(is.error)) {
+      if (BPPARAM$catch.errors)
+        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
+      stop(simpleError(results[[head(which(is.error), 1L)]]))
     }
-
     return(results)
 })

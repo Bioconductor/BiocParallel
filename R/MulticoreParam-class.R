@@ -7,11 +7,10 @@
       cleanupSignal = "integer",
       verbose = "logical"),
     methods=list(
-      initialize = function(workers=detectCores(), setSeed=TRUE,
-          recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
-          verbose=FALSE, ...)
-      {
-          initFields(workers=workers, setSeed=setSeed,
+      initialize = function(workers=detectCores(), catch.errors=TRUE, setSeed=TRUE,
+                            recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+                            verbose=FALSE, ...) {
+          initFields(workers=workers, catch.errors = catch.errors, setSeed=setSeed,
                      recursive=recursive, cleanup=cleanup,
                      cleanupSignal=cleanupSignal, verbose=verbose)
           callSuper(workers=workers, ...)
@@ -82,7 +81,9 @@ setMethod(bplapply, c("ANY", "MulticoreParam"), function(X, FUN, ..., BPPARAM) {
                         mc.cleanup=cleanup)
     is.error <- vapply(results, inherits, TRUE, what = "try-error")
     if (any(is.error)) {
-      LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
+      if (BPPARAM$catch.errors)
+        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
+      stop(results[[head(which(is.error), 1L)]])
     }
     return(results)
 })

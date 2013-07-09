@@ -10,7 +10,7 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, cleanup, stop.on.error, progressbar) {
+    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
       callSuper()
 
       # save user config and reset it on exit
@@ -31,9 +31,9 @@
                             NA_integer_)
       }
 
-      initFields(workers = n.workers, reg.pars = reg.pars, submit.pars = submit.pars,
-                 conf.pars = new.conf, cleanup = cleanup, stop.on.error = stop.on.error,
-                 progressbar = progressbar)
+      initFields(workers = n.workers, catch.errors = catch.errors, reg.pars = reg.pars,
+                 submit.pars = submit.pars, conf.pars = new.conf, cleanup = cleanup,
+                 stop.on.error = stop.on.error, progressbar = progressbar)
     },
 
     show = function() {
@@ -46,7 +46,7 @@
   })
 )
 
-BatchJobsParam = function(workers = NULL, cleanup = TRUE, work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
+BatchJobsParam = function(workers = NULL, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
                            resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) {
   not_null = Negate(is.null)
   reg.pars = Filter(not_null, list(seed = seed, work.dir = work.dir))
@@ -54,8 +54,8 @@ BatchJobsParam = function(workers = NULL, cleanup = TRUE, work.dir = getwd(), st
   conf.pars = Filter(not_null, list(conffile = conffile, cluster.functions = cluster.functions))
 
   .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
-                  conf.pars = conf.pars, n.workers = workers, cleanup = cleanup,
-                  stop.on.error = stop.on.error, progressbar = progressbar)
+                  conf.pars = conf.pars, n.workers = workers, catch.errors = catch.errors,
+                  cleanup = cleanup, stop.on.error = stop.on.error, progressbar = progressbar)
 }
 
 
@@ -103,11 +103,13 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     # if everything worked out fine we are done here and don't need the error handling overhead
     if (all.done) {
       return(loadResults(reg, ids, use.names = FALSE))
-    } else {
+    } else if (BPPARAM$catch.errors) {
       ok = ids %in% findDone(reg)
       results = vector("list", length(ids))
       results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
       results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
       LastError$store(obj = X, results = results, is.error = !ok, throw.error = TRUE)
+    } else {
+      stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L), use.names = FALSE))))
     }
 })
