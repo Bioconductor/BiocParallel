@@ -22,29 +22,24 @@
           vals <- sapply(fields, function(fld) as.character(.self$field(fld)))
           txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
           cat(strwrap(txt, exdent=2), sep="\n")
-      }))
+      })
+)
 
-MulticoreParam <-
-    function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
-             cleanup=TRUE, cleanupSignal=tools::SIGTERM,
-             verbose=FALSE, ...)
-{
+MulticoreParam <- function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
+                           cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+                           verbose=FALSE, ...) {
     workers <- as.integer(workers)
     .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
                     cleanup=cleanup, cleanupSignal=cleanupSignal,
                     verbose=verbose, ...)
 }
 
-.MulticoreParam_fields <-
-    function()
-{
+.MulticoreParam_fields <- function() {
     result <- .MulticoreParam$fields()
     result[setdiff(names(result), names(.BiocParallelParam$fields()))]
 }
 
-setValidity("MulticoreParam",
-    function(object)
-{
+setValidity("MulticoreParam", function(object) {
     msg <- NULL
     txt <- function(fmt, flds)
         sprintf(fmt, paste(sQuote(flds), collapse=", "))
@@ -76,9 +71,7 @@ setMethod(bpschedule, "MulticoreParam",
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "MulticoreParam"),
-    function(X, FUN, ..., BPPARAM)
-{
+setMethod(bplapply, c("ANY", "MulticoreParam"), function(X, FUN, ..., BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
         return(lapply(X = X, FUN = FUN, ...))
@@ -89,26 +82,12 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
                         mc.cleanup=cleanup)
     is.error <- vapply(results, inherits, TRUE, what = "try-error")
     if (any(is.error)) {
-      if (all(is.error))
-        stop("All cores produced errors. First error message:\n",
-             as.character(results[[1L]]),
-             "You can retrieve other error messages from 'LastError'")
-
-      # -> save partial results in LastError
-      LastError$store(obj = X, results = results, is.error = is.error)
-      msg = strwrap(c("Errors occurred during execution. First error message:",
-                      as.character(results[is.error][[1L]]),
-                      "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument."),
-                    indent = 2L)
-      stop(paste(msg, collapse = "\n"))
+      LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
     }
     return(results)
 })
 
-# re-implementation necessary to include LastError
-setMethod(bpvec, c("ANY", "MulticoreParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM)
-{
+setMethod(bpvec, c("ANY", "MulticoreParam"), function(X, FUN, ..., AGGREGATE=c, BPPARAM) {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
 

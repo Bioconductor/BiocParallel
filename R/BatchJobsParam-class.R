@@ -1,5 +1,3 @@
-# TODO move this to a separate file
-
 .BatchJobsParam = setRefClass("BatchJobsParam",
   contains="BiocParallelParam",
   fields=list(
@@ -131,11 +129,5 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     results[is.error] = lapply(getErrorMessages(reg, ids[is.error]), simpleError)
 
     # safe mode: store partial results, kill jobs and raise error
-    LastError$store(obj = X, results = results, is.error = is.error)
-    suppressMessages(killJobs(reg, submitted))
-    msg = strwrap(c("Errors occurred during execution. First error message:",
-                    as.character(results[is.error][[1L]]),
-                    "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument."),
-                  indent = 2L)
-    stop(paste(msg, collapse = "\n"))
+    LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
 })

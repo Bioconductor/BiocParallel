@@ -38,15 +38,16 @@ setMethod(bplapply, c("LastError", "BiocParallelParam"),
       results[is.error] = LastError$results
       is.error[is.error] = LastError$is.error
 
-      # update error object (provide method in LastError for that)
+      # update error object
       LastError$results = results
       LastError$is.error = is.error
       # throw error message
       stop(as.character(next.try))
+    } else {
+      # no errors left
+      # cleanup and return complete list of results
+      LastError$reset()
+      return(replace(results, is.error, next.try))
     }
-    # no errors left
-    # cleanup and return complete list of results
-    LastError$reset()
-    replace(results, is.error, next.try)
   }
 )
