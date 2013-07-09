@@ -95,9 +95,7 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
         on.exit(bpstop(BPPARAM))
     }
     if (isTRUE(BPPARAM$catch.errors)) {
-      wrap = function(.FUN, ...) {
-        try(do.call(.FUN, list(...)))
-      }
+      wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
       results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ...)
       is.error = vapply(results, inherits, logical(1L), what = "try-error")
       LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
