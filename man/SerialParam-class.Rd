@@ -6,6 +6,7 @@
 
 \alias{bpisup,SerialParam-method}
 \alias{bpworkers,SerialParam-method}
+\alias{bplapply,ANY,SerialParam-method}
 
 \title{Enable serial evaluation}
 
@@ -17,7 +18,28 @@
 }
 
 \usage{
-SerialParam() 
+SerialParam(catch.errors = TRUE) 
+
+\S4method{bplapply}{ANY,SerialParam}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
+}
+
+\arguments{
+    \item{catch.errors}{\code{logical(1)}}
+    Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
+    error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
+    a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
+
+    \item{X}{A vector-like object supporting \code{length}, \code{[},
+        and, for \code{bplapply}, \code{[[}.}
+
+    \item{FUN}{A function operating on \code{X} and other arguments in
+        \code{...}.}
+
+    \item{...}{Additional arguments to \code{FUN}}
+
+    \item{BPPARAM}{An \code{DoparParam}-class instance.}
+
 }
 
 \section{SerialParam constructor}{
@@ -25,9 +47,6 @@ SerialParam()
   Return an object to be used for serial evaluation of otherwise
   parallel functions such as \code{\link{bplapply}},
   \code{\link{bpvec}}.
-
-  The object is \sQuote{read-only}.
-
 }
 
 

@@ -24,8 +24,8 @@
 }
 
 \usage{
-MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE, 
-    cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
+MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE, 
+    recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
     ...) 
 
 \S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
@@ -36,47 +36,53 @@ MulticoreParam(workers = detectCores(), setSeed = TRUE, recursive = TRUE,
 }
 
 \arguments{
+    \item{workers}{\code{integer(1)}}
+        Number of workers on with Multicore and SSH backend which defaults here to all workers available.
+        On managed HPC \code{workers} defaults to \code{NA} but can be set to control chunking of jobs.
+        See argument \code{n.chunks} in \code{\link[BBmisc]{chunk}} and \code{\link[BatchJobs]{submitJobs}} for more
+        information.
 
-  \item{X}{A vector-like object supporting \code{length}, \code{[},
-    and, for \code{bplapply}, \code{[[}.}
+    \item{catch.errors}{\code{logical(1)}}
+        Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
+        error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
+        a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
 
-  \item{FUN}{A function operating on \code{X} and other arguments in
-    \code{...}.}
+    \item{X}{A vector-like object supporting \code{length}, \code{[},
+        and, for \code{bplapply}, \code{[[}.}
 
-  \item{...}{Additional arguments to \code{FUN}, or for classes derived
-    from \code{MulticoreParam}.}
+    \item{FUN}{A function operating on \code{X} and other arguments in
+        \code{...}.}
 
-  \item{AGGREGATE}{A function taking any number of arguments \code{...}
-    called to reduce results (elements of the \code{...} argument of
-    \code{AGGREGATE} from parallel jobs. The default, \code{c},
-    concatenates objects and is appropriate for vectors; \code{rbind}
-    might be appropriate for data frames.}
+    \item{...}{Additional arguments to \code{FUN}, or for classes derived
+        from \code{MulticoreParam}.}
 
-  \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
+    \item{AGGREGATE}{A function taking any number of arguments \code{...}
+        called to reduce results (elements of the \code{...} argument of
+        \code{AGGREGATE} from parallel jobs. The default, \code{c},
+        concatenates objects and is appropriate for vectors; \code{rbind}
+        might be appropriate for data frames.}
 
-  \item{workers}{\code{integer(1)} number of cores to use for parallel
-    evaluation.}
+    \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
-  \item{setSeed}{\code{logical(1)}, as described in
-    \code{parallel::mcparallel} argument \code{mc.set.seed}.}
+    \item{setSeed}{\code{logical(1)}, as described in
+        \code{parallel::mcparallel} argument \code{mc.set.seed}.}
 
-  \item{recursive}{\code{logical(1)} indicating whether recursive calls
-    are evaluated in parallel; see \code{parallel::mclapply}
-    argument \code{mc.allow.recursive}.}
+    \item{recursive}{\code{logical(1)} indicating whether recursive calls
+        are evaluated in parallel; see \code{parallel::mclapply}
+        argument \code{mc.allow.recursive}.}
 
-  \item{cleanup}{\code{logical(1)} indicating whether forked children
-    will be terminated before \code{bplapply} returns, as for
-    \code{parallel::mclapply} argument \code{cleanup}. If
-    \code{TRUE}, then the signal sent to the child is
-    \code{cleanupSignal}.}
+    \item{cleanup}{\code{logical(1)} indicating whether forked children
+        will be terminated before \code{bplapply} returns, as for
+        \code{parallel::mclapply} argument \code{cleanup}. If
+        \code{TRUE}, then the signal sent to the child is
+        \code{cleanupSignal}.}
 
-  \item{cleanupSignal}{\code{integer(1)} the signal sent to forked
-    processes when \code{cleanup=TRUE}.}
+    \item{cleanupSignal}{\code{integer(1)} the signal sent to forked
+        processes when \code{cleanup=TRUE}.}
 
-  \item{verbose}{\code{logical(1)} when \code{TRUE} echo stdout of
-    forked processes. This is the complement of
-    \code{parallel::mclapply}'s argument \code{mc.silent}.}
-
+    \item{verbose}{\code{logical(1)} when \code{TRUE} echo stdout of
+        forked processes. This is the complement of
+        \code{parallel::mclapply}'s argument \code{mc.silent}.}
 }
 
 \section{MulticoreParam constructor}{

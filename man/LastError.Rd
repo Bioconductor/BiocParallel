@@ -1,13 +1,17 @@
 \name{LastError-class}
-\Rdversion{1.0}
+\Rdversion{1.1}
 \docType{class}
 
 \alias{LastError-class}
 \alias{LastError}
 
+\alias{bplapply,LastError,BiocParallelParam}
 \alias{bplapply,LastError,ANY}
+\alias{bplapply,LastError,missing}
 
 \alias{show,LastError-method}
+\alias{bplapply,LastError,ANY}
+\alias{bplapply,LastError,missing}
 
 \title{Resume computation with partial results}
 
@@ -21,10 +25,24 @@
 \usage{
 LastError
 
+\S4method{bplapply}{LastError,missing}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{LastError,BiocParallelParam}(X, FUN, ..., BPPARAM)
 \S4method{show}{LastError}()
 }
 
-\arguments{}
+\arguments{
+    \item{X}{ANY}
+        A vector-like object supporting \code{length}, \code{[}, and, for \code{bplapply}, \code{[[}.
+
+    \item{FUN}{\code{function}}
+        A function operating on \code{X} and other arguments in \code{...}.
+
+    \item{...}{ANY}
+        Additional arguments to \code{FUN}.
+
+    \item{BPPARAM}{BiocParallelParam}
+        An \code{BatchJobsParam}-class instance.
+}
 
 \section{Usage}{
     The resume mechanism is triggered if the argument \code{catch.errors} of
@@ -49,7 +67,6 @@ LastError
 }
 
 \author{Martin Morgan \url{mailto:mtmorgan@fhcrc.org}}
-
 
 \examples{
 \dontrun{

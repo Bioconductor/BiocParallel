@@ -28,7 +28,7 @@
 }
 
 \usage{
-SnowParam(workers = 0L, type, ...) 
+SnowParam(workers = 0L, catch.errors = TRUE, type, ...) 
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
@@ -37,29 +37,36 @@ SnowParam(workers = 0L, type, ...)
 }
 
 \arguments{
+    \item{workers}{\code{integer(1)}}
+        Number of workers on with Multicore and SSH backend which defaults here to all workers available.
+        On managed HPC \code{workers} defaults to \code{NA} but can be set to control chunking of jobs.
+        See argument \code{n.chunks} in \code{\link[BBmisc]{chunk}} and \code{\link[BatchJobs]{submitJobs}} for more
+        information.
 
-  \item{workers}{Number of workers to start the cluster, as in
-    \code{\link[parallel]{makeCluster}} argument \code{spec}.}
+    \item{catch.errors}{\code{logical(1)}}
+        Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
+        error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
+        a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
 
-  \item{type}{\code{character(1)} type of cluster to use, as described
-    in \code{\link[parallel]{parLapply}} argument \code{type}.}
+    \item{type}{\code{character(1)} type of cluster to use, as described
+        in \code{\link[parallel]{parLapply}} argument \code{type}.}
 
-  \item{from, to}{(N.B. Use \code{as(from, "SnowParam")} to coerce from
-    a cluster created with, e.g.,
-    \code{parallel::makeCluster}). \code{from} is a \code{SOCKcluster}
-    or derived instance (e.g., from \code{parallel::makeCluster}), to be
-    coerced to a \code{SnowParam} instance.}
+    \item{from, to}{(N.B. Use \code{as(from, "SnowParam")} to coerce from
+        a cluster created with, e.g.,
+        \code{parallel::makeCluster}). \code{from} is a \code{SOCKcluster}
+        or derived instance (e.g., from \code{parallel::makeCluster}), to be
+        coerced to a \code{SnowParam} instance.}
 
-  \item{X}{A vector-like object supporting \code{length}, \code{[},
-    and, for \code{bplapply}, \code{[[}.}
+    \item{X}{A vector-like object supporting \code{length}, \code{[},
+        and, for \code{bplapply}, \code{[[}.}
 
-  \item{FUN}{A function operating on \code{X} and other arguments in
-    \code{...}.}
+    \item{FUN}{A function operating on \code{X} and other arguments in
+        \code{...}.}
 
-  \item{...}{Additional arguments to \code{FUN}, or for classes derived
-    from \code{SnowParam}.}
+    \item{...}{Additional arguments to \code{FUN}, or for classes derived
+        from \code{SnowParam}.}
 
-  \item{BPPARAM}{An \code{SnowParam}-class instance.}
+    \item{BPPARAM}{An \code{SnowParam}-class instance.}
 
 }
 

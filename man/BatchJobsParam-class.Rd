@@ -1,5 +1,5 @@
 \name{BatchJobsParam-class}
-\Rdversion{1.0}
+\Rdversion{1.1}
 \docType{class}
 
 \alias{BatchJobsParam-class}
@@ -12,6 +12,7 @@
 \alias{bpstart,BatchJobsParam-method}
 \alias{bpstop,BatchJobsParam-method}
 \alias{bpworkers,BatchJobsParam-method}
+\alias{bpschedule,BatchJobsParam-method}
 
 \alias{bplapply,ANY,BatchJobsParam-method}
 
@@ -43,7 +44,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(),
 
     \item{catch.errors}{\code{logical(1)}}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
-        error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try]}} blocks which triggers 
+        error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
         a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
 
     \item{cleanup}{\code{logical(1)}}

@@ -28,22 +28,26 @@
 }
 
 \usage{
-DoparParam() 
+DoparParam(catch.errors = TRUE) 
 
 \S4method{bplapply}{ANY,DoparParam}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
+    \item{catch.errors}{\code{logical(1)}}
+    Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
+    error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
+    a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
 
-  \item{X}{A vector-like object supporting \code{length}, \code{[},
-    and, for \code{bplapply}, \code{[[}.}
+    \item{X}{A vector-like object supporting \code{length}, \code{[},
+        and, for \code{bplapply}, \code{[[}.}
 
-  \item{FUN}{A function operating on \code{X} and other arguments in
-    \code{...}.}
+    \item{FUN}{A function operating on \code{X} and other arguments in
+        \code{...}.}
 
-  \item{...}{Additional arguments to \code{FUN}}
+    \item{...}{Additional arguments to \code{FUN}}
 
-  \item{BPPARAM}{An \code{DoparParam}-class instance.}
+    \item{BPPARAM}{An \code{DoparParam}-class instance.}
 
 }
 
