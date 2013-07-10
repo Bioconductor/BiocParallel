@@ -3,17 +3,16 @@
     fields=list(),
 )
 
-DoparParam <- function(catch.errors) {
+DoparParam <- function(catch.errors = TRUE) {
   .DoparParam(catch.errors = catch.errors)
 }
 
 ## control
 
 setMethod(bpworkers, "DoparParam",
-    function(x, ...)
-{
+  function(x, ...) {
     if (bpisup(x))
-        getDoParWorkers()
+      getDoParWorkers()
     else 0L
 })
 
@@ -25,8 +24,7 @@ setMethod(bpisup, "DoparParam", function(x, ...) {
 ## evaluation
 
 setMethod(bplapply, c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPPARAM)
-{
+    function(X, FUN, ..., BPPARAM) {
     FUN <- match.fun(FUN)
     ## If no parallel backend is registered for foreach, fall back to
     ## the serial backend.
