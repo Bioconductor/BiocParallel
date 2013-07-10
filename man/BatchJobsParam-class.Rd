@@ -17,12 +17,12 @@
 
 \alias{show,BatchJobsParam-method}
 
-\title{Enable parallelization ob batch systems}
+\title{Enable parallelization on batch systems}
 
 \description{
 
     This class is used to parameterize scheduler options on managed
-    high-performance computung clusters.
+    high-performance computing clusters.
 
 }
 
