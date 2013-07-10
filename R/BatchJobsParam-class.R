@@ -110,6 +110,6 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
       results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
       LastError$store(obj = X, results = results, is.error = !ok, throw.error = TRUE)
     } else {
-      stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L), use.names = FALSE))))
+      stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
     }
 })

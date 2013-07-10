@@ -24,8 +24,8 @@
       })
 )
 
-MulticoreParam <- function(workers=detectCores(), setSeed=TRUE, recursive=TRUE,
-                           cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+MulticoreParam <- function(workers=detectCores(), catch.errors = TRUE, setSeed=TRUE,
+                           recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
                            verbose=FALSE, ...) {
     workers <- as.integer(workers)
     .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
