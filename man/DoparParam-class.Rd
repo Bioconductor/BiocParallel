@@ -23,7 +23,7 @@
 \description{
 
   This class is used to dispatch parallel operations to the dopar
-  backend registerd with the foreach package.
+  backend registered with the foreach package.
 
 }
 
@@ -77,8 +77,8 @@ DoparParam()
   \code{register} for registering parameter classes for use in parallel
   evaluation.
 
-  foreach for the parallel backend infrastructure used by this param
-  class. TODO LINK
+  \code{\link{foreach-package}} for the parallel backend infrastructure 
+  used by this param class.
 
 }
 
