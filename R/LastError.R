@@ -46,6 +46,8 @@
   )
 )
 
+LastError = .LastError()
+
 getLastError = function() {
   getFromNamespace("LastError", "BiocParallel")
 }

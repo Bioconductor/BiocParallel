@@ -29,5 +29,3 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
     register(getOption("MulticoreParam", MulticoreParam()))
     register(getOption("BatchJobsParam", BatchJobsParam()))
 })
-
-LastError = .LastError()
