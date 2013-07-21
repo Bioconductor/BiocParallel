@@ -33,6 +33,6 @@ export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     ## register
     register, registered,
     ## error handlers
-    LastError)
+    getLastError)
 
 exportMethods(show)

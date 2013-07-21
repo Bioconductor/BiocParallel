@@ -46,8 +46,9 @@
   )
 )
 
-LastError = .LastError()
-
+getLastError = function() {
+  getFromNamespace("LastError", "BiocParallel")
+}
 
 .convertToSimpleError = function(x) {
   x = as.character(x)
