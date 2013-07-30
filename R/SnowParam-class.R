@@ -91,6 +91,7 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
+
     wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
     results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ...)
     is.error = vapply(results, inherits, logical(1L), what = "try-error")
@@ -100,4 +101,17 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
       stop(simpleError(results[[head(which(is.error), 1L)]]))
     }
     return(results)
+})
+
+setMethod(bpmapply, c("ANY", "SnowParam"),
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    if (!bpisup(BPPARAM)) {
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM))
+    }
+
+    clusterMap(cl = bpbackend(BPPARAM), fun = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY,
+               USE.NAMES = USE.NAMES, RECYCLE = TRUE)
+
 })

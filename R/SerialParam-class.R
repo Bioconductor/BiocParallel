@@ -28,3 +28,9 @@ setMethod(bplapply, c("ANY", "SerialParam"),
     }
   }
 )
+
+setMethod(bpmapply, c("function", "SerialParam"),
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    mapply(FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES = USE.NAMES)
+})

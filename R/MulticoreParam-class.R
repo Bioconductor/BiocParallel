@@ -88,6 +88,19 @@ setMethod(bplapply, c("ANY", "MulticoreParam"), function(X, FUN, ..., BPPARAM) {
     return(results)
 })
 
+setMethod(bpmapply, c("ANY", "MulticoreParam"),
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    if (!bpschedule(BPPARAM))
+        return(mapply(FUN = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES = USE.NAMES))
+
+    cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
+
+    mcmapply(FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES=USE.NAMES,
+             mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+             mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+})
+
 setMethod(bpvec, c("ANY", "MulticoreParam"), function(X, FUN, ..., AGGREGATE=c, BPPARAM) {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
