@@ -5,8 +5,8 @@
       workers = "numeric",
       catch.errors = "logical"),
     methods=list(
-      initialize = function(..., workers=0, .controlled=TRUE) {
-          initFields(workers=workers, .controlled=.controlled)
+      initialize = function(..., workers=0, .controlled=TRUE, catch.erros = FALSE) {
+          initFields(workers=workers, .controlled=.controlled, catch.errors = catch.errors)
           callSuper(...)
       },
       show = function() {
@@ -15,8 +15,7 @@
               sep="")
       }))
 
-setValidity("BiocParallelParam", function(object)
-{
+setValidity("BiocParallelParam", function(object) {
     msg <- character(0L)
     if (length(bpworkers(object)) != 1L || bpworkers(object) < 0)
         msg <- c(msg, "'workers' must be integer(1) and >= 0")

@@ -1,7 +1,6 @@
 setOldClass(c("SOCKcluster", "cluster"))
 
-.SnowParam <-
-    setRefClass("SnowParam",
+.SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
       .clusterargs="list",
@@ -15,7 +14,9 @@ setOldClass(c("SOCKcluster", "cluster"))
               cat("cluster 'spec': ", .clusterargs$spec,
                   "; 'type': ", .clusterargs$type, "\n", sep="")
           }
-      }))
+      }
+    )
+)
 
 .nullCluster <- function(type) {
     if (type == "FORK" || type == "SOCK")
@@ -23,7 +24,7 @@ setOldClass(c("SOCKcluster", "cluster"))
     makeCluster(0L, type)
 }
 
-SnowParam <- function(workers = 0L, catch.errors = TRUE, type, ...) {
+SnowParam <- function(workers = 0L, type, catch.errors=FALSE, ...) {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
@@ -31,14 +32,14 @@ SnowParam <- function(workers = 0L, catch.errors = TRUE, type, ...) {
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
                .controlled=TRUE, workers=workers,
-               catch.errors = catch.errors, ...)
+               catch.errors=catch.errors, ...)
 }
 
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
                          type=sub("cluster$", "", class(from)[1]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from,
-               .controlled=FALSE, workers=length(from))
+               .controlled=FALSE, workers=length(from), catch.errors=FALSE)
 })
 
 ## control
