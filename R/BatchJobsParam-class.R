@@ -26,9 +26,9 @@
           vapply(x, "[[", integer(1L), "ncpus")
         }
         n.workers = switch(new.conf$cluster.functions$name,
-                            "Multicore" = getNumberCPUs(new.conf),
-                            "SSH" = sum(getNumberCPUs(new.conf)),
-                            NA_integer_)
+                           "Multicore" = getNumberCPUs(new.conf),
+                           "SSH" = sum(getNumberCPUs(new.conf)),
+                           1L)
       }
 
       initFields(workers = n.workers, catch.errors = catch.errors, reg.pars = reg.pars,
