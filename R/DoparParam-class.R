@@ -58,14 +58,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       ddd = lapply(ddd, rep_len, length.out = max.len)
     }
     .i <- NULL                           # quieten R CMD check
-    results <- foreach(.i, .errorhandling = "pass") %dopar% {
+    foreach(.i, .errorhandling = "stop") %dopar% {
       do.call("FUN", args = c(lapply(ddd, "[[", .i), MoreArgs))
     }
-    is.error = vapply(results, inherits, logical(1L), what = "error")
-    if (any(is.error)) {
-      if (BPPARAM$catch.errors)
-        LastError$store(obj = list(ddd = ddd, MoreArgs = MoreArgs), results = results, is.error = is.error, throw.error = TRUE)
-      stop(results[[head(which(is.error), 1L)]])
-    }
-    return(results)
 })
