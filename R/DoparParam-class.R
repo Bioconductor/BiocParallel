@@ -41,3 +41,31 @@ setMethod(bplapply, c("ANY", "DoparParam"),
     }
     return(results)
 })
+
+setMethod(bpmapply, c("ANY", "DoparParam"),
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    if (!bpisup(BPPARAM))
+        return(bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=SerialParam()))
+
+    ddd = list(...)
+    MoreArgs = as.list(MoreArgs)
+    len = vapply(ddd, length, integer(1L))
+    if (!all(len == len[1L])) {
+      max.len = max(len)
+      if (any(max.len %% len))
+        warning("longer argument not a multiple of length of vector")
+      ddd = lapply(ddd, rep_len, length.out = max.len)
+    }
+    .i <- NULL                           # quieten R CMD check
+    results <- foreach(.i, .errorhandling = "pass") %dopar% {
+      do.call("FUN", args = c(lapply(ddd, "[[", .i), MoreArgs))
+    }
+    is.error = vapply(results, inherits, logical(1L), what = "error")
+    if (any(is.error)) {
+      if (BPPARAM$catch.errors)
+        LastError$store(obj = list(ddd = ddd, MoreArgs = MoreArgs), results = results, is.error = is.error, throw.error = TRUE)
+      stop(results[[head(which(is.error), 1L)]])
+    }
+    return(results)
+})
