@@ -28,7 +28,7 @@
 }
 
 \usage{
-SnowParam(workers = 0L, catch.errors = TRUE, type, ...) 
+SnowParam(workers = 0L, type, catch.errors = TRUE, ...) 
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
