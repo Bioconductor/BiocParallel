@@ -46,7 +46,7 @@
   })
 )
 
-BatchJobsParam = function(workers = NULL, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
+BatchJobsParam = function(workers = NULL, catch.errors = FALSE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
                            resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) {
   not_null = Negate(is.null)
   reg.pars = Filter(not_null, list(seed = seed, work.dir = work.dir))
@@ -171,8 +171,6 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     }
 
     if (SIMPLIFY)
-      results = simplify2array(results)
-
+      return(simplify2array(results))
     return(results)
 })
-

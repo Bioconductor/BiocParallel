@@ -38,8 +38,8 @@ SnowParam <- function(workers = 0L, type, catch.errors=FALSE, ...) {
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
                          type=sub("cluster$", "", class(from)[1]))
-    .SnowParam(.clusterargs=.clusterargs, cluster=from,
-               .controlled=FALSE, workers=length(from), catch.errors=FALSE)
+    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
+               workers=length(from), catch.errors=FALSE)
 })
 
 ## control
