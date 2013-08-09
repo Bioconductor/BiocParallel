@@ -5,7 +5,7 @@
       workers = "numeric",
       catch.errors = "logical"),
     methods=list(
-      initialize = function(..., workers=0, .controlled=TRUE, catch.erros = FALSE) {
+      initialize = function(..., workers=0, .controlled=TRUE, catch.errors = FALSE) {
           initFields(workers=workers, .controlled=.controlled, catch.errors = catch.errors)
           callSuper(...)
       },
