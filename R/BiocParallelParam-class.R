@@ -5,10 +5,6 @@
       workers = "numeric",
       catch.errors = "logical"),
     methods=list(
-      initialize = function(..., workers=0, .controlled=TRUE, catch.errors = FALSE) {
-          initFields(workers=workers, .controlled=.controlled, catch.errors = catch.errors)
-          callSuper(...)
-      },
       show = function() {
           cat("class: ", class(.self), "; bpisup: ", bpisup(.self),
               "; bpworkers: ", bpworkers(.self), "; catch.errors: ", catch.errors, "\n",
@@ -21,7 +17,7 @@ setValidity("BiocParallelParam", function(object) {
         msg <- c(msg, "'workers' must be integer(1) and >= 0")
     if (length(.controlled(object)) != 1L || is.na(.controlled(object)))
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
-    if (length(catch.errors) != 1L || is.na(catch.errors))
+    if (length(object$catch.errors) != 1L || is.na(object$catch.errors))
         msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
     if (length(msg)) msg else TRUE
 })
