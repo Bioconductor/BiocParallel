@@ -1,8 +1,7 @@
 TODO
 =====
 
-+ unit tests
-+ mapply / map / aggregate / ...
++ map / aggregate / ...
 + advanced error handling, storing tracebacks / frame dumps 
 + nested backends
 + lazy load of libraries (?): move packages to suggests and attach them in Params
