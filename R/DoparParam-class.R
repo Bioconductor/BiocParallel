@@ -57,8 +57,14 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
         warning("longer argument not a multiple of length of vector")
       ddd = lapply(ddd, rep_len, length.out = max.len)
     }
-    .i <- NULL                           # quieten R CMD check
-    foreach(.i, .errorhandling = "stop") %dopar% {
-      do.call("FUN", args = c(lapply(ddd, "[[", .i), MoreArgs))
+    i <- NULL                           # quieten R CMD check
+    res = foreach(i = seq_len(len[[1L]]), .errorhandling = "stop") %dopar% {
+      do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
     }
+
+    if (!USE.NAMES)
+      res = unname(res)
+    if (SIMPLIFY)
+      res = simplify2array(res)
+    res
 })
