@@ -1,10 +1,10 @@
 test_bpmapply_Params <- function() {
-  # FIXME multicore missing / always crashes using gentoo :(
   # FIXME we need the windows workaround
   params <- list(serial=SerialParam(),
                  snow0=SnowParam(2, "FORK"),
                  snow1=SnowParam(2, "PSOCK"),
                  batchjobs=BatchJobsParam(),
+                 multi=MulticoreParam(),
                  dopar=DoparParam())
 
   x = 1:10
@@ -15,19 +15,18 @@ test_bpmapply_Params <- function() {
     checkIdentical(expected, bpmapply(f, x, y, BPPARAM=param))
   }
 
-  # test names
+  # test names and simplify
   x = setNames(1:5, letters[1:5])
-  expected = mapply(identity, x)
   for (param in params) {
-    checkIdentical(expected, bpmapply(identity, x, BPPARAM=param))
+    for (SIMPLIFY in c(FALSE, TRUE)) {
+      for (USE.NAMES in c(FALSE, TRUE)) {
+        expected = mapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY)
+        result = bpmapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY, BPPARAM=param)
+        checkIdentical(expected, result)
+      }
+    }
   }
 
-  # test simplify
-  x = setNames(1:5, letters[1:5])
-  expected = mapply(identity, x, SIMPLIFY=FALSE)
-  for (param in params) {
-    checkIdentical(expected, bpmapply(identity, x, SIMPLIFY=FALSE, BPPARAM=param))
-  }
 
   # test MoreArgs
   x = setNames(1:5, letters[1:5])

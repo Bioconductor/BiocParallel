@@ -6,7 +6,7 @@ importFrom(parallel, detectCores, makeCluster, nextRNGStream,
            parLapply, splitIndices, stopCluster, clusterMap)
 
 if (tools:::.OStype() == "unix") {
-    importFrom(parallel, mccollect, mcparallel, mc.reset.stream)
+    importFrom(parallel, mccollect, mcparallel, mc.reset.stream, mcmapply)
 }
 
 importFrom(foreach, "%dopar%", foreach, getDoParName,
