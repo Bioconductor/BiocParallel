@@ -67,8 +67,8 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
 \value{
 
-  The result of \code{c(FUN(X[i0]), FUN(X[i1]), ...)} where \code{X[i0]}
-  etc., are sequential subsets of \code{X}.
+  The result should be identical to \code{FUN(X, ...)} (assuming that 
+  \code{AGGREGATE} is set appropriately).
 
 }
 
