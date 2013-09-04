@@ -10,7 +10,7 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
+    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, store.stack, cleanup, stop.on.error, progressbar) {
       callSuper()
 
       # save user config and reset it on exit
@@ -46,7 +46,7 @@
   })
 )
 
-BatchJobsParam = function(workers = NULL, catch.errors = FALSE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
+BatchJobsParam = function(workers = NULL, catch.errors = FALSE, store.errors = FALSE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
                            resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) {
   not_null = Negate(is.null)
   reg.pars = Filter(not_null, list(seed = seed, work.dir = work.dir))
@@ -55,7 +55,8 @@ BatchJobsParam = function(workers = NULL, catch.errors = FALSE, cleanup = TRUE, 
 
   .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
                   conf.pars = conf.pars, n.workers = workers, catch.errors = catch.errors,
-                  cleanup = cleanup, stop.on.error = stop.on.error, progressbar = progressbar)
+                  store.stack = store.stack, cleanup = cleanup, stop.on.error = stop.on.error, 
+                  progressbar = progressbar)
 }
 
 

@@ -1,10 +1,10 @@
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
-    fields=list(),
+    fields=list()
 )
 
-DoparParam <- function(catch.errors = TRUE) {
-  .DoparParam(catch.errors = catch.errors)
+DoparParam <- function(catch.errors=TRUE, store.stack=FALSE) {
+  .DoparParam(catch.errors=catch.errors, store.stack=store.stack)
 }
 
 ## control

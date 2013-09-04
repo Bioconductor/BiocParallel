@@ -7,13 +7,12 @@
       cleanupSignal = "integer",
       verbose = "logical"),
     methods=list(
-      initialize = function(workers=detectCores(), catch.errors=TRUE, setSeed=TRUE,
-                            recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
-                            verbose=FALSE, ...) {
-          initFields(workers=workers, catch.errors = catch.errors, setSeed=setSeed,
+      initialize = function(workers, catch.errors, store.stack, setSeed, recursive, cleanup, 
+                            cleanupSignal, verbose, ...) {
+          initFields(workers=workers, catch.errors=catch.errors, setSeed=setSeed,
                      recursive=recursive, cleanup=cleanup,
                      cleanupSignal=cleanupSignal, verbose=verbose)
-          callSuper(workers=workers, ...)
+          callSuper(workers=workers)
       },
       show = function() {
           callSuper()
@@ -24,13 +23,13 @@
       })
 )
 
-MulticoreParam <- function(workers=detectCores(), catch.errors = TRUE, setSeed=TRUE,
-                           recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
-                           verbose=FALSE, ...) {
+MulticoreParam <- function(workers=detectCores(), catch.errors=TRUE, store.stack=store.stack,
+                           setSeed=TRUE, recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
+                           verbose=FALSE) {
     workers <- as.integer(workers)
     .MulticoreParam(workers=workers, setSeed=setSeed, recursive=recursive,
                     cleanup=cleanup, cleanupSignal=cleanupSignal,
-                    verbose=verbose, ...)
+                    verbose=verbose)
 }
 
 .MulticoreParam_fields <- function() {

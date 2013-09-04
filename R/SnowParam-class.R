@@ -1,6 +1,6 @@
 setOldClass(c("SOCKcluster", "cluster"))
 
-.SnowParam <- setRefClass("SnowParam",
+.SnowParam = setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
       .clusterargs="list",
@@ -18,13 +18,13 @@ setOldClass(c("SOCKcluster", "cluster"))
     )
 )
 
-.nullCluster <- function(type) {
+.nullCluster = function(type) {
     if (type == "FORK" || type == "SOCK")
-        type <- "PSOCK"
+        type = "PSOCK"
     makeCluster(0L, type)
 }
 
-SnowParam <- function(workers = 0L, type, catch.errors=FALSE, ...) {
+SnowParam <- function(workers=0L, type, catch.errors=TRUE, store.stack=FALSE, ...) {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
@@ -32,14 +32,14 @@ SnowParam <- function(workers = 0L, type, catch.errors=FALSE, ...) {
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
                .controlled=TRUE, workers=workers,
-               catch.errors=catch.errors, ...)
+               catch.errors=catch.errors, store.stack=store.stack, ...)
 }
 
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
                          type=sub("cluster$", "", class(from)[1]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-               workers=length(from), catch.errors=FALSE)
+               workers=length(from), catch.errors=TRUE, store.stack=FALSE)
 })
 
 ## control
@@ -71,7 +71,7 @@ setMethod(bpstop, "SnowParam", function(x, ...) {
 })
 
 setMethod(bpisup, "SnowParam", function(x, ...) {
-    length(bpbackend(x)) != 0
+    length(bpbackend(x)) != 0L
 })
 
 setMethod(bpbackend, "SnowParam", function(x, ...) {
@@ -105,7 +105,7 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
 })
 
 setMethod(bpmapply, c("ANY", "SnowParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
@@ -113,6 +113,6 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
     }
 
     clusterMap(cl = bpbackend(BPPARAM), fun = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY,
-               USE.NAMES = USE.NAMES, RECYCLE = TRUE)
+               USE.NAMES = USE.NAMES, RECYCLE=TRUE)
 
 })

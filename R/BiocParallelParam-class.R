@@ -3,7 +3,8 @@
     fields=list(
       .controlled = "logical",
       workers = "numeric",
-      catch.errors = "logical"),
+      catch.errors = "logical",
+      store.stack = "logical"),
     methods=list(
       show = function() {
           cat("class: ", class(.self), "; bpisup: ", bpisup(.self),
