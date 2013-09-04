@@ -1,6 +1,6 @@
 .SerialParam <- setRefClass("SerialParam",
   contains="BiocParallelParam",
-  fields=list(),
+  fields=list()
 )
 
 SerialParam <- function(catch.errors=TRUE, store.dump=FALSE) {

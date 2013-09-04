@@ -31,9 +31,9 @@
                            1L)
       }
 
-      initFields(workers = n.workers, catch.errors = catch.errors, reg.pars = reg.pars,
-                 submit.pars = submit.pars, conf.pars = new.conf, cleanup = cleanup,
-                 stop.on.error = stop.on.error, progressbar = progressbar)
+      initFields(workers=n.workers, catch.errors=catch.errors, store.dump=store.dump, reg.pars=reg.pars,
+                 submit.pars=submit.pars, conf.pars=new.conf, cleanup=cleanup,
+                 stop.on.error=stop.on.error, progressbar=progressbar)
     },
 
     show = function() {
@@ -46,17 +46,17 @@
   })
 )
 
-BatchJobsParam = function(workers = NULL, catch.errors = FALSE, store.errors = FALSE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
-                           resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) {
+BatchJobsParam = function(workers=NULL, catch.errors=TRUE, store.dump=FALSE, cleanup=TRUE, work.dir=getwd(), stop.on.error=FALSE, seed=NULL,
+                           resources=NULL, conffile=NULL, cluster.functions=NULL, progressbar=TRUE) {
   not_null = Negate(is.null)
-  reg.pars = Filter(not_null, list(seed = seed, work.dir = work.dir))
+  reg.pars = Filter(not_null, list(seed=seed, work.dir=work.dir))
   submit.pars = Filter(not_null, list(resources = resources))
-  conf.pars = Filter(not_null, list(conffile = conffile, cluster.functions = cluster.functions))
+  conf.pars = Filter(not_null, list(conffile=conffile, cluster.functions=cluster.functions))
 
-  .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
-                  conf.pars = conf.pars, n.workers = workers, catch.errors = catch.errors,
-                  store.dump = store.dump, cleanup = cleanup, stop.on.error = stop.on.error, 
-                  progressbar = progressbar)
+  .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
+                  conf.pars=conf.pars, n.workers=workers, catch.errors=catch.errors,
+                  store.dump=store.dump, cleanup=cleanup, stop.on.error=stop.on.error, 
+                  progressbar=progressbar)
 }
 
 

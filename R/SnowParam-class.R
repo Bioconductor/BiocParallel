@@ -114,5 +114,4 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
 
     clusterMap(cl = bpbackend(BPPARAM), fun = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY,
                USE.NAMES = USE.NAMES, RECYCLE=TRUE)
-
 })
