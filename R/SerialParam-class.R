@@ -3,8 +3,8 @@
   fields=list(),
 )
 
-SerialParam <- function(catch.errors=TRUE, store.stack=FALSE) {
-  .SerialParam(catch.errors=catch.errors, store.stack=FALSE)
+SerialParam <- function(catch.errors=TRUE, store.dump=FALSE) {
+  .SerialParam(catch.errors=catch.errors, store.dump=FALSE)
 }
 
 ## control

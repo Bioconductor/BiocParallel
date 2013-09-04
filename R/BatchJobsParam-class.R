@@ -10,7 +10,7 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, store.stack, cleanup, stop.on.error, progressbar) {
+    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, store.dump, cleanup, stop.on.error, progressbar) {
       callSuper()
 
       # save user config and reset it on exit
@@ -55,7 +55,7 @@ BatchJobsParam = function(workers = NULL, catch.errors = FALSE, store.errors = F
 
   .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
                   conf.pars = conf.pars, n.workers = workers, catch.errors = catch.errors,
-                  store.stack = store.stack, cleanup = cleanup, stop.on.error = stop.on.error, 
+                  store.dump = store.dump, cleanup = cleanup, stop.on.error = stop.on.error, 
                   progressbar = progressbar)
 }
 

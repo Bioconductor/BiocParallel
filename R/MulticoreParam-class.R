@@ -7,7 +7,7 @@
       cleanupSignal = "integer",
       verbose = "logical"),
     methods=list(
-      initialize = function(workers, catch.errors, store.stack, setSeed, recursive, cleanup, 
+      initialize = function(workers, catch.errors, store.dump, setSeed, recursive, cleanup, 
                             cleanupSignal, verbose, ...) {
           initFields(workers=workers, catch.errors=catch.errors, setSeed=setSeed,
                      recursive=recursive, cleanup=cleanup,
@@ -23,7 +23,7 @@
       })
 )
 
-MulticoreParam <- function(workers=detectCores(), catch.errors=TRUE, store.stack=store.stack,
+MulticoreParam <- function(workers=detectCores(), catch.errors=TRUE, store.dump=store.dump,
                            setSeed=TRUE, recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
                            verbose=FALSE) {
     workers <- as.integer(workers)

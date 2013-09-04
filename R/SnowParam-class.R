@@ -24,7 +24,7 @@ setOldClass(c("SOCKcluster", "cluster"))
     makeCluster(0L, type)
 }
 
-SnowParam <- function(workers=0L, type, catch.errors=TRUE, store.stack=FALSE, ...) {
+SnowParam <- function(workers=0L, type, catch.errors=TRUE, store.dump=FALSE, ...) {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
@@ -32,14 +32,14 @@ SnowParam <- function(workers=0L, type, catch.errors=TRUE, store.stack=FALSE, ..
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
                .controlled=TRUE, workers=workers,
-               catch.errors=catch.errors, store.stack=store.stack, ...)
+               catch.errors=catch.errors, store.dump=store.dump, ...)
 }
 
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
                          type=sub("cluster$", "", class(from)[1]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-               workers=length(from), catch.errors=TRUE, store.stack=FALSE)
+               workers=length(from), catch.errors=TRUE, store.dump=FALSE)
 })
 
 ## control

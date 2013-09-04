@@ -4,7 +4,7 @@
       .controlled = "logical",
       workers = "numeric",
       catch.errors = "logical",
-      store.stack = "logical"),
+      store.dump = "logical"),
     methods=list(
       show = function() {
           cat("class: ", class(.self), "; bpisup: ", bpisup(.self),

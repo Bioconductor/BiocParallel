@@ -3,8 +3,8 @@
     fields=list()
 )
 
-DoparParam <- function(catch.errors=TRUE, store.stack=FALSE) {
-  .DoparParam(catch.errors=catch.errors, store.stack=store.stack)
+DoparParam <- function(catch.errors=TRUE, store.dump=FALSE) {
+  .DoparParam(catch.errors=catch.errors, store.dump=store.dump)
 }
 
 ## control
