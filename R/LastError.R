@@ -57,40 +57,40 @@ getLastError = function() {
   simpleError(x)
 }
 
-# .try = function(expr, debug=FALSE) {
-#   if (debug) tryDebug(expr) else try(expr)
-# }
+.try = function(expr, debug=FALSE) {
+  if (debug) tryDebug(expr) else try(expr)
+}
 
-# .tryWithDump = function(expr) {
-#   handler_warning = function(w) {
-#     cache.warnings <<- c(cache.warnings, w)
-#     invokeRestart("muffleWarning")
-#   }
+.tryWithDump = function(expr) {
+  handler_warning = function(w) {
+    cache.warnings <<- c(cache.warnings, w)
+    invokeRestart("muffleWarning")
+  }
 
-#   handler_error = function(e) {
-#     catched.error <<- TRUE
-#     dump.frames(".lastDump")
-#     dumped = get(".lastDump", envir = .GlobalEnv)
-#     rm(".lastDump", envir = .GlobalEnv)
-#     call = sapply(sys.calls(), deparse)
-#     invokeRestart("abort", e, call, dumped)
-#   }
+  handler_error = function(e) {
+    catched.error <<- TRUE
+    dump.frames(".lastDump")
+    dumped = get(".lastDump", envir = .GlobalEnv)
+    rm(".lastDump", envir = .GlobalEnv)
+    call = sapply(sys.calls(), deparse)
+    invokeRestart("abort", e, call, dumped)
+  }
 
-#   handler_abort = function(e, call, dumped) {
-#     list(value = e, call = call, dump = dumped)
-#   }
+  handler_abort = function(e, call, dumped) {
+    list(value = e, call = call, dump = dumped)
+  }
 
-#   catched.error = FALSE
-#   cache.warnings = list()
-#   ret = setNames(vector("list", 5L), c("value", "warnings", "error", "call", "dump"))
+  catched.error = FALSE
+  cache.warnings = list()
+  ret = setNames(vector("list", 5L), c("value", "warnings", "error", "call", "dump"))
 
-#   x = withRestarts(withCallingHandlers(expr, warning = handler_warning, error = handler_error), abort = handler_abort)
-#   if (catched.error) {
-#     ret[names(x)] = x
-#     class(ret) = "try-error"
-#   } else {
-#     ret[["value"]] = x
-#   }
-#   ret[["warnings"]] = cache.warnings
-#   ret
-# }
+  x = withRestarts(withCallingHandlers(expr, warning = handler_warning, error = handler_error), abort = handler_abort)
+  if (catched.error) {
+    ret[names(x)] = x
+    class(ret) = "try-error"
+  } else {
+    ret[["value"]] = x
+  }
+  ret[["warnings"]] = cache.warnings
+  ret
+}

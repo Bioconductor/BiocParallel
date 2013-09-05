@@ -93,8 +93,8 @@ setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
         on.exit(bpstop(BPPARAM))
     }
 
-    wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
-    results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ...)
+    wrap = function(.FUN, ..., .try, .debug) .try(do.call(.FUN, list(...)), debug=.debug)
+    results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ..., .try=.try, .debug=BPPARAM$store.dump)
     is.error = vapply(results, inherits, logical(1L), what = "try-error")
     if (any(is.error)) {
       if (BPPARAM$catch.errors)

@@ -17,7 +17,7 @@ setMethod(bplapply, c("ANY", "SerialParam"),
   function(X, FUN, ..., BPPARAM) {
     FUN <- match.fun(FUN)
     if (BPPARAM$catch.errors) {
-      wrap = function(.FUN, ...) try(do.call(.FUN, list(...)))
+      wrap = function(.FUN, ...) .try(do.call(.FUN, list(...)), debug=BPPARAM$store.dump)
       results = lapply(X, wrap, .FUN = FUN, ...)
       is.error = vapply(results, inherits, logical(1L), what = "try-error")
       if (any(is.error))
