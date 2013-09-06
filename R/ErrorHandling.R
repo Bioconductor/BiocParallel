@@ -13,7 +13,7 @@
         message("No partial results saved")
       } else {
         n.errors = sum(is.error)
-        msg = sprintf("%i/%i partial results stored.", n.errors, length(is.error))
+        msg = sprintf("%i/%i partial results stored.", length(is.error) - n.errors, length(is.error))
         if (n.errors) {
           n.print = min(n.errors, 10L)
           msg = paste(msg, sprintf("First %i error messages:", n.print))
@@ -33,7 +33,8 @@
         if (throw.error) {
           msg = c("Errors occurred during execution. First error message:",
                   as.character(results[is.error][[1L]]),
-                  "You can resume calculation by re-calling 'bplapply' with 'LastError' as first argument.")
+                  "For more information, use getLastError().",
+                  "To resume calculation, re-call the function and set the argument 'resume' to TRUE.")
           stop(paste(msg, collapse = "\n"))
         }
       } else {
