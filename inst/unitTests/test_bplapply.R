@@ -20,7 +20,8 @@ test_bplapply_Params <- function()
                    snow0=SnowParam(2, "FORK"),
                    snow1=SnowParam(2, "PSOCK"),
                    dopar=DoparParam(),
-                   batchjobs=BatchJobsParam())
+                   batchjobs=BatchJobsParam(),
+                   dopar=DoparParam())
 
     dop <- registerDoParallel(cores=2)
     ## FIXME: restore previously registered back-end?

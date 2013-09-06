@@ -10,7 +10,7 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
+    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, store.dump, cleanup, stop.on.error, progressbar) {
       callSuper()
 
       # save user config and reset it on exit
@@ -26,14 +26,14 @@
           vapply(x, "[[", integer(1L), "ncpus")
         }
         n.workers = switch(new.conf$cluster.functions$name,
-                            "Multicore" = getNumberCPUs(new.conf),
-                            "SSH" = sum(getNumberCPUs(new.conf)),
-                            NA_integer_)
+                           "Multicore" = getNumberCPUs(new.conf),
+                           "SSH" = sum(getNumberCPUs(new.conf)),
+                           1L)
       }
 
-      initFields(workers = n.workers, catch.errors = catch.errors, reg.pars = reg.pars,
-                 submit.pars = submit.pars, conf.pars = new.conf, cleanup = cleanup,
-                 stop.on.error = stop.on.error, progressbar = progressbar)
+      initFields(workers=n.workers, catch.errors=catch.errors, store.dump=store.dump, reg.pars=reg.pars,
+                 submit.pars=submit.pars, conf.pars=new.conf, cleanup=cleanup,
+                 stop.on.error=stop.on.error, progressbar=progressbar)
     },
 
     show = function() {
@@ -46,16 +46,17 @@
   })
 )
 
-BatchJobsParam = function(workers = NULL, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
-                           resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) {
+BatchJobsParam = function(workers=NULL, catch.errors=TRUE, store.dump=FALSE, cleanup=TRUE, work.dir=getwd(), stop.on.error=FALSE, seed=NULL,
+                           resources=NULL, conffile=NULL, cluster.functions=NULL, progressbar=TRUE) {
   not_null = Negate(is.null)
-  reg.pars = Filter(not_null, list(seed = seed, work.dir = work.dir))
+  reg.pars = Filter(not_null, list(seed=seed, work.dir=work.dir))
   submit.pars = Filter(not_null, list(resources = resources))
-  conf.pars = Filter(not_null, list(conffile = conffile, cluster.functions = cluster.functions))
+  conf.pars = Filter(not_null, list(conffile=conffile, cluster.functions=cluster.functions))
 
-  .BatchJobsParam(reg.pars = reg.pars, submit.pars = submit.pars,
-                  conf.pars = conf.pars, n.workers = workers, catch.errors = catch.errors,
-                  cleanup = cleanup, stop.on.error = stop.on.error, progressbar = progressbar)
+  .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
+                  conf.pars=conf.pars, n.workers=workers, catch.errors=catch.errors,
+                  store.dump=store.dump, cleanup=cleanup, stop.on.error=stop.on.error, 
+                  progressbar=progressbar)
 }
 
 
@@ -123,7 +124,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
-        return(mapply(FUN = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES = USE.NAMES))
+        return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=SerialParam()))
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
@@ -143,6 +144,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     do.call(setConfig, BPPARAM$conf.pars)
 
     # define jobs and submit
+    if (is.null(MoreArgs))
+      MoreArgs = list()
     ids = batchMap(reg, fun = FUN, ..., more.args = MoreArgs)
 
     # submit, possibly chunked
@@ -171,8 +174,6 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     }
 
     if (SIMPLIFY)
-      results = simplify2array(results)
-
+      return(simplify2array(results))
     return(results)
 })
-

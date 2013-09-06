@@ -1,10 +1,10 @@
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
-    fields=list(),
+    fields=list()
 )
 
-DoparParam <- function(catch.errors = TRUE) {
-  .DoparParam(catch.errors = catch.errors)
+DoparParam <- function(catch.errors=TRUE, store.dump=FALSE) {
+  .DoparParam(catch.errors=catch.errors, store.dump=store.dump)
 }
 
 ## control
@@ -40,4 +40,31 @@ setMethod(bplapply, c("ANY", "DoparParam"),
       stop(results[[head(which(is.error), 1L)]])
     }
     return(results)
+})
+
+setMethod(bpmapply, c("ANY", "DoparParam"),
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    if (!bpisup(BPPARAM))
+        return(bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=SerialParam()))
+
+    ddd = list(...)
+    MoreArgs = as.list(MoreArgs)
+    len = vapply(ddd, length, integer(1L))
+    if (!all(len == len[1L])) {
+      max.len = max(len)
+      if (any(max.len %% len))
+        warning("longer argument not a multiple of length of vector")
+      ddd = lapply(ddd, rep_len, length.out = max.len)
+    }
+    i <- NULL                           # quieten R CMD check
+    res = foreach(i = seq_len(len[[1L]]), .errorhandling = "stop") %dopar% {
+      do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
+    }
+
+    if (!USE.NAMES)
+      res = unname(res)
+    if (SIMPLIFY)
+      res = simplify2array(res)
+    res
 })

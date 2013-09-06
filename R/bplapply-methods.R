@@ -12,6 +12,21 @@ setMethod(bplapply, c("LastError", "missing"),
     bplapply(X, FUN, ..., BPPARAM=x)
 })
 
+# this is useful for an rapply
+# setMethod(bplapply, c(BPPARAM = "list"), function(X, FUN, ..., BPPARAM) {
+#     if (!all(vapply(BPPARAM, is, logical(1L), "BiocParallelParam")))
+#       stop("All elements in 'BPPARAM' must be BicoParallelParam objects")
+#     if (!length(BPPARAM))
+#       stop("'length(BPPARAM)' must be >= 1")
+#
+#     if (length(BPPARAM) >= 2L) {
+#       myFun = function(X, ..., .BPPARAM) bplapply(X, FUN, ..., BPPARAM=.BPPARAM)
+#       return (bplapply(X, myFun, ..., .BPPARAM = BPPARAM[[1L]],
+#                        BPPARAM = tail(BPPARAM, -1L)))
+#     }
+#     bplapply(X, FUN, ..., BPPARAM = BPPARAM[[1L]])
+# })
+
 setMethod(bplapply, c("LastError", "BiocParallelParam"),
   function(X, FUN, ..., BPPARAM) {
     FUN = match.fun(FUN)

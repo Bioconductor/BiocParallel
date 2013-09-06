@@ -21,7 +21,6 @@
 SerialParam(catch.errors = TRUE) 
 
 \S4method{bplapply}{ANY,SerialParam}(X, FUN, ..., BPPARAM)
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
 }
 
 \arguments{
