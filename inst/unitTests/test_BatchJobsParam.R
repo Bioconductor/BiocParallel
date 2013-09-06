@@ -8,5 +8,5 @@ test_BatchJobsParam <- function() {
   backend <- BatchJobsParam(progressbar = FALSE, cleanup = TRUE, catch.errors = TRUE)
   register(backend)
   checkException(bplapply(0:3, f))
-  checkEquals(bplapply(getLastError(), identity), as.list(0:3))
+  checkEquals(bplapply(0:3, identity), as.list(0:3))
 }

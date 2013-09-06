@@ -1,6 +1,4 @@
 test_bpaggregate = function() {
-  library(BiocParallel)
-  library(RUnit)
   data = cbind(iris, nonsense = sample(letters[1:3], nrow(iris), replace=TRUE))
   localvar = rnorm(nrow(iris))
 

@@ -72,7 +72,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
-      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+    #FIXME recall?
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
@@ -94,7 +95,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     # define jobs and submit
     if (is.null(MoreArgs))
       MoreArgs = list()
-    ids = batchMap(reg, fun=FUN, ..., MoreArgs=MoreArgs)
+    ids = batchMap(reg, fun=FUN, ..., more.args=MoreArgs)
 
     # submit, possibly chunked
     pars = c(list(reg = reg), BPPARAM$submit.pars)
