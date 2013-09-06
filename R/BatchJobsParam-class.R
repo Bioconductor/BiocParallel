@@ -73,7 +73,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
       return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
-    #FIXME recall?
+    if (resume)
+      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
