@@ -23,7 +23,23 @@ setMethod(bpisup, "DoparParam", function(x, ...) {
 
 ## evaluation
 
-# TODO we could specialize for lapply to reduce overhead
+# we could remove this. it is just a specialization of bpmapply, a little bit more efficient though
+setMethod(bplapply, c("ANY", "DoparParam"),
+  function(X, FUN, ..., resume=FALSE, BPPARAM) {
+    FUN <- match.fun(FUN)
+    if (!bpisup(BPPARAM))
+      return(Recall(X, FUN, ..., resume=resume, BPPARAM=SerialParam()))
+
+    x = NULL # quieten R CMD check
+    results = foreach(x=X, .errorhandling = "pass") %dopar% FUN(x, ...)
+    is.error = vapply(results, inherits, logical(1L), what="error")
+    if (any(is.error)) {
+      if (BPPARAM$catch.errors)
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+      stop(results[[head(which(is.error), 1L)]])
+    }
+    return(results)
+}) 
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
