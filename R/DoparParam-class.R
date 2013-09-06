@@ -43,7 +43,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       ddd = lapply(ddd, rep_len, length.out = max.len)
     }
     i <- NULL                           # quieten R CMD check
-    resultsults = foreach(i = seq_len(len[[1L]]), .errorhandling = "pass") %dopar% {
+    results = foreach(i = seq_len(len[[1L]]), .errorhandling = "pass") %dopar% {
       do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
     }
     is.error = vapply(results, inherits, logical(1L), what="error")
