@@ -69,10 +69,10 @@ setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 ## evaluation
 
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
-        return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=SerialParam()))
+      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
@@ -112,7 +112,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
         results = vector("list", length(ids))
         results[ok] = loadResults(reg, ids[ok], use.names=FALSE)
         results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
-        LastError$store(args=list(...), results=results, is.error=!ok, MoreArgs=MoreArgs, throw.error=TRUE)
+        LastError$store(results=results, is.error=!ok, throw.error=TRUE)
       } else {
         stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
       }

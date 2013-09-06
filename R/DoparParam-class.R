@@ -23,30 +23,15 @@ setMethod(bpisup, "DoparParam", function(x, ...) {
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPPARAM) {
-    FUN <- match.fun(FUN)
-    ## If no parallel backend is registered for foreach, fall back to
-    ## the serial backend.
-    if (!bpisup(BPPARAM))
-        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
-
-    x <- NULL                           # quieten R CMD check
-    results <- foreach(x=X, .errorhandling = "pass") %dopar% FUN(x, ...)
-    is.error = vapply(results, inherits, logical(1L), what = "error")
-    if (any(is.error)) {
-      if (BPPARAM$catch.errors)
-        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
-      stop(results[[head(which(is.error), 1L)]])
-    }
-    return(results)
-})
+# TODO we could specialize for lapply to reduce overhead
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
+    if (resume)
+      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpisup(BPPARAM))
-        return(bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=SerialParam()))
+      return(Recall(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
 
     ddd = list(...)
     MoreArgs = as.list(MoreArgs)
@@ -58,13 +43,19 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       ddd = lapply(ddd, rep_len, length.out = max.len)
     }
     i <- NULL                           # quieten R CMD check
-    res = foreach(i = seq_len(len[[1L]]), .errorhandling = "stop") %dopar% {
+    resultsults = foreach(i = seq_len(len[[1L]]), .errorhandling = "pass") %dopar% {
       do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
+    }
+    is.error = vapply(results, inherits, logical(1L), what="error")
+    if (any(is.error)) {
+      if (BPPARAM$catch.errors)
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+      stop(results[[head(which(is.error), 1L)]])
     }
 
     if (!USE.NAMES)
-      res = unname(res)
+      results = unname(results)
     if (SIMPLIFY)
-      res = simplify2array(res)
+      results = simplify2array(results)
     res
 })

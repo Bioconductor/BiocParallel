@@ -62,16 +62,25 @@ setMethod(bpschedule, "MulticoreParam",
 
 ## evaluation
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
-        return(mapply(FUN = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES = USE.NAMES))
+      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+    if (resume)
+      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
 
-    mcmapply(FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY, USE.NAMES=USE.NAMES,
-             mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
-             mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+    results = mcmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES,
+                       mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+                       mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+    is.error = vapply(results, inherits, logical(1L), what="try-error")
+    if (any(is.error)) {
+      if (BPPARAM$catch.errors)
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+      stop(results[[head(which(is.error), 1L)]])
+    }
+    return (results)
 })
 
 setMethod(bpvec, c("ANY", "MulticoreParam"), function(X, FUN, ..., AGGREGATE=c, BPPARAM) {

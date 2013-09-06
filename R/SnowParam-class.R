@@ -86,8 +86,11 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 
 ## evaluation
 setMethod(bpmapply, c("ANY", "SnowParam"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
+    if (resume)
+      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
+
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
@@ -101,7 +104,7 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
       is.error = vapply(results, inherits, logical(1L), what="try-error")
 
       if (any(is.error))
-        LastError$store(args=list(...), results=results, is.error=is.error, MoreArgs=MoreArgs, throw.error = TRUE)
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
       if (SIMPLIFY)
         results = simplify2array(results)
     } else {

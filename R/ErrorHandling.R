@@ -1,20 +1,18 @@
 .LastError = setRefClass("LastError",
   fields = list(
-    args = "list",         # list of arguments to iterate over. all must have same length!
     results = "list",      # partial results
-    is.error = "logical",  # flags successfull/errorneous termination
-    MoreArgs = "list"),    # more arguments
+    is.error = "logical"), # flags successfull/errorneous termination
   methods = list(
     initialize = function() {
       reset()
     },
     show = function() {
-      if (is.null(args)) {
+      if (!length(results)) {
         message("No partial results saved")
       } else {
         n.errors = sum(is.error)
         msg = sprintf("%i/%i partial results stored.", length(is.error) - n.errors, length(is.error))
-        if (n.errors) {
+        if (n.errors > 0L) {
           n.print = min(n.errors, 10L)
           msg = paste(msg, sprintf("First %i error messages:", n.print))
           msg = c(msg, vapply(head(which(is.error), n.print),
@@ -24,12 +22,10 @@
         }
       }
     },
-    store = function(args, results, is.error, MoreArgs = list(), throw.error = FALSE) {
+    store = function(results, is.error, throw.error = FALSE) {
       if (any(is.error)) {
-        .self$args = args
         .self$results = replace(results, is.error, lapply(results[is.error], .convertToSimpleError))
         .self$is.error = is.error
-        .self$MoreArgs = MoreArgs
         if (throw.error) {
           msg = c("Errors occurred during execution. First error message:",
                   as.character(results[is.error][[1L]]),
@@ -42,10 +38,8 @@
       }
     },
     reset = function() {
-      .self$args = list()
       .self$results = list()
       .self$is.error = NA
-      .self$MoreArgs = list()
       invisible(TRUE)
     }
   )
@@ -95,4 +89,26 @@ getLastError = function() {
   }
   ret[["warnings"]] = cache.warnings
   ret
+}
+
+
+.resume = function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM) {
+  message("Resuming previous calculation... ")
+  if (length(LastError$results) != length(list(...)[[1L]]))
+    stop("Cannot resume: Length mismatch in arguments")
+  is.error = LastError$is.error
+  results = LastError$results
+  pars = c(list(FUN=FUN, MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+                USE.NAMES=USE.NAMES, resume=FALSE, BPPARAM=BPPARAM),
+           lapply(list(...), "[", LastError$is.error))
+  next.try = do.call(bpmapply, pars)
+
+  if (inherits(next.try, "try-error")) {
+    LastError$results = replace(results, is.error, LastError$results)
+    LastError$is.error = replace(is.error, is.error, LastError$is.error)
+    stop(as.character(next.try))
+  } else {
+    LastError$reset()
+    return(replace(results, is.error, next.try))
+  }
 }

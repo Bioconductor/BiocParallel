@@ -1,10 +1,10 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
-  function(X, FUN, ..., BPPARAM)
+  function(X, FUN, ..., resume=FALSE, BPPARAM)
     standardGeneric("bplapply")
 )
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, BPPARAM)
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM)
     standardGeneric("bpmapply")
 )
 
