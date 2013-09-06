@@ -11,7 +11,7 @@ biocViews: HighThroughputSequencing, Infrastructure
 License: GPL-2 | GPL-3
 Imports: methods, parallel, foreach, tools, BatchJobs, BBmisc
 Suggests: BiocGenerics, doParallel, RUnit
-Collate.unix: AllGenerics.R BiocParallelParam-class.R LastError.R
+Collate.unix: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R bpmapply-methods.R
     bpschedule-methods.R bpstart-methods.R bpstop-methods.R
     bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
@@ -19,7 +19,7 @@ Collate.unix: AllGenerics.R BiocParallelParam-class.R LastError.R
     DoparParam-class.R MulticoreParam-class.R pvectorize.R register.R
     SerialParam-class.R SnowParam-class.R BatchJobsParam-class.R 
     utilities.R unix/mclapply.R unix/pvec.R unix/zzz.R
-Collate.windows: AllGenerics.R BiocParallelParam-class.R LastError.R
+Collate.windows: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R bpmapply-methods.R
     bpschedule-methods.R bpstart-methods.R bpstop-methods.R
     bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
