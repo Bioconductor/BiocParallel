@@ -72,7 +72,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM))
-      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
     #FIXME recall?
 
     # turn progressbar on/off
