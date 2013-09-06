@@ -60,7 +60,7 @@ getLastError = function() {
   simpleError(x)
 }
 
-.tryWithDump = function(expr, debug=FALSE) {
+.try = function(expr, debug=FALSE) {
   if (!debug)
     return(try(expr))
   handler_warning = function(w) {
