@@ -57,5 +57,6 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       results = unname(results)
     if (SIMPLIFY)
       results = simplify2array(results)
-    res
+    
+    return(results)
 })
