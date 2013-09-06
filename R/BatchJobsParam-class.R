@@ -68,58 +68,6 @@ setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "BatchJobsParam"),
-    function(X, FUN, ..., BPPARAM) {
-    FUN = match.fun(FUN)
-
-    if (!bpschedule(BPPARAM))
-        return(lapply(X, FUN, ...))
-
-    # turn progressbar on/off
-    prev.pb = getOption("BBmisc.ProgressBar.style")
-    options(BBmisc.ProgressBar.style = c("off", "text")[BPPARAM$progressbar+1L])
-    on.exit(options(BBmisc.ProgressBar.style = prev.pb))
-
-    # create registry, handle cleanup
-    file.dir = file.path(BPPARAM$reg.pars$work.dir, tempfile("BiocParallel_tmp_", ""))
-    pars = c(list(id = "bplapply", file.dir = file.dir, skip = FALSE), BPPARAM$reg.pars)
-    reg = suppressMessages(do.call("makeRegistry", pars))
-    if (BPPARAM$cleanup)
-      on.exit(unlink(file.dir, recursive = TRUE), add = TRUE)
-
-    # switch config
-    prev.config = getConfig()
-    on.exit(do.call(setConfig, prev.config), add = TRUE)
-    do.call(setConfig, BPPARAM$conf.pars)
-
-    # define jobs and submit
-    ids = batchMap(reg, FUN, X, more.args = list(...))
-
-    # submit, possibly chunked
-    pars = c(list(reg = reg), BPPARAM$submit.pars)
-    if (is.na(BPPARAM$workers))
-      pars$ids = ids
-    else
-      pars$ids = chunk(ids, n.chunks = BPPARAM$workers, shuffle = TRUE)
-    suppressMessages(do.call(submitJobs, pars))
-    all.done = waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
-
-    # if everything worked out fine we are done here and don't need the error handling overhead
-    if (all.done) {
-      return(loadResults(reg, ids, use.names = FALSE))
-    } else if (BPPARAM$catch.errors) {
-      ok = ids %in% findDone(reg)
-      results = vector("list", length(ids))
-      results[ok] = loadResults(reg, ids[ok], use.names = FALSE)
-      results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
-      LastError$store(obj = X, results = results, is.error = !ok, throw.error = TRUE)
-    } else {
-      stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
-    }
-})
-
-
-
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
     FUN <- match.fun(FUN)
@@ -133,34 +81,44 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 
     # create registry, handle cleanup
     file.dir = file.path(BPPARAM$reg.pars$work.dir, tempfile("BiocParallel_tmp_", ""))
-    pars = c(list(id = "bplapply", file.dir = file.dir, skip = FALSE), BPPARAM$reg.pars)
+    pars = c(list(id = "bplapply", file.dir = file.dir, skip=FALSE), BPPARAM$reg.pars)
     reg = suppressMessages(do.call("makeRegistry", pars))
     if (BPPARAM$cleanup)
-      on.exit(unlink(file.dir, recursive = TRUE), add = TRUE)
+      on.exit(unlink(file.dir, recursive=TRUE), add=TRUE)
 
     # switch config
     prev.config = getConfig()
-    on.exit(do.call(setConfig, prev.config), add = TRUE)
+    on.exit(do.call(setConfig, prev.config), add=TRUE)
     do.call(setConfig, BPPARAM$conf.pars)
 
     # define jobs and submit
     if (is.null(MoreArgs))
       MoreArgs = list()
-    ids = batchMap(reg, fun = FUN, ..., more.args = MoreArgs)
+    ids = batchMap(reg, fun=FUN, ..., MoreArgs=MoreArgs)
 
     # submit, possibly chunked
     pars = c(list(reg = reg), BPPARAM$submit.pars)
     if (is.na(BPPARAM$workers))
       pars$ids = ids
     else
-      pars$ids = chunk(ids, n.chunks = BPPARAM$workers, shuffle = TRUE)
+      pars$ids = chunk(ids, n.chunks = BPPARAM$workers, shuffle=TRUE)
     suppressMessages(do.call(submitJobs, pars))
     all.done = waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
 
-    if (!all.done)
-      stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
 
-    results = loadResults(reg, ids, use.names = FALSE)
+    if (!all.done) { 
+      if (BPPARAM$catch.errors) {
+        ok = ids %in% findDone(reg)
+        results = vector("list", length(ids))
+        results[ok] = loadResults(reg, ids[ok], use.names=FALSE)
+        results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
+        LastError$store(args=list(...), results=results, is.error=!ok, MoreArgs=MoreArgs, throw.error=TRUE)
+      } else {
+        stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
+      }
+    }
+
+    results = loadResults(reg, ids, use.names=FALSE)
     if (USE.NAMES) {
       dots = list(...)
       if (length(dots)) {
@@ -173,7 +131,9 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
       }
     }
 
-    if (SIMPLIFY)
-      return(simplify2array(results))
+    if (SIMPLIFY) {
+      results = simplify2array(results)
+    }
+
     return(results)
 })

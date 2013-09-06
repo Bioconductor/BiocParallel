@@ -61,25 +61,6 @@ setMethod(bpschedule, "MulticoreParam",
 })
 
 ## evaluation
-
-setMethod(bplapply, c("ANY", "MulticoreParam"), function(X, FUN, ..., BPPARAM) {
-    FUN <- match.fun(FUN)
-    if (!bpschedule(BPPARAM))
-        return(lapply(X = X, FUN = FUN, ...))
-
-    cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
-    results <- mclapply(X, FUN, ..., mc.set.seed=BPPARAM$setSeed,
-                        mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
-                        mc.cleanup=cleanup)
-    is.error <- vapply(results, inherits, TRUE, what = "try-error")
-    if (any(is.error)) {
-      if (BPPARAM$catch.errors)
-        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
-      stop(results[[head(which(is.error), 1L)]])
-    }
-    return(results)
-})
-
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
     FUN <- match.fun(FUN)

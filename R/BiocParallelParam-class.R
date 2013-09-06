@@ -28,7 +28,6 @@ setValidity("BiocParallelParam", function(object) {
 .controlled <- function(x) { x$.controlled }
 
 setMethod(bpworkers, "BiocParallelParam",
-   function(x, ...)
-{
+   function(x, ...) {
     x$workers
 })

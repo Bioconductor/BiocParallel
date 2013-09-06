@@ -85,25 +85,6 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 })
 
 ## evaluation
-
-setMethod(bplapply, c("ANY", "SnowParam"), function(X, FUN, ..., BPPARAM) {
-    FUN <- match.fun(FUN)
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM))
-    }
-
-    wrap = function(.FUN, ..., .try, .debug) .try(do.call(.FUN, list(...)), debug=.debug)
-    results = parLapply(bpbackend(BPPARAM), X, wrap, .FUN = FUN, ..., .try=.try, .debug=BPPARAM$store.dump)
-    is.error = vapply(results, inherits, logical(1L), what = "try-error")
-    if (any(is.error)) {
-      if (BPPARAM$catch.errors)
-        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
-      stop(simpleError(results[[head(which(is.error), 1L)]]))
-    }
-    return(results)
-})
-
 setMethod(bpmapply, c("ANY", "SnowParam"),
   function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, BPPARAM) {
     FUN <- match.fun(FUN)
@@ -112,6 +93,21 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
         on.exit(bpstop(BPPARAM))
     }
 
-    clusterMap(cl = bpbackend(BPPARAM), fun = FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY,
-               USE.NAMES = USE.NAMES, RECYCLE=TRUE)
+    if (BPPARAM$catch.errors) {
+      wrap = function(.FUN, ..., .try, .debug) .try(do.call(.FUN, list(...)), debug=.debug)
+      results = clusterMap(cl = bpbackend(BPPARAM), fun=wrap, ..., 
+                          MoreArgs=c(list(.FUN = FUN, .try=.try, .debug=BPPARAM$store.dump), MoreArgs),
+                          SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
+      is.error = vapply(results, inherits, logical(1L), what="try-error")
+
+      if (any(is.error))
+        LastError$store(args=list(...), results=results, is.error=is.error, MoreArgs=MoreArgs, throw.error = TRUE)
+      if (SIMPLIFY)
+        results = simplify2array(results)
+    } else {
+      results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs,
+                          SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
+    }
+
+    return(results)
 })

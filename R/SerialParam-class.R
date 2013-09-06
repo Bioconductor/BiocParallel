@@ -13,24 +13,16 @@ setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
 
 setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
-setMethod(bplapply, c("ANY", "SerialParam"),
-  function(X, FUN, ..., BPPARAM) {
-    FUN <- match.fun(FUN)
-    if (BPPARAM$catch.errors) {
-      wrap = function(.FUN, ...) .try(do.call(.FUN, list(...)), debug=BPPARAM$store.dump)
-      results = lapply(X, wrap, .FUN = FUN, ...)
-      is.error = vapply(results, inherits, logical(1L), what = "try-error")
-      if (any(is.error))
-        LastError$store(obj = X, results = results, is.error = is.error, throw.error = TRUE)
-      return(results)
-    } else {
-      return(lapply(X, FUN, ...))
-    }
-  }
-)
-
 setMethod(bpmapply, c("function", "SerialParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, BPPARAM) {
     FUN <- match.fun(FUN)
+    if (BPPARAM$catch.errors) {
+      wrap = function(.FUN, ...) .try(.FUN(...), debug=BPPARAM$store.dump)
+      results = mapply(wrap, ..., MoreArgs=c(list(.FUN = FUN), MoreArgs), SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
+      is.error = vapply(results, inherits, logical(1L), what="try-error") 
+      if (any(is.error))
+        LastError$store(args=list(...), results=results, is.error=is.error, MoreArgs=MoreArgs, throw.error=TRUE)
+      return(results)
+    } 
     mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
 })
