@@ -51,19 +51,5 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       stop(results[[head(which(is.error), 1L)]])
     }
 
-    if (USE.NAMES) {
-      ddd = list(...)
-      if (length(ddd)) {
-        if (is.null(names(ddd[[1L]]))) {
-            if(is.character(ddd[[1L]]))
-              names(results) = ddd[[1L]]
-        } else {
-          names(results) = names(ddd[[1L]])
-        }
-      }
-    }
-    if (SIMPLIFY)
-      results = simplify2array(results)
-    
-    return(results)
+    return(.RenameSimplify(results, list(...), USE.NAMES, SIMPLIFY))
 })

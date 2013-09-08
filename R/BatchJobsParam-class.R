@@ -120,22 +120,5 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
       }
     }
 
-    results = loadResults(reg, ids, use.names=FALSE)
-    if (USE.NAMES) {
-      dots = list(...)
-      if (length(dots)) {
-        if (is.null(names(dots[[1L]]))) {
-            if(is.character(dots[[1L]]))
-              names(results) = dots[[1L]]
-        } else {
-          names(results) = names(dots[[1L]])
-        }
-      }
-    }
-
-    if (SIMPLIFY) {
-      results = simplify2array(results)
-    }
-
-    return(results)
+    return(.RenameSimplify(loadResults(reg, ids, use.names=FALSE), list(...), USE.NAMES, SIMPLIFY))
 })
