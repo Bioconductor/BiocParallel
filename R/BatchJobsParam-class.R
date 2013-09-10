@@ -10,7 +10,7 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, store.dump, cleanup, stop.on.error, progressbar) {
+    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
       callSuper()
 
       # save user config and reset it on exit
@@ -31,7 +31,7 @@
                            1L)
       }
 
-      initFields(workers=n.workers, catch.errors=catch.errors, store.dump=store.dump, reg.pars=reg.pars,
+      initFields(workers=n.workers, catch.errors=catch.errors, reg.pars=reg.pars,
                  submit.pars=submit.pars, conf.pars=new.conf, cleanup=cleanup,
                  stop.on.error=stop.on.error, progressbar=progressbar)
     },
@@ -46,8 +46,10 @@
   })
 )
 
-BatchJobsParam = function(workers=NULL, catch.errors=TRUE, store.dump=FALSE, cleanup=TRUE, work.dir=getwd(), stop.on.error=FALSE, seed=NULL,
+BatchJobsParam = function(workers=NULL, catch.errors=TRUE, cleanup=TRUE, work.dir=getwd(), stop.on.error=FALSE, seed=NULL,
                            resources=NULL, conffile=NULL, cluster.functions=NULL, progressbar=TRUE) {
+  # FIXME use pars like reg.pars, submit.pars, conf.pars
+  #       to support future arguments
   not_null = Negate(is.null)
   reg.pars = Filter(not_null, list(seed=seed, work.dir=work.dir))
   submit.pars = Filter(not_null, list(resources = resources))
@@ -55,8 +57,7 @@ BatchJobsParam = function(workers=NULL, catch.errors=TRUE, store.dump=FALSE, cle
 
   .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
                   conf.pars=conf.pars, n.workers=workers, catch.errors=catch.errors,
-                  store.dump=store.dump, cleanup=cleanup, stop.on.error=stop.on.error, 
-                  progressbar=progressbar)
+                  cleanup=cleanup, stop.on.error=stop.on.error, progressbar=progressbar)
 }
 
 
@@ -71,10 +72,10 @@ setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
   function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
-    if (!bpschedule(BPPARAM))
-      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
+    if (!bpschedule(BPPARAM))
+      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
@@ -83,7 +84,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 
     # create registry, handle cleanup
     file.dir = file.path(BPPARAM$reg.pars$work.dir, tempfile("BiocParallel_tmp_", ""))
-    pars = c(list(id = "bplapply", file.dir = file.dir, skip=FALSE), BPPARAM$reg.pars)
+    pars = c(list(id = "bpmapply", file.dir=file.dir, skip=FALSE), BPPARAM$reg.pars)
     reg = suppressMessages(do.call("makeRegistry", pars))
     if (BPPARAM$cleanup)
       on.exit(unlink(file.dir, recursive=TRUE), add=TRUE)
@@ -93,9 +94,16 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     on.exit(do.call(setConfig, prev.config), add=TRUE)
     do.call(setConfig, BPPARAM$conf.pars)
 
+    # quick sanity check
+    if (BPPARAM$stop.on.error && BPPARAM$catch.errors)
+      warning(paste("Options 'stop.on.error' and 'catch.errors' are both set, but are mutually exclusive.",
+                    "Disabling stop.on.error."))
+
     # define jobs and submit
     if (is.null(MoreArgs))
       MoreArgs = list()
+    if (BPPARAM$catch.errors)
+      FUN = .composeTry(FUN)
     ids = batchMap(reg, fun=FUN, ..., more.args=MoreArgs)
 
     # submit, possibly chunked
@@ -105,20 +113,32 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     else
       pars$ids = chunk(ids, n.chunks = BPPARAM$workers, shuffle=TRUE)
     suppressMessages(do.call(submitJobs, pars))
-    all.done = waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error)
 
+    # wait for the jobs to terminate
+    waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error && !BPPARAM$catch.errors)
 
-    if (!all.done) { 
-      if (BPPARAM$catch.errors) {
-        ok = ids %in% findDone(reg)
+    # identify missing results
+    ok = ids %in% findDone(reg)
+    if (BPPARAM$catch.errors) {
+      results = loadResults(reg, ids, use.names=FALSE, missing.ok=TRUE)
+      ok = ok & !vapply(results, inherits, logical(1L), what="try-error")
+    }
+    
+    # handle errors 
+    if (!all(ok)) {
+      if (!BPPARAM$catch.errors) {
         results = vector("list", length(ids))
         results[ok] = loadResults(reg, ids[ok], use.names=FALSE)
-        results[!ok] = lapply(getErrorMessages(reg, ids[!ok]), function(msg) simpleError(as.character(msg)))
+        msgs = getErrorMessages(reg, ids[!ok])
+        msgs = replace(msgs, msgs == "", "Status unknown. Possibly expired.")
+        results[!ok] = lapply(msgs, function(msg) simpleError(as.character(msg)))
+        results = .rename(results, ..., USE.NAMES=USE.NAMES)
         LastError$store(results=results, is.error=!ok, throw.error=TRUE)
-      } else {
-        stop(simpleError(as.character(getErrorMessages(reg, head(findErrors(reg), 1L)))))
       }
+      stop(simpleError(as.character(getErrorMessages(reg, head(ids[!ok], 1L)))))
     }
 
-    return(.renameSimplify(loadResults(reg, ids, use.names=FALSE), list(...), USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY))
+    # rename, simplify, return
+    results = .rename(results, list(...), USE.NAMES=USE.NAMES)
+    .simplify(results, SIMPLIFY=SIMPLIFY)
 })

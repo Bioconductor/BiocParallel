@@ -3,8 +3,7 @@
     fields=list(
       .controlled = "logical",
       workers = "numeric",
-      catch.errors = "logical",
-      store.dump = "logical"),
+      catch.errors = "logical"),
     methods=list(
       show = function() {
           cat("class: ", class(.self), "; bpisup: ", bpisup(.self),
@@ -20,8 +19,6 @@ setValidity("BiocParallelParam", function(object) {
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
     if (length(object$catch.errors) != 1L || is.na(object$catch.errors))
         msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
-    if (length(object$store.dump) != 1L || is.na(object$store.dump))
-        msg <- c(msg, "'store.dump' must be TRUE or FALSE")
     if (length(msg)) msg else TRUE
 })
 

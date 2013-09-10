@@ -11,7 +11,7 @@
     }
 }
 
-.renameSimplify = function(results, dots, USE.NAMES=FALSE, SIMPLIFY=FALSE) {
+.rename = function(results, dots, USE.NAMES=FALSE) {
     if (USE.NAMES && length(dots)) {
       if (is.null(names(dots[[1L]]))) {
         if(is.character(dots[[1L]]))
@@ -20,11 +20,15 @@
         names(results) = names(dots[[1L]])
       }
     }
+    return(results)
+}
 
+.simplify = function(results, SIMPLIFY=FALSE) {
     if (SIMPLIFY && length(results))
       return(simplify2array(results))
     return(results)
 }
+
 
 .getDotsForMapply = function(...) {
   ddd = list(...)

@@ -40,7 +40,6 @@
     reset = function() {
       .self$results = list()
       .self$is.error = NA
-      invisible(TRUE)
     }
   )
 )
@@ -101,6 +100,8 @@ getLastError = function() {
     stop("Cannot resume: Length mismatch in arguments")
   is.error = LastError$is.error
   results = LastError$results
+  # we have a possibly unnecessary copy here
+  # change the signature to support subsets of args?
   pars = c(list(FUN=FUN, MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
                 USE.NAMES=USE.NAMES, resume=FALSE, BPPARAM=BPPARAM),
            lapply(list(...), "[", LastError$is.error))

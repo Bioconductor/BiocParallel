@@ -24,26 +24,26 @@ setOldClass(c("SOCKcluster", "cluster"))
     makeCluster(0L, type)
 }
 
-SnowParam <- function(workers=0L, type, catch.errors=TRUE, store.dump=FALSE, ...) {
+SnowParam <- function(workers=0L, type, catch.errors=TRUE, ...) {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
+    # FIXME I don't think this is required, lists always inflict a copy
     .clusterargs <- lapply(args, force)
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
                .controlled=TRUE, workers=workers,
-               catch.errors=catch.errors, store.dump=store.dump, ...)
+               catch.errors=catch.errors, ...)
 }
 
 setAs("SOCKcluster", "SnowParam", function(from) {
     .clusterargs <- list(spec=length(from),
-                         type=sub("cluster$", "", class(from)[1]))
+                         type=sub("cluster$", "", class(from)[1L]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-               workers=length(from), catch.errors=TRUE, store.dump=FALSE)
+               workers=length(from), catch.errors=TRUE)
 })
 
 ## control
-
 setMethod(bpworkers, "SnowParam", function(x, ...) {
     if (bpisup(x))
         length(bpbackend(x))
@@ -78,9 +78,8 @@ setMethod(bpbackend, "SnowParam", function(x, ...) {
     x$cluster
 })
 
-setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
-    function(x, ..., value) {
-    x$cluster <- value
+setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"), function(x, ..., value) {
+    x$cluster = value
     x
 })
 
@@ -88,29 +87,24 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 setMethod(bpmapply, c("ANY", "SnowParam"),
   function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
     FUN <- match.fun(FUN)
+    # recall on subset
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM))
+      # FIXME we should simply fall back on sequential
+      BPPARAM <- bpstart(BPPARAM)
+      on.exit(bpstop(BPPARAM))
     }
 
-    if (BPPARAM$catch.errors) {
-      wrap = function(.FUN, ..., .try, .debug) .try(do.call(.FUN, list(...)), debug=.debug)
-      results = clusterMap(cl = bpbackend(BPPARAM), fun=wrap, ..., 
-                          MoreArgs=c(list(.FUN = FUN, .try=.try, .debug=BPPARAM$store.dump), MoreArgs),
-                          SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
-      is.error = vapply(results, inherits, logical(1L), what="try-error")
+    # FIXME we should maybe always wrap in a try?
+    if (BPPARAM$catch.errors)
+      FUN = .composeTry(FUN)
+    results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs, 
+                         SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
+    is.error = vapply(results, inherits, logical(1L), what="try-error")
+    if (any(is.error))
+      LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 
-      if (any(is.error))
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-      if (SIMPLIFY)
-        results = simplify2array(results)
-    } else {
-      results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs,
-                          SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
-    }
-
-    return(results)
+    .simplify(results, SIMPLIFY=SIMPLIFY)
 })

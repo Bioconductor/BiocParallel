@@ -3,8 +3,8 @@
     fields=list()
 )
 
-DoparParam <- function(catch.errors=TRUE, store.dump=FALSE) {
-  .DoparParam(catch.errors=catch.errors, store.dump=store.dump)
+DoparParam <- function(catch.errors=TRUE) {
+  .DoparParam(catch.errors=catch.errors)
 }
 
 ## control
@@ -32,17 +32,20 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       return(Recall(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
 
     ddd = .getDotsForMapply(...)
-    MoreArgs = as.list(MoreArgs)
+    if (!is.list(MoreArgs))
+      MoreArgs = as.list(MoreArgs)
 
-    results = foreach(i = seq_len(len[[1L]]), .errorhandling = "pass") %dopar% {
+    if (BPPARAM$catch.errors)
+      FUN = .composeTry(FUN)
+
+    results = foreach(i = seq_len(length(ddd[[1L]])), .errorhandling = "stop") %dopar% {
       do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
     }
-    is.error = vapply(results, inherits, logical(1L), what="error")
-    if (any(is.error)) {
-      if (BPPARAM$catch.errors)
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-      stop(results[[head(which(is.error), 1L)]])
-    }
+    results = .rename(results, ddd, USE.NAMES=USE.NAMES)
 
-    return(.renameSimplify(results, list(...), USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY))
+    is.error = vapply(results, inherits, logical(1L), what="error")
+    if (any(is.error))
+      LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+
+    return(.simplify(results, SIMPLIFY=SIMPLIFY))
 })

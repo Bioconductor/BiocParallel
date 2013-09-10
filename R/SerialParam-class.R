@@ -3,8 +3,8 @@
   fields=list()
 )
 
-SerialParam <- function(catch.errors=TRUE, store.dump=FALSE) {
-  .SerialParam(catch.errors=catch.errors, store.dump=FALSE)
+SerialParam <- function(catch.errors=TRUE) {
+  .SerialParam(catch.errors=catch.errors)
 }
 
 ## control
@@ -20,15 +20,14 @@ setMethod(bpmapply, c("function", "SerialParam"),
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     if (BPPARAM$catch.errors) {
-      wrap = function(.FUN, ...) .try(.FUN(...), debug=BPPARAM$store.dump)
-      results = mapply(wrap, ..., MoreArgs=c(list(.FUN = FUN), MoreArgs), SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
+      FUN = .composeTry(FUN)
+      results = mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
+
       is.error = vapply(results, inherits, logical(1L), what="try-error") 
       if (any(is.error))
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-      if (SIMPLIFY)
-        results = simplify2array(results)
-    } else { 
-      results = mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
-    }
-    return(results)
+      return(.simplify(results, SIMPLIFY=SIMPLIFY))
+    } 
+
+    mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
 })
