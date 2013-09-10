@@ -72,19 +72,20 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     # -> use mclapply!
     ddd = .getDotsForMapply(...)
     wrap = function(.i, ...) do.call(FUN, args = c(lapply(ddd, "[[", .i), MoreArgs))
-    if (BPPARAM$catch.errors)
-      wrap = .composeTry(wrap)
+
+    # always wrap in a try: this is the only way to throw an error for the user
+    wrap = .composeTry(wrap)
 
     results = mclapply(X=seq_len(length(ddd[[1L]])), FUN=wrap,
                        mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM), 
                        mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
     results = .rename(results, ddd, USE.NAMES=USE.NAMES)
 
-    is.error = vapply(results, inherits, logical(1L), what="try-error")
+    is.error = vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error)) {
       if (BPPARAM$catch.errors)
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-      stop(results[[head(which(is.error), 1L)]])
+      stop(as.character(results[[head(which(is.error), 1L)]]))
     }
 
     .simplify(results, SIMPLIFY=SIMPLIFY)

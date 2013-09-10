@@ -23,9 +23,10 @@ setMethod(bpmapply, c("function", "SerialParam"),
       FUN = .composeTry(FUN)
       results = mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
 
-      is.error = vapply(results, inherits, logical(1L), what="try-error") 
+      is.error = vapply(results, inherits, logical(1L), what="remote-error") 
       if (any(is.error))
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+      
       return(.simplify(results, SIMPLIFY=SIMPLIFY))
     } 
 

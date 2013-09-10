@@ -54,6 +54,11 @@ getLastError = function() {
   simpleError(x)
 }
 
+.throwError = function(x) {
+  x = as.character(x)
+  stop(simpleError(x))
+}
+
 .try = function(expr) {
   handler_warning = function(w) {
     cache.warnings <<- c(cache.warnings, as.character(w))
@@ -63,7 +68,7 @@ getLastError = function() {
   handler_error = function(e) {
     call = sapply(sys.calls(), deparse)
     # FIXME one might try to cleanup the traceback ...
-    tb <<- (traceback(call))
+    tb <<- capture.output(print(traceback(call)))
     invokeRestart("abort", e)
   }
 
@@ -78,7 +83,7 @@ getLastError = function() {
   if (inherits(x, "error")) {
     tmp = x
     x = as.character(x)
-    class(x) = "try-error"
+    class(x) = "remote-error"
     attr(x, "condition") = tmp$condition
     attr(x, "traceback") = tb
   }

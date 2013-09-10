@@ -92,17 +92,17 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     if (!bpisup(BPPARAM)) {
-      # FIXME we should simply fall back on sequential
+      # FIXME we should simply fall back to serial
       BPPARAM <- bpstart(BPPARAM)
       on.exit(bpstop(BPPARAM))
     }
 
     # FIXME we should maybe always wrap in a try?
     if (BPPARAM$catch.errors)
-      FUN = .composeTry(FUN)
+      wrap = .composeTry(FUN)
     results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs, 
                          SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
-    is.error = vapply(results, inherits, logical(1L), what="try-error")
+    is.error = vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error))
       LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 

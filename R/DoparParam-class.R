@@ -43,7 +43,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     }
     results = .rename(results, ddd, USE.NAMES=USE.NAMES)
 
-    is.error = vapply(results, inherits, logical(1L), what="error")
+    is.error = vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error))
       LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 

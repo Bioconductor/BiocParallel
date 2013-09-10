@@ -104,7 +104,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
       MoreArgs = list()
     if (BPPARAM$catch.errors)
       FUN = .composeTry(FUN)
-    ids = batchMap(reg, fun=FUN, ..., more.args=MoreArgs)
+    ids = suppressMessages(batchMap(reg, fun=FUN, ..., more.args=MoreArgs))
 
     # submit, possibly chunked
     pars = c(list(reg = reg), BPPARAM$submit.pars)
@@ -121,18 +121,18 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     ok = ids %in% findDone(reg)
     if (BPPARAM$catch.errors) {
       results = loadResults(reg, ids, use.names=FALSE, missing.ok=TRUE)
-      ok = ok & !vapply(results, inherits, logical(1L), what="try-error")
+      ok = ok & !vapply(results, inherits, logical(1L), what="remote-error")
     }
     
     # handle errors 
     if (!all(ok)) {
-      if (!BPPARAM$catch.errors) {
+      if (BPPARAM$catch.errors) {
         results = vector("list", length(ids))
         results[ok] = loadResults(reg, ids[ok], use.names=FALSE)
         msgs = getErrorMessages(reg, ids[!ok])
         msgs = replace(msgs, msgs == "", "Status unknown. Possibly expired.")
         results[!ok] = lapply(msgs, function(msg) simpleError(as.character(msg)))
-        results = .rename(results, ..., USE.NAMES=USE.NAMES)
+        results = .rename(results, list(...), USE.NAMES=USE.NAMES)
         LastError$store(results=results, is.error=!ok, throw.error=TRUE)
       }
       stop(simpleError(as.character(getErrorMessages(reg, head(ids[!ok], 1L)))))

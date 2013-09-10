@@ -1,5 +1,4 @@
-.splitIndices <- function (nx, ncl)
-{
+.splitIndices <- function (nx, ncl) {
     ## derived from parallel
     i <- seq_len(nx)
     if (ncl <= 1L || nx <= 1L)          # allow nx, nc == 0
