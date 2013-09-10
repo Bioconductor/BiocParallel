@@ -55,42 +55,45 @@ getLastError = function() {
   simpleError(x)
 }
 
-.try = function(expr, debug=FALSE) {
-  if (!debug)
-    return(try(expr))
+.try = function(expr) {
   handler_warning = function(w) {
-    cache.warnings <<- c(cache.warnings, w)
+    cache.warnings <<- c(cache.warnings, as.character(w))
     invokeRestart("muffleWarning")
   }
 
   handler_error = function(e) {
-    catched.error <<- TRUE
-    dump.frames(".lastDump")
-    dumped = get(".lastDump", envir = .GlobalEnv)
-    rm(".lastDump", envir = .GlobalEnv)
     call = sapply(sys.calls(), deparse)
-    invokeRestart("abort", e, call, dumped)
+    # FIXME one might try to cleanup the traceback ...
+    tb <<- (traceback(call))
+    invokeRestart("abort", e)
   }
 
-  handler_abort = function(e, call, dumped) {
-    list(value = e, call = call, dump = dumped)
-  }
+  handler_abort = function(e) e
 
-  catched.error = FALSE
-  cache.warnings = list()
-  ret = setNames(vector("list", 5L), c("value", "warnings", "error", "call", "dump"))
-
+  tb = NULL
+  cache.warnings = character(0L)
   x = withRestarts(withCallingHandlers(expr, warning = handler_warning, error = handler_error), abort = handler_abort)
-  if (catched.error) {
-    ret[names(x)] = x
-    class(ret) = "try-error"
-  } else {
-    ret[["value"]] = x
+
+  # try to mimic the try return type
+  # this may be incomplete...
+  if (inherits(x, "error")) {
+    tmp = x
+    x = as.character(x)
+    class(x) = "try-error"
+    attr(x, "condition") = tmp$condition
+    attr(x, "traceback") = tb
   }
-  ret[["warnings"]] = cache.warnings
-  ret
+  if (length(cache.warnings)) {
+    class(x) = c(class(x), "try-warning")
+    attr(x, "warnings") = cache.warnings
+  }
+  return(x)
 }
 
+.composeTry = function(FUN) {
+  FUN = match.fun(FUN)
+  function(...) .try(FUN(...))
+}
 
 .resume = function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM) {
   message("Resuming previous calculation... ")
