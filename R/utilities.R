@@ -32,12 +32,14 @@
 
 .getDotsForMapply = function(...) {
   ddd = list(...)
-  len = vapply(ddd, length, integer(1L))
-  if (!all(len == len[1L])) {
-    max.len = max(len)
-    if (any(max.len %% len))
-      warning("longer argument not a multiple of length of vector")
-    ddd = lapply(ddd, rep_len, length.out = max.len)
+  if (length(ddd)) {
+    len = vapply(ddd, length, integer(1L))
+    if (!all(len == len[1L])) {
+      max.len = max(len)
+      if (any(max.len %% len))
+        warning("longer argument not a multiple of length of vector")
+      ddd = lapply(ddd, rep_len, length.out = max.len)
+    }
   }
 
   return(ddd)
