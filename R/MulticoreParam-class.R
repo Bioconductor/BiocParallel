@@ -71,16 +71,31 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
 
     cleanup <- if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE
 
-    results = mcmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES,
-                       mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
-                       mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+    # FIX for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15016
+    # use mclapply instead of mcmapply
+    fix.mapply = length(..1) <= bpworkers(BPPARAM)
+    if (fix.mapply) {
+      ddd = .getDotsForMapply(...)
+      wrap = function(.i, .FUN, .ddd, .MoreArgs) do.call(.FUN, args = c(lapply(.ddd, "[[", .i), .MoreArgs))
+
+      results = mclapply(X=seq_len(length(ddd[[1L]])), FUN=wrap, .FUN=FUN, .ddd=ddd,.MoreArgs=MoreArgs,
+                         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose, 
+                         mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+      results = .renameSimplify(results, ddd, USE.NAMES=USE.NAMES)
+    } else {
+      results = mcmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES,
+                         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+                         mc.cores=bpworkers(BPPARAM), mc.cleanup=cleanup)
+    }
+
     is.error = vapply(results, inherits, logical(1L), what="try-error")
     if (any(is.error)) {
       if (BPPARAM$catch.errors)
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
       stop(results[[head(which(is.error), 1L)]])
     }
-    return (results)
+
+    return (.renameSimplify(results, list(...), SIMPLIFY=SIMPLIFY))
 })
 
 setMethod(bpvec, c("ANY", "MulticoreParam"), function(X, FUN, ..., AGGREGATE=c, BPPARAM) {

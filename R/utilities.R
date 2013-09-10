@@ -11,7 +11,7 @@
     }
 }
 
-.RenameSimplify = function(results, dots, USE.NAMES, SIMPLIFY) {
+.renameSimplify = function(results, dots, USE.NAMES=FALSE, SIMPLIFY=FALSE) {
     if (USE.NAMES) {
       if (length(dots)) {
         if (is.null(names(dots[[1L]]))) {
@@ -26,5 +26,19 @@
     if (SIMPLIFY) {
       results = simplify2array(results)
     }
+
     return(results)
+}
+
+.getDotsForMapply = function(...) {
+  ddd = list(...)
+  len = vapply(ddd, length, integer(1L))
+  if (!all(len == len[1L])) {
+    max.len = max(len)
+    if (any(max.len %% len))
+      warning("longer argument not a multiple of length of vector")
+    ddd = lapply(ddd, rep_len, length.out = max.len)
+  }
+
+  return(ddd)
 }

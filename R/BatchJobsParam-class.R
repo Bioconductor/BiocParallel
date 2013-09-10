@@ -120,5 +120,5 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
       }
     }
 
-    return(.RenameSimplify(loadResults(reg, ids, use.names=FALSE), list(...), USE.NAMES, SIMPLIFY))
+    return(.renameSimplify(loadResults(reg, ids, use.names=FALSE), list(...), USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY))
 })

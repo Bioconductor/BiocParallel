@@ -31,16 +31,9 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (!bpisup(BPPARAM))
       return(Recall(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
 
-    ddd = list(...)
+    ddd = .getDotsForMapply(...)
     MoreArgs = as.list(MoreArgs)
-    len = vapply(ddd, length, integer(1L))
-    if (!all(len == len[1L])) {
-      max.len = max(len)
-      if (any(max.len %% len))
-        warning("longer argument not a multiple of length of vector")
-      ddd = lapply(ddd, rep_len, length.out = max.len)
-    }
-    i <- NULL                           # quieten R CMD check
+
     results = foreach(i = seq_len(len[[1L]]), .errorhandling = "pass") %dopar% {
       do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
     }
@@ -51,5 +44,5 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       stop(results[[head(which(is.error), 1L)]])
     }
 
-    return(.RenameSimplify(results, list(...), USE.NAMES, SIMPLIFY))
+    return(.renameSimplify(results, list(...), USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY))
 })
