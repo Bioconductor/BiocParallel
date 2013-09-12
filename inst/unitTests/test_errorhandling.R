@@ -1,9 +1,12 @@
+checkExceptionText = function(expr, txt, negate=FALSE, msg="") {
+  x = try(eval(expr))
+  checkTrue(inherits(x, "try-error"), msg=msg)
+  checkTrue(xor(negate, grepl(txt, as.character(x))), msg=msg)
+}
+
 test_errorhandling <- function() {
-  # FIXME we need the windows workaround
-  if (FALSE) {
-    library(BiocParallel)
-    library(RUnit)
-  }
+  library(doParallel)
+  registerDoParallel(2)
 
   x = 1:10
   y = rev(x)
@@ -16,7 +19,7 @@ test_errorhandling <- function() {
                  multi=MulticoreParam(catch.errors=FALSE),
                  dopar=DoparParam(catch.errors=FALSE))
   for (param in params) {
-    checkException(bpmapply(f, x, y, BPPARAM=param))
+    checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError", negate=TRUE)
   }
 
   params <- list(serial=SerialParam(catch.errors=TRUE),
@@ -26,11 +29,8 @@ test_errorhandling <- function() {
                  multi=MulticoreParam(catch.errors=TRUE),
                  dopar=DoparParam(catch.errors=TRUE))
   for (param in params) {
-    checkException(bpmapply(f, x, y, BPPARAM=param))
+    checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
   }
-  # TODO snow -> still no catch?
-  # TODO multicore -> convert error message before throwing
-  # LastError -> convert all error messages?
-  
+
   TRUE
 }
