@@ -5,8 +5,9 @@ checkExceptionText = function(expr, txt, negate=FALSE, msg="") {
 }
 
 test_errorhandling <- function() {
+  # FIXME we need the windows workaround
   library(doParallel)
-  registerDoParallel(2)
+  registerDoParallel()
 
   x = 1:10
   y = rev(x)
