@@ -99,8 +99,8 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
 
     # FIXME we should maybe always wrap in a try?
     if (BPPARAM$catch.errors)
-      wrap = .composeTry(FUN)
-    results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs, 
+      FUN = .composeTry(FUN)
+    results = clusterMap(cl = bpbackend(BPPARAM), fun=FUN, ..., MoreArgs=MoreArgs,
                          SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
     is.error = vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error))

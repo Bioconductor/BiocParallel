@@ -50,8 +50,7 @@ getLastError = function() {
 }
 
 .convertToSimpleError = function(x) {
-  x = as.character(x)
-  simpleError(x)
+  simpleError(as.character(x))
 }
 
 .throwError = function(x) {

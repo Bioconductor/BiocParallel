@@ -75,7 +75,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM))
-      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
     # turn progressbar on/off
     prev.pb = getOption("BBmisc.ProgressBar.style")
@@ -91,8 +91,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 
     # switch config
     prev.config = getConfig()
-    on.exit(do.call(setConfig, prev.config), add=TRUE)
-    do.call(setConfig, BPPARAM$conf.pars)
+    on.exit(setConfig(conf=prev.config), add=TRUE)
+    setConfig(conf=BPPARAM$conf.pars)
 
     # quick sanity check
     if (BPPARAM$stop.on.error && BPPARAM$catch.errors)
@@ -118,27 +118,25 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     waitForJobs(reg, ids, timeout = Inf, stop.on.error = BPPARAM$stop.on.error && !BPPARAM$catch.errors)
 
     # identify missing results
-    ok = ids %in% findDone(reg)
+    ok = ids %in% suppressMessages(findDone(reg))
     if (BPPARAM$catch.errors) {
       results = loadResults(reg, ids, use.names=FALSE, missing.ok=TRUE)
       ok = ok & !vapply(results, inherits, logical(1L), what="remote-error")
     }
-    
-    # handle errors 
+
+    # handle errors
     if (!all(ok)) {
       if (BPPARAM$catch.errors) {
-        results = vector("list", length(ids))
-        results[ok] = loadResults(reg, ids[ok], use.names=FALSE)
-        msgs = getErrorMessages(reg, ids[!ok])
-        msgs = replace(msgs, msgs == "", "Status unknown. Possibly expired.")
-        results[!ok] = lapply(msgs, function(msg) simpleError(as.character(msg)))
+        # already fetched the results ...
         results = .rename(results, list(...), USE.NAMES=USE.NAMES)
         LastError$store(results=results, is.error=!ok, throw.error=TRUE)
       }
       stop(simpleError(as.character(getErrorMessages(reg, head(ids[!ok], 1L)))))
     }
 
-    # rename, simplify, return
-    results = .rename(results, list(...), USE.NAMES=USE.NAMES)
-    .simplify(results, SIMPLIFY=SIMPLIFY)
+    if (!BPPARAM$catch.errors) { # results not fetched yet
+      results = loadResults(reg, ids, use.names=FALSE)
+    }
+
+    .simplify(.rename(results, list(...), USE.NAMES=USE.NAMES), SIMPLIFY=SIMPLIFY)
 })

@@ -29,7 +29,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpisup(BPPARAM))
-      return(Recall(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+      return(bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
     ddd = .getDotsForMapply(...)
     if (!is.list(MoreArgs))

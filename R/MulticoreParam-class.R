@@ -16,7 +16,7 @@
       })
 )
 
-MulticoreParam <- function(workers=detectCores(), catch.errors=TRUE, setSeed=TRUE, recursive=TRUE, 
+MulticoreParam <- function(workers=detectCores(), catch.errors=TRUE, setSeed=TRUE, recursive=TRUE,
                            cleanup=TRUE, cleanupSignal=tools::SIGTERM, verbose=FALSE) {
     .MulticoreParam(workers=workers, catch.errors=catch.errors, setSeed=setSeed, recursive=recursive,
                     cleanup=cleanup, cleanupSignal=cleanupSignal, verbose=verbose)
@@ -62,9 +62,9 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     # recall on subset of input data
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
-    # recall in sequential 
+    # recall in sequential
     if (!bpschedule(BPPARAM))
-      return(Recall(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam()))
+      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
 
     # mcmapply is broken: https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15016
@@ -77,7 +77,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     wrap = .composeTry(wrap)
 
     results = mclapply(X=seq_len(length(ddd[[1L]])), FUN=wrap,
-                       mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM), 
+                       mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
                        mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
     results = .rename(results, ddd, USE.NAMES=USE.NAMES)
 
