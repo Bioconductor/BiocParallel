@@ -25,11 +25,14 @@
           x = environment(conf$cluster.functions$submitJob)$workers
           vapply(x, "[[", integer(1L), "ncpus")
         }
-        n.workers = switch(new.conf$cluster.functions$name,
-                           "Multicore" = getNumberCPUs(new.conf),
-                           "SSH" = sum(getNumberCPUs(new.conf)),
-                           1L)
-      }
+        cf.name <- new.conf$cluster.functions$name
+        if (is.null(cf.name))
+          n.workers <- NA
+        else n.workers = switch(cf.name,
+               "Multicore" = getNumberCPUs(new.conf),
+               "SSH" = sum(getNumberCPUs(new.conf)),
+               NA)
+      } else n.workers <- as.integer(n.workers)
 
       initFields(workers=n.workers, catch.errors=catch.errors, reg.pars=reg.pars,
                  submit.pars=submit.pars, conf.pars=new.conf, cleanup=cleanup,
