@@ -32,7 +32,8 @@
                "Multicore" = getNumberCPUs(new.conf),
                "SSH" = sum(getNumberCPUs(new.conf)),
                NA)
-      } else n.workers <- as.integer(n.workers)
+      }
+      n.workers <- as.integer(n.workers)
 
       initFields(workers=n.workers, catch.errors=catch.errors, reg.pars=reg.pars,
                  submit.pars=submit.pars, conf.pars=new.conf, cleanup=cleanup,
