@@ -18,11 +18,14 @@ test_bpmapply_Params <- function() {
   # test names and simplify
   x = setNames(1:5, letters[1:5])
   for (param in params) {
-    for (SIMPLIFY in c(FALSE, TRUE)) {
-      for (USE.NAMES in c(FALSE, TRUE)) {
-        expected = mapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY)
-        result = bpmapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY, BPPARAM=param)
-        checkIdentical(expected, result)
+    for (catch.errors in c(FALSE, TRUE)) {
+      param$catch.errors = catch.errors
+      for (SIMPLIFY in c(FALSE, TRUE)) {
+        for (USE.NAMES in c(FALSE, TRUE)) {
+          expected = mapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY)
+          result = bpmapply(identity, x, USE.NAMES=USE.NAMES, SIMPLIFY=SIMPLIFY, BPPARAM=param)
+          checkIdentical(expected, result)
+        }
       }
     }
   }
