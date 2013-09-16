@@ -30,5 +30,5 @@ setMethod(bpmapply, c("function", "SerialParam"),
       return(.simplify(results, SIMPLIFY=SIMPLIFY))
     }
 
-    mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
+    mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
 })
