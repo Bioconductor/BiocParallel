@@ -32,7 +32,7 @@
           msg = c("Errors occurred during execution. First error message:",
                   as.character(results[is.error][[1L]]),
                   "For more information, use getLastError().",
-                  "To resume calculation, re-call the function and set the argument 'resume' to TRUE.")
+                  "To resume calculation, re-call the function and set the argument 'resume' to TRUE or wrap the previous call in bpresume().")
           if (length(.self$traceback))
             msg = c(msg, "", "First traceback:", .self$traceback)
           stop(paste(msg, collapse = "\n"))
