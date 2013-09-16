@@ -24,7 +24,7 @@ setMethod(bpisup, "DoparParam", function(x, ...) {
 ## evaluation
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=FALSE, BPPARAM) {
+  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
     FUN <- match.fun(FUN)
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))

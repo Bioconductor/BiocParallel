@@ -85,7 +85,7 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"), function(x, ..., va
 
 ## evaluation
 setMethod(bpmapply, c("ANY", "SnowParam"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
     FUN <- match.fun(FUN)
     # recall on subset
     if (resume)

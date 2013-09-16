@@ -1,5 +1,5 @@
 setMethod(bpmapply, c("function", "missing"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
     FUN <- match.fun(FUN)
     x <- registered()[[1]]
     bpmapply(FUN, ..., MoreArgs = MoreArgs, SIMPLIFY = SIMPLIFY,

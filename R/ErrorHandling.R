@@ -120,3 +120,10 @@ getLastError = function() {
     return(replace(results, is.error, next.try))
   }
 }
+
+bpresume = function(expr) {
+  prev = getOption("BiocParallel.resume", FALSE)
+  on.exit(options("BiocParallel.resume", prev))
+  options("BiocParallel.resume", TRUE)
+  expr
+}

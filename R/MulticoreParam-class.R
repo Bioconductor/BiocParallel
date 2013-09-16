@@ -57,7 +57,7 @@ setMethod(bpschedule, "MulticoreParam", function(x, ...) {
 
 ## evaluation
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=FALSE, BPPARAM) {
+  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
     FUN = match.fun(FUN)
     # recall on subset of input data
     if (resume)
