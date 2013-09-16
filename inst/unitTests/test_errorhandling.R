@@ -11,7 +11,7 @@ test_errorhandling <- function() {
 
   x = 1:10
   y = rev(x)
-  f = function(x, y) if (x > y) stop("whooops") else TRUE
+  f = function(x, y) if (x > y) stop("whooops") else x + y
 
   params <- list(serial=SerialParam(catch.errors=FALSE),
                  snow0=SnowParam(2, "FORK", catch.errors=FALSE),
@@ -31,6 +31,20 @@ test_errorhandling <- function() {
                  dopar=DoparParam(catch.errors=TRUE))
   for (param in params) {
     checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
+  }
+
+  if (FALSE) {
+    # FIXME todo
+    library(BiocParallel)
+    x = 1:10
+    y = rev(x)
+    f = function(x, y) if (x > y) stop("whooops") else x + y
+    f.fix = function(x, y) 0
+    param = SerialParam()
+      ok = try(bpmapply(f, x, y, BPPARAM=param))
+      bpresume(bpmapply(f, x, y, BPPARAM=param))
+      res = bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
+      checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
   }
 
   TRUE

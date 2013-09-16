@@ -99,21 +99,21 @@ getLastError = function() {
 
 .resume = function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM) {
   message("Resuming previous calculation... ")
+  if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
+    stop("No last error catched")
   if (length(LastError$results) != length(list(...)[[1L]]))
     stop("Cannot resume: Length mismatch in arguments")
-  is.error = LastError$is.error
   results = LastError$results
-  # we have a possibly unnecessary copy here
-  # change the signature to support subsets of args?
+  is.error = LastError$is.error
   pars = c(list(FUN=FUN, MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
                 USE.NAMES=USE.NAMES, resume=FALSE, BPPARAM=BPPARAM),
            lapply(list(...), "[", LastError$is.error))
-  next.try = do.call(bpmapply, pars)
+  next.try = try(do.call(bpmapply, pars))
 
   if (inherits(next.try, "try-error")) {
-    LastError$results = replace(results, is.error, LastError$results)
-    LastError$is.error = replace(is.error, is.error, LastError$is.error)
-    stop(as.character(next.try))
+    LastError$store(results = replace(results, is.error, LastError$results),
+                    is.error = replace(is.error, is.error, LastError$is.error),
+                    throw.error = TRUE)
   } else {
     LastError$reset()
     return(replace(results, is.error, next.try))
@@ -122,7 +122,7 @@ getLastError = function() {
 
 bpresume = function(expr) {
   prev = getOption("BiocParallel.resume", FALSE)
-  on.exit(options("BiocParallel.resume", prev))
-  options("BiocParallel.resume", TRUE)
+  on.exit(options("BiocParallel.resume"= prev))
+  options(BiocParallel.resume = TRUE)
   expr
 }
