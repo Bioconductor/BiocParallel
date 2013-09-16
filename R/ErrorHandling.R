@@ -1,7 +1,8 @@
 .LastError = setRefClass("LastError",
   fields = list(
-    results = "list",      # partial results
-    is.error = "logical"), # flags successfull/errorneous termination
+    results = "list",         # partial results
+    is.error = "logical",     # flags successfull/errorneous termination
+    traceback = "character"), # exemplary traceback
   methods = list(
     initialize = function() {
       reset()
@@ -24,6 +25,7 @@
     },
     store = function(results, is.error, throw.error = FALSE) {
       if (any(is.error)) {
+        .self$traceback = attr(head(results[is.error], 1L)[[1L]], "traceback")
         .self$results = replace(results, is.error, lapply(results[is.error], .convertToSimpleError))
         .self$is.error = is.error
         if (throw.error) {
@@ -31,6 +33,8 @@
                   as.character(results[is.error][[1L]]),
                   "For more information, use getLastError().",
                   "To resume calculation, re-call the function and set the argument 'resume' to TRUE.")
+          if (length(.self$traceback))
+            msg = c(msg, "", "First traceback:", .self$traceback)
           stop(paste(msg, collapse = "\n"))
         }
       } else {
@@ -40,6 +44,7 @@
     reset = function() {
       .self$results = list()
       .self$is.error = NA
+      .self$traceback = character(0L)
     }
   )
 )
@@ -51,11 +56,6 @@ getLastError = function() {
 
 .convertToSimpleError = function(x) {
   simpleError(as.character(x))
-}
-
-.throwError = function(x) {
-  x = as.character(x)
-  stop(simpleError(x))
 }
 
 .try = function(expr) {
@@ -77,8 +77,7 @@ getLastError = function() {
   cache.warnings = character(0L)
   x = withRestarts(withCallingHandlers(expr, warning = handler_warning, error = handler_error), abort = handler_abort)
 
-  # try to mimic the try return type
-  # this may be incomplete...
+  # we cannot use try-error or snow's internal error handling will be triggered
   if (inherits(x, "error")) {
     tmp = x
     x = as.character(x)
