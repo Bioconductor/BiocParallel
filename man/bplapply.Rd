@@ -17,9 +17,9 @@
 \usage{
 bplapply(X, FUN, ..., BPPARAM)
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., resume = getOption("BiocParallelParam.resume"), BPPARAM)
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., resume = getOption("BiocParallelParam.resume"), BPPARAM)
 }
 
 \arguments{
@@ -32,6 +32,9 @@ bplapply(X, FUN, ..., BPPARAM)
 
   \item{\dots}{Additional arguments for \code{FUN}, as in
     \code{\link{lapply}}}
+
+  \item{resume}{Flag to determine if a previous partially successful run should be resumed.
+      See \code{\link{bpresume}} for details.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}

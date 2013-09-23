@@ -32,6 +32,8 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(),
                resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) 
 
 \S4method{bplapply}{ANY,BatchJobsParam}(X, FUN, ..., BPPARAM)
+\S4method{bpmapply}{ANY,BatchJobsParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
+                                        resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
