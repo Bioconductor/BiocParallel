@@ -1,7 +1,6 @@
 library(doParallel)                     # FIXME: unload?
 
-.fork_not_windows <- function(expected, expr)
-{
+.fork_not_windows <- function(expected, expr) {
     err <- NULL
     obs <- tryCatch(expr, error=function(e) {
         if (!all(grepl("fork clusters are not supported on Windows",

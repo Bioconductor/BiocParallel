@@ -29,7 +29,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (resume)
       return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpisup(BPPARAM))
-      return(bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
     ddd = .getDotsForMapply(...)
     if (!is.list(MoreArgs))
@@ -39,7 +39,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
       FUN = .composeTry(FUN)
 
     results = foreach(i = seq_len(length(ddd[[1L]])), .errorhandling = "stop") %dopar% {
-      do.call("FUN", args = c(lapply(ddd, "[[", i), MoreArgs))
+      do.call(FUN, args = c(lapply(ddd, "[[", i), MoreArgs))
     }
     results = .rename(results, ddd, USE.NAMES=USE.NAMES)
 

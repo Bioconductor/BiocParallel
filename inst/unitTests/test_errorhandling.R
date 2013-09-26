@@ -19,6 +19,9 @@ test_errorhandling <- function() {
                  batchjobs=BatchJobsParam(catch.errors=FALSE, progressbar=FALSE),
                  multi=MulticoreParam(catch.errors=FALSE),
                  dopar=DoparParam(catch.errors=FALSE))
+  if (grepl("windows", .Platform$OS.type))
+    params$snow0 = NULL
+
   for (param in params) {
     checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError", negate=TRUE)
   }
@@ -29,22 +32,28 @@ test_errorhandling <- function() {
                  batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE),
                  multi=MulticoreParam(catch.errors=TRUE),
                  dopar=DoparParam(catch.errors=TRUE))
+  if (grepl("windows", .Platform$OS.type))
+    params$snow0 = NULL
   for (param in params) {
     checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
   }
 
-  if (FALSE) {
-    # FIXME todo
-    library(BiocParallel)
-    x = 1:10
-    y = rev(x)
-    f = function(x, y) if (x > y) stop("whooops") else x + y
-    f.fix = function(x, y) 0
-    param = SerialParam()
-      ok = try(bpmapply(f, x, y, BPPARAM=param))
-      bpresume(bpmapply(f, x, y, BPPARAM=param))
-      res = bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
-      checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
+  # check that resume works
+  x = 1:10
+  y = rev(x)
+  f = function(x, y) if (x > y) stop("whooops") else x + y
+  f.fix = function(x, y) 0
+
+
+  for (param in params) {
+    ok = try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)
+    checkTrue(inherits(ok, "try-error"))
+
+    ok = try(bpresume(bpmapply(f, x, y, BPPARAM=param)), silent=TRUE)
+    checkTrue(inherits(ok, "try-error"))
+
+    res = bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
+    checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
   }
 
   TRUE

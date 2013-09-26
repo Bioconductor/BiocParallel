@@ -34,8 +34,8 @@
                   "For more information, use getLastError().",
                   "To resume calculation, re-call the function and set the argument 'resume' to TRUE or wrap the previous call in bpresume().")
           if (length(.self$traceback))
-            msg = c(msg, "", "First traceback:", .self$traceback)
-          stop(paste(msg, collapse = "\n"))
+            msg = c(msg, "", "First traceback:", as.character(.self$traceback))
+          stop(paste(msg, collapse="\n"))
         }
       } else {
         reset()
@@ -67,7 +67,7 @@ getLastError = function() {
   handler_error = function(e) {
     call = sapply(sys.calls(), deparse)
     # FIXME one might try to cleanup the traceback ...
-    tb <<- capture.output(print(traceback(call)))
+    tb <<- capture.output(traceback(call))
     invokeRestart("abort", e)
   }
 
