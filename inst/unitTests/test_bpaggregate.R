@@ -1,18 +1,17 @@
 test_bpaggregate = function() {
-  data = cbind(iris, nonsense = sample(letters[1:3], nrow(iris), replace=TRUE))
-  localvar = rnorm(nrow(iris))
+  library(RUnit)
+  library(BiocParallel)
+  x = data.frame(a = 1:10, b = 10:1)
+  by = list(c(rep("a", 5), rep("b", 5)))
+  simplify=TRUE
+  FUN = mean
 
-  bp = SerialParam()
-  register(bp)
+  x1 = aggregate(x, by = by, FUN = FUN)
+  x2 = bpaggregate(x, by = by, FUN = FUN, simplify=simplify)
+  checkEquals(x1, x2)
 
-  f = Sepal.Width ~ Species
-  checkEquals(bpaggregate(f, data, mean),
-              aggregate(f, data, mean))
-
-  ### ... what happens here???
-  # f = as.formula(Sepal.Width + Sepal.Length ~ Species)
-  # x = bpaggregate(f, data, mean)
-  # y = aggregate(f, data, mean)
-
-  # checkEquals(x, y)
+  by[[2]] = c(rep("c", 8), rep("d", 2))
+  x1 = aggregate(x, by = by, FUN = FUN)
+  x2 = bpaggregate(x, by = by, FUN = FUN, simplify=simplify)
+  checkEquals(x1, x2)
 }
