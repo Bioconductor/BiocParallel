@@ -5,6 +5,7 @@ setMethod(bplapply, c("ANY", "missing"),
     bplapply(X, FUN, ..., resume=resume, BPPARAM=x)
 })
 
-setMethod(bplapply, c("ANY", "BiocParallelParam"), function(X, FUN, ..., resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
-  bpmapply(FUN, X, MoreArgs = list(...), SIMPLIFY=FALSE, USE.NAMES=FALSE, resume=resume, BPPARAM=BPPARAM)
+setMethod(bplapply, c("ANY", "BiocParallelParam"), 
+  function(X, FUN, ..., resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
+    bpmapply(FUN, X, MoreArgs = list(...), SIMPLIFY=FALSE, USE.NAMES=FALSE, resume=resume, BPPARAM=BPPARAM)
 })

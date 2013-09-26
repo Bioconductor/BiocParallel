@@ -15,6 +15,7 @@
 \alias{bpschedule,BatchJobsParam-method}
 
 \alias{bplapply,ANY,BatchJobsParam-method}
+\alias{bpmapply,ANY,BatchJobsParam-method}
 
 \alias{show,BatchJobsParam-method}
 
@@ -31,7 +32,7 @@
 BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
                resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) 
 
-\S4method{bplapply}{ANY,BatchJobsParam}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,BatchJobsParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 \S4method{bpmapply}{ANY,BatchJobsParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
                                         resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
@@ -47,7 +48,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(),
     \item{catch.errors}{\code{logical(1)}}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
-        a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
+        a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
 
     \item{cleanup}{\code{logical(1)}}
         BatchJobs creates temporary directories in the \code{work.dir}. If \code{cleanup} is set to \code{TRUE} (default),

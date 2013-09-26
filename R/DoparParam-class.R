@@ -38,6 +38,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (BPPARAM$catch.errors)
       FUN = .composeTry(FUN)
 
+    i = NULL
     results = foreach(i = seq_len(length(ddd[[1L]])), .errorhandling = "stop") %dopar% {
       do.call(FUN, args = c(lapply(ddd, "[[", i), MoreArgs))
     }

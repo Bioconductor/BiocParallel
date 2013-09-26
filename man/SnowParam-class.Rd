@@ -28,12 +28,14 @@
 }
 
 \usage{
-SnowParam(workers = 0L, type, catch.errors = FALSE, ...) 
+SnowParam(workers = 0L, type, catch.errors = TRUE, ...) 
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 
-\S4method{bplapply}{ANY,SnowParam}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,SnowParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
+\S4method{bpmapply}{ANY,SnowParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
+                                   resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
@@ -46,7 +48,7 @@ SnowParam(workers = 0L, type, catch.errors = FALSE, ...)
     \item{catch.errors}{\code{logical(1)}}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
-        a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
+        a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
 
     \item{type}{\code{character(1)} type of cluster to use, as described
         in \code{\link[parallel]{parLapply}} argument \code{type}.}

@@ -1,7 +1,7 @@
 \name{bplapply}
-\alias{bplapply}
 \alias{bplapply,ANY,ANY-method}
 \alias{bplapply,ANY,missing-method}
+\alias{bplapply,ANY,BiocParallelParam}
 
 \title{Parallel lapply-like functionality}
 
@@ -15,11 +15,11 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., BPPARAM)
+bplapply(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., resume = getOption("BiocParallelParam.resume"), BPPARAM)
-
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., resume = getOption("BiocParallelParam.resume"), BPPARAM)
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
@@ -46,9 +46,6 @@ bplapply(X, FUN, ..., BPPARAM)
   When \code{BPPARAM} is \code{missing}, \code{bplapply} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
-
-  When \code{BPPARAM} is a class for which no method is defined (e.g.,
-  \code{\link{SerialParam}}), \code{\link[base]{lapply}} is used.
 
   See \code{showMethods{bplapply}} for additional methods, e.g.,
   \code{method?bplapply("MulticoreParam")}.

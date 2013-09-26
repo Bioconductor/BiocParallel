@@ -25,11 +25,11 @@
 
 \usage{
 MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE, 
-    recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE, 
-    ...) 
+    recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE) 
 
-\S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., BPPARAM)
-
+\S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
+\S4method{bpmapply}{ANY,MulticoreParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
+                                        resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 \S4method{bpvec}{ANY,MulticoreParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
 \S4method{bparallelize}{ANY,MulticoreParam}(X, ..., BPPARAM)
@@ -45,7 +45,7 @@ MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE,
     \item{catch.errors}{\code{logical(1)}}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
-        a resume mechanism (see \link{LastError}). Defaults to \code{TRUE}.
+        a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
 
     \item{X}{A vector-like object supporting \code{length}, \code{[},
         and, for \code{bplapply}, \code{[[}.}
