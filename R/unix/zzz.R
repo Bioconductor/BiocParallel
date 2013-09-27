@@ -28,4 +28,5 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
     register(getOption("SnowParam", SnowParam(workers=detectCores())))
     register(getOption("MulticoreParam", MulticoreParam()))
     register(getOption("BatchJobsParam", BatchJobsParam()))
+    register(getOption("SerialParam", SerialParam()))
 })
