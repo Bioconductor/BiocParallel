@@ -1,6 +1,4 @@
 test_bpaggregate = function() {
-  library(RUnit)
-  library(BiocParallel)
   x = data.frame(a = 1:10, b = 10:1)
   by = list(c(rep("a", 5), rep("b", 5)))
   simplify=TRUE
