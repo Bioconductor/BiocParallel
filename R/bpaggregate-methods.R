@@ -45,29 +45,29 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
 # aggregate.formula has other signature
 # how to do this with S4/R5? 
 # 
-# setMethod("bpaggregate", c("formula", "BiocParallelParam"),
-#   # this is mostly copied from stats:::aggregate.formula
-#   function (x, data, FUN, ..., subset, na.action = na.omit, BPPARAM) {
-#     if (length(x) != 3L) 
-#       stop("Formula 'x' must have both left and right hand sides")
-#     m <- match.call(expand.dots = FALSE)
-#     if (is.matrix(eval(m$data, parent.frame()))) 
-#       m$data <- as.data.frame(data)
-#     m$... <- m$FUN <- NULL
-#     m[[1L]] <- as.name("model.frame")
-#     if (x[[2L]] == ".") {
-#       rhs <- as.list(attr(terms(x[-2L]), "variables")[-1])
-#       lhs <- as.call(c(quote(cbind), setdiff(lapply(names(data), 
-#                                                     as.name), rhs)))
-#       x[[2L]] <- lhs
-#       m[[2L]] <- x
-#     }
-#     mf <- eval(m, parent.frame())
-#     if (is.matrix(mf[[1L]])) {
-#       lhs <- as.data.frame(mf[[1L]])
-#       aggregate(lhs, mf[-1L], FUN = FUN, ..., BPPARAM=BPPARAM)
-#     }
-#     else aggregate(mf[1L], mf[-1L], FUN = FUN, ..., BPPARAM=BPPARAM)
-#   }
-# )
+setMethod("bpaggregate", c("formula", "BiocParallelParam"),
+  # this is mostly copied from stats:::aggregate.formula
+  function (x, data, FUN, ..., subset, na.action = na.omit, BPPARAM) {
+    if (length(x) != 3L) 
+      stop("Formula 'x' must have both left and right hand sides")
+    m <- match.call(expand.dots = FALSE)
+    if (is.matrix(eval(m$data, parent.frame()))) 
+      m$data <- as.data.frame(data)
+    m$... <- m$FUN <- m$BPPARAM <- NULL
+    m[[1L]] <- as.name("model.frame")
+    if (x[[2L]] == ".") {
+      rhs <- as.list(attr(terms(x[-2L]), "variables")[-1])
+      lhs <- as.call(c(quote(cbind), setdiff(lapply(names(data), 
+                                                    as.name), rhs)))
+      x[[2L]] <- lhs
+      m[[2L]] <- x
+    }
+    mf <- eval(m, parent.frame())
+    if (is.matrix(mf[[1L]])) {
+      lhs <- as.data.frame(mf[[1L]])
+      aggregate(lhs, mf[-1L], FUN = FUN, ..., BPPARAM=BPPARAM)
+    }
+    else aggregate(mf[1L], mf[-1L], FUN = FUN, ..., BPPARAM=BPPARAM)
+  }
+)
 
