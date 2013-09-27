@@ -8,7 +8,6 @@
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
 
-\alias{bplapply,ANY,MulticoreParam-method}
 \alias{bpvec,ANY,MulticoreParam-method}
 \alias{bparallelize,ANY,MulticoreParam-method}
 
@@ -26,13 +25,6 @@
 \usage{
 MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE, 
     recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE) 
-
-\S4method{bplapply}{ANY,MulticoreParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
-\S4method{bpmapply}{ANY,MulticoreParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
-                                        resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
-\S4method{bpvec}{ANY,MulticoreParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
-
-\S4method{bparallelize}{ANY,MulticoreParam}(X, ..., BPPARAM)
 }
 
 \arguments{
@@ -46,23 +38,6 @@ MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE,
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
         a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
-
-    \item{X}{A vector-like object supporting \code{length}, \code{[},
-        and, for \code{bplapply}, \code{[[}.}
-
-    \item{FUN}{A function operating on \code{X} and other arguments in
-        \code{...}.}
-
-    \item{...}{Additional arguments to \code{FUN}, or for classes derived
-        from \code{MulticoreParam}.}
-
-    \item{AGGREGATE}{A function taking any number of arguments \code{...}
-        called to reduce results (elements of the \code{...} argument of
-        \code{AGGREGATE} from parallel jobs. The default, \code{c},
-        concatenates objects and is appropriate for vectors; \code{rbind}
-        might be appropriate for data frames.}
-
-    \item{BPPARAM}{An \code{MulticoreParam}-class instance.}
 
     \item{setSeed}{\code{logical(1)}, as described in
         \code{parallel::mcparallel} argument \code{mc.set.seed}.}

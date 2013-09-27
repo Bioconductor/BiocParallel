@@ -7,16 +7,11 @@
 
 \alias{bpbackend,BatchJobsParam-method}
 \alias{bpbackend<-,BatchJobsParam}
-
 \alias{bpisup,BatchJobsParam-method}
 \alias{bpstart,BatchJobsParam-method}
 \alias{bpstop,BatchJobsParam-method}
 \alias{bpworkers,BatchJobsParam-method}
 \alias{bpschedule,BatchJobsParam-method}
-
-\alias{bplapply,ANY,BatchJobsParam-method}
-\alias{bpmapply,ANY,BatchJobsParam-method}
-
 \alias{show,BatchJobsParam-method}
 
 \title{Enable parallelization on batch systems}
@@ -31,10 +26,6 @@
 \usage{
 BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
                resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) 
-
-\S4method{bplapply}{ANY,BatchJobsParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
-\S4method{bpmapply}{ANY,BatchJobsParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
-                                        resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
@@ -83,18 +74,6 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(),
     \item{progressbar}{logical(1)}
         Suppress the progress bar used in BatchJobs and be less verbose.
         Default is \code{FALSE}.
-
-    \item{X}{ANY}
-        A vector-like object supporting \code{length}, \code{[}, and, for \code{bplapply}, \code{[[}.
-
-    \item{FUN}{\code{function}}
-        A function operating on \code{X} and other arguments in \code{...}.
-
-    \item{...}{ANY}
-        Additional arguments to \code{FUN}.
-
-    \item{BPPARAM}{BiocParallelParam}
-        An \code{BatchJobsParam}-class instance.
 }
 
 \section{BatchJobsParam constructor}{

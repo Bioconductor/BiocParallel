@@ -1,7 +1,13 @@
 \name{bpmapply}
+\alias{bpmapply}
 \alias{bpmapply,ANY,ANY-method}
 \alias{bpmapply,ANY,missing-method}
 \alias{bpmapply,ANY,BiocParallelParam}
+\alias{bpmapply,ANY,BatchJobsParam-method}
+\alias{bpmapply,ANY,DoparParam-method}
+\alias{bpmapply,ANY,MulticoreParam-method}
+\alias{bpmapply,ANY,SerialParam-method}
+\alias{bpmapply,ANY,SnowParam-method}
 
 \title{Parallel mapply-like functionality}
 

@@ -6,7 +6,6 @@
 
 \alias{bpisup,SerialParam-method}
 \alias{bpworkers,SerialParam-method}
-\alias{bplapply,ANY,SerialParam-method}
 
 \title{Enable serial evaluation}
 
@@ -19,10 +18,6 @@
 
 \usage{
 SerialParam(catch.errors = TRUE) 
-
-\S4method{bplapply}{ANY,SerialParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
-\S4method{bpmapply}{ANY,SerialParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
-                                     resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
@@ -30,17 +25,6 @@ SerialParam(catch.errors = TRUE)
     Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
     error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
     a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
-
-    \item{X}{A vector-like object supporting \code{length}, \code{[},
-        and, for \code{bplapply}, \code{[[}.}
-
-    \item{FUN}{A function operating on \code{X} and other arguments in
-        \code{...}.}
-
-    \item{...}{Additional arguments to \code{FUN}}
-
-    \item{BPPARAM}{An \code{DoparParam}-class instance.}
-
 }
 
 \section{SerialParam constructor}{

@@ -1,4 +1,5 @@
 \name{bpresume}
+\alias{bpresume}
 \alias{getLastError}
 
 

@@ -13,7 +13,7 @@ setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
 
 setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
-setMethod(bpmapply, c("function", "SerialParam"),
+setMethod(bpmapply, c("ANY", "SerialParam"),
   function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
     FUN <- match.fun(FUN)
     if (resume)

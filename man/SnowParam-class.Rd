@@ -14,7 +14,6 @@
 \alias{bpstop,SnowParam-method}
 \alias{bpworkers,SnowParam-method}
 
-\alias{bplapply,ANY,SnowParam-method}
 
 \alias{show,SnowParam-method}
 
@@ -28,14 +27,10 @@
 }
 
 \usage{
-SnowParam(workers = 0L, type, catch.errors = TRUE, ...) 
+SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
-
-\S4method{bplapply}{ANY,SnowParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
-\S4method{bpmapply}{ANY,SnowParam}(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, 
-                                   resume = getOption("BiocParallel.resume", FALSE), BPPARAM)
 }
 
 \arguments{
@@ -45,31 +40,21 @@ SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
         See argument \code{n.chunks} in \code{\link[BBmisc]{chunk}} and \code{\link[BatchJobs]{submitJobs}} for more
         information.
 
-    \item{catch.errors}{\code{logical(1)}}
+    \item{type}{\code{character(1)} type of cluster to use, as described
+        in \code{\link[parallel]{parlapply}} argument \code{type}.}
+
+    \item{catch.errors}{\code{logical(1)}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
-        a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.
+        a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.}
 
-    \item{type}{\code{character(1)} type of cluster to use, as described
-        in \code{\link[parallel]{parLapply}} argument \code{type}.}
+    \item{\dots}{Addition arguments passed to \code{\link[parallel]{makeCluster}}}
 
     \item{from, to}{(N.B. Use \code{as(from, "SnowParam")} to coerce from
         a cluster created with, e.g.,
         \code{parallel::makeCluster}). \code{from} is a \code{SOCKcluster}
         or derived instance (e.g., from \code{parallel::makeCluster}), to be
         coerced to a \code{SnowParam} instance.}
-
-    \item{X}{A vector-like object supporting \code{length}, \code{[},
-        and, for \code{bplapply}, \code{[[}.}
-
-    \item{FUN}{A function operating on \code{X} and other arguments in
-        \code{...}.}
-
-    \item{...}{Additional arguments to \code{FUN}, or for classes derived
-        from \code{SnowParam}.}
-
-    \item{BPPARAM}{An \code{SnowParam}-class instance.}
-
 }
 
 \section{SnowParam constructor}{
