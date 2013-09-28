@@ -45,16 +45,11 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
 # aggregate.formula has other signature
 # how to do this with S4/R5? 
 #
-m <- substitute(model.frame(x, .data, subset = .subset,
-                            na.action = na.action),
-                list(.subset = substitute(subset)))
-
 setMethod("bpaggregate", c("formula", "BiocParallelParam"),
   # this is mostly copied from stats:::aggregate.formula
   function (x, data, FUN, ..., subset = NULL, na.action = na.omit, BPPARAM) {
     if (length(x) != 3L) 
       stop("Formula 'x' must have both left and right hand sides")
-    browser()
     m <- match.call(expand.dots = FALSE, call = sys.call(sys.parent(2)))
     if (is.matrix(eval(m$data, parent.frame())))
       m$data <- as.data.frame(data)
