@@ -125,7 +125,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     # identify missing results
     ok = ids %in% suppressMessages(findDone(reg))
     if (BPPARAM$catch.errors) {
-      results = loadResults(reg, ids, use.names=FALSE, missing.ok=TRUE)
+      results = loadResults(reg, ids, use.names="none", missing.ok=TRUE)
       ok = ok & !vapply(results, inherits, logical(1L), what="remote-error")
     }
 
@@ -140,7 +140,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     }
 
     if (!BPPARAM$catch.errors) { # results not fetched yet
-      results = loadResults(reg, ids, use.names=FALSE)
+      results = loadResults(reg, ids, use.names="none")
     }
 
     .simplify(.rename(results, list(...), USE.NAMES=USE.NAMES), SIMPLIFY=SIMPLIFY)
