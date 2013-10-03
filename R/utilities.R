@@ -89,3 +89,7 @@ indexRecycled <- function(v, i) {
 indexRecycledSingle <- function(v, i) {
     v[[1+(i-1)%%length(v)]]
 }
+
+## This works like the real formals function, but it also works on
+## most primitives where formals does not.
+.formals <- function(fun) as.pairlist(head(as.list(args(fun)), -1))
