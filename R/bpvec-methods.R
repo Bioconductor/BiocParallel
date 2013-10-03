@@ -2,10 +2,10 @@ setMethod(bpvec, c("ANY", "ANY"),
     function(X, FUN, ..., AGGREGATE=c,  BPPARAM)
 {
     FUN <- match.fun(FUN)
-    AGGREGATE <- match.fun(AGGREGATE)
-    FUN(X, ..., AGGREGATE=AGGREGATE)
+    FUN(X, ...)
 })
 
+## Default method that just uses bplapply internally
 setMethod(bpvec, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM)
 {
