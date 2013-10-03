@@ -12,6 +12,7 @@ setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
     standardGeneric("bpmapply")
 })
 
+## TODO: Add FUN to signature?
 setGeneric("bpvec", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvec"))
 
