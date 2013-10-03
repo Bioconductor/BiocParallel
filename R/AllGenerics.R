@@ -18,6 +18,12 @@ setGeneric("bpvec", signature=c("X", "BPPARAM"),
 setGeneric("bpvectorize",
     function(FUN, ..., BPPARAM) standardGeneric("bpvectorize"))
 
+setGeneric("bpaggregate",
+    function(x, ..., BPPARAM)
+{
+    standardGeneric("bpaggregate")
+})
+
 setGeneric("bpworkers",
     function(x, ...) standardGeneric("bpworkers"))
 
