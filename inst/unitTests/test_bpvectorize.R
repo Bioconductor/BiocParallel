@@ -24,10 +24,42 @@ test_bpvectorize_Params <- function()
 
     dop <- registerDoParallel(cores=2)
 
-    x <- 1:10
+    x <- 10:1
     expected <- sqrt(x)
     for (ptype in names(params)) {
         psqrt <- bpvectorize(sqrt, BPPARAM=params[[ptype]])
         .fork_not_windows(expected, psqrt(x))
+    }
+}
+
+test_bpvectorize_multi_argument <- function ()
+{
+    params <- list(serial=SerialParam(),
+                   mc=MulticoreParam(2),
+                   snow0=SnowParam(2, "FORK"),
+                   snow1=SnowParam(2, "PSOCK"),
+                   batchjobs=BatchJobsParam(workers=2),
+                   dopar=DoparParam())
+
+    dop <- registerDoParallel(cores=2)
+
+    ## Test vectorizing just two args of a multi-arg function
+    testfunc <- function(x, y, z) {
+        ## C has to be a scalar
+        stopifnot(length(c) == 1)
+        x + y +z
+    }
+
+    x <- 1:10
+    y <- 1:5
+    z <- 5
+
+    expected <- testfunc(x, y, z)
+
+    for (ptype in names(params)) {
+        pvtestfunc <- bpvectorize(testfunc,
+                                  VECTORIZE.ARGS=c("x", "y"),
+                                  BPPARAM=params[[ptype]])
+        .fork_not_windows(expected, pvtestfunc(x, y, z))
     }
 }
