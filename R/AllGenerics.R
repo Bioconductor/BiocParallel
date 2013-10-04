@@ -20,7 +20,7 @@ setGeneric("bpmvec", signature=c("FUN", "BPPARAM"),
     function(FUN, ..., MoreArgs=NULL, AGGREGATE=c, BPPARAM) standardGeneric("bpmvec"))
 
 setGeneric("bpvectorize", signature=c("FUN", "BPPARAM"),
-    function(FUN, VECTORIZE.ARGS, ..., BPPARAM) standardGeneric("bpvectorize"))
+    function(FUN, VECTOR.ARGS, ..., BPPARAM) standardGeneric("bpvectorize"))
 
 setGeneric("bpaggregate",
     function(x, ..., BPPARAM)
