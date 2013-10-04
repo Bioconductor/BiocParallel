@@ -2,12 +2,20 @@
 setMethod(bpmvec, c("ANY", "ANY"),
     function(FUN, ..., MoreArgs=NULL, AGGREGATE=c,  BPPARAM)
 {
+    bpmvec(FUN, ..., MoreArgs=MoreArgs, AGGREGATE=AGGREGATE, BPPARAM=SerialParam())
+})
+
+setMethod(bpmvec, c("ANY", "SerialParam"),
+    function(FUN, ..., MoreArgs=NULL, AGGREGATE=c,  BPPARAM)
+{
     FUN <- match.fun(FUN)
+    if (!is.list(MoreArgs))
+      MoreArgs = as.list(MoreArgs)
     all.args <- c(list(...), MoreArgs)
     do.call(FUN, all.args)
 })
 
-## TODO: Resume support?
+## TODO: Resume/error support?
 ## Default method that just uses bplapply internally
 setMethod(bpmvec, c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, AGGREGATE=c,  BPPARAM)
@@ -23,12 +31,14 @@ setMethod(bpmvec, c("ANY", "BiocParallelParam"),
     ## TODO: have a workers arg or chunksize arg?
     if (is.na(workers))
       stop("'n.workers' must be set in your backend to use bpmvec")
+    else if (workers <= 1)
+        return(bpmvec(FUN, ..., MoreArgs=MoreArgs, AGGREGATE=AGGREGATE, BPPARAM=SerialParam()))
 
     si <- .splitIndices(tasks, workers)
-    ans <- bplapply(si, function(i, vargs, sargs, FUN) {
+    ans <- bplapply(si, function (i, vargs, sargs, thefunc) {
         args <- c(lapply(vargs, `[`, i), sargs)
         do.call(FUN, args)
-    }, vector.args, MoreArgs, BPPARAM=BPPARAM)
+    }, vargs=ddd, sargs=MoreArgs, thefunc=FUN, BPPARAM=BPPARAM)
     do.call(AGGREGATE, ans)
 })
 
@@ -39,5 +49,5 @@ setMethod(bpmvec, c("ANY", "missing"),
     AGGREGATE <- match.fun(AGGREGATE)
 
     x <- registered()[[1]]
-    bpmvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=x)
+    bpmvec(FUN, ..., MoreArgs=MoreArgs, AGGREGATE=AGGREGATE, BPPARAM=x)
 })
