@@ -58,7 +58,7 @@ test_bpvectorize_multi_argument <- function ()
 
     for (ptype in names(params)) {
         pvtestfunc <- bpvectorize(testfunc,
-                                  VECTORIZE.ARGS=c("x", "y"),
+                                  VECTOR.ARGS=c("x", "y"),
                                   BPPARAM=params[[ptype]])
         .fork_not_windows(expected, pvtestfunc(x, y, z))
     }
@@ -88,7 +88,7 @@ test_bpvectorize_all_argument <- function ()
 
     for (ptype in names(params)) {
         pvtestfunc <- bpvectorize(testfunc,
-                                  VECTORIZE.ARGS=NA,
+                                  VECTOR.ARGS=NA,
                                   BPPARAM=params[[ptype]])
         .fork_not_windows(expected, pvtestfunc(x, y, z))
     }

@@ -1,11 +1,11 @@
 setMethod(bpvectorize, c("ANY", "ANY"),
-    function(FUN, VECTORIZE.ARGS, ..., AGGREGATE=c, BPPARAM)
+    function(FUN, VECTOR.ARGS, ..., AGGREGATE=c, BPPARAM)
 {
     match.fun(FUN)
 })
 
 setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
-    function(FUN, VECTORIZE.ARGS, ..., AGGREGATE=c, BPPARAM)
+    function(FUN, VECTOR.ARGS, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)
 
@@ -16,16 +16,16 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
     }
 
     ## Default is to vectorize first arg
-    if (missing(VECTORIZE.ARGS))
-        VECTORIZE.ARGS <- arg.names[1]
+    if (missing(VECTOR.ARGS))
+        VECTOR.ARGS <- arg.names[1]
     ## NA means vectorize all args
-    else if (is.na(VECTORIZE.ARGS))
-        VECTORIZE.ARGS <- arg.names
+    else if (is.na(VECTOR.ARGS))
+        VECTOR.ARGS <- arg.names
 
     ## Check that FUN actually has the requested args
-    if (!all(VECTORIZE.ARGS %in% arg.names))
+    if (!all(VECTOR.ARGS %in% arg.names))
         stop("Requested args do not exist: ",
-             deparse(setdiff(VECTORIZE.ARGS, arg.names)))
+             deparse(setdiff(VECTOR.ARGS, arg.names)))
 
     ## Construct a wrapper that calls FUN through bpmvec for
     ## parallelization
@@ -33,7 +33,7 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
         ## This gets all args into a list.
         args <- lapply(as.list(match.call())[-1L], eval, parent.frame())
         ## Split args into vector and scalar
-        dovec <- names(args) %in% VECTORIZE.ARGS
+        dovec <- names(args) %in% VECTOR.ARGS
         vector.args <- args[dovec]
         scalar.args <- args[!dovec]
         ## Construct appropriate arglist for bpmvec
@@ -51,9 +51,9 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
 })
 
 setMethod(bpvectorize, c("ANY", "missing"),
-    function(FUN, VECTORIZE.ARGS, ..., AGGREGATE=c, BPPARAM)
+    function(FUN, VECTOR.ARGS, ..., AGGREGATE=c, BPPARAM)
 {
     FUN <- match.fun(FUN)
     x <- registered()[[1]]
-    bpvectorize(FUN, VECTORIZE.ARGS=VECTORIZE.ARGS, ..., AGGREGATE=AGGREGATE, BPPARAM=x)
+    bpvectorize(FUN, VECTOR.ARGS=VECTOR.ARGS, ..., AGGREGATE=AGGREGATE, BPPARAM=x)
 })
