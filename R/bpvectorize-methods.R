@@ -1,7 +1,7 @@
 setMethod(bpvectorize, c("ANY", "ANY"),
     function(FUN, VECTORIZE.ARGS, ..., AGGREGATE=c, BPPARAM)
 {
-    return match.fun(FUN)
+    match.fun(FUN)
 })
 
 setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
@@ -10,29 +10,37 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
     FUN <- match.fun(FUN)
 
     ## Get a character vector of names of vectorizable args for FUN
-    arg.names <- names(as.list(.formals(FUN)))
-    ## Can't vectorize dots
-    arg.names <- setdiff(arg.names, "...")
+    arg.names <- namable.args(FUN)
     if (length(arg.names) == 0) {
         stop("Cannot determine argument names for FUN.")
     }
+
+    ## Default is to vectorize all args
+    if (missing(VECTORIZE.ARGS))
+        VECTORIZE.ARGS <- arg.names
 
     ## Check that FUN actually has the requested args
     if (!all(VECTORIZE.ARGS %in% arg.names))
         stop("Requested args do not exist: ",
              deparse(setdiff(VECTORIZE.ARGS, arg.names)))
 
+    ## Construct a wrapper that calls FUN through bpmvec for
+    ## parallelization
     FUNPV <- function() {
         ## This gets all args into a list.
         args <- lapply(as.list(match.call())[-1L], eval, parent.frame())
+        ## Split args into vector and scalar
         dovec <- names(args) %in% VECTORIZE.ARGS
         vector.args <- args[dovec]
         scalar.args <- args[!dovec]
-        arglist <- c(list(FUN=FUN),
-                     vector.args,
-                     list(MoreArgs=scalar.args,
+        ## Construct appropriate arglist for bpmvec
+        ## (i.e.: ...=vector.args, MoreArge=scalar.args)
+        arglist <- c(list(FUN=FUN,
+                          MoreArgs=scalar.args,
                           AGGREGATE=AGGREGATE,
-                          BPPARAM=BPPARAM))
+                          BPPARAM=BPPARAM),
+                     ## This is the "..." arguments
+                     vector.args)
         do.call(bpmvec, arglist)
     }
     formals(FUNPV) <- .formals(FUN)

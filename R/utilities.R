@@ -93,3 +93,9 @@ indexRecycledSingle <- function(v, i) {
 ## This works like the real formals function, but it also works on
 ## most primitives where formals does not.
 .formals <- function(fun) as.pairlist(head(as.list(args(fun)), -1))
+
+namable.args <- function(FUN) {
+    arg.names <- names(as.list(.formals(FUN)))
+    ## dots doesn't count as a name
+    arg.names[arg.names != "..."]
+}
