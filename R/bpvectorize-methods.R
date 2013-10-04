@@ -15,8 +15,11 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
         stop("Cannot determine argument names for FUN.")
     }
 
-    ## Default is to vectorize all args
+    ## Default is to vectorize first arg
     if (missing(VECTORIZE.ARGS))
+        VECTORIZE.ARGS <- arg.names[1]
+    ## NA means vectorize all args
+    else if (is.na(VECTORIZE.ARGS))
         VECTORIZE.ARGS <- arg.names
 
     ## Check that FUN actually has the requested args
