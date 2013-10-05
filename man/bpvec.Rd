@@ -8,10 +8,11 @@
 
 \description{
 
-  \code{bpvec} applies \code{FUN} to subsets of \code{X}. Any type of
-  object \code{X} is allowed, provided \code{length}, \code{[}, and
-  \code{c} methods are available. The return value is a \code{vector} of
-  length equal to \code{X}, as with \code{FUN(X)}.
+  \code{bpvec} applies \code{FUN} to subsets of \code{X}, and then
+  combines the results using \code{AGGREGATE}. Any type of object
+  \code{X} is allowed, provided \code{length}, \code{[}, and \code{c}
+  methods are available. The return value is a \code{vector} of length
+  equal to \code{X}, as with \code{FUN(X)}.
 
 }
 
@@ -26,20 +27,23 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 }
 
 \arguments{
-  \item{X}{
-    Any object for which methods \code{length}, \code{[}, and \code{c}
-    are implemented.
-  }
+
+  \item{X}{Any object for which methods \code{length} and \code{[} are
+    implemented.}
 
   \item{FUN}{The \code{function} to be applied to subsets of \code{X}.}
 
-  \item{\dots}{Additional arguments for \code{FUN}.}
+  \item{\dots}{Additional (non-vectorized) arguments for
+    \code{FUN}. These will not be split, but will be passed whole to
+    each parallel invocation of \code{FUN}.}
 
-  \item{AGGREGATE}{A function taking any number of arguments \code{...}
-    called to reduce results (elements of the \code{...} argument of
-    \code{AGGREGATE} from parallel jobs. The default, \code{c},
-    concatenates objects and is appropriate for vectors; \code{rbind}
-    might be appropriate for data frames.}
+  \item{AGGREGATE}{A function to call on the results of split
+    evaluations of \code{FUN} in order to combine them into a single
+    value. The default is \code{c}, which concatenates objects and is
+    appropriate for vectors. Other data types may need different
+    aggregation functions. For example, \code{rbind} might be
+    appropriate if \code{FUN} returns a data frame, and \code{combine}
+    might be appropriate for ExpressionSet objects.}
 
   \item{BPPARAM}{A optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
@@ -67,8 +71,9 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 
 \value{
 
-  The result should be identical to \code{FUN(X, ...)} (assuming that 
-  \code{AGGREGATE} is set appropriately).
+  This should return the same thing as \code{FUN(X, ...)} assuming that
+  \code{AGGREGATE} is set appropriately to join the values returned by
+  \code{FUN}.
 
 }
 

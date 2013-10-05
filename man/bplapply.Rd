@@ -8,6 +8,8 @@
 \alias{bplapply,ANY,MulticoreParam-method}
 \alias{bplapply,ANY,SerialParam-method}
 \alias{bplapply,ANY,SnowParam-method}
+\alias{bplapply,ANY,BiocParallelParam-method}
+\alias{bplapply,ANY,list-method}
 
 \title{Parallel lapply-like functionality}
 
