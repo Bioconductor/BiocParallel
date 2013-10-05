@@ -1,4 +1,3 @@
-## TODO: Use bpaggregate?
 setMethod(bpmvec, c("ANY", "ANY"),
     function(FUN, ..., MoreArgs=NULL, AGGREGATE=c,  BPPARAM)
 {

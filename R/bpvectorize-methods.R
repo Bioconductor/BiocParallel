@@ -29,7 +29,7 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
 
     ## Construct a wrapper that calls FUN through bpmvec for
     ## parallelization
-    FUNPV <- function() {
+    FUNPMV <- function() {
         ## This gets all args into a list.
         args <- lapply(as.list(match.call())[-1L], eval, parent.frame())
         ## Split args into vector and scalar
@@ -46,8 +46,8 @@ setMethod(bpvectorize, c("ANY", "BiocParallelParam"),
                      vector.args)
         do.call(bpmvec, arglist)
     }
-    formals(FUNPV) <- .formals(FUN)
-    FUNPV
+    formals(FUNPMV) <- .formals(FUN)
+    FUNPMV
 })
 
 setMethod(bpvectorize, c("ANY", "missing"),

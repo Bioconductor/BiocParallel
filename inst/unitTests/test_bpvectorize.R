@@ -1,3 +1,5 @@
+## TODO: More test coverage of optional args
+
 library(doParallel)
 
 .fork_not_windows <- function(expected, expr)
