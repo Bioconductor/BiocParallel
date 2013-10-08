@@ -1,7 +1,13 @@
-.DoparParamSingleton <- setRefClass("DoparParam",
-    contains="BiocParallelParam")$new()
+.DoparParam <- setRefClass("DoparParam",
+  contains="BiocParallelParam",
+   fields=list()
+)
 
-DoparParam <- function() .DoparParamSingleton
+DoparParam <-
+    function(catch.errors=TRUE)
+{
+    .DoparParam(catch.errors=catch.errors)
+}
 
 ## control
 
