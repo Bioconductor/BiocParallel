@@ -3,7 +3,7 @@
 import(methods)
 
 importFrom(parallel, detectCores, makeCluster, nextRNGStream,
-           parLapply, splitIndices, stopCluster, clusterMap)
+           splitIndices, stopCluster, clusterMap)
 
 if (tools:::.OStype() == "unix") {
     importFrom(parallel, mccollect, mcparallel, mc.reset.stream)

@@ -41,7 +41,7 @@ SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
         information.
 
     \item{type}{\code{character(1)} type of cluster to use, as described
-        in \code{\link[parallel]{parlapply}} argument \code{type}.}
+        in \code{\link[parallel]{clusterMap}} argument \code{type}.}
 
     \item{catch.errors}{\code{logical(1)}
         Flag to determine in apply-like functions (see e.g. \code{\link{bplapply}}) whether to quit with an
