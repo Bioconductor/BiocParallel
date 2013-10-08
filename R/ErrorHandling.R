@@ -31,7 +31,7 @@
         if (throw.error) {
           msg = c("Errors occurred during execution. First error message:",
                   as.character(results[is.error][[1L]]),
-                  "For more information, use getLastError().",
+                  "For more information, use bplasterror().",
                   "To resume calculation, re-call the function and set the argument 'resume' to TRUE or wrap the previous call in bpresume().")
           if (length(.self$traceback))
             msg = c(msg, "", "First traceback:", as.character(.self$traceback))
@@ -50,7 +50,7 @@
 )
 LastError = .LastError()
 
-getLastError = function() {
+bplasterror = function() {
   getFromNamespace("LastError", "BiocParallel")
 }
 
