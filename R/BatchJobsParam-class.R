@@ -10,10 +10,10 @@
   ),
 
   methods=list(
-    initialize = function(reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
+    initialize = function(..., reg.pars, submit.pars, conf.pars, n.workers, catch.errors, cleanup, stop.on.error, progressbar) {
       callSuper()
 
-      # save user config and reset it on exit
+      ## save user config and reset it on exit
       prev.config = getConfig()
       on.exit(do.call(setConfig, prev.config))
       if (!is.null(conf.pars$conffile))
@@ -41,7 +41,7 @@
     },
 
     show = function() {
-      # TODO more output
+      ## TODO more output
       callSuper()
       fields = c("cleanup", "stop.on.error", "progressbar")
       vals = c(.self$cleanup, .self$stop.on.error, .self$progressbar)
@@ -52,8 +52,11 @@
 
 BatchJobsParam = function(workers=NULL, catch.errors=TRUE, cleanup=TRUE, work.dir=getwd(), stop.on.error=FALSE, seed=NULL,
                            resources=NULL, conffile=NULL, cluster.functions=NULL, progressbar=TRUE) {
-  # FIXME use pars like reg.pars, submit.pars, conf.pars
-  #       to support future arguments
+  ## TODO: 
+  ## Would like the args to end with ... and these handled so a constructor of a
+  ## derived class would work
+  ## FIXME use pars like reg.pars, submit.pars, conf.pars
+  ##       to support future arguments
   not_null = Negate(is.null)
   reg.pars = Filter(not_null, list(seed=seed, work.dir=work.dir))
   submit.pars = Filter(not_null, list(resources = resources))
