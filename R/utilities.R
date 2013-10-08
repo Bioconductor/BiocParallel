@@ -43,12 +43,12 @@
       return(list())
     len <- vapply(ddd, length, integer(1L))
     if (!all(len == len[1L])) {
-      max.len <- max(len)
-      if (max.len && any(len == 0L))
-          stop("Zero-length inputs cannot be mixed with those of non-zero length")
-      if (any(max.len %% len))
-          warning("Longer argument not a multiple of length of vector")
-      ddd <- lapply(ddd, rep_len, length.out=max.len)
+        max.len <- max(len)
+        if (max.len && any(len == 0L))
+            stop("Zero-length inputs cannot be mixed with those of non-zero length")
+        if (any(max.len %% len))
+            warning("Longer argument not a multiple of length of vector")
+        ddd <- lapply(ddd, rep_len, length.out=max.len)
     }
 
   return(ddd)

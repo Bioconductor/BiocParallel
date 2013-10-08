@@ -15,7 +15,7 @@ setMethod(bpvec, c("ANY", "BiocParallelParam"),
     tasks <- length(X)
     workers <- min(tasks, bpworkers(BPPARAM))
     if (is.na(workers))
-      stop("'n.workers' must be set in your backend to use bpvec")
+        stop("'n.workers' must be set in your backend to use bpvec")
 
     si <- .splitIndices(tasks, workers)
     ans <- bplapply(si, function(i, X, FUN, ...) {

@@ -2,8 +2,7 @@ setMethod(bpvectorize, c("ANY", "ANY"),
     function(FUN, ..., BPPARAM)
 {
     FUN <- match.fun(FUN)
-    function(...)
-        bpvec(FUN=FUN, ..., BPPARAM=BPPARAM)
+    function(...) bpvec(FUN=FUN, ..., BPPARAM=BPPARAM)
 })
 
 setMethod(bpvectorize, c("ANY", "missing"),

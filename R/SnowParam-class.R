@@ -34,8 +34,8 @@ SnowParam <-
     .clusterargs <- lapply(args, force)
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
-               .controlled=TRUE, workers=workers,
-               catch.errors=catch.errors, ...)
+        .controlled=TRUE, workers=workers,
+        catch.errors=catch.errors, ...)
 }
 
 setAs("SOCKcluster", "SnowParam",
