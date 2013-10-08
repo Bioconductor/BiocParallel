@@ -24,7 +24,8 @@
 
 \usage{
 MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE, 
-    recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, verbose = FALSE) 
+    recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM, 
+    verbose = FALSE, ...) 
 }
 
 \arguments{
@@ -58,6 +59,8 @@ MulticoreParam(workers = detectCores(), catch.errors = TRUE, setSeed = TRUE,
     \item{verbose}{\code{logical(1)} when \code{TRUE} echo stdout of
         forked processes. This is the complement of
         \code{parallel::mclapply}'s argument \code{mc.silent}.}
+
+    \item{\dots}{Addition arguments passed to \code{\link[parallel]{mclapply}}}
 }
 
 \section{MulticoreParam constructor}{
