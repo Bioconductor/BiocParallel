@@ -48,7 +48,7 @@ SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
         error as soon as one application fails or encapsulation of function calls in \code{\link[base]{try}} blocks which triggers 
         a resume mechanism (see \link{bpresume}). Defaults to \code{TRUE}.}
 
-    \item{\dots}{Addition arguments passed to \code{\link[parallel]{makeCluster}}}
+    \item{\dots}{Additional arguments passed to \code{\link[parallel]{makeCluster}}}
 
     \item{from, to}{(N.B. Use \code{as(from, "SnowParam")} to coerce from
         a cluster created with, e.g.,

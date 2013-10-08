@@ -24,8 +24,10 @@
 }
 
 \usage{
-BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
-               resources = NULL, conffile = NULL, cluster.functions = NULL, progressbar = TRUE) 
+BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, 
+    work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
+    resources = NULL, conffile = NULL, cluster.functions = NULL, 
+    progressbar = TRUE, ...) 
 }
 
 \arguments{
@@ -74,6 +76,8 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, work.dir = getwd(),
     \item{progressbar}{logical(1)}
         Suppress the progress bar used in BatchJobs and be less verbose.
         Default is \code{FALSE}.
+
+    \item{\dots}{Addition arguments, currently not handled.}
 }
 
 \section{BatchJobsParam constructor}{

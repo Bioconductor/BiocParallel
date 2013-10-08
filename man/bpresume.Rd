@@ -1,6 +1,6 @@
 \name{bpresume}
 \alias{bpresume}
-\alias{getLastError}
+\alias{bplasterror}
 
 
 \title{Resume computation with partial results}
@@ -10,7 +10,7 @@
 }
 
 \usage{
-    getLastError()
+    bplasterror()
     bpresume(expr)
 }
 
@@ -33,7 +33,7 @@
     be embedded into \code{bpresume} which sets an option accordingly to enable
     the resume feature down in the call stack.
 
-    The function \code{getLastError} returns a \code{LastError} object containing
+    The function \code{bplasterror} returns a \code{LastError} object containing
     the partial results and errors to investigate.
 
     Note that nested calls of the apply functions can cause troubles in some scenarios.
