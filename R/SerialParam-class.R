@@ -3,7 +3,9 @@
   fields=list()
 )
 
-SerialParam <- function(catch.errors=TRUE) {
+SerialParam <-
+    function(catch.errors=TRUE)
+{
   .SerialParam(catch.errors=catch.errors)
 }
 
@@ -14,20 +16,24 @@ setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
 setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
 setMethod(bpmapply, c("ANY", "SerialParam"),
-  function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+{
     FUN <- match.fun(FUN)
     if (resume)
-      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
+        return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
 
     if (BPPARAM$catch.errors) {
-      FUN = .composeTry(FUN)
-      results = mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES)
+        FUN <- .composeTry(FUN)
+        results <- mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE,
+            USE.NAMES=USE.NAMES)
 
-      is.error = vapply(results, inherits, logical(1L), what="remote-error")
-      if (any(is.error))
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+        is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+        if (any(is.error))
+            LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 
-      return(.simplify(results, SIMPLIFY=SIMPLIFY))
+        .simplify(results, SIMPLIFY=SIMPLIFY)
     }
 
     mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)

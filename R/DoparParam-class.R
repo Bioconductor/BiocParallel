@@ -1,52 +1,59 @@
-.DoparParam <- setRefClass("DoparParam",
-    contains="BiocParallelParam",
-    fields=list()
-)
+.DoparParamSingleton <- setRefClass("DoparParam",
+    contains="BiocParallelParam")$new()
 
-DoparParam <- function(catch.errors=TRUE) {
-  .DoparParam(catch.errors=catch.errors)
-}
+DoparParam <- function() .DoparParamSingleton
 
 ## control
 
 setMethod(bpworkers, "DoparParam",
-  function(x, ...) {
+    function(x, ...)
+{
     if (bpisup(x))
-      getDoParWorkers()
+        getDoParWorkers()
     else 0L
 })
 
-setMethod(bpisup, "DoparParam", function(x, ...) {
-    "package:foreach" %in% search() && getDoParRegistered() &&
-      getDoParName() != "doSEQ" && getDoParWorkers() > 1L
+setMethod(bpisup, "DoparParam",
+    function(x, ...)
+{
+    ("package:foreach" %in% search()) &&
+        getDoParRegistered() && (getDoParName() != "doSEQ") &&
+            getDoParWorkers() > 1L
 })
+
 
 ## evaluation
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
-  function(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE, resume=getOption("BiocParallel.resume", FALSE), BPPARAM) {
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+{
     FUN <- match.fun(FUN)
     if (resume)
-      return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
+        return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpisup(BPPARAM))
-      return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume, BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+        return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, resume=resume,
+            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
-    ddd = .getDotsForMapply(...)
+    ddd <- .getDotsForMapply(...)
     if (!is.list(MoreArgs))
-      MoreArgs = as.list(MoreArgs)
+        MoreArgs <- as.list(MoreArgs)
 
     if (BPPARAM$catch.errors)
-      FUN = .composeTry(FUN)
+        FUN <- .composeTry(FUN)
 
-    i = NULL
-    results = foreach(i = seq_len(length(ddd[[1L]])), .errorhandling = "stop") %dopar% {
-      do.call(FUN, args = c(lapply(ddd, "[[", i), MoreArgs))
+    i <- NULL
+    results <-
+      foreach(i=seq_len(length(ddd[[1L]])), .errorhandling="stop") %dopar% {
+          do.call(FUN, args=c(lapply(ddd, "[[", i), MoreArgs))
     }
-    results = .rename(results, ddd, USE.NAMES=USE.NAMES)
+    results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
 
-    is.error = vapply(results, inherits, logical(1L), what="remote-error")
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error))
-      LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 
-    return(.simplify(results, SIMPLIFY=SIMPLIFY))
+    .simplify(results, SIMPLIFY=SIMPLIFY)
 })
