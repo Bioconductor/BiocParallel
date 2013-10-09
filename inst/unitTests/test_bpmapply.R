@@ -32,7 +32,7 @@ test_bpmapply_Params <- function() {
     x <- setNames(1:5, letters[1:5])
     for (param in params) {
         for (catch.errors in c(FALSE, TRUE)) {
-            param$catch.errors = catch.errors
+            param$catch.errors <- catch.errors
             for (SIMPLIFY in c(FALSE, TRUE)) {
                 for (USE.NAMES in c(FALSE, TRUE)) {
                   expected <- mapply(identity, x, USE.NAMES=USE.NAMES, 
@@ -49,7 +49,7 @@ test_bpmapply_Params <- function() {
     # test MoreArgs
     x <- setNames(1:5, letters[1:5])
     f <- function(x, m) { x + m }
-    expected <- mapply(f, x, MoreArgs = list(m = 1))
+    expected <- mapply(f, x, MoreArgs=list(m=1))
     for (param in params) {
       .fork_not_windows(expected, 
           bpmapply(f, x, MoreArgs=list(m=1), BPPARAM=param))

@@ -24,7 +24,7 @@ test_errorhandling <-
         multi=MulticoreParam(catch.errors=FALSE),
         dopar=DoparParam(catch.errors=FALSE))
     if (grepl("windows", .Platform$OS.type))
-        params$snow0 = NULL
+        params$snow0 <- NULL
 
     for (param in params) {
         checkExceptionText(bpmapply(f, x, y, BPPARAM=param), 
@@ -38,9 +38,9 @@ test_errorhandling <-
         multi=MulticoreParam(catch.errors=TRUE),
         dopar=DoparParam(catch.errors=TRUE))
     if (grepl("windows", .Platform$OS.type))
-      params$snow0 = NULL
+        params$snow0 <- NULL
     for (param in params) {
-      checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
+        checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
     }
 
     # check that resume works
@@ -51,14 +51,14 @@ test_errorhandling <-
 
 
     for (param in params) {
-      ok <- try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)
-      checkTrue(inherits(ok, "try-error"))
+        ok <- try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)
+        checkTrue(inherits(ok, "try-error"))
 
-      ok <- try(bpresume(bpmapply(f, x, y, BPPARAM=param)), silent=TRUE)
-      checkTrue(inherits(ok, "try-error"))
+        ok <- try(bpresume(bpmapply(f, x, y, BPPARAM=param)), silent=TRUE)
+        checkTrue(inherits(ok, "try-error"))
 
-      res <- bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
-      checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
+        res <- bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
+        checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
     }
 
     TRUE

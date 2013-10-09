@@ -18,7 +18,9 @@ setOldClass(c("SOCKcluster", "cluster"))
     )
 )
 
-.nullCluster = function(type) {
+.nullCluster <- 
+    function(type) 
+{
     if (type == "FORK" || type == "SOCK")
         type <- "PSOCK"
     makeCluster(0L, type)

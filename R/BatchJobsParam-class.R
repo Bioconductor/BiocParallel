@@ -143,7 +143,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 
     # wait for the jobs to terminate
     waitForJobs(reg, ids, timeout=Inf,
-        stop.on.error = BPPARAM$stop.on.error && !BPPARAM$catch.errors)
+        stop.on.error=(BPPARAM$stop.on.error && !BPPARAM$catch.errors))
 
     # identify missing results
     ok <- ids %in% suppressMessages(findDone(reg))
