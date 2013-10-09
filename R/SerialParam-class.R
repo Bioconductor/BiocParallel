@@ -6,7 +6,7 @@
 SerialParam <-
     function(catch.errors=TRUE)
 {
-    .SerialParam(catch.errors=catch.errors)
+    .SerialParam(catch.errors=catch.errors, workers=1L)
 }
 
 ## control
