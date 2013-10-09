@@ -6,3 +6,4 @@ setMethod(bpschedule, "missing",
     x <- registered()[[1]]
     bpschedule(x, ...)
 })
+

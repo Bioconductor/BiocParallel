@@ -1,4 +1,5 @@
-test_SnowParam_refclass <- function() {
+test_SnowParam_refclass <- function()
+{
     p <- SnowParam(2)
     p2 <- p
     checkTrue(!bpisup(p))
