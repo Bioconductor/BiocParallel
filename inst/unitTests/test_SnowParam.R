@@ -1,4 +1,5 @@
-test_SnowParam_coerce <- function()
+test_SnowParam_coerce <- 
+    function()
 {
     cl <- parallel::makeCluster(2L)
     p <- as(cl, "SnowParam")

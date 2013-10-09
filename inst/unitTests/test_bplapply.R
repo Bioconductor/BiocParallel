@@ -1,6 +1,8 @@
 library(doParallel)                     # FIXME: unload?
 
-.fork_not_windows <- function(expected, expr) {
+.fork_not_windows <- 
+    function(expected, expr) 
+{
     err <- NULL
     obs <- tryCatch(expr, error=function(e) {
         if (!all(grepl("fork clusters are not supported on Windows",
@@ -12,7 +14,9 @@ library(doParallel)                     # FIXME: unload?
     checkIdentical(expected, obs)
 }
 
-test_bplapply_Params <- function() {
+test_bplapply_Params <- 
+    function() 
+{
     params <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
                    snow0=SnowParam(2, "FORK"),

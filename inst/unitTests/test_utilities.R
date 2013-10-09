@@ -1,4 +1,5 @@
-test_splitIndicies <- function()
+test_splitIndicies <- 
+    function()
 {
     .splitIndices <- BiocParallel:::.splitIndices
 
