@@ -1,6 +1,6 @@
 .registry <- setRefClass(".BiocParallelRegistry",
-    fields = list(bpparams = "list"),
-    methods = list(
+    fields=list(bpparams = "list"),
+    methods=list(
       register = function(BPPARAM, default = TRUE) {
           if ((!length(BPPARAM) == 1) || (!is(BPPARAM, "BiocParallelParam")))
               stop("'BPPARAM' must be a 'BiocParallelParam' instance")

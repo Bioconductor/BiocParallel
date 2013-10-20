@@ -2,6 +2,12 @@
 \alias{bplapply}
 \alias{bplapply,ANY,ANY-method}
 \alias{bplapply,ANY,missing-method}
+\alias{bplapply,ANY,BiocParallelParam-method}
+\alias{bplapply,ANY,BatchJobsParam-method}
+\alias{bplapply,ANY,DoparParam-method}
+\alias{bplapply,ANY,MulticoreParam-method}
+\alias{bplapply,ANY,SerialParam-method}
+\alias{bplapply,ANY,SnowParam-method}
 
 \title{Parallel lapply-like functionality}
 
@@ -15,11 +21,17 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., BPPARAM)
+bplapply(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+    BPPARAM)
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+    BPPARAM)
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM)
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+    BPPARAM)
+
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+    BPPARAM)
 }
 
 \arguments{
@@ -33,6 +45,9 @@ bplapply(X, FUN, ..., BPPARAM)
   \item{\dots}{Additional arguments for \code{FUN}, as in
     \code{\link{lapply}}}
 
+  \item{resume}{Flag to determine if a previous partially successful run
+      should be resumed.  See \code{\link{bpresume}} for details.}
+
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
 
@@ -43,9 +58,6 @@ bplapply(X, FUN, ..., BPPARAM)
   When \code{BPPARAM} is \code{missing}, \code{bplapply} uses
   \code{registered()[[1]]}, i.e., the default mechanism for parallel
   evaluation.
-
-  When \code{BPPARAM} is a class for which no method is defined (e.g.,
-  \code{\link{SerialParam}}), \code{\link[base]{lapply}} is used.
 
   See \code{showMethods{bplapply}} for additional methods, e.g.,
   \code{method?bplapply("MulticoreParam")}.

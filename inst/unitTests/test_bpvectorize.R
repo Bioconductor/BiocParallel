@@ -19,6 +19,7 @@ test_bpvectorize_Params <- function()
                    mc=MulticoreParam(2),
                    snow0=SnowParam(2, "FORK"),
                    snow1=SnowParam(2, "PSOCK"),
+                   batchjobs=BatchJobsParam(workers=2),
                    dopar=DoparParam())
 
     dop <- registerDoParallel(cores=2)

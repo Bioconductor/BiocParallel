@@ -19,6 +19,7 @@ test_bpvec_Params <- function()
                    mc=MulticoreParam(2),
                    snow0=SnowParam(2, "FORK"),
                    snow1=SnowParam(2, "PSOCK"),
+                   batchjobs=BatchJobsParam(workers=2),
                    dopar=DoparParam())
 
     dop <- registerDoParallel(cores=2)
@@ -27,7 +28,7 @@ test_bpvec_Params <- function()
     x <- 1:10
     expected <- sqrt(x)
     for (ptype in names(params)) {
-        .fork_not_windows(expected, 
+        .fork_not_windows(expected,
                           bpvec(x, sqrt, BPPARAM=params[[ptype]]))
     }
 }

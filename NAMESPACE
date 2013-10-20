@@ -3,7 +3,7 @@
 import(methods)
 
 importFrom(parallel, detectCores, makeCluster, nextRNGStream,
-           parLapply, splitIndices, stopCluster)
+           splitIndices, stopCluster, clusterMap)
 
 if (tools:::.OStype() == "unix") {
     importFrom(parallel, mccollect, mcparallel, mc.reset.stream)
@@ -12,19 +12,27 @@ if (tools:::.OStype() == "unix") {
 importFrom(foreach, "%dopar%", foreach, getDoParName,
     getDoParRegistered, getDoParWorkers)
 
+importFrom(BatchJobs, getConfig, loadConfig, setConfig, makeRegistry, 
+           batchMap, submitJobs, waitForJobs, findErrors, findDone, 
+           loadResults, getErrorMessages, killJobs)
+
+importFrom(BBmisc, chunk)
+
 importFrom(tools, SIGTERM)
 
 exportClass(BiocParallelParam, MulticoreParam, SnowParam,
-            DoparParam, SerialParam)
+            DoparParam, SerialParam, BatchJobsParam)
 
-export(MulticoreParam, SnowParam, DoparParam, SerialParam,
-    bplapply, bpvec, bpvectorize,
+export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
+    bplapply, bpvec, bpvectorize, bpmapply, bpaggregate,
     ## bp-controls
     bpworkers, bpbackend, "bpbackend<-",
     bpstart, bpstop, bpisup,
     ## schedule
     bpschedule,
     ## register
-    register, registered)
+    register, registered,
+    ## error handlers
+    bpresume, bplasterror)
 
 exportMethods(show)

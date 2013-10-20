@@ -14,7 +14,6 @@
 \alias{bpstop,DoparParam-method}
 \alias{bpworkers,DoparParam-method}
 
-\alias{bplapply,ANY,DoparParam-method}
 
 \alias{show,DoparParam-method}
 
@@ -28,24 +27,17 @@
 }
 
 \usage{
-DoparParam() 
-
-\S4method{bplapply}{ANY,DoparParam}(X, FUN, ..., BPPARAM)
+DoparParam(catch.errors = TRUE) 
 }
 
 \arguments{
 
-  \item{X}{A vector-like object supporting \code{length}, \code{[},
-    and, for \code{bplapply}, \code{[[}.}
-
-  \item{FUN}{A function operating on \code{X} and other arguments in
-    \code{...}.}
-
-  \item{...}{Additional arguments to \code{FUN}}
-
-  \item{BPPARAM}{An \code{DoparParam}-class instance.}
-
-}
+    \item{catch.errors}{\code{logical(1)}} Flag to determine in
+        apply-like functions (see e.g. \code{\link{bplapply}}) whether
+        to quit with an error as soon as one application fails or
+        encapsulation of function calls in \code{\link[base]{try}}
+        blocks which triggers a resume mechanism (see
+        \link{bpresume}). Defaults to \code{TRUE}.  }
 
 \section{DoparParam constructor}{
 
