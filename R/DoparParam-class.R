@@ -1,7 +1,13 @@
-.DoparParamSingleton <- setRefClass("DoparParam",
-    contains="BiocParallelParam")$new()
+.DoparParam <- setRefClass("DoparParam",
+    contains="BiocParallelParam",
+    fields=list()
+)
 
-DoparParam <- function() .DoparParamSingleton
+DoparParam <-
+    function(catch.errors=TRUE)
+{
+    .DoparParam(catch.errors=catch.errors)
+}
 
 ## control
 
@@ -23,16 +29,40 @@ setMethod(bpisup, "DoparParam",
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPPARAM)
+setMethod(bpmapply, c("ANY", "DoparParam"),
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
-    ## If no parallel backend is registered for foreach, fall back to
-    ## the serial backend.
-    if (!bpisup(BPPARAM))
-        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
+    if (resume) {
+        results <- .resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+        return(results)
+    }
+    if (!bpisup(BPPARAM)) {
+        results <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs,
+            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume,
+            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors))
+        return(results)
+    }
 
-    x <- NULL                           # quieten R CMD check
-    ans <- foreach(x=X) %dopar% FUN(x, ...)
-    setNames(ans, names(X))
+    ddd <- .getDotsForMapply(...)
+    if (!is.list(MoreArgs))
+        MoreArgs <- as.list(MoreArgs)
+
+    if (BPPARAM$catch.errors)
+        FUN <- .composeTry(FUN)
+
+    i <- NULL
+    results <-
+      foreach(i=seq_len(length(ddd[[1L]])), .errorhandling="stop") %dopar% {
+          do.call(FUN, args=c(lapply(ddd, "[[", i), MoreArgs))
+    }
+    results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
+
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+    if (any(is.error))
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+
+    .simplify(results, SIMPLIFY=SIMPLIFY)
 })

@@ -26,22 +26,26 @@ setOldClass(c("SOCKcluster", "cluster"))
 }
 
 SnowParam <-
-    function(workers = 0L, type, ...)
+    function(workers=0L, type, catch.errors=TRUE, ...)
 {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
     args <- c(list(spec=workers, type=type), list(...))
+    # FIXME I don't think this is required, lists always inflict a copy
     .clusterargs <- lapply(args, force)
     cluster <- .nullCluster(type)
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
-               .controlled=TRUE, workers=workers, ...)
+        .controlled=TRUE, workers=workers,
+        catch.errors=catch.errors, ...)
 }
 
-setAs("SOCKcluster", "SnowParam", function(from) {
+setAs("SOCKcluster", "SnowParam",
+    function(from)
+{
     .clusterargs <- list(spec=length(from),
-                         type=sub("cluster$", "", class(from)[1]))
-    .SnowParam(.clusterargs=.clusterargs, cluster=from,
-               .controlled=FALSE, workers=length(from))
+        type=sub("cluster$", "", class(from)[1L]))
+    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
+        workers=length(from), catch.errors=TRUE)
 })
 
 ## control
@@ -81,7 +85,7 @@ setMethod(bpstop, "SnowParam",
 setMethod(bpisup, "SnowParam",
     function(x, ...)
 {
-    length(bpbackend(x)) != 0
+    length(bpbackend(x)) != 0L
 })
 
 setMethod(bpbackend, "SnowParam",
@@ -99,13 +103,32 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 
 ## evaluation
 
-setMethod(bplapply, c("ANY", "SnowParam"),
-    function(X, FUN, ..., BPPARAM)
+setMethod(bpmapply, c("ANY", "SnowParam"),
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
+    # recall on subset
+    if (resume) {
+        results <- .resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+        return(results)
+    }
+
     if (!bpisup(BPPARAM)) {
+        # FIXME we should simply fall back to serial
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
-    parLapply(bpbackend(BPPARAM), X, FUN, ...)
+
+    # FIXME we should maybe always wrap in a try?
+    if (BPPARAM$catch.errors)
+        FUN <- .composeTry(FUN)
+    results <- clusterMap(cl=bpbackend(BPPARAM), fun=FUN, ...,
+        MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+    if (any(is.error))
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+
+    .simplify(results, SIMPLIFY=SIMPLIFY)
 })
