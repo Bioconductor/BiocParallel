@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 0.5.1
+Version: 0.5.2
 Author: Martin Morgan  and contributions from
   Ryan Thompson <rct@thompsonclan.org>,
   Michel Lang <michellang@gmail.com>
@@ -9,7 +9,7 @@ Maintainer: Bioconductor Package Maintainer <maintainer@bioconductor.org>
 Description: This package provides modified versions and novel
   implementation of functions for parallel evaluation, tailored to use
   with Bioconductor objects.
-biocViews: HighThroughputSequencing, Infrastructure
+biocViews: Infrastructure
 License: GPL-2 | GPL-3
 Imports: methods, parallel, foreach, tools, BatchJobs, BBmisc
 Suggests: BiocGenerics, doParallel, RUnit

@@ -1,7 +1,7 @@
 \name{BiocParallel-NEWS}
 \title{BiocParallel News}
 
-\section{CHANGES IN VERSION 0.99.0}{
+\section{CHANGES IN VERSION 0.5.2}{
 
   \subsection{NEW FEATURES}{
 
@@ -23,6 +23,8 @@
 
       \item \code{bpvec} has a new argument \code{AGGREGATE}, a function
       to specify how results are to be combined.
+
+      \item Support for BatchJobs back-end added, via GSOC Michel Lang.
 
     }
 
