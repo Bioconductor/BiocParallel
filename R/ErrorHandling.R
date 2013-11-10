@@ -32,15 +32,16 @@
             lapply(results[is.error], .convertToSimpleError))
         .self$is.error <- is.error
         if (throw.error) {
-          msg <- c("Errors occurred during execution. First error message:",
-              as.character(results[is.error][[1L]]),
-              "For more information, use bplasterror().",
-              "To resume calculation, re-call the function and set the argument 'resume' to TRUE or wrap",
-              "the previous call in bpresume().")
+          msg0 <- sprintf("Errors occurred; first error message:\n  %s",
+                          as.character(results[is.error][[1L]]))
+          msg1 <- strwrap("For more information, use bplasterror(). To resume
+              calculation, re-call the function and set the argument 'BPRESUME'
+              to TRUE or wrap the previous call in bpresume().", exdent=2)
+          msg2 <- NULL
           if (length(.self$traceback))
-              msg <- c(msg, "", "First traceback:",
-                  as.character(.self$traceback))
-          stop(paste(msg, collapse="\n"))
+              msg2 <- sprintf("First traceback:\n  %s",
+                              as.character(.self$traceback))
+          stop(paste(c(msg0, msg1, msg2), collapse="\n"))
         }
       } else {
           reset()
@@ -116,18 +117,18 @@ bplasterror <-
     function(...) .try(FUN(...))
 }
 
-.resume <-
+.bpresume <-
     function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM)
 {
     message("Resuming previous calculation... ")
     if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
         stop("No last error catched")
     if (length(LastError$results) != length(list(...)[[1L]]))
-        stop("Cannot resume: Length mismatch in arguments")
+        stop("Cannot resume: length mismatch in arguments")
     results <- LastError$results
     is.error <- LastError$is.error
     pars <- c(list(FUN=FUN, MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-        USE.NAMES=USE.NAMES, resume=FALSE, BPPARAM=BPPARAM),
+        USE.NAMES=USE.NAMES, BPRESUME=FALSE, BPPARAM=BPPARAM),
         lapply(list(...), "[", LastError$is.error))
     next.try <- try(do.call(bpmapply, pars))
 
@@ -144,8 +145,8 @@ bplasterror <-
 bpresume <-
     function(expr)
 {
-    prev <- getOption("BiocParallel.resume", FALSE)
-    on.exit(options("BiocParallel.resume"=prev))
-    options(BiocParallel.resume=TRUE)
+    prev <- getOption("BiocParallel.BPRESUME", FALSE)
+    on.exit(options("BiocParallel.BPRESUME"=prev))
+    options(BiocParallel.BPRESUME=TRUE)
     expr
 }

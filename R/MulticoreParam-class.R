@@ -76,17 +76,17 @@ setMethod(bpschedule, "MulticoreParam",
 ## evaluation
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
     ## recall on subset of input data
-    if (resume)
-        return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+    if (BPRESUME)
+        return(.bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     ## recall in sequential
     if (!bpschedule(BPPARAM))
         return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, resume=resume,
+            USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
             BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
 

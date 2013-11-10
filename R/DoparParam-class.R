@@ -31,17 +31,17 @@ setMethod(bpisup, "DoparParam",
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
-    if (resume) {
-        results <- .resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+    if (BPRESUME) {
+        results <- .bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
         return(results)
     }
     if (!bpisup(BPPARAM)) {
         results <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs,
-            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, resume=resume,
+            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
             BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors))
         return(results)
     }
