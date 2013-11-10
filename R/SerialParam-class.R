@@ -17,11 +17,11 @@ setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
 setMethod(bpmapply, c("ANY", "SerialParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
-    if (resume) {
-        results <- .resume(FUN=FUN, ..., MoreArgs=MoreArgs,
+    if (BPRESUME) {
+        results <- .bpresume(FUN=FUN, ..., MoreArgs=MoreArgs,
             SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
         return(results)
     }
