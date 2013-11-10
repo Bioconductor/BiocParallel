@@ -11,7 +11,7 @@ pvec <-
 }
 
 setLoadActions(.registerDefaultParams = function(nmspc) {
-    register(getOption("SnowParam", SnowParam(workers=detectCores())))
-    register(getOption("BatchJobsParam", BatchJobsParam()))
     register(getOption("SerialParam", SerialParam()))
+    register(getOption("BatchJobsParam", BatchJobsParam()))
+    register(getOption("SnowParam", SnowParam(workers=detectCores())))
 })
