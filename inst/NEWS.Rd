@@ -1,6 +1,22 @@
 \name{BiocParallel-NEWS}
 \title{BiocParallel News}
 
+\section{CHANGES IN DEVELOPMENT VERSION}{
+
+  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
+
+    \itemize{
+
+      \item Rename argument controlling resumption on error as
+      \code{BPRESUME}
+
+      \item Default to parallel back-end (multicore on non-Windows; snow
+      on Windows).
+
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 0.5.2}{
 
   \subsection{NEW FEATURES}{
