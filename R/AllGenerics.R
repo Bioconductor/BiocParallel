@@ -1,5 +1,5 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
-    function(X, FUN, ..., resume=getOption("BiocParallel.resume", FALSE),
+    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
              BPPARAM)
 {
       standardGeneric("bplapply")
@@ -7,7 +7,7 @@ setGeneric("bplapply", signature=c("X", "BPPARAM"),
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     standardGeneric("bpmapply")
 })

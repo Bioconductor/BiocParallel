@@ -23,14 +23,14 @@
 
 \usage{
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 
 \S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 \S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-   resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+   BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 \S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 
 }
 
@@ -53,7 +53,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
   \item{USE.NAMES}{If \code{TRUE} the result will be named.}
 
-  \item{resume}{Flag to determine if a previous partially successful run
+  \item{BPRESUME}{Flag to determine if a previous partially successful run
     should be resumed.  See \code{\link{bpresume}} for details.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance

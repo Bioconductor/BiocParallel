@@ -105,12 +105,12 @@ setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
 
 setMethod(bpmapply, c("ANY", "SnowParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
     # recall on subset
-    if (resume) {
-        results <- .resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+    if (BPRESUME) {
+        results <- .bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
         return(results)
     }
