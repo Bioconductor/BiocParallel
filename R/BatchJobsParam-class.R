@@ -22,24 +22,21 @@
         new.conf <- unclass(do.call(setConfig,
             conf.pars[setdiff(names(conf.pars), "conffile")]))
 
-        if (is.na(workers)) {
-          getNumberCPUs <- function(conf) {
-              x <- environment(conf$cluster.functions$submitJob)$workers
-              vapply(x, "[[", integer(1L), "ncpus")
-          }
-          cf.name <- new.conf$cluster.functions$name
-          if (is.null(cf.name)) {
-              workers <- NA_integer_
-          } else {
-              workers <- switch(cf.name,
-                 "Multicore"=getNumberCPUs(new.conf),
-                 "SSH"=sum(getNumberCPUs(new.conf)),
-                 NA_integer_)
-          }
-        }
-        workers <- as.integer(workers)
+        x_workers <- if (is.na(workers)) {
+            getNumberCPUs <- function(conf) {
+                x <- environment(new.conf$cluster.functions$submitJob)$workers
+                vapply(x, "[[", integer(1L), "ncpus")
+            }
+            cf.name <- new.conf$cluster.functions$name
+            if (is.null(cf.name)) {
+                NA_integer_
+            } else {
+                switch(cf.name, Multicore=getNumberCPUs(new.conf),
+                       SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
+            }
+        } else as.integer(workers)
 
-        initFields(workers=workers, conf.pars=new.conf)
+        initFields(workers=x_workers, conf.pars=new.conf)
     },
 
     show = function() {
@@ -86,15 +83,15 @@ setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        resume=getOption("BiocParallel.resume", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
 {
     FUN <- match.fun(FUN)
-    if (resume)
-        return(.resume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+    if (BPRESUME)
+        return(.bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM)) {
         result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, resume=resume,
+            USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
             BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors))
         return(result)
     }
