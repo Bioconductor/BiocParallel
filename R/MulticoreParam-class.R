@@ -5,7 +5,8 @@
       recursive="logical",
       cleanup="logical",
       cleanupSignal="integer",
-      verbose="logical"),
+      verbose="logical",
+      mcArgs="list"),
     methods=list(
      initialize = function(..., workers=detectCores(), catch.errors=TRUE,
          setSeed=TRUE, recursive=TRUE, cleanup=TRUE,
@@ -13,12 +14,17 @@
       {
           initFields(workers=workers, catch.errors=catch.errors,
               setSeed=setSeed, recursive=recursive, cleanup=cleanup,
-              cleanupSignal=cleanupSignal, verbose=verbose)
-          callSuper(workers=workers, catch.errors=catch.errors, ...)
+              cleanupSignal=cleanupSignal, verbose=verbose,
+              mcArgs=list(...))
+          callSuper(workers=workers, catch.errors=catch.errors)
       },
       show = function() {
           callSuper()
           fields <- names(.MulticoreParam_fields())
+          # FIXME we would need a helper function like
+          # https://github.com/berndbischl/BBmisc/blob/master/R/listToShortString.R
+          # to display contents in mcArgs
+          fields <- fields[fields != "mcArgs"]
           vals <- sapply(fields, function(fld) as.character(.self$field(fld)))
           txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
           cat(strwrap(txt, exdent=2), sep="\n")
@@ -48,7 +54,8 @@ setValidity("MulticoreParam",
     txt <- function(fmt, flds)
         sprintf(fmt, paste(sQuote(flds), collapse=", "))
 
-    fields <- .MulticoreParam_fields()
+    fields <- names(.MulticoreParam_fields())
+    fields <- fields[fields != "mcArgs"]
 
     FUN <- function(i, x) length(x[[i]])
     isScalar <- sapply(fields, FUN, object) == 1L
@@ -58,7 +65,7 @@ setValidity("MulticoreParam",
     FUN <- function(i, x) is.na(x[[i]])
     isNA <- sapply(fields[isScalar], FUN, object)
     if (any(isNA))
-        msg <- c(msg, txt("%s must be length 1", fields[isNA]))
+        msg <- c(msg, txt("%s must be not NA", fields[isNA]))
 
     if (!is.null(msg)) msg else TRUE
 })
@@ -100,10 +107,14 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ## always wrap in a try: this is the only way to throw an error for the user
     wrap <- .composeTry(wrap)
 
-    results <- mclapply(X=seq_len(length(ddd[[1L]])), FUN=wrap,
-        mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+    opts <- list(
+        X=seq_len(length(ddd[[1L]])),
+        FUN=wrap,
+        mc.set.seed=BPPARAM$setSeed,
+        mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
+    results <- do.call(mclapply, c(opts, BPPARAM$mcArgs))
     results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
 
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
