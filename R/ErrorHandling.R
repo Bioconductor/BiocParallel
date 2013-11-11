@@ -33,14 +33,14 @@
         .self$is.error <- is.error
         if (throw.error) {
           msg0 <- sprintf("Errors occurred; first error message:\n  %s",
-                          as.character(results[is.error][[1L]]))
+              paste(as.character(results[is.error][[1L]]), collapse="\n  "))
           msg1 <- strwrap("For more information, use bplasterror(). To resume
               calculation, re-call the function and set the argument 'BPRESUME'
               to TRUE or wrap the previous call in bpresume().", exdent=2)
           msg2 <- NULL
           if (length(.self$traceback))
               msg2 <- sprintf("First traceback:\n  %s",
-                              as.character(.self$traceback))
+                  paste(as.character(.self$traceback), collapse="\n  "))
           stop(paste(c(msg0, msg1, msg2), collapse="\n"))
         }
       } else {

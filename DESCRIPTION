@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 0.5.3
+Version: 0.5.4
 Author: Martin Morgan  and contributions from
   Ryan Thompson <rct@thompsonclan.org>,
   Michel Lang <michellang@gmail.com>
