@@ -52,3 +52,50 @@
 
   return(ddd)
 }
+
+## The following 3 functions are useful for implementing multi-arg
+## recycling (e.g. for bpmapply) without expanding all args to the
+## length of the largest one (which might take a lot of memory for no
+## reason).
+
+## Returns the appropriate length for recycled vectors, and also warns
+## about incomplte recycling
+recycleLength <- function(..., ARGS, warn=TRUE) {
+    if (missing(ARGS))
+        ARGS <- list(...)
+    if (length(ARGS) == 1)
+        return(length(ARGS[[1]]))
+    arglengths <- sapply(ARGS, length)
+    maxlen <- max(arglengths)
+    if (warn) {
+        for (i in seq_along(arglengths)) {
+            arglen <- arglengths[i]
+            argname <- names(arglengths)[i]
+            if (is.null(argname) || is.na(argname)) argname <- as.character(i)
+            if (maxlen %% arglen > 0) {
+                warning("length of result is not a multiple of vector length (arg ", argname, ")")
+            }
+        }
+    }
+    maxlen
+}
+
+## Like "[" with recycling of the vector
+indexRecycled <- function(v, i) {
+    v[1+(i-1)%%length(v)]
+}
+
+## Like "[[" with recycling of the vector
+indexRecycledSingle <- function(v, i) {
+    v[[1+(i-1)%%length(v)]]
+}
+
+## This works like the real formals function, but it also works on
+## most primitives where formals does not.
+.formals <- function(fun) as.pairlist(head(as.list(args(fun)), -1))
+
+namable.args <- function(FUN) {
+    arg.names <- names(as.list(.formals(FUN)))
+    ## dots doesn't count as a name
+    arg.names[arg.names != "..."]
+}

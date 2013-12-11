@@ -8,11 +8,15 @@ setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
     standardGeneric("bpmapply")
 
+## TODO: Add FUN to signature?
 setGeneric("bpvec", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvec"))
 
-setGeneric("bpvectorize",
-    function(FUN, ..., BPPARAM) standardGeneric("bpvectorize"))
+setGeneric("bpmvec", signature=c("FUN", "BPPARAM"),
+    function(FUN, ..., MoreArgs=NULL, AGGREGATE=c, BPPARAM) standardGeneric("bpmvec"))
+
+setGeneric("bpvectorize", signature=c("FUN", "BPPARAM"),
+    function(FUN, VECTOR.ARGS, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvectorize"))
 
 setGeneric("bpaggregate",
     function(x, ..., BPPARAM)
