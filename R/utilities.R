@@ -33,7 +33,6 @@
     results
 }
 
-
 .getDotsForMapply <-
     function(...)
 {

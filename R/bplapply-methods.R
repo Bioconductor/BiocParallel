@@ -7,7 +7,7 @@ setMethod(bplapply, c("ANY", "missing"),
     bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPPARAM=x)
 })
 
-setMethod(bplapply, c("ANY", "BiocParallelParam"), 
+setMethod(bplapply, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
         BPPARAM)
 {

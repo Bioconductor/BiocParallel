@@ -74,6 +74,39 @@ setMethod(bpschedule, "MulticoreParam",
 })
 
 ## evaluation
+setMethod(bplapply, c("ANY", "MulticoreParam"),
+    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+        BPPARAM)
+{
+    FUN <- match.fun(FUN)
+    ## recall on subset of input data
+    if (BPRESUME)
+        return(.bpresume_lapply(X=X, FUN=FUN, ..., BPPARAM=BPPARAM))
+    ## recall in sequential
+    if (!bpschedule(BPPARAM))
+        return(bplapply(X=X, FUN=FUN, ..., BPRESUME=BPRESUME,
+            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+
+
+    ## always wrap in a try: this is the only way to throw an error for the user
+    FUN <- .composeTry(FUN)
+
+    results <- mclapply(X=X, FUN=FUN,
+        mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+        mc.cores=bpworkers(BPPARAM),
+        mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
+
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+    if (any(is.error)) {
+        if (BPPARAM$catch.errors)
+            LastError$store(results=results, is.error=is.error,
+                throw.error=TRUE)
+        stop(as.character(results[[head(which(is.error), 1L)]]))
+    }
+
+    results
+})
+
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
@@ -81,7 +114,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     FUN <- match.fun(FUN)
     ## recall on subset of input data
     if (BPRESUME)
-        return(.bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     ## recall in sequential
     if (!bpschedule(BPPARAM))
@@ -95,7 +128,10 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ## furthermore, mcmapply is just a wrapper around mclapply
     ## -> use mclapply!
     ddd <- .getDotsForMapply(...)
-    wrap <- function(.i, ...) do.call(FUN, c(lapply(ddd, "[[", .i), MoreArgs))
+    wrap <- function(.i, ...) {
+        dots <- lapply(ddd, `[`, .i)
+        .mapply(FUN, dots, MoreArgs)
+    }
 
     ## always wrap in a try: this is the only way to throw an error for the user
     wrap <- .composeTry(wrap)

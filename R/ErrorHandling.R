@@ -117,7 +117,32 @@ bplasterror <-
     function(...) .try(FUN(...))
 }
 
-.bpresume <-
+.bpresume_lapply <-
+    function(X, FUN, ..., BPPARAM)
+{
+    message("Resuming previous calculation... ")
+    if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
+        stop("No last error catched")
+    if (length(LastError$results) != length(X))
+        stop("Cannot resume: length mismatch in arguments")
+    results <- LastError$results
+    is.error <- LastError$is.error
+
+    next.try <- try(bplapply(X=X[is.error], FUN=FUN, ..., BPPARAM=BPPARAM,
+        BPRESUME=FALSE))
+
+    if (inherits(next.try, "try-error")) {
+        LastError$store(
+            results=replace(results, is.error, LastError$results),
+            is.error=replace(is.error, is.error, LastError$is.error),
+            throw.error=TRUE)
+    } else {
+        LastError$reset()
+        return(replace(results, is.error, next.try))
+    }
+}
+
+.bpresume_mapply <-
     function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM)
 {
     message("Resuming previous calculation... ")
@@ -133,9 +158,10 @@ bplasterror <-
     next.try <- try(do.call(bpmapply, pars))
 
     if (inherits(next.try, "try-error")) {
-        LastError$store(results=replace(results, is.error, LastError$results),
-                        is.error=replace(is.error, is.error, LastError$is.error),
-                        throw.error=TRUE)
+        LastError$store(
+            results=replace(results, is.error, LastError$results),
+            is.error=replace(is.error, is.error, LastError$is.error),
+            throw.error=TRUE)
     } else {
         LastError$reset()
         return(replace(results, is.error, next.try))

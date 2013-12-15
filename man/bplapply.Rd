@@ -21,16 +21,16 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
     BPPARAM)
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
     BPPARAM)
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
     BPPARAM)
 
-\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., resume = getOption("BiocParallel.resume", FALSE),
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
     BPPARAM)
 }
 

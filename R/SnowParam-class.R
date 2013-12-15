@@ -110,7 +110,7 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
     FUN <- match.fun(FUN)
     # recall on subset
     if (BPRESUME) {
-        results <- .bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+        results <- .bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
         return(results)
     }
