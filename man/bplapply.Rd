@@ -45,7 +45,7 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
   \item{\dots}{Additional arguments for \code{FUN}, as in
     \code{\link{lapply}}}
 
-  \item{resume}{Flag to determine if a previous partially successful run
+  \item{BPRESUME}{Flag to determine if a previous partially successful run
       should be resumed.  See \code{\link{bpresume}} for details.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
