@@ -91,7 +91,7 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     ## always wrap in a try: this is the only way to throw an error for the user
     FUN <- .composeTry(FUN)
 
-    results <- mclapply(X=X, FUN=FUN,
+    results <- mclapply(X=X, FUN=FUN, ...,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
