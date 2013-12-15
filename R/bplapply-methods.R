@@ -15,19 +15,15 @@ setMethod(bplapply, c("ANY", "BiocParallelParam"),
         BPRESUME=BPRESUME, BPPARAM=BPPARAM)
 })
 
-setMethod(bplapply, c(BPPARAM="list"),
+setMethod(bplapply, c("ANY", "list"),
     function(X, FUN, ..., BPPARAM)
 {
-    if (!all(as.character(lapply(BPPARAM, is, "BiocParallelParam"))))
+    if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
         stop("All elements in 'BPPARAM' must be BicoParallelParam objects")
     if (length(BPPARAM) == 0L)
         stop("'length(BPPARAM)' must be > 0")
-    myBPPARAM <- BPPARAM[[1L]]
-    BPPARAM <- tail(BPPARAM, -1L)
-    if (length(BPPARAM) > 0L) {
-        myFUN <- function(...) FUN(..., BPPARAM=BPPARAM)
-    } else myFUN <- FUN
-    if (length(BPPARAM) == 1L)
-        BPPARAM <- BPPARAM[[1L]]
-    bplapply(X, myFUN, ..., BPPARAM=myBPPARAM)
+    myFUN <- if (length(BPPARAM) > 1L)
+        function(...) FUN(..., BPPARAM=BPPARAM[-1L])
+    else FUN
+    bplapply(X, myFUN, ..., BPPARAM=BPPARAM[[1L]])
 })
