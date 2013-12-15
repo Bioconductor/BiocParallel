@@ -128,10 +128,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ## furthermore, mcmapply is just a wrapper around mclapply
     ## -> use mclapply!
     ddd <- .getDotsForMapply(...)
-    wrap <- function(.i, ...) {
-        dots <- lapply(ddd, `[`, .i)
-        .mapply(FUN, dots, MoreArgs)
-    }
+    wrap <- function(.i, ...) do.call(FUN, c(lapply(ddd, "[[", .i), MoreArgs))
 
     ## always wrap in a try: this is the only way to throw an error for the user
     wrap <- .composeTry(wrap)
