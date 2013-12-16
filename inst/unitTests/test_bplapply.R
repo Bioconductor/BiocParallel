@@ -9,6 +9,8 @@ library(doParallel)                     # FIXME: unload?
             err <<- conditionMessage(e)
         expected
     })
+    if (!is.null(err))
+      print(as.character(err))
     checkTrue(is.null(err))
     checkIdentical(expected, obs)
 }
@@ -20,8 +22,7 @@ test_bplapply_Params <- function()
                    snow0=SnowParam(2, "FORK"),
                    snow1=SnowParam(2, "PSOCK"),
                    dopar=DoparParam(),
-                   batchjobs=BatchJobsParam(),
-                   dopar=DoparParam())
+                   batchjobs=BatchJobsParam())
 
     dop <- registerDoParallel(cores=2)
     ## FIXME: restore previously registered back-end?
@@ -32,5 +33,13 @@ test_bplapply_Params <- function()
         .fork_not_windows(expected,
                           bplapply(x, sqrt, BPPARAM=params[[ptype]]))
     }
+
+
+    # test empty input
+    for (ptype in names(params)) {
+      .fork_not_windows(list(),
+        bplapply(list(), identity, BPPARAM=params[[ptype]]))
+    }
+
     TRUE
 }

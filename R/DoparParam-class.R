@@ -47,6 +47,8 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     }
 
     ddd <- .getDotsForMapply(...)
+    if (!length(ddd) || !length(ddd[[1L]]))
+      return(list())
     if (!is.list(MoreArgs))
         MoreArgs <- as.list(MoreArgs)
 
@@ -55,7 +57,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
 
     i <- NULL
     results <-
-      foreach(i=seq_len(length(ddd[[1L]])), .errorhandling="stop") %dopar% {
+      foreach(i=seq_along(ddd[[1L]]), .errorhandling="stop") %dopar% {
           do.call(FUN, args=c(lapply(ddd, "[[", i), MoreArgs))
     }
     results <- .rename(results, ddd, USE.NAMES=USE.NAMES)

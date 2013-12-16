@@ -27,7 +27,7 @@
 }
 
 \usage{
-DoparParam(catch.errors = TRUE) 
+DoparParam(catch.errors = TRUE)
 }
 
 \arguments{
@@ -69,7 +69,7 @@ DoparParam(catch.errors = TRUE)
   \code{register} for registering parameter classes for use in parallel
   evaluation.
 
-  \code{\link{foreach-package}} for the parallel backend infrastructure 
+  \code{\link{foreach-package}} for the parallel backend infrastructure
   used by this param class.
 
 }

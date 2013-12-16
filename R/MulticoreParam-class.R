@@ -127,13 +127,16 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ## https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15016
     ## furthermore, mcmapply is just a wrapper around mclapply
     ## -> use mclapply!
+
     ddd <- .getDotsForMapply(...)
+    if (!length(ddd) || !length(ddd[[1L]]))
+      return(list())
     wrap <- function(.i, ...) do.call(FUN, c(lapply(ddd, "[[", .i), MoreArgs))
 
     ## always wrap in a try: this is the only way to throw an error for the user
     wrap <- .composeTry(wrap)
 
-    results <- mclapply(X=seq_len(length(ddd[[1L]])), FUN=wrap,
+    results <- mclapply(X=seq_along(ddd[[1L]]), FUN=wrap,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
