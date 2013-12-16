@@ -131,12 +131,15 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ddd <- .getDotsForMapply(...)
     if (!length(ddd) || !length(ddd[[1L]]))
       return(list())
-    wrap <- function(.i, ...) do.call(FUN, c(lapply(ddd, "[[", .i), MoreArgs))
 
     ## always wrap in a try: this is the only way to throw an error for the user
-    wrap <- .composeTry(wrap)
+    wrap <- .composeTry(function(.i, .FUN, .ddd, .MoreArgs) {
+      dots <- lapply(.ddd, `[`, .i)
+      unlist(.mapply(.FUN, dots, .MoreArgs), recursive=FALSE)
+    })
 
     results <- mclapply(X=seq_along(ddd[[1L]]), FUN=wrap,
+        .FUN=FUN, .ddd=ddd, .MoreArgs=MoreArgs,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)

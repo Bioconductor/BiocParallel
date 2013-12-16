@@ -28,6 +28,33 @@ setMethod(bpisup, "DoparParam",
 })
 
 ## evaluation
+setMethod(bplapply, c("ANY", "DoparParam"),
+    function(X, FUN, ...,
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+{
+    FUN <- match.fun(FUN)
+    if (BPRESUME) {
+        return(.bpresume_lapply(FUN=FUN, ..., BPPARAM=BPPARAM))
+    }
+    if (!bpisup(BPPARAM)) {
+        return(bplapply(FUN=FUN, ...,
+            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+    }
+    if (BPPARAM$catch.errors)
+        FUN <- .composeTry(FUN)
+
+    i <- NULL
+    results <-
+      foreach(i=seq_along(X), .errorhandling="stop") %dopar% {
+          FUN(X[[i]], ...)
+    }
+
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+    if (any(is.error))
+        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
+
+    results
+})
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
@@ -58,7 +85,8 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     i <- NULL
     results <-
       foreach(i=seq_along(ddd[[1L]]), .errorhandling="stop") %dopar% {
-          do.call(FUN, args=c(lapply(ddd, "[[", i), MoreArgs))
+          dots <- lapply(ddd, `[`, i)
+          unlist(.mapply(FUN, dots, MoreArgs), recursive=FALSE)
     }
     results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
 
