@@ -135,7 +135,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
     ## always wrap in a try: this is the only way to throw an error for the user
     wrap <- .composeTry(function(.i, .FUN, .ddd, .MoreArgs) {
       dots <- lapply(.ddd, `[`, .i)
-      unlist(.mapply(.FUN, dots, .MoreArgs), recursive=FALSE)
+      .mapply(.FUN, dots, .MoreArgs)[[1L]]
     })
 
     results <- mclapply(X=seq_along(ddd[[1L]]), FUN=wrap,

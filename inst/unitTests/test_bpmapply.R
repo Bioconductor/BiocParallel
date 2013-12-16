@@ -13,15 +13,15 @@ library(doParallel)                     # FIXME: unload?
     checkIdentical(expected, obs)
 }
 
-test_bpmapply_Params <- function() {
-    params <- list(serial=SerialParam(),
-                  snow0=SnowParam(2, "FORK"),
-                  snow1=SnowParam(2, "PSOCK"),
-                  batchjobs=BatchJobsParam(),
-                  multi=MulticoreParam(),
-                  dopar=DoparParam())
-    dop <- registerDoParallel(cores=3)
+params <- list(serial=SerialParam(),
+              snow0=SnowParam(2, "FORK"),
+              snow1=SnowParam(2, "PSOCK"),
+              batchjobs=BatchJobsParam(),
+              multi=MulticoreParam(),
+              dopar=DoparParam())
+dop <- registerDoParallel(cores=2)
 
+test_bpmapply_Params <- function() {
     x <- 1:10
     y <- rev(x)
     f <- function(x, y) x + y
@@ -64,5 +64,16 @@ test_bpmapply_Params <- function() {
         )
     }
 
+    TRUE
+}
+
+test_bpmapply_symbols <- function()
+{
+    X <- list(as.symbol(".XYZ"))
+    expected <- mapply(as.character, X)
+    for (ptype in names(params)) {
+        .fork_not_windows(expected,
+                          bpmapply(as.character, X, BPPARAM=params[[ptype]]))
+    }
     TRUE
 }

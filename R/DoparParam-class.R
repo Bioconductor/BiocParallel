@@ -86,8 +86,8 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     results <-
       foreach(i=seq_along(ddd[[1L]]), .errorhandling="stop") %dopar% {
           dots <- lapply(ddd, `[`, i)
-          unlist(.mapply(FUN, dots, MoreArgs), recursive=FALSE)
-    }
+          .mapply(FUN, dots, MoreArgs)[[1L]]
+      }
     results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
 
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
