@@ -110,18 +110,24 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
     FUN <- match.fun(FUN)
     # recall on subset
     if (BPRESUME) {
-        results <- .bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
-        return(results)
+        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
+            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     }
 
     if (!bpisup(BPPARAM)) {
-        # FIXME we should simply fall back to serial
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
 
-    # FIXME we should maybe always wrap in a try?
+    if (!bpschedule(BPPARAM))
+        return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+            USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
+            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+
+    # clusterMap not consistent with mapply w.r.t. zero-length input
+    if (missing(...) || length(..1) == 0L)
+      return(list())
+
     if (BPPARAM$catch.errors)
         FUN <- .composeTry(FUN)
     results <- clusterMap(cl=bpbackend(BPPARAM), fun=FUN, ...,

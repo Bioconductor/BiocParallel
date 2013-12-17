@@ -1,5 +1,6 @@
-.fork_not_windows <- 
-    function(expected, expr) 
+library(doParallel)                     # FIXME: unload?
+.fork_not_windows <-
+    function(expected, expr)
 {
     err <- NULL
     obs <- tryCatch(expr, error=function(e) {
@@ -12,14 +13,15 @@
     checkIdentical(expected, obs)
 }
 
-test_bpmapply_Params <- function() {
-    params <- list(serial=SerialParam(),
-                  snow0=SnowParam(2, "FORK"),
-                  snow1=SnowParam(2, "PSOCK"),
-                  batchjobs=BatchJobsParam(),
-                  multi=MulticoreParam(),
-                  dopar=DoparParam())
+params <- list(serial=SerialParam(),
+              snow0=SnowParam(2, "FORK"),
+              snow1=SnowParam(2, "PSOCK"),
+              batchjobs=BatchJobsParam(),
+              multi=MulticoreParam(),
+              dopar=DoparParam())
+dop <- registerDoParallel(cores=2)
 
+test_bpmapply_Params <- function() {
     x <- 1:10
     y <- rev(x)
     f <- function(x, y) x + y
@@ -35,10 +37,10 @@ test_bpmapply_Params <- function() {
             param$catch.errors <- catch.errors
             for (SIMPLIFY in c(FALSE, TRUE)) {
                 for (USE.NAMES in c(FALSE, TRUE)) {
-                  expected <- mapply(identity, x, USE.NAMES=USE.NAMES, 
+                  expected <- mapply(identity, x, USE.NAMES=USE.NAMES,
                       SIMPLIFY=SIMPLIFY)
-                  .fork_not_windows(expected, 
-                      bpmapply(identity, x, USE.NAMES=USE.NAMES, 
+                  .fork_not_windows(expected,
+                      bpmapply(identity, x, USE.NAMES=USE.NAMES,
                           SIMPLIFY=SIMPLIFY, BPPARAM=param))
                 }
             }
@@ -51,9 +53,27 @@ test_bpmapply_Params <- function() {
     f <- function(x, m) { x + m }
     expected <- mapply(f, x, MoreArgs=list(m=1))
     for (param in params) {
-      .fork_not_windows(expected, 
+      .fork_not_windows(expected,
           bpmapply(f, x, MoreArgs=list(m=1), BPPARAM=param))
     }
 
+    # test empty input
+    for (param in params) {
+      .fork_not_windows(list(),
+        bpmapply(identity, BPPARAM=param)
+        )
+    }
+
+    TRUE
+}
+
+test_bpmapply_symbols <- function()
+{
+    X <- list(as.symbol(".XYZ"))
+    expected <- mapply(as.character, X)
+    for (ptype in names(params)) {
+        .fork_not_windows(expected,
+                          bpmapply(as.character, X, BPPARAM=params[[ptype]]))
+    }
     TRUE
 }

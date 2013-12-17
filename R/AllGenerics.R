@@ -1,22 +1,22 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
              BPPARAM)
-{
-      standardGeneric("bplapply")
-})
+      standardGeneric("bplapply"))
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
-{
-    standardGeneric("bpmapply")
-})
+    standardGeneric("bpmapply"))
 
 setGeneric("bpvec", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM) standardGeneric("bpvec"))
 
 setGeneric("bpvectorize",
     function(FUN, ..., BPPARAM) standardGeneric("bpvectorize"))
+
+setGeneric("bpaggregate",
+    function(x, ..., BPPARAM)
+    standardGeneric("bpaggregate"))
 
 setGeneric("bpworkers",
     function(x, ...) standardGeneric("bpworkers"))

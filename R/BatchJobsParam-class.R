@@ -59,7 +59,7 @@ BatchJobsParam <-
     submit.pars <- Filter(not_null, list(resources=resources))
     conf.pars <- Filter(not_null,
         list(conffile=conffile, cluster.functions=cluster.functions))
-  
+
     .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
         conf.pars=conf.pars, workers=workers, catch.errors=catch.errors,
         cleanup=cleanup, stop.on.error=stop.on.error, progressbar=progressbar,
@@ -87,7 +87,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 {
     FUN <- match.fun(FUN)
     if (BPRESUME)
-        return(.bpresume(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM)) {
         result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,

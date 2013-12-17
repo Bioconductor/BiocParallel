@@ -18,9 +18,9 @@ setMethod(bpvec, c("ANY", "BiocParallelParam"),
         stop("'bpworkers' must be set in your backend to use bpvec")
 
     si <- .splitIndices(tasks, workers)
-    ans <- bplapply(si, function(i, X, FUN, ...) {
-        FUN(X[i], ...)
-    }, X, FUN, ..., BPPARAM=BPPARAM)
+    ans <- bplapply(si, function(.i, .X, .FUN, ...) {
+        .FUN(.X[.i], ...)
+    }, .X=X, .FUN=FUN, ..., BPPARAM=BPPARAM)
     do.call(AGGREGATE, ans)
 })
 
