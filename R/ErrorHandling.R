@@ -33,14 +33,14 @@
         .self$is.error <- is.error
         if (throw.error) {
           msg0 <- sprintf("Errors occurred; first error message:\n  %s",
-                          as.character(results[is.error][[1L]]))
+              paste(as.character(results[is.error][[1L]]), collapse="\n  "))
           msg1 <- strwrap("For more information, use bplasterror(). To resume
               calculation, re-call the function and set the argument 'BPRESUME'
               to TRUE or wrap the previous call in bpresume().", exdent=2)
           msg2 <- NULL
           if (length(.self$traceback))
               msg2 <- sprintf("First traceback:\n  %s",
-                              as.character(.self$traceback))
+                  paste(as.character(.self$traceback), collapse="\n  "))
           stop(paste(c(msg0, msg1, msg2), collapse="\n"))
         }
       } else {
@@ -117,7 +117,32 @@ bplasterror <-
     function(...) .try(FUN(...))
 }
 
-.bpresume <-
+.bpresume_lapply <-
+    function(X, FUN, ..., BPPARAM)
+{
+    message("Resuming previous calculation... ")
+    if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
+        stop("No last error catched")
+    if (length(LastError$results) != length(X))
+        stop("Cannot resume: length mismatch in arguments")
+    results <- LastError$results
+    is.error <- LastError$is.error
+
+    next.try <- try(bplapply(X=X[is.error], FUN=FUN, ..., BPPARAM=BPPARAM,
+        BPRESUME=FALSE))
+
+    if (inherits(next.try, "try-error")) {
+        LastError$store(
+            results=replace(results, is.error, LastError$results),
+            is.error=replace(is.error, is.error, LastError$is.error),
+            throw.error=TRUE)
+    } else {
+        LastError$reset()
+        return(replace(results, is.error, next.try))
+    }
+}
+
+.bpresume_mapply <-
     function(FUN, ..., MoreArgs, SIMPLIFY, USE.NAMES, BPPARAM)
 {
     message("Resuming previous calculation... ")
@@ -133,9 +158,10 @@ bplasterror <-
     next.try <- try(do.call(bpmapply, pars))
 
     if (inherits(next.try, "try-error")) {
-        LastError$store(results=replace(results, is.error, LastError$results),
-                        is.error=replace(is.error, is.error, LastError$is.error),
-                        throw.error=TRUE)
+        LastError$store(
+            results=replace(results, is.error, LastError$results),
+            is.error=replace(is.error, is.error, LastError$is.error),
+            throw.error=TRUE)
     } else {
         LastError$reset()
         return(replace(results, is.error, next.try))

@@ -1,9 +1,3 @@
-setGeneric("bpaggregate",
-    function(x, ..., BPPARAM)
-{
-    standardGeneric("bpaggregate")
-})
-
 setMethod("bpaggregate", c("ANY", "missing"),
     function(x, ..., BPPARAM)
 {
