@@ -1,7 +1,7 @@
 \name{BiocParallel-NEWS}
 \title{BiocParallel News}
 
-\section{CHANGES IN DEVELOPMENT VERSION}{
+\section{CHANGES IN VERSION 0.5.5}{
 
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
 
