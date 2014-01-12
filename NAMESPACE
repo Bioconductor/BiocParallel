@@ -5,6 +5,8 @@ import(methods)
 importFrom(parallel, detectCores, makeCluster, nextRNGStream,
            splitIndices, stopCluster, clusterMap)
 
+importFrom(BiocGenerics, lapply)
+
 if (tools:::.OStype() == "unix") {
     importFrom(parallel, mccollect, mcparallel, mc.reset.stream)
 }
