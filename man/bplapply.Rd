@@ -8,6 +8,7 @@
 \alias{bplapply,ANY,MulticoreParam-method}
 \alias{bplapply,ANY,SerialParam-method}
 \alias{bplapply,ANY,SnowParam-method}
+\alias{bplapply,ANY,list-method}
 
 \title{Parallel lapply-like functionality}
 
@@ -49,7 +50,9 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
       should be resumed.  See \code{\link{bpresume}} for details.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evaluation.}
+    determining the parallel back-end to be used during evaluation, or a
+    \code{list} of \code{BiocParallelParam} instances, to be applied in
+    sequence for nested calls to \code{bplapply}.}
 
 }
 
