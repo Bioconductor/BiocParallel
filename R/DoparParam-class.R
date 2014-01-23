@@ -62,8 +62,8 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {
-        results <- .bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+        results <- .bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
+            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
         return(results)
     }
     if (!bpisup(BPPARAM)) {

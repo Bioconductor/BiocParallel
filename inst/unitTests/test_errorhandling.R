@@ -3,7 +3,7 @@ checkExceptionText <-
 {
     x <- try(eval(expr), silent=TRUE)
     checkTrue(inherits(x, "try-error"), msg=msg)
-    checkTrue(xor(negate, grepl(txt, as.character(x))), msg=msg)
+    checkTrue(xor(negate, grepl(txt, as.character(x), fixed=TRUE)), msg=msg)
 }
 
 test_errorhandling <-
@@ -28,7 +28,7 @@ test_errorhandling <-
 
     for (param in params) {
         checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
-            "LastError", negate=TRUE)
+            "Error in FUN(...): whooops", negate=TRUE)
     }
 
     params <- list(serial=SerialParam(catch.errors=TRUE),
@@ -40,7 +40,8 @@ test_errorhandling <-
     if (grepl("windows", .Platform$OS.type))
         params$snow0 <- NULL
     for (param in params) {
-        checkExceptionText(bpmapply(f, x, y, BPPARAM=param), "LastError")
+        checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
+            "Error in FUN(...): whooops")
     }
 
     # check that resume works

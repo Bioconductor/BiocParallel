@@ -87,8 +87,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 {
     FUN <- match.fun(FUN)
     if (BPRESUME)
-        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
+        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
+            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM)) {
         result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
