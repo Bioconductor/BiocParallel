@@ -9,20 +9,20 @@
     },
   show = function() {
       if (!length(results)) {
-          message("No partial results saved")
+          cat("No partial results saved\n")
       } else {
           n.errors <- sum(is.error)
-          msg <- sprintf("%i/%i partial results stored.",
-              length(is.error) - n.errors, length(is.error))
+          msg <- sprintf("%i / %i partial results stored.",
+                         length(is.error) - n.errors, length(is.error))
           if (n.errors > 0L) {
               n.print <- min(n.errors, 10L)
-              msg <- paste(msg, sprintf("First %i error messages:", n.print))
+              msg <- paste(msg, sprintf("First %i error messages:\n", n.print))
               f <- function(i)
-                  sprintf("[%i]: %s", i, as.character(results[[i]]))
+                  sprintf("[%i]: %s", i, conditionMessage(results[[i]]))
               msg <- c(msg, vapply(head(which(is.error), n.print),
                   f, character(1L)))
-          message(paste(msg, collapse="\n"))
-        }
+              cat(paste(sub("[[:space:]]+$", "", msg), collapse="\n"), "\n")
+          }
       }
   },
   store = function(results, is.error, throw.error=FALSE) {
@@ -32,16 +32,19 @@
             lapply(results[is.error], .convertToSimpleError))
         .self$is.error <- is.error
         if (throw.error) {
-          msg0 <- sprintf("Errors occurred; first error message:\n  %s",
-              paste(as.character(results[is.error][[1L]]), collapse="\n  "))
-          msg1 <- strwrap("For more information, use bplasterror(). To resume
-              calculation, re-call the function and set the argument 'BPRESUME'
-              to TRUE or wrap the previous call in bpresume().", exdent=2)
+          msg0 <- sprintf("%d errors; first error:\n  %s", sum(is.error),
+              paste(conditionMessage(.self$results[is.error][[1L]]),
+                    collapse="\n  "))
+          msg1 <- paste(strwrap("For more information, use bplasterror(). To
+              resume calculation, re-call the function and set the argument
+              'BPRESUME' to TRUE or wrap the previous call in bpresume().",
+              exdent=2), collapse="\n")
           msg2 <- NULL
           if (length(.self$traceback))
               msg2 <- sprintf("First traceback:\n  %s",
                   paste(as.character(.self$traceback), collapse="\n  "))
-          stop(paste(c(msg0, msg1, msg2), collapse="\n"))
+          msg <- sub("[[:space:]]+$", "", c(msg0, msg1, msg2))
+          stop(paste(msg, collapse="\n\n"), call.=FALSE)
         }
       } else {
           reset()
@@ -65,7 +68,9 @@ bplasterror <-
 .convertToSimpleError <-
     function(x)
 {
-    simpleError(as.character(x))
+    if (!is(x, "simpleError"))
+        simpleError(as.character(x))
+    else x
 }
 
 .try <-
@@ -122,7 +127,7 @@ bplasterror <-
 {
     message("Resuming previous calculation... ")
     if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
-        stop("No last error catched")
+        stop("No last error caught")
     if (length(LastError$results) != length(X))
         stop("Cannot resume: length mismatch in arguments")
     results <- LastError$results
