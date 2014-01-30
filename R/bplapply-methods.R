@@ -11,7 +11,7 @@ setMethod(bplapply, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
         BPPARAM)
 {
-    bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE, USE.NAMES=FALSE,
+    bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE,
         BPRESUME=BPRESUME, BPPARAM=BPPARAM)
 })
 
