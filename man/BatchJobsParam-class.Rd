@@ -120,7 +120,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 }
 
 \examples{
-p <- BatchJobsParam()
+p <- BatchJobsParam(progressbar=FALSE)
 bplapply(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
