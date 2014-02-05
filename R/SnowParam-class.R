@@ -19,7 +19,7 @@ setOldClass(c("spawnedMPIcluster", "cluster"))
       }))
 
 .nullCluster <-
-    function(type)
+    function()
 {
     makeCluster(0L, "PSOCK")
 }
@@ -92,13 +92,6 @@ setMethod(bpbackend, "SnowParam",
 {
     x$cluster
 })
-
-## setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
-##     function(x, ..., value)
-## {
-##     x$cluster <- value
-##     x
-## })
 
 setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     function(x, ..., value)
