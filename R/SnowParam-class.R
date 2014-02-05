@@ -1,11 +1,12 @@
 setOldClass(c("SOCKcluster", "cluster"))
+setOldClass(c("spawnedMPIcluster", "cluster"))
 
 .SnowParam <-
     setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
       .clusterargs="list",
-      cluster="SOCKcluster"),
+      cluster="cluster"),
     methods=list(
       show = function() {
           callSuper()
@@ -18,11 +19,9 @@ setOldClass(c("SOCKcluster", "cluster"))
       }))
 
 .nullCluster <-
-    function(type)
+    function()
 {
-    if (type == "FORK" || type == "SOCK")
-        type <- "PSOCK"
-    makeCluster(0L, type)
+    makeCluster(0L, "PSOCK")
 }
 
 SnowParam <-
@@ -39,7 +38,7 @@ SnowParam <-
         catch.errors=catch.errors, ...)
 }
 
-setAs("SOCKcluster", "SnowParam",
+setAs("cluster", "SnowParam",
     function(from)
 {
     .clusterargs <- list(spec=length(from),
@@ -94,12 +93,14 @@ setMethod(bpbackend, "SnowParam",
     x$cluster
 })
 
-setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
+setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     function(x, ..., value)
 {
     x$cluster <- value
     x
 })
+
+
 
 ## evaluation
 
