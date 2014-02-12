@@ -30,4 +30,6 @@ test_bpvectorize_Params <- function()
         psqrt <- bpvectorize(sqrt, BPPARAM=params[[ptype]])
         .fork_not_windows(expected, psqrt(x))
     }
+
+    closeAllConnections()
 }
