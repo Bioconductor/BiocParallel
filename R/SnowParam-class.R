@@ -1,52 +1,47 @@
-setOldClass(c("SOCKcluster", "cluster"))
+## 11 February, 2014 -- this is a hack: import'ing
+## parallel::stopCluster and then library(snow) overwrites
+## parallel::stopCluster.default with snow::stopCluster.default,
+## resulting in incorrect dispatch to snow::sendData
+stopCluster <- parallel::stopCluster
 
-.SnowParam <-
-    setRefClass("SnowParam",
+setOldClass(c("NULLcluster", "cluster"))
+
+.NULLcluster <-
+    function()
+{
+    cl <- list()
+    class(cl) <- c("NULLcluster", "cluster")
+    cl
+}
+
+.SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
       .clusterargs="list",
-      cluster="SOCKcluster"),
+      cluster="cluster"),
     methods=list(
       show = function() {
           callSuper()
-          if (bpisup(.self))
-              print(bpbackend(.self))
-          else {
-              cat("cluster 'spec': ", .clusterargs$spec,
-                  "; 'type': ", .clusterargs$type, "\n", sep="")
-          }
+          cat("cluster spec: ", .clusterargs$spec,
+              "; type: ", .clusterargs$type, "\n", sep="")
       }))
 
-.nullCluster <-
-    function(type)
-{
-    if (type == "FORK" || type == "SOCK")
-        type <- "PSOCK"
-    makeCluster(0L, type)
-}
-
 SnowParam <-
-    function(workers=0L, type, catch.errors=TRUE, ...)
+    function(workers=0L, type=c("SOCK", "PSOCK", "FORK", "MPI"),
+             catch.errors=TRUE, ...)
 {
     if (missing(type))
         type <- parallel:::getClusterOption("type")
+    else
+        type <- match.arg(type)
+
     args <- c(list(spec=workers, type=type), list(...))
     # FIXME I don't think this is required, lists always inflict a copy
     .clusterargs <- lapply(args, force)
-    cluster <- .nullCluster(type)
+    cluster <- .NULLcluster()
     .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
-        .controlled=TRUE, workers=workers,
-        catch.errors=catch.errors, ...)
+        .controlled=TRUE, workers=workers, catch.errors=catch.errors)
 }
-
-setAs("SOCKcluster", "SnowParam",
-    function(from)
-{
-    .clusterargs <- list(spec=length(from),
-        type=sub("cluster$", "", class(from)[1L]))
-    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-        workers=length(from), catch.errors=TRUE)
-})
 
 ## control
 
@@ -77,8 +72,12 @@ setMethod(bpstop, "SnowParam",
         stop("'bpstop' not available; instance from outside BiocParallel?")
     if (!bpisup(x))
         stop("cluster already stopped")
-    stopCluster(bpbackend(x))
-    bpbackend(x) <- .nullCluster(x$.clusterargs$type)
+    tryCatch(stopCluster(bpbackend(x)), error=function(err) {
+        txt <- sprintf("failed to stop %s cluster: %s",
+                       sQuote(class(bpbackend(x))[[1]]), conditionMessage(err))
+        stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
+    })
+    bpbackend(x) <- .NULLcluster()
     invisible(x)
 })
 
@@ -94,7 +93,7 @@ setMethod(bpbackend, "SnowParam",
     x$cluster
 })
 
-setReplaceMethod("bpbackend", c("SnowParam", "SOCKcluster"),
+setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     function(x, ..., value)
 {
     x$cluster <- value
@@ -137,4 +136,33 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 
     .simplify(results, SIMPLIFY=SIMPLIFY)
+})
+
+## parallel::SOCKcluster types
+
+setOldClass(c("SOCKcluster", "cluster"))
+
+stopCluster.SOCKcluster <-
+    parallel:::stopCluster.default
+
+setAs("SOCKcluster", "SnowParam",
+    function(from)
+{
+    .clusterargs <- list(spec=length(from),
+        type=sub("cluster$", "", class(from)[1L]))
+    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
+        workers=length(from), catch.errors=TRUE)
+})
+
+## MPIcluster
+
+setOldClass(c("spawnedMPIcluster", "MPIcluster", "cluster"))
+
+setAs("spawnedMPIcluster", "SnowParam",
+    function(from)
+{
+    .clusterargs <- list(spec=length(from),
+        type=sub("cluster", "", class(from)[1L]))
+    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
+               workers=length(from), catch.errors=TRUE)
 })

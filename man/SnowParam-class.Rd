@@ -5,9 +5,10 @@
 \alias{SnowParam-class}
 \alias{SnowParam}
 \alias{coerce,SOCKcluster,SnowParam-method}
+\alias{coerce,spawnedMPIcluster,SnowParam-method}
 
 \alias{bpbackend,SnowParam-method}
-\alias{bpbackend<-,SnowParam,SOCKcluster-method}
+\alias{bpbackend<-,SnowParam,cluster-method}
 
 \alias{bpisup,SnowParam-method}
 \alias{bpstart,SnowParam-method}
@@ -17,7 +18,7 @@
 
 \alias{show,SnowParam-method}
 
-\title{Enable simple network of workstations (SNOW) parallel evaluation}
+\title{Enable simple network of workstations (SNOW)-style parallel evaluation}
 
 \description{
 
@@ -27,10 +28,12 @@
 }
 
 \usage{
-SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
+SnowParam(workers = 0L, type=c("SOCK", "PSOCK", "FORK", "MPI"),
+    catch.errors = TRUE, ...)
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
+\S4method{coerce}{spawnedMPIcluster,SnowParam}(from, to)
 }
 
 \arguments{
@@ -43,7 +46,8 @@ SnowParam(workers = 0L, type, catch.errors = TRUE, ...)
         \code{\link[BatchJobs]{submitJobs}} for more information.
 
     \item{type}{\code{character(1)} type of cluster to use, as described
-        in \code{\link[parallel]{clusterMap}} argument \code{type}.}
+        in \code{\link[parallel]{clusterMap}} argument
+        \code{type}. Use \code{MulticoreParam} instead of \code{type=FORK}.}
 
     \item{catch.errors}{\code{logical(1)} Flag to determine in
         apply-like functions (see e.g. \code{\link{bplapply}}) whether

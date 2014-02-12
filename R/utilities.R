@@ -1,3 +1,10 @@
+.paramFields <-
+    function(generator)
+{
+    result <- generator$fields()
+    result[setdiff(names(result), names(.BiocParallelParam$fields()))]
+}
+
 .splitIndices <- function (nx, ncl)
 {
     ## derived from parallel

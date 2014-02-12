@@ -62,5 +62,6 @@ test_errorhandling <-
         checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
     }
 
+    closeAllConnections()
     TRUE
 }
