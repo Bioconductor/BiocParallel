@@ -31,4 +31,6 @@ test_bpvec_Params <- function()
         .fork_not_windows(expected,
                           bpvec(x, sqrt, BPPARAM=params[[ptype]]))
     }
+
+    closeAllConnections()
 }

@@ -41,6 +41,7 @@ test_bplapply_Params <- function()
         bplapply(list(), identity, BPPARAM=params[[ptype]]))
     }
 
+    closeAllConnections()
     TRUE
 }
 
@@ -52,5 +53,7 @@ test_bplapply_symbols <- function()
         .fork_not_windows(expected,
                           bplapply(X, as.character, BPPARAM=params[[ptype]]))
     }
+
+    closeAllConnections()
     TRUE
 }

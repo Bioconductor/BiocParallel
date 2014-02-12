@@ -18,7 +18,7 @@
       },
       show = function() {
           callSuper()
-          fields <- names(.MulticoreParam_fields())
+          fields <- names(.paramFields(.MulticoreParam))
           vals <- sapply(fields, function(fld) as.character(.self$field(fld)))
           txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
           cat(strwrap(txt, exdent=2), sep="\n")
@@ -34,13 +34,6 @@ MulticoreParam <-
         cleanupSignal=cleanupSignal, verbose=verbose, ...)
 }
 
-.MulticoreParam_fields <-
-    function()
-{
-    result <- .MulticoreParam$fields()
-    result[setdiff(names(result), names(.BiocParallelParam$fields()))]
-}
-
 setValidity("MulticoreParam",
     function(object)
 {
@@ -48,7 +41,7 @@ setValidity("MulticoreParam",
     txt <- function(fmt, flds)
         sprintf(fmt, paste(sQuote(flds), collapse=", "))
 
-    fields <- .MulticoreParam_fields()
+    fields <- names(.paramFields(.MulticoreParam))
 
     FUN <- function(i, x) length(x[[i]])
     isScalar <- sapply(fields, FUN, object) == 1L
