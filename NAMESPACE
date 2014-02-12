@@ -3,7 +3,7 @@
 import(methods)
 
 importFrom(parallel, detectCores, makeCluster, nextRNGStream,
-           splitIndices, stopCluster, clusterMap)
+           splitIndices, clusterMap)
 
 importFrom(BiocGenerics, lapply)
 
