@@ -1,0 +1,168 @@
+%\VignetteIndexEntry{Introduction to BiocParallel}
+%\VignetteEngine{knitr::knitr}
+
+\documentclass{article}
+
+<<style, eval=TRUE, echo=FALSE, results="asis">>=
+BiocStyle::latex()
+@ 
+
+\newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
+
+\title{Introduction to \BiocParallel} 
+\author{Vincent Carey, Michael Lawrence, Martin
+  Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
+\date{Edited: 16 February, 2014; Compiled: \today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+The \BiocParallel{} package provides a consistent way of specifying
+parallel evaluation within \Bioconductor. Enable its use by loading
+the library
+%% 
+<<BiocParallel>>=
+library(BiocParallel)
+@ 
+
+\subsection{Why use \BiocParallel?}
+
+\section{The \BiocParallel{} Interface}
+
+The \BiocParallel{} work flow is to 
+%% 
+\begin{enumerate}
+\item Create a \Rcode{BiocParallelParam} instance to describe how
+  parallel evaluation is to be implemented.
+\item Register the \Rcode{BiocParallelParam} instance for use in your
+  \R{} session.
+\item Invoke \BiocParallel-enabled functions. The functions use the
+  registered back-ends for evaluation.
+\end{enumerate}
+%% 
+Loading the \BiocParallel{} package actually perofrms steps 1 and 2,
+so the only step required is to invoke \BiocParallel-enabled
+functions.
+
+\subsection{\Rclass{*Param} objects to describe parallel evaluation environments}
+
+Different types of parallel computation are supported by creating and
+\Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param}
+objects are:
+
+\begin{description}
+\item[\Rcode{SerialParam}] Evaluate \BiocParallel-enabled code without
+  parallelization. This is very useful when writing new scripts and
+  trying to debug code.
+\item[\Rcode{MulticoreParam}] Evaluate \BiocParallel-enabled code
+  using multiple cores on a single computer. When available, this is
+  the most efficient and least troublesome way to parallelize
+  code. Unfortunately, Windows does not support multi-core evaluation
+  (the \Rcode{MulticoreParam} object can be used, but evaluation is
+  serial).
+\item[\Rcode{SnowParam}] Evaluate \BiocParallel-enabled code across
+  several distinct \R{} instances, on one or several computers. This
+  can be an easy way to parallelize code when working with one or
+  several computers, and is based on facilities originally implemented
+  in the \CRANpkg{snow} package. Different types of \CRANpkg{snow}
+  `back-ends' are supported, including socket and MPI clusters.
+\item[\Rcode{BatchJobsParam}] Evaluate \BiocParallel-enabled code by
+  submitting to a cluster scheduler like SGE. 
+\item[\Rcode{DoparParam}] Register a parallel back-end supported by
+  the \CRANpkg{foreach} package for use with \BiocParallel.
+\end{description}
+
+The simplest illustration of creating \Rcode{BiocParallelParam} is
+<<BiocParallelParam-SerialParam>>=
+serialParam <- SerialParam()
+serialParam
+@ 
+%% 
+Most parameters have additional arguments influencing behavior, e.g.,
+specifying the number of `cores' to use when creating a
+\Rcode{MulticoreParam} instance
+<<BiocParallelParam-MulticoreParam>>=
+multicoreParam <- MulticoreParam(workers=8)
+multicoreParam
+@ 
+%% 
+Arguments are detailed on the corresponding help page, e.g.,
+\Rcode{?MulticoreParam}.
+
+\subsection{\Rcode{register()}ing \Rcode{BiocParallelParam} instances}
+
+The \Rcode{register()} function registers a \Rcode{BiocParallelParam}
+instance for use in parallel evaluation.
+<<register>>=
+register(multicoreParam)
+@ 
+%% 
+View registered parameters with \Rcode{registered()}
+%% 
+<<registered>>=
+registered()
+@ 
+%% 
+The list of registered \Rcode{BiocParallelParam} instances represents
+the user's preferences for different types of back-ends. Individual
+algorithms may specify a prefered back-end, and different back-ends
+maybe chosen when parallel evaluation is nested.
+
+\subsection{Functions for parallel computation}
+
+There are facilities for querying and controlling parallel evaluation
+environments.
+\begin{description}
+\item[\Rcode{bpstart(x)}] Start a parallel back end specified by
+  \Rcode{BiocParallelParam} \Rcode{x}, if possible.
+\item[\Rcode{bpstop(x)}] Stop a parallel back end specified by
+  \Rcode{BiocParallelParam} \Rcode{x}.
+\item[\Rcode{bpisup(x)}] Query a \Rcode{BiocParallelParam} back-end
+  \Rcode{x} for its status.
+\end{description}
+%% 
+These are used in common functions, implemented as much as possible
+for all back-ends. The functions (see the help pages, e.g.,
+\Rcode{?bplapply} for a full definition) include
+\begin{description}
+\item[\Rcode{bplapply(X, FUN, ...)}] Apply in parallel a function
+  \Rcode{FUN} to each element of \Rcode{X}. \Rcode{bplapply} invokes
+  \Rcode{FUN} \Rcode{length(X)} times, each time with a single element
+  of \Rcode{X}.
+\item[\Rcode{bpmapply(FUN, ...)}] Apply in parallel a function
+  \Rcode{FUN} to the first, second, etc., elements of each argument in
+  \ldots.
+\item[\Rcode{bpvec(X, FUN, ...)}] Apply in parallel a function
+  \Rcode{FUN} to subsets of \Rcode{X}. \Rcode{bpvec} invokes function
+  \Rcode{FUN} as many times as there are cores or cluster nodes, with
+  \Rcode{FUN} receiving a subset (typically more than 1 element, in
+  contrast to \Rcode{bplapply}) of \Rcode{X}.
+\item[\Rcode{bpaggregate(x, data, FUN, ...)}] Use the formula in
+  \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
+\end{description}
+%% 
+There are facilities for recovering from errors
+\begin{description}
+\item[\Rcode{bplasterror}] Report the last error reported from a
+  \BiocParallel{} evaluation.
+\item[\Rcode{bpresume}] Attempt to resume computation after an error.
+\end{description}
+
+\section{Use cases}
+
+\subsection{Single computer}
+
+\subsection{\emph{Ad hoc} clusters}
+
+\subsection{Clusters with schedulers}
+
+
+\section{For developers}
+
+
+
+\end{document}
+
