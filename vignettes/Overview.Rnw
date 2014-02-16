@@ -12,7 +12,7 @@ BiocStyle::latex()
 \title{Introduction to \BiocParallel} 
 \author{Vincent Carey, Michael Lawrence, Martin
   Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
-\date{Edited: 16 February, 2014; Compiled: \today}
+\date{Edited: February 16, 2014; Compiled: \today}
 
 \begin{document}
 
@@ -21,12 +21,15 @@ BiocStyle::latex()
 \section{Introduction}
 
 The \BiocParallel{} package provides a consistent way of specifying
-parallel evaluation within \Bioconductor. Enable its use by loading
-the library
+parallel evaluation within \Bioconductor. Enable its use by attaching
+the package
 %% 
 <<BiocParallel>>=
 library(BiocParallel)
 @ 
+%% 
+To use, invoke a \BiocParallel{} function like \Rcode{bplapply}, or
+use a \BiocParallel-enabled function provided by another package.
 
 \subsection{Why use \BiocParallel?}
 
@@ -43,7 +46,7 @@ The \BiocParallel{} work flow is to
   registered back-ends for evaluation.
 \end{enumerate}
 %% 
-Loading the \BiocParallel{} package actually perofrms steps 1 and 2,
+Attaching the \BiocParallel{} package actually perofrms steps 1 and 2,
 so the only step required is to invoke \BiocParallel-enabled
 functions.
 
@@ -54,9 +57,9 @@ Different types of parallel computation are supported by creating and
 objects are:
 
 \begin{description}
-\item[\Rcode{SerialParam}] Evaluate \BiocParallel-enabled code without
-  parallelization. This is very useful when writing new scripts and
-  trying to debug code.
+\item[\Rcode{SerialParam}] Evaluate \BiocParallel-enabled code with
+  parallel evaluation disabled. This is very useful when writing new
+  scripts and trying to debug code.
 \item[\Rcode{MulticoreParam}] Evaluate \BiocParallel-enabled code
   using multiple cores on a single computer. When available, this is
   the most efficient and least troublesome way to parallelize
@@ -108,7 +111,7 @@ registered()
 %% 
 The list of registered \Rcode{BiocParallelParam} instances represents
 the user's preferences for different types of back-ends. Individual
-algorithms may specify a prefered back-end, and different back-ends
+algorithms may specify a preferred back-end, and different back-ends
 maybe chosen when parallel evaluation is nested.
 
 \subsection{Functions for parallel computation}
@@ -116,12 +119,14 @@ maybe chosen when parallel evaluation is nested.
 There are facilities for querying and controlling parallel evaluation
 environments.
 \begin{description}
+\item[\Rcode{bpisup(x)}] Query a \Rcode{BiocParallelParam} back-end
+  \Rcode{x} for its status.
+\item[\Rcode{bpworkers}] Query a \Rcode{BiocParallelParam} back-end
+  for the number of workers available for parallel evaluation.
 \item[\Rcode{bpstart(x)}] Start a parallel back end specified by
   \Rcode{BiocParallelParam} \Rcode{x}, if possible.
 \item[\Rcode{bpstop(x)}] Stop a parallel back end specified by
   \Rcode{BiocParallelParam} \Rcode{x}.
-\item[\Rcode{bpisup(x)}] Query a \Rcode{BiocParallelParam} back-end
-  \Rcode{x} for its status.
 \end{description}
 %% 
 These are used in common functions, implemented as much as possible
