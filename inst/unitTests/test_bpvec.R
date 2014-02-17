@@ -34,3 +34,13 @@ test_bpvec_Params <- function()
 
     closeAllConnections()
 }
+
+test_bpvec_MulticoreParam_short_jobs <- function() {
+    ## bpvec should return min(length(X), bpworkers())
+    if (.Platform$OS.type == "windows")
+        return(TRUE)
+    exp <- 1:2
+    obs <- bpvec(exp, c, AGGREGATE=list, BPPARAM=MulticoreParam(workers=4L))
+    checkIdentical(2L, length(obs))
+    checkIdentical(exp, unlist(obs))
+}
