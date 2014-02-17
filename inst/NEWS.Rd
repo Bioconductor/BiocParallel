@@ -15,7 +15,19 @@
 
     }
   }
+
+  \subsection{BUG FIXES}{
+
+    \itemize{
+
+      \item bpvec,ANY,MulticoreParam-method with fewer tasks than cores
+      evaluates only the cores for which tasks are defined.
+
+    }
+  }
 }
+
+
 
 \section{CHANGES IN VERSION 0.5.2}{
 
