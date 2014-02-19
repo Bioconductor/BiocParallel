@@ -33,6 +33,44 @@ use a \BiocParallel-enabled function provided by another package.
 
 \subsection{Why use \BiocParallel?}
 
+The Task View document at
+\url{http://cran.r-project.org/web/views/HighPerformanceComputing.html}
+shows that numerous approaches to parallel computing are available in R.
+Most applications cited in the task view
+identify one or more of \CRANpkg{snow},
+\CRANpkg{Rmpi} or \CRANpkg{foreach}
+as relevant parallelization infrastructure.
+
+A basic objective of \BiocParallel{} is reduction of complexity
+faced by developers and users in creating and using software
+that benefits from performing computations in parallel.
+This is accomplished by defining abstractions of the
+key components of parallel computing environments.  Information
+on the parallel environment can be stored in formally structured
+``parameter'' arguments that are used at run time
+to define the approach to parallel execution.  This allows
+developers to focus on \textit{what} is to be computed, leaving the \textit{how}
+to the infrastructure.
+
+Advantages for developers and power users of \BiocParallel{} over \textit{ad hoc}
+R programming for parallel computation include the following.
+\begin{itemize}
+\item A uniform idiom (using \Rcode{BiocParallelParam} instances) is available for 
+defining parallel computing resources; sensible default definitions are
+generated when \BiocParallel{} is loaded.
+\item \Rcode{bplapply} and \Rcode{bpvec} address iteration in parallel and
+parallel evaluation of vectorized functions respectively.  
+\item When the parallel
+environment is managed by a cluster scheduler through \CRANpkg{BatchJobs},
+job management and result retrieval are considerably simplified.
+\item \Rcode{foreach} and programming with the \CRANpkg{iterators} package
+are fully supported, but registration of the parallel back end uses
+\Rcode{BiocParallelParam} instances.
+\end{itemize}
+
+\subsection{Packages using \BiocParallel}
+
+
 \section{The \BiocParallel{} Interface}
 
 The \BiocParallel{} work flow is to 
