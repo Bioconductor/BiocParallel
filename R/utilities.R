@@ -14,7 +14,8 @@
     else {
         fuzz <- min((nx - 1L)/1000, 0.4 * nx/ncl)
         breaks <- seq(1 - fuzz, nx + fuzz, length = ncl + 1L)
-        structure(split(i, cut(i, breaks)), names = NULL)
+        si <- structure(split(i, cut(i, breaks)), names = NULL)
+        si[sapply(si, length) != 0]
     }
 }
 
