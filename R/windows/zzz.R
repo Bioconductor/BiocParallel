@@ -18,6 +18,7 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
         register(getOption("SerialParam", SerialParam()))
         register(getOption("BatchJobsParam", BatchJobsParam()))
         register(getOption("SnowParam", SnowParam(workers=detectCores())))
+        register(getOption("MulticoreParam", MulticoreParam()))
     }, error=function(err) {
         message("'BiocParallel' did not register default BiocParallelParams")
         NULL

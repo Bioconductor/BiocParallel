@@ -1,12 +1,11 @@
 setMethod("bpaggregate", c("ANY", "missing"),
-    function(x, ..., BPPARAM)
+    function(x, ..., BPPARAM=bpparam())
 {
-    bp <- registered()[[1L]]
-    bpaggregate(x, ..., BPPARAM=bp)
+    bpaggregate(x, ..., BPPARAM=BPPARAM)
 })
 
 setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
-    function(x, by, FUN, ..., simplify=TRUE, BPPARAM)
+    function(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (!is.data.frame(x))
@@ -44,7 +43,7 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
 })
 
 setMethod("bpaggregate", c("formula", "BiocParallelParam"),
-    function (x, data, FUN, ..., BPPARAM)
+    function (x, data, FUN, ..., BPPARAM=bpparam())
 {
     if (length(x) != 3L) 
         stop("Formula 'x' must have both left and right hand sides")

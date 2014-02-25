@@ -104,7 +104,7 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 
 setMethod(bpmapply, c("ANY", "SnowParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     # recall on subset

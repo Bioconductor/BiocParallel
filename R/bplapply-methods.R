@@ -1,22 +1,21 @@
 setMethod(bplapply, c("ANY", "missing"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM)
+        BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    x <- registered()[[1L]]
-    bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPPARAM=x)
+    bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPPARAM=BPPARAM)
 })
 
 setMethod(bplapply, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM)
+        BPPARAM=bpparam())
 {
     bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE,
         BPRESUME=BPRESUME, BPPARAM=BPPARAM)
 })
 
 setMethod(bplapply, c("ANY", "list"),
-    function(X, FUN, ..., BPPARAM)
+    function(X, FUN, ..., BPPARAM=bpparam())
 {
     if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
         stop("All elements in 'BPPARAM' must be BicoParallelParam objects")
