@@ -23,14 +23,18 @@
 
 \usage{
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+    BPPARAM=bpparam())
 
 \S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+    BPPARAM=bpparam())
 \S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-   BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+    BPPARAM=bpparam())
 \S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+    BPPARAM=bpparam())
 
 }
 
@@ -62,10 +66,6 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 }
 
 \details{
-
-  When \code{BPPARAM} is \code{missing}, \code{bpmapply} uses
-  \code{registered()[[1]]}, i.e., the default mechanism for parallel
-  evaluation.
 
   See \code{showMethods{bplapply}} for additional methods, e.g.,
   \code{method?bplapply("MulticoreParam")}.

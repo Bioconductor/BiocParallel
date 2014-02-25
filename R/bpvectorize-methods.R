@@ -1,5 +1,5 @@
 setMethod(bpvectorize, c("ANY", "ANY"),
-    function(FUN, ..., BPPARAM)
+    function(FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     function(...)
@@ -7,9 +7,8 @@ setMethod(bpvectorize, c("ANY", "ANY"),
 })
 
 setMethod(bpvectorize, c("ANY", "missing"),
-    function(FUN, ..., BPPARAM)
+    function(FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    x <- registered()[[1]]
-    bpvectorize(FUN, ..., BPPARAM=x)
+    bpvectorize(FUN, ..., BPPARAM=BPPARAM)
 })

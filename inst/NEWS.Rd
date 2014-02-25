@@ -7,10 +7,14 @@
 
     \itemize{
 
-      \item \code{multicoreWorkers} determines the number of workers
+      \item \code{multicoreWorkers()} determines the number of workers
       based on operating system (Windows: 1), user preference (via the
       global option \code{options(mc.cores=...)}), or system capability
       (\code{detectCores()}).
+
+      \item \code{bpparam()} selects a default \code{BiocParallelParam},
+      from global options or, if that fails, the most recently
+      \code{registered()} back-end.
 
     }
   }

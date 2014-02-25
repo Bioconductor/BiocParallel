@@ -83,7 +83,7 @@ setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME)

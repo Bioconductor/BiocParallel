@@ -33,7 +33,7 @@ export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     ## schedule
     bpschedule,
     ## register
-    register, registered,
+    register, registered, bpparam,
     ## error handlers
     bpresume, bplasterror,
     ## helpers

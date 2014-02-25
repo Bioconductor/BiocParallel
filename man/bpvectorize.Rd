@@ -16,11 +16,11 @@
 }
 
 \usage{
-bpvectorize(FUN, ..., BPPARAM)
+bpvectorize(FUN, ..., BPPARAM=bpparam())
 
-\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPPARAM)
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPPARAM=bpparam())
 
-\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPPARAM)
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPPARAM=bpparam())
 
 }
 
@@ -44,10 +44,6 @@ bpvectorize(FUN, ..., BPPARAM)
   The result of \code{bpvectorize} is a function with signature
   \code{\dots}; arguments to the returned function are the original
   arguments \code{FUN}. \code{BPPARAM} is used for parallel evaluation.
-
-  When \code{BPPARAM} is \code{missing}, \code{bpvectorize} uses
-  \code{registered()[[1]]}, i.e., the default mechanism for parallel
-  evaluation.
 
   When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.

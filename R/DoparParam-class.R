@@ -30,7 +30,7 @@ setMethod(bpisup, "DoparParam",
 ## evaluation
 setMethod(bplapply, c("ANY", "DoparParam"),
     function(X, FUN, ...,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {
@@ -58,7 +58,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
 
 setMethod(bpmapply, c("ANY", "DoparParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {

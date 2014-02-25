@@ -1,6 +1,7 @@
 \name{register}
 \alias{register}
 \alias{registered}
+\alias{bpparam}
 
 \title{Maintain a global registry of available back-end Params}
 
@@ -15,6 +16,7 @@
 \usage{
 register(BPPARAM, default=TRUE)
 registered(bpparamClass)
+bpparam(bpparamClass)
 }
 
 \arguments{
@@ -47,6 +49,13 @@ registered(bpparamClass)
   most recently registered \code{BiocParallelParam} instance becomes the
   default for subsequent parallel evaluation.
 
+  \code{bpparam()} Select the \code{\link{BiocParallelParam}} instance
+  to use. For value \code{bpparamClass}, consult first global options,
+  e.g., \code{options(MulticoreParam=MulticoreParam())} and then the
+  value of \code{registered(bpparamClass)}. If \code{bpparamClass} is
+  missing, use \code{name <- names(registered())[1]}.
+
+
 }
 
 \value{
@@ -55,6 +64,8 @@ registered(bpparamClass)
 
   \code{registered} returns the back-end of type \code{bpparamClass} or,
   if \code{bpparamClass} is missing,  a list of all registered back-ends.
+
+  \code{bpparam} returns the back-end of type \code{bpparamClass} or,
 
 }
 
@@ -70,6 +81,8 @@ registered(bpparamClass)
 
 \examples{
 registered()
+bpparam()                               # default: registered()[[1]]
+bpparam("SnowParam")                    # registered SnowParam
 }
 
 \keyword{manip}
