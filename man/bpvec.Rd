@@ -16,13 +16,13 @@
 }
 
 \usage{
-bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
+bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 
-\S4method{bpvec}{ANY,ANY}(X, FUN, ..., AGGREGATE=c, BPPARAM)
+\S4method{bpvec}{ANY,ANY}(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 
-\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, BPPARAM)
+\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 
-\S4method{bpvec}{ANY,missing}(X, FUN, ..., AGGREGATE=c, BPPARAM)
+\S4method{bpvec}{ANY,missing}(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 }
 
 \arguments{
@@ -47,10 +47,6 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM)
 }
 
 \details{
-
-  When \code{BPPARAM} is \code{missing}, \code{bpvec} uses
-  \code{registered()[[1]]}, i.e., the default mechanism for parallel
-  evaluation.
 
   When \code{BPPARAM} is an instance of a class derived from
   \code{BiocParallelParam} for which no other method applies, this

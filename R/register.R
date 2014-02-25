@@ -20,3 +20,14 @@
 register <- .registry$register
 
 registered <- .registry$registered
+
+bpparam <- function(bpparamClass) {
+    if (missing(bpparamClass))
+        bpparamClass <- names(registered())[1]
+    default <- registered()[[bpparamClass]]
+    result <- getOption(bpparamClass, default)
+    if (is.null(result))
+        stop("BPPARAM '", bpparamClass,
+             "' not registered() or in names(options())")
+    result
+}

@@ -23,16 +23,16 @@
 
 \usage{
 bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM)
+    BPPARAM=bpparam())
 
 \S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM)
+    BPPARAM=bpparam())
 
 \S4method{bplapply}{ANY,missing}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM)
+    BPPARAM=bpparam())
 
 \S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM)
+    BPPARAM=bpparam())
 }
 
 \arguments{
@@ -57,10 +57,6 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
 }
 
 \details{
-
-  When \code{BPPARAM} is \code{missing}, \code{bplapply} uses
-  \code{registered()[[1]]}, i.e., the default mechanism for parallel
-  evaluation.
 
   See \code{showMethods{bplapply}} for additional methods, e.g.,
   \code{method?bplapply("MulticoreParam")}.

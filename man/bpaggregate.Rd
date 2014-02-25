@@ -15,11 +15,11 @@
 
 \usage{
 
-\S4method{bpaggregate}{formula,BiocParallelParam}(x, data, FUN, ..., BPPARAM)
+\S4method{bpaggregate}{formula,BiocParallelParam}(x, data, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bpaggregate}{data.frame,BiocParallelParam}(x, by, FUN, ..., simplify=TRUE, BPPARAM)
+\S4method{bpaggregate}{data.frame,BiocParallelParam}(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
 
-\S4method{bpaggregate}{ANY,missing}(x, ..., BPPARAM)
+\S4method{bpaggregate}{ANY,missing}(x, ..., BPPARAM=bpparam())
 
 }
 

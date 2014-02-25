@@ -78,7 +78,7 @@ setMethod(bpschedule, "MulticoreParam",
 ## evaluation
 setMethod(bplapply, c("ANY", "MulticoreParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM)
+        BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     ## recall on subset of input data
@@ -111,7 +111,7 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
 
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM)
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     ## recall on subset of input data
@@ -159,7 +159,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
 })
 
 setMethod(bpvec, c("ANY", "MulticoreParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM)
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
