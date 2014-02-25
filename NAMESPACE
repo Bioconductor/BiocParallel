@@ -35,6 +35,8 @@ export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     ## register
     register, registered,
     ## error handlers
-    bpresume, bplasterror)
+    bpresume, bplasterror,
+    ## helpers
+    multicoreWorkers)
 
 exportMethods(show)
