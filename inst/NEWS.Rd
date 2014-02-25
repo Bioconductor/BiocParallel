@@ -3,6 +3,18 @@
 
 \section{CHANGES IN VERSION 0.5.5}{
 
+  \subsection{NEW FEATURES}{
+
+    \itemize{
+
+      \item \code{multicoreWorkers} determines the number of workers
+      based on operating system (Windows: 1), user preference (via the
+      global option \code{options(mc.cores=...)}), or system capability
+      (\code{detectCores()}).
+
+    }
+  }
+
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
 
     \itemize{

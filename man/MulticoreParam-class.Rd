@@ -5,6 +5,8 @@
 \alias{MulticoreParam}
 \alias{MulticoreParam-class}
 
+\alias{multicoreWorkers}
+
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
 
@@ -18,14 +20,18 @@
 \description{
 
   This class is used to parameterize single computer multicore parallel
-  evaluation on non-Windows computers.
+  evaluation on non-Windows computers. \code{multicoreWorkers()} chooses
+  the number of workers based on operating system (Windows only supports
+  1 core), global user preference (\code{options(mc.cores=...)}), or
+  number of detected cores (\code{detectCores()}).
 
 }
 
 \usage{
-MulticoreParam(workers = detectCores(), catch.errors = TRUE,
+MulticoreParam(workers = multicoreWorkers(), catch.errors = TRUE,
     setSeed = TRUE, recursive = TRUE, cleanup = TRUE,
     cleanupSignal = tools::SIGTERM, verbose = FALSE, ...) 
+multicoreWorkers()
 }
 
 \arguments{

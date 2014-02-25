@@ -1,3 +1,12 @@
+multicoreWorkers <- function() {
+    cores <- if (.Platform$OS.type == "windows")
+        1
+    else
+        detectCores()
+    getOption("mc.cores", cores)
+}
+
+
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="BiocParallelParam",
     fields=list(
@@ -7,10 +16,10 @@
       cleanupSignal="integer",
       verbose="logical"),
     methods=list(
-     initialize = function(..., workers=detectCores(), catch.errors=TRUE,
-         setSeed=TRUE, recursive=TRUE, cleanup=TRUE,
+     initialize = function(..., workers=multicoreWorkers(),
+         catch.errors=TRUE, setSeed=TRUE, recursive=TRUE, cleanup=TRUE,
          cleanupSignal=tools::SIGTERM, verbose=FALSE)
-      {
+     {
           initFields(workers=workers, catch.errors=catch.errors,
               setSeed=setSeed, recursive=recursive, cleanup=cleanup,
               cleanupSignal=cleanupSignal, verbose=verbose)
@@ -25,7 +34,7 @@
       }))
 
 MulticoreParam <-
-    function(workers=detectCores(), catch.errors=TRUE, setSeed=TRUE,
+    function(workers=multicoreWorkers(), catch.errors=TRUE, setSeed=TRUE,
         recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
         verbose=FALSE, ...)
 {
