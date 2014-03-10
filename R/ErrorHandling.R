@@ -108,10 +108,6 @@ bplasterror <-
         attr(x, "condition") <- tmp$condition
         attr(x, "traceback") <- tb
     }
-    if (length(cache.warnings)) {
-        class(x) <- c(class(x), "try-warning")
-        attr(x, "warnings") <- cache.warnings
-    }
     return(x)
 }
 
