@@ -91,16 +91,14 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 }
 
 \examples{
-showMethods("bplapply")
+showMethods("bpmapply")
 
 ## ten tasks (1:10) so ten calls to FUN default registered parallel
 ## back-end. Compare with bpvec.
-system.time(result <- bplapply(1:10, function(v) {
-    message("working") ## 10 tasks
-    sqrt(v)
-}))
-result
-
+result <- bpmapply(function(greet, who) {
+    sprintf("%d: %s %s", Sys.getpid(), greet, who)
+}, c("morning", "night"), c("sun", "moon"))
+cat(paste(result, collapse="\n"), "\n")
 }
 
 \keyword{manip}
