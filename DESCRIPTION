@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 0.5.19
+Version: 0.5.20
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
