@@ -21,7 +21,6 @@ test_bpvectorize_Params <- function()
                    snow1=SnowParam(2, "PSOCK"),
                    batchjobs=BatchJobsParam(workers=2),
                    dopar=DoparParam())
-
     dop <- registerDoParallel(cores=2)
 
     x <- 1:10
