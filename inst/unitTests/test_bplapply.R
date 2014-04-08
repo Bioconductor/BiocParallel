@@ -15,18 +15,16 @@ library(doParallel)                     # FIXME: unload?
     checkIdentical(expected, obs)
 }
 
-params <- list(serial=SerialParam(),
-  mc=MulticoreParam(2),
-  snow0=SnowParam(2, "FORK"),
-  snow1=SnowParam(2, "PSOCK"),
-  dopar=DoparParam(),
-  batchjobs=BatchJobsParam())
-
-dop <- registerDoParallel(cores=2)
-## FIXME: restore previously registered back-end?
-
 test_bplapply_Params <- function()
 {
+    params <- list(serial=SerialParam(),
+                   mc=MulticoreParam(2),
+                   snow0=SnowParam(2, "FORK"),
+                   snow1=SnowParam(2, "PSOCK"),
+                   dopar=DoparParam(),
+                   batchjobs=BatchJobsParam())
+    dop <- registerDoParallel(cores=2)
+
     x <- 1:10
     expected <- lapply(x, sqrt)
     for (ptype in names(params)) {
@@ -47,6 +45,14 @@ test_bplapply_Params <- function()
 
 test_bplapply_symbols <- function()
 {
+    params <- list(serial=SerialParam(),
+                   mc=MulticoreParam(2),
+                   snow0=SnowParam(2, "FORK"),
+                   snow1=SnowParam(2, "PSOCK"),
+                   dopar=DoparParam(),
+                   batchjobs=BatchJobsParam())
+    dop <- registerDoParallel(cores=2)
+
     X <- list(as.symbol(".XYZ"))
     expected <- lapply(X, as.character)
     for (ptype in names(params)) {
