@@ -20,6 +20,8 @@ test_SnowParam_SOCK <- function() {
 }
 
 test_SnowParam_MPI <- function() {
+    if (.Platform$OS.type == "windows")
+        return()
     if (!(suppressWarnings(require(snow)) ||
           suppressWarnings(require(Rmpi))))
         ## quietly succeed if 'snow', 'Rmpi' not available
@@ -80,6 +82,8 @@ test_SnowParam_coerce_from_SOCK <- function()
 
 test_SnowParam_coerce_from_MPI <- function()
 {
+    if (.Platform$OS.type == "windows")
+        return()
     if (!(suppressWarnings(require(snow)) ||
           suppressWarnings(require(Rmpi))))
         ## quietly succeed if 'snow', 'Rmpi' not available
