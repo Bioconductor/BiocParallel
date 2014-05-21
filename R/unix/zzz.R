@@ -1,28 +1,29 @@
 ## compatibility; used in mclapply, pvec
+## lazy, to avoid caching stale versions
 
-children <- parallel:::children
+children <- function(...) parallel:::children(...)
 
-closeStdout <- parallel:::closeStdout
+closeStdout <- function(...) parallel:::closeStdout(...)
 
-isChild <- parallel:::isChild
+isChild <- function(...) parallel:::isChild(...)
 
-mc.advance.stream <- parallel:::mc.advance.stream
+mc.advance.stream <- function(...) parallel:::mc.advance.stream(...)
 
-mc.set.stream <- parallel:::mc.set.stream
+mc.set.stream <- function(...) parallel:::mc.set.stream(...)
 
-mcexit <- parallel:::mcexit
+mcexit <- function(...) parallel:::mcexit(...)
 
-mcfork <- parallel:::mcfork
+mcfork <- function(...) parallel:::mcfork(...)
 
-mckill <- parallel:::mckill
+mckill <- function(...) parallel:::mckill(...)
 
-processID <-parallel:::processID
+processID <-function(...) parallel:::processID(...)
 
-readChild <- parallel:::readChild
+readChild <- function(...) parallel:::readChild(...)
 
-selectChildren <- parallel:::selectChildren
+selectChildren <- function(...) parallel:::selectChildren(...)
 
-sendMaster <- parallel:::sendMaster
+sendMaster <- function(...) parallel:::sendMaster(...)
 
 setLoadActions(.registerDefaultParams = function(nmspc) {
     tryCatch({
@@ -34,7 +35,8 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
         register(getOption("SnowParam", SnowParam(workers=detectCores())))
         register(getOption("MulticoreParam", MulticoreParam()))
     }, error=function(err) {
-        message("'BiocParallel' did not register default BiocParallelParams")
+        message("'BiocParallel' did not register default BiocParallelParams:\n  ",
+                conditionMessage(err))
         NULL
     })
 })
