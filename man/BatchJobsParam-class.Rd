@@ -32,10 +32,12 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 
 \arguments{
 
-    \item{workers}{\code{integer(1)}} Number of workers on with
-        Multicore and SSH backend which defaults here to all workers
-        available.  On managed HPC \code{workers} defaults to \code{NA}
-        but can be set to control chunking of jobs.  See argument
+    \item{workers}{\code{integer(1)}} Number of workers to divide tasks
+        (e.g., elements in the first argument of \code{bplapply})
+        between. On Multicore and SSH backends, this defaults to all
+        available nodes.  On managed (e.g., slurm, SGE) clusters
+        \code{workers} defaults to \code{NA}, meaning that the number of
+        workers equals the number of tasks.  See argument
         \code{n.chunks} in \code{\link[BBmisc]{chunk}} and
         \code{\link[BatchJobs]{submitJobs}} for more information.
 
@@ -108,7 +110,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 
 }
 
-\author{Martin Morgan \url{mailto:mtmorgan@fhcrc.org}}
+\author{Michel Lang, \url{mailto:michellang@gmail.com}}
 
 \seealso{
 
@@ -124,6 +126,10 @@ p <- BatchJobsParam(progressbar=FALSE)
 bplapply(1:10, sqrt, BPPARAM=p)
 
 \dontrun{
-register(BatchJobsParam(catch.errors = FALSE), default=TRUE)
+## see vignette for additional explanation
+funs <- makeClusterFunctionsSLURM("~/slurm.tmpl")
+param <- BatchJobsParam(4, cluster.functions=funs)
+register(param)
+bplapply(1:10, function(i) sqrt)
 }
 }
