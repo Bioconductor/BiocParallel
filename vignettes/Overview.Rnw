@@ -12,7 +12,7 @@ BiocStyle::latex()
 \title{Introduction to \BiocParallel} 
 \author{Vincent Carey, Michael Lawrence, Martin
   Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
-\date{Edited: February 16, 2014; Compiled: \today}
+\date{Edited: 22 May, 2014; Compiled: \today}
 
 \begin{document}
 
@@ -204,6 +204,162 @@ There are facilities for recovering from errors
 \subsection{\emph{Ad hoc} clusters}
 
 \subsection{Clusters with schedulers}
+
+Computer clusters are far from standardized, so the following may
+require significant adaptation; it is written from experience here at
+FHCRC, where we have a large cluster managed via SLURM. Nodes on the
+cluster have shared disks and common system images, minimizing
+complexity about making data resources available to individual nodes.
+There are two simple models for use of the cluster.
+
+\paragraph{Cluster-centric} The idea is use cluster management
+software to allocate resources, and then arrange for an \R{} script to
+be evaluated in the context of allocated resources. For SLURM, we
+might request space for 4 tasks (with \verb+salloc+ or \verb+sbatch+),
+arrange to start the MPI environment (with \verb+orterun+) and on a
+single node in that universe run an \R{} script
+\verb+BiocParallel-MPI.R+. The command is
+\begin{verbatim}
+$ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
+\end{verbatim}
+The \R{} script might do the following, using MPI for parallel
+evaluation. We start by loading necessary packages and defining
+\Rcode{FUN} work to be done
+<<cluster-MPI-work>>=
+library(BiocParallel)
+library(Rmpi)
+FUN <- function(i) system("hostname", intern=TRUE)
+@ 
+%% 
+Create a \Rclass{SnowParam} instance with the number of nodes equal to
+the size of the MPI universe minus 1 (let one node dispatch jobs to
+workers), and register this instance as the default
+<<cluster-MPI, eval=FALSE>>=
+param <- SnowParam(mpi.universe.size() - 1, "MPI")
+register(param)
+@ 
+%% 
+Evaluate the work in parallel, process the results, clean up, and quit
+<<cluster-MPI-do, eval=FALSE>>=
+xx <- bplapply(1:100, FUN)
+table(unlist(x))
+mpi.quit()
+@ 
+%% 
+The entire session is as follows:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+$ salloc -N 4 orterun -n 1 R --vanilla -f BiocParallel-MPI.R 
+salloc: Job is in held state, pending scheduler release
+salloc: Pending job allocation 6762292
+salloc: job 6762292 queued and waiting for resources
+salloc: job 6762292 has been allocated resources
+salloc: Granted job allocation 6762292
+## ...
+> FUN <- function(i) system("hostname", intern=TRUE)
+> 
+> library(BiocParallel)
+> library(Rmpi)
+> param <- SnowParam(mpi.universe.size() - 1, "MPI")
+> register(param)
+> xx <- bplapply(1:100, FUN)
+	4 slaves are spawned successfully. 0 failed.
+> table(unlist(xx))
+
+gizmof13 gizmof71 gizmof86 gizmof88 
+      25       25       25       25 
+> 
+> mpi.quit()
+salloc: Relinquishing job allocation 6762292
+salloc: Job allocation 6762292 has been revoked.
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+One advantage of this approach is that the responsibility for managing
+the cluster lies firmly with the cluster management software -- if one
+wants more nodes, or needs special resources, then adjust parameters
+to \verb+salloc+ (or \verb+sbatch+).
+
+Notice that workers are spawned within the \Rcode{bplapply} function;
+it might often make sense to more explicitly manage workers with
+\Rfunction{bpstart} and \Rfunction{bpstop}, e.g.,
+<<cluster-MPI-bpstart, eval=FALSE>>=
+param <- bpstart(SnowParam(mpi.universe.size() - 1, "MPI"))
+register(param)
+xx <- bplapply(1:100, FUN)
+bpstop(param)
+mpi.quit()
+@ 
+
+\paragraph{R-centric} A more \R-centric approach might start an \R{}
+script on the head node, and use \Rpackage{BatchJobs} to submit jobs
+from within the \R{} session. One way of doing this is to create a
+file containing a template for the job submission step, e.g., for
+SLURM\footnote{see
+  \url{https://github.com/tudo-r/BatchJobs/tree/master/examples/cfSLURM}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+#!/bin/bash
+##
+## file: slurm.tmpl
+## Job Resource Interface Definition
+##
+## ntasks [integer(1)]: Number of required tasks.
+## ncpus [integer(1)]: Number of required cpus per task.
+## walltime [integer(1)]: Walltime for this job, in minutes.
+##
+## 'resources' is an argument provided to BatchJobsParam()
+
+#SBATCH --job-name=<%= job.name %>
+#SBATCH --output=<%= log.file %>
+#SBATCH --error=<%= log.file %>
+#SBATCH --ntasks=<%= resources$ntasks %>
+#SBATCH --cpus-per-task=<%= resources$ncpus %>
+#SBATCH --time=0:10:0
+
+## Run R: we merge R output with stdout from SLURM, which gets then
+## logged via --output option
+R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The \R{} script, run interactively or from the command line, might
+then look like
+<<cluster-BatchJobs, eval=FALSE>>=
+## define work to be done
+FUN <- function(i) system("hostname", intern=TRUE)
+
+library(BiocParallel)
+library(BatchJobs)
+
+## register SLURM cluster instructions from the template file
+funs <- makeClusterFunctionsSLURM("slurm.tmpl")
+param <- BatchJobsParam(4, resources=list(ncpus=1),
+                        cluster.functions=funs)
+register(param)
+
+## do work
+xx <- bplapply(1:100, FUN)
+table(unlist(xx))
+@ 
+%% 
+The code runs on the head node until \Rcode{bplapply}, where the \R{}
+script interacts with the SLURM scheduler to request a SLURM
+allocation, run jobs, and retrieve results. The argument \Rcode{4} to
+\Rcode{BatchJobsParam} specifies the number of workers to request from
+the scheduler; \Rcode{bplapply} divides the 100 jobs among the 4
+workers. If \Rcode{BatchJobsParam} had been created without specifying
+any workers, then 100 jobs implied by the argument to \Rcode{bplapply}
+would be associated with 100 tasks submitted to the scheduler.
+
+Because cluster tasks are running in independent \R{} instances, and
+often on physically separate machines, a convenient `best practice'
+is to write \Rcode{FUN} in a `functional programming' manner, such
+that all data required for the function is passed in as arguments or
+(for large data) loaded implicitly or explicitly (e.g., via an \R{}
+library) from disk.
 
 \section{For developers}
 
