@@ -109,7 +109,7 @@ registered()
 %%
 
 Invoke a \BiocParallel{} function such as \Rcode{bplapply}.
-<<quick_start_bplapply>>=
+<<quick_start_bplapply, eval=FALSE>>=
 bplapply(1:4, FUN)
 @
 
@@ -129,7 +129,7 @@ registered()
 @
 
 Calling \Rcode{bplapply} now uses a  2-worker PSOCK cluster.
-<<quick_start_bplapply2>>=
+<<quick_start_bplapply2, eval=FALSE>>=
 bplapply(1:4, FUN)
 @
 
@@ -260,22 +260,6 @@ maybe chosen when parallel evaluation is nested.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Single computer}
-%% - shared memory vs shared enviornments
-%% - mclapply and fork clusters not on windowss (shared enviornments)
-%% cluster
-%% - SOCK or fork
-
-%%Note that whereas with mclapply all the packages and objects we use are
-%%automatically available
-%%on the workers, this is not in general7
-%%the case with the parLapply approach. There is often
-%%a delicate choice of where to do the computations: for example we could compute
-%%cd4.mle on
-%%the workers (as above) or on the master and send the value to the workers. We
-%%illustrate the
-%%latter by the following code
-
-%% example of code for cluster vs forking
 
 \subsection{\emph{Ad hoc} clusters}
 
