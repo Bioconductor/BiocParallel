@@ -47,23 +47,27 @@ to the infrastructure.
 
 Tools available in \BiocParallel{} offer the following advantages over 
 \textit{ad hoc} \R{} programming for parallel computation.
-\begin{itemize}
+
+\begin{description}
   \item{uniform idiom: } 
     \Rcode{BiocParallelParam} instances define parallel computing 
     resources such as number of workers, error handling, cleanup, etc. 
     Sensible default definitions are generated when the package is loaded.
+
   \item{iterative and vectorized operations: }
     \Rcode{bplapply} and \Rcode{bpvec} address iteration and vectorized
     operations in parallel respectively.
+
   \item{cluster scheduling: }
     When the parallel environment is managed by a cluster scheduler
     through \CRANpkg{BatchJobs}, job management and result retrieval are
     considerably simplified.
+
   \item{support of \Rcode{foreach}:}
     The \Rcode{foreach} and \CRANpkg{iterators} packages are fully supported 
     but registration of the parallel back end uses \Rcode{BiocParallelParam} 
     instances.
-\end{itemize}
+\end{description}
 
 In this vignette we illustrate the use of these tools in various computing
 enviornments.
@@ -76,61 +80,39 @@ enviornments.
 
 The \Rpackage{BiocParallel} package is available at bioconductor.org
 and can be downloaded via \Rcode{biocLite}:
-%%
 <<biocLite, eval=FALSE>>=
 source("http://bioconductor.org/biocLite.R")
 biocLite("BiocParallel")
 @
-%%
 
 Load \BiocParallel{}.
-%% 
 <<BiocParallel>>=
 library(BiocParallel)
 @ 
-%% 
 
-Create a test function that returns the hostname and square root of ``x''.
-%% 
-<<quick_start_FUN>>=
+The test function simply returns the square root of ``x''.
+<<quickstart_FUN>>=
 FUN <- function(x) {
-    hname <- system("hostname", intern=TRUE)
-    paste0("host: ", hname, ", result = ", round(sqrt(x), 4))
+    round(sqrt(x), 4)
 }
 @
-%% 
-
+ 
 The \BiocParallel functions use the registered back-ends for evaluation.
-The default back-end is at the top of the registry list.
-%% 
-<<quick_start_registry>>=
+The default is the entry the top of the list.
+<<quickstart_registry>>=
 registered()
 @
-%%
 
-Invoke a \BiocParallel{} function such as \Rcode{bplapply}.
-<<quick_start_bplapply, eval=FALSE>>=
+When a \BiocParallel{} function such as \Rcode{bplapply} is invoked with
+no \Rcode{BPPARAM} argument the default back-end is used.
+<<quickstart_bplapply, eval=FALSE>>=
 bplapply(1:4, FUN)
 @
 
-Optionally define a back-end for a particular configuration 
-with a BiocParallelParam.
-<<quick_start_param>>=
+Re-run the job using a 2-worker PSOCK cluster instead of the default.
+<<quickstart_bplapply_param, eval=FALSE>>=
 param <- SnowParam(workers = 2, type = "PSOCK") 
-@
-
-The registry is a `stack', with the last entry added to the stack used
-first, so your own back-ends generally take precedence over the
-back-ends established when the \BiocParallel{} package is loaded.
-Once the Snow cluster is registered it moves to the top of the list.
-<<quick_start_registry2>>=
-register(param)
-registered()
-@
-
-Calling \Rcode{bplapply} now uses a  2-worker PSOCK cluster.
-<<quick_start_bplapply2, eval=FALSE>>=
-bplapply(1:4, FUN)
+bplapply(1:4, FUN, BPPARAM = param)
 @
 
 
@@ -140,118 +122,155 @@ bplapply(1:4, FUN)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{\Rcode{BiocParallelParam} instances}
-\Rclass{*Param} objects describe parallel evaluation environments.
-Different types of parallel computation are supported by creating and
-\Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param}
-objects are:
+\subsection{Classes}
+
+\subsubsection{\Rcode{BiocParallelParam}}
+
+\Rcode{BiocParallelParam} instances describe parallel evaluation environments. 
+Different types of parallel computation are supported by creating and 
+\Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param} objects are:
 
 \begin{description}
-\item[\Rcode{SerialParam}] Evaluate \BiocParallel-enabled code with
-  parallel evaluation disabled. This is very useful when writing new
-  scripts and trying to debug code.
-\item[\Rcode{MulticoreParam}] Evaluate \BiocParallel-enabled code
-  using multiple cores on a single computer. When available, this is
-  the most efficient and least troublesome way to parallelize
-  code. Unfortunately, Windows does not support multi-core evaluation
-  (the \Rcode{MulticoreParam} object can be used, but evaluation is
-  serial). On other operating systems, the default number of workers
-  equals the value of the global option \Rcode{mc.cores} (e.g.,
-  \Rcode{getOption("mc.cores")}) or, if that is not set, the number
-  of cores returned by \Rcode{parallel::detectCores()}.
-\item[\Rcode{SnowParam}] Evaluate \BiocParallel-enabled code across
-  several distinct \R{} instances, on one or several computers. This
-  can be an easy way to parallelize code when working with one or
-  several computers, and is based on facilities originally implemented
-  in the \CRANpkg{snow} package. Different types of \CRANpkg{snow}
-  `back-ends' are supported, including socket and MPI clusters.
-\item[\Rcode{BatchJobsParam}] Evaluate \BiocParallel-enabled code by
-  submitting to a cluster scheduler like SGE. 
-\item[\Rcode{DoparParam}] Register a parallel back-end supported by
-  the \CRANpkg{foreach} package for use with \BiocParallel.
+  \item{\Rcode{SerialParam}: } 
+    Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
+    This is very useful when writing new scripts and trying to debug code.
+
+  \item{\Rcode{MulticoreParam}: } 
+    Evaluate \BiocParallel-enabled code using multiple cores on a single 
+    computer. When available, this is the most efficient and least 
+    troublesome way to parallelize code. Unfortunately, Windows does not 
+    support multi-core evaluation (the \Rcode{MulticoreParam} object can 
+    be used, but evaluation is serial). On other operating systems, the 
+    default number of workers equals the value of the global option 
+    \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
+    not set, the number of cores returned by \Rcode{parallel::detectCores()}.
+
+  \item{\Rcode{SnowParam}: }
+    Evaluate \BiocParallel-enabled code across several distinct \R{} 
+    instances, on one or several computers. This can be an easy way to 
+    parallelize code when working with one or several computers, and is 
+    based on facilities originally implemented in the \CRANpkg{snow} package. 
+    Different types of \CRANpkg{snow} `back-ends' are supported, including 
+    socket and MPI clusters.
+
+  \item{\Rcode{BatchJobsParam}: }
+    Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
+    like SGE. 
+
+  \item{\Rcode{DoparParam}: }
+    Register a parallel back-end supported by the \CRANpkg{foreach} package 
+    for use with \BiocParallel.
 \end{description}
 
 The simplest illustration of creating \Rcode{BiocParallelParam} is
-<<BiocParallelParam-SerialParam>>=
+<<BiocParallelParam_SerialParam>>=
 serialParam <- SerialParam()
 serialParam
 @ 
-%% 
+ 
 Most parameters have additional arguments influencing behavior, e.g.,
 specifying the number of `cores' to use when creating a
 \Rcode{MulticoreParam} instance
-<<BiocParallelParam-MulticoreParam>>=
-multicoreParam <- MulticoreParam(workers=8)
+<<BiocParallelParam_MulticoreParam>>=
+multicoreParam <- MulticoreParam(workers = 8)
 multicoreParam
 @ 
-%% 
+ 
 Arguments are detailed on the corresponding help page, e.g.,
 \Rcode{?MulticoreParam}.
 
 \subsubsection{\Rcode{register()}ing \Rcode{BiocParallelParam} instances}
 
-The \Rcode{register()} function registers a \Rcode{BiocParallelParam}
-instance for use in parallel evaluation.
-<<register>>=
-register(multicoreParam)
-@ 
-%% 
-View registered parameters with \Rcode{registered()}
-%% 
-<<registered>>=
-registered()
-@ 
-%% 
 The list of registered \Rcode{BiocParallelParam} instances represents
 the user's preferences for different types of back-ends. Individual
 algorithms may specify a preferred back-end, and different back-ends
 maybe chosen when parallel evaluation is nested.
 
+The registry behaves like a `stack' in that the last entry registered
+is added to the top of the list and becomes the ``next used`` 
+(i.e., the default).
+
+\Rcode{registered} invoked with no arguments lists all back-ends.
+<<register_registered>>=
+registered()
+@
+
+\Rcode{bpparam} returns the default from the top of the list.
+<<register_bpparam>>=
+bpparam()
+@
+
+Add a specialized instance with \Rcode{register}.
+<<register_BatchJobsParam>>=
+register(BatchJobsParam(workers = 10))
+@
+
+The act of registering moves the entry to the top of the list.
+BatchJobsParam is now the default.
+<<register_BatchJobsParam2>>=
+names(registered())
+bpparam()
+@ 
+ 
+
 \subsection{Functions}
 
-\subsubsection{Parallel versions of *apply}
+%% TODO: mention functions called from pkg dependencies
+ 
+\subsubsection{Parallel looping, vectorized and aggregate operations}
 
-%% what do these call, mclapply(), parLapply(), pvec()
+These are used in common functions, implemented as much as possible
+for all back-ends. The functions (see the help pages, e.g.,
+\Rcode{?bplapply} for a full definition) include
 
-    These are used in common functions, implemented as much as possible
-    for all back-ends. The functions (see the help pages, e.g.,
-    \Rcode{?bplapply} for a full definition) include
-    \begin{description}
-    \item[\Rcode{bplapply(X, FUN, ...)}] Apply in parallel a function
-      \Rcode{FUN} to each element of \Rcode{X}. \Rcode{bplapply} invokes
-      \Rcode{FUN} \Rcode{length(X)} times, each time with a single element
-      of \Rcode{X}.
-    \item[\Rcode{bpmapply(FUN, ...)}] Apply in parallel a function
-      \Rcode{FUN} to the first, second, etc., elements of each argument in
-      \ldots.
-    \item[\Rcode{bpvec(X, FUN, ...)}] Apply in parallel a function
-      \Rcode{FUN} to subsets of \Rcode{X}. \Rcode{bpvec} invokes function
-      \Rcode{FUN} as many times as there are cores or cluster nodes, with
-      \Rcode{FUN} receiving a subset (typically more than 1 element, in
-      contrast to \Rcode{bplapply}) of \Rcode{X}.
-    \item[\Rcode{bpaggregate(x, data, FUN, ...)}] Use the formula in
-      \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
-    \end{description}
+\begin{description}
+  \item{\Rcode{bplapply(X, FUN, ...)}: } 
+    Apply in parallel a function \Rcode{FUN} to each element of \Rcode{X}. 
+    \Rcode{bplapply} invokes \Rcode{FUN} \Rcode{length(X)} times, each 
+    time with a single element of \Rcode{X}.
 
-\subsubsection{Query and control evaluation enviornments}
-    \begin{description}
-    \item[\Rcode{bpisup(x)}] Query a \Rcode{BiocParallelParam} back-end
-      \Rcode{x} for its status.
-    \item[\Rcode{bpworkers}] Query a \Rcode{BiocParallelParam} back-end
-      for the number of workers available for parallel evaluation.
-    \item[\Rcode{bpstart(x)}] Start a parallel back end specified by
-      \Rcode{BiocParallelParam} \Rcode{x}, if possible.
-    \item[\Rcode{bpstop(x)}] Stop a parallel back end specified by
-      \Rcode{BiocParallelParam} \Rcode{x}.
-    \end{description}
+  \item{\Rcode{bpmapply(FUN, ...)}: }
+    Apply in parallel a function \Rcode{FUN} to the first, second, etc., 
+    elements of each argument in \ldots.
+
+  \item{\Rcode{bpvec(X, FUN, ...)}: } 
+    Apply in parallel a function \Rcode{FUN} to subsets of \Rcode{X}. 
+    \Rcode{bpvec} invokes function \Rcode{FUN} as many times as there are 
+    cores or cluster nodes, with \Rcode{FUN} receiving a subset (typically 
+    more than 1 element, in contrast to \Rcode{bplapply}) of \Rcode{X}.
+
+  \item{\Rcode{bpaggregate(x, data, FUN, ...)}: }
+    Use the formula in \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
+\end{description}
+
+\subsubsection{Query and control parallel evaluation environment}
+
+\begin{description}
+  \item{\Rcode{bpisup(x)}: } 
+    Query a \Rcode{BiocParallelParam} back-end \Rcode{x} for its status.
+
+  \item{\Rcode{bpworkers}: }
+    Query a \Rcode{BiocParallelParam} back-end for the number of workers 
+    available for parallel evaluation.
+
+  \item{\Rcode{bpstart(x)}: } 
+    Start a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}, 
+    if possible.
+
+  \item{\Rcode{bpstop(x)}: } 
+    Stop a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}.
+\end{description}
 
 \subsubsection{Error recovery}
-    There are facilities for recovering from errors
-    \begin{description}
-    \item[\Rcode{bplasterror}] Report the last error reported from a
-      \BiocParallel{} evaluation.
-    \item[\Rcode{bpresume}] Attempt to resume computation after an error.
-    \end{description}
+The following functions assist in recovering from errors.
+
+\begin{description}
+  \item{\Rcode{bplasterror}: }
+    Report the last error reported from a \BiocParallel{} evaluation.
+
+  \item{\Rcode{bpresume}: }
+    Attempt to resume computation after an error.
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -259,7 +278,83 @@ maybe chosen when parallel evaluation is nested.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Single computer}
+%% TODO: advanced use of BPPARAM as list for nested calls to bplapply
+
+Sample data are bam files from a transcription profiling experiment
+available in the \Rpackage{RNAseqData.HNRNPC.bam.chr14} package.
+
+<<use_cases_data>>=
+library(RNAseqData.HNRNPC.bam.chr14)
+fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
+@
+
+\subsection{Single machine}
+
+\subsubsection{Forking: MultiCoreParam}
+
+There are substantial benefits, such as shared memory, to be had using 
+multiple cores on a single machine. On a single non-Windows machine the 
+recommended back-end is multi-core which uses forked processes. Because
+all workers share the same memory, it is not necessary to pass large 
+objects to or load common packages on all workers.
+
+In this example we compute coverage on each element of a GRangesList.
+
+Create a GRangesList with regions of interest (in practice this could be 
+large).
+<<forking_grl, message=FALSE>>=
+library(GenomicRanges)
+gr <- GRanges("chr14", IRanges((1000:4999)*5000, width=1000))
+grl <- splitAsList(gr, rep(1:4, each=1000))
+@
+
+The function computes coverage on a single element of the GRangesList.
+<<forking_FUN>>=
+FUN <- function(i) {
+    coverage(grl[[i]])
+}
+@
+
+Call \Rcode{bplapply} with a \Rcode{MulticoreParam}.
+<<forking_bplapply, eval=FALSE>>=
+bplapply(seq_along(grl), FUN, BPPARAM=MulticoreParam())
+@
+
+Note that the GRangesList object was not explictly passed in the call
+to \Rcode{bplapply} and FUN did not have to load the \Biocpkg{GenomicRanges} 
+package for access to the \Rcode{coverage} function.
+
+\subsubsection{Clusters: SnowParam, DoparParam}
+On a Windows machine forking is not an option and processes must be 
+spawned via a cluster. Back-end choices are a Snow cluster configured with 
+\Rclass{SnowParam} or the \Rclass{DoparParam} for use with the 
+\Rpackage{foreach} package.
+
+To run the same coverage example on a cluster we need to modify FUN to 
+take the GRangesList as an argument and load \Biocpkg{GenomicRanges}.
+<<cluster_FUN>>=
+FUN <- function(i, grl) {
+    library(GenomicRanges)
+    coverage(grl[[i]])
+}
+@
+
+Specify a Snow cluster back-end with 2 workers. The default `type` is PSOCK.
+<<cluster_snow_param, eval=FALSE>>=
+p <- SnowParam(workers = 2)
+@
+
+Call \Rcode{bplapply} with the \Rcode{SnowParam} and pass the GRangesList
+as an argument. 
+<<cluster_bplapply, eval=FALSE>>=
+bplapply(seq_along(grl), FUN, BPPARAM = p, grl = grl)
+@
+
+The FUN written for the cluster adds some overhead due to the passing of the 
+GRangesList and time due to the loading of \Biocpkg{GenomicRanges} on 
+each worker. This approach, however, has the advantage that it works on most
+platforms and does not require a coding change when switching between windows
+and non-windows machines. 
 
 \subsection{\emph{Ad hoc} clusters}
 
@@ -458,11 +553,13 @@ remote nodes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Big Data in Genomics}
+\section{Considerations for big data in genomics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Limiting resource comsumption}
+\subsection{Limiting resource consumption}
+
+\subsection{Restricting queries}
 
 \subsection{Iterating}
 
