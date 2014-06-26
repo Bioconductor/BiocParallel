@@ -63,14 +63,14 @@ Tools available in \BiocParallel{} offer the following advantages over
     through \CRANpkg{BatchJobs}, job management and result retrieval are
     considerably simplified.
 
-  \item{support of \Rcode{foreach}:}
-    The \Rcode{foreach} and \CRANpkg{iterators} packages are fully supported 
+  \item{support of \Rcode{foreach}: }
+    The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported 
     but registration of the parallel back end uses \Rcode{BiocParallelParam} 
     instances.
 \end{description}
 
 In this vignette we illustrate the use of these tools in various computing
-enviornments.
+environments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,29 +92,28 @@ library(BiocParallel)
 
 The test function simply returns the square root of ``x''.
 <<quickstart_FUN>>=
-FUN <- function(x) {
-    round(sqrt(x), 4)
-}
+FUN <- function(x) { round(sqrt(x), 4) }
 @
  
-The \BiocParallel functions use the registered back-ends for evaluation.
-The default is the entry the top of the list.
+Functions in \BiocParallel use the registered back-ends for parallel
+evaluation. The default is the top entry of the registry list.
 <<quickstart_registry>>=
 registered()
 @
 
-When a \BiocParallel{} function such as \Rcode{bplapply} is invoked with
-no \Rcode{BPPARAM} argument the default back-end is used.
-<<quickstart_bplapply, eval=FALSE>>=
+When a \BiocParallel{} function is invoked with no \Rcode{BPPARAM} 
+argument the default back-end is used.
+<<quickstart_bplapply_default, eval=FALSE>>=
 bplapply(1:4, FUN)
 @
 
-Re-run the job using a 2-worker PSOCK cluster instead of the default.
-<<quickstart_bplapply_param, eval=FALSE>>=
+Environment specific back-ends can be specified for any of the
+registry entries. Here we create a 2-worker PSOCK cluster and
+use it inplace of the default.
+<<quickstart_snow>>=
 param <- SnowParam(workers = 2, type = "PSOCK") 
 bplapply(1:4, FUN, BPPARAM = param)
 @
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,12 +129,12 @@ bplapply(1:4, FUN, BPPARAM = param)
 Different types of parallel computation are supported by creating and 
 \Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param} objects are:
 
-\begin{description}
-  \item{\Rcode{SerialParam}: } 
+\begin{itemize}
+  \item{\Rcode{SerialParam}:} 
     Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
     This is very useful when writing new scripts and trying to debug code.
 
-  \item{\Rcode{MulticoreParam}: } 
+  \item{\Rcode{MulticoreParam}:} 
     Evaluate \BiocParallel-enabled code using multiple cores on a single 
     computer. When available, this is the most efficient and least 
     troublesome way to parallelize code. Unfortunately, Windows does not 
@@ -145,7 +144,7 @@ Different types of parallel computation are supported by creating and
     \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
     not set, the number of cores returned by \Rcode{parallel::detectCores()}.
 
-  \item{\Rcode{SnowParam}: }
+  \item{\Rcode{SnowParam}:}
     Evaluate \BiocParallel-enabled code across several distinct \R{} 
     instances, on one or several computers. This can be an easy way to 
     parallelize code when working with one or several computers, and is 
@@ -153,14 +152,14 @@ Different types of parallel computation are supported by creating and
     Different types of \CRANpkg{snow} `back-ends' are supported, including 
     socket and MPI clusters.
 
-  \item{\Rcode{BatchJobsParam}: }
+  \item{\Rcode{BatchJobsParam}:}
     Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
     like SGE. 
 
-  \item{\Rcode{DoparParam}: }
+  \item{\Rcode{DoparParam}:}
     Register a parallel back-end supported by the \CRANpkg{foreach} package 
     for use with \BiocParallel.
-\end{description}
+\end{itemize}
 
 The simplest illustration of creating \Rcode{BiocParallelParam} is
 <<BiocParallelParam_SerialParam>>=
@@ -200,18 +199,18 @@ registered()
 bpparam()
 @
 
-Add a specialized instance with \Rcode{register}.
+Add a specialized instance with \Rcode{register}. When 
+\Rcode{default} is TRUE, the new instance becomes the default.
 <<register_BatchJobsParam>>=
-register(BatchJobsParam(workers = 10))
+register(BatchJobsParam(workers = 10), default = TRUE)
 @
 
-The act of registering moves the entry to the top of the list.
-BatchJobsParam is now the default.
+BatchJobsParam has been moved to the top of the list and
+is now the default.
 <<register_BatchJobsParam2>>=
 names(registered())
 bpparam()
 @ 
- 
 
 \subsection{Functions}
 
@@ -243,7 +242,10 @@ for all back-ends. The functions (see the help pages, e.g.,
     Use the formula in \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
 \end{description}
 
-\subsubsection{Query and control parallel evaluation environment}
+\subsubsection{Parallel evaluation environment}
+
+These functions query and control the state of the parallel evaluation 
+environment.
 
 \begin{description}
   \item{\Rcode{bpisup(x)}: } 
@@ -262,7 +264,7 @@ for all back-ends. The functions (see the help pages, e.g.,
 \end{description}
 
 \subsubsection{Error recovery}
-The following functions assist in recovering from errors.
+The following assist in recovering from errors.
 
 \begin{description}
   \item{\Rcode{bplasterror}: }
@@ -290,71 +292,91 @@ fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
 
 \subsection{Single machine}
 
+In this section we count overlaps between regions of interest and
+BAM files in both shared and non-shared memory environments.
+
 \subsubsection{Forking: MultiCoreParam}
 
 There are substantial benefits, such as shared memory, to be had using 
 multiple cores on a single machine. On a single non-Windows machine the 
-recommended back-end is multi-core which uses forked processes. Because
-all workers share the same memory, it is not necessary to pass large 
-objects to or load common packages on all workers.
+recommended back-end is multi-core which uses forked processes. 
 
-In this example we compute coverage on each element of a GRangesList.
+Shared memory eliminates the need to pass large data between workers 
+and load common packages. The code we write in this section will take
+advantage of these aspects.
 
-Create a GRangesList with regions of interest (in practice this could be 
-large).
-<<forking_grl, message=FALSE>>=
-library(GenomicRanges)
-gr <- GRanges("chr14", IRanges((1000:4999)*5000, width=1000))
-grl <- splitAsList(gr, rep(1:4, each=1000))
+First create a GRanges with regions of interest (in practice this 
+could be large).
+<<forking_gr, message=FALSE>>=
+library(GenomicAlignments) ## for GenomicRanges and readGAlignments()
+gr <- GRanges("chr14", IRanges((1000:3999)*5000, width=1000))
 @
 
-The function computes coverage on a single element of the GRangesList.
+For counting, we want to extract the BAM file regions that span
+the ranges in `gr`. The `param` object defines this region.
+<<forking_param>>=
+param <- ScanBamParam(which=range(gr))
+@
+
+The function executed on each worker counts overlaps between the 
+ranges in `gr` and the regions of the file defined by `param`.
 <<forking_FUN>>=
-FUN <- function(i) {
-    coverage(grl[[i]])
+FUN <- function(fl, param) {
+  gal <- readGAlignments(fl, param = param)
+  sum(countOverlaps(gr, gal))
 }
 @
 
 Call \Rcode{bplapply} with a \Rcode{MulticoreParam}.
-<<forking_bplapply, eval=FALSE>>=
-bplapply(seq_along(grl), FUN, BPPARAM=MulticoreParam())
-@
+\begin{verbatim}
+> bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
+$ERR127306
+[1] 1185
 
-Note that the GRangesList object was not explictly passed in the call
-to \Rcode{bplapply} and FUN did not have to load the \Biocpkg{GenomicRanges} 
-package for access to the \Rcode{coverage} function.
+$ERR127307
+[1] 1123
+
+$ERR127308
+[1] 1241
+\end{verbatim}
+
+Note that the GRanges object was not explictly passed in the call
+to \Rcode{bplapply} and FUN did not have to load the 
+\Biocpkg{GenomicAlignments} package for access to the 
+\Rcode{readGAlignments} function.
 
 \subsubsection{Clusters: SnowParam, DoparParam}
 On a Windows machine forking is not an option and processes must be 
-spawned via a cluster. Back-end choices are a Snow cluster configured with 
-\Rclass{SnowParam} or the \Rclass{DoparParam} for use with the 
-\Rpackage{foreach} package.
+spawned via a cluster. \BiocParallel{} back-end choices are a Snow 
+cluster configured with \Rclass{SnowParam} or the \Rclass{DoparParam} 
+for use with the \Rpackage{foreach} package.
 
-To run the same coverage example on a cluster we need to modify FUN to 
-take the GRangesList as an argument and load \Biocpkg{GenomicRanges}.
+To run the same example on a cluster we need to pass the GRanges data 
+to FUN and load the \Biocpkg{GenomicAlignments} package.
 <<cluster_FUN>>=
-FUN <- function(i, grl) {
-    library(GenomicRanges)
-    coverage(grl[[i]])
+FUN <- function(fl, param, gr) {
+  library(GenomicAlignments)
+  gal <- readGAlignments(fl, param = param)
+  sum(countOverlaps(gr, gal))
 }
 @
 
 Specify a Snow cluster back-end with 2 workers. The default `type` is PSOCK.
-<<cluster_snow_param, eval=FALSE>>=
-p <- SnowParam(workers = 2)
+<<cluster_snow_param>>=
+snow <- SnowParam(workers = 2)
 @
 
 Call \Rcode{bplapply} with the \Rcode{SnowParam} and pass the GRangesList
-as an argument. 
-<<cluster_bplapply, eval=FALSE>>=
-bplapply(seq_along(grl), FUN, BPPARAM = p, grl = grl)
+as the argument to split. 
+<<cluster_bplapply>>=
+bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
 @
 
 The FUN written for the cluster adds some overhead due to the passing of the 
-GRangesList and time due to the loading of \Biocpkg{GenomicRanges} on 
-each worker. This approach, however, has the advantage that it works on most
-platforms and does not require a coding change when switching between windows
-and non-windows machines. 
+GRanges and time due to the loading of \Biocpkg{GenomicAlignments} on each 
+worker. This approach, however, has the advantage that it works on 
+most platforms and does not require a coding change when switching between 
+windows and non-windows machines. 
 
 \subsection{\emph{Ad hoc} clusters}
 
@@ -515,6 +537,13 @@ is to write \Rcode{FUN} in a `functional programming' manner, such
 that all data required for the function is passed in as arguments or
 (for large data) loaded implicitly or explicitly (e.g., via an \R{}
 library) from disk.
+
+\subsection{\Bioconductor{} Amazon Machine Image (AMI)}
+
+A \Bioconductor{} AMI is available at
+\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/#using_cluster}.
+
+TODO
 
 \section{For developers}
 
