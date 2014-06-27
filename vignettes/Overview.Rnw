@@ -49,6 +49,7 @@ Tools available in \BiocParallel{} offer the following advantages over
 \textit{ad hoc} \R{} programming for parallel computation.
 
 \begin{description}
+  \setlength{\itemsep}{5pt}
   \item{uniform idiom: } 
     \Rcode{BiocParallelParam} instances define parallel computing 
     resources such as number of workers, error handling, cleanup, etc. 
@@ -107,9 +108,9 @@ argument the default back-end is used.
 bplapply(1:4, FUN)
 @
 
-Environment specific back-ends can be specified for any of the
+Environment specific back-ends can be defined for any of the
 registry entries. Here we create a 2-worker PSOCK cluster and
-use it inplace of the default.
+use it in place of the default.
 <<quickstart_snow>>=
 param <- SnowParam(workers = 2, type = "PSOCK") 
 bplapply(1:4, FUN, BPPARAM = param)
@@ -130,35 +131,36 @@ Different types of parallel computation are supported by creating and
 \Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param} objects are:
 
 \begin{itemize}
-  \item{\Rcode{SerialParam}:} 
-    Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
-    This is very useful when writing new scripts and trying to debug code.
+  \setlength{\itemsep}{5pt}
+  \item{\Rcode{SerialParam}: } 
+  Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
+  This is very useful when writing new scripts and trying to debug code.
+ 
+  \item{\Rcode{MulticoreParam}: } 
+  Evaluate \BiocParallel-enabled code using multiple cores on a single 
+  computer. When available, this is the most efficient and least 
+  troublesome way to parallelize code. Unfortunately, Windows does not 
+  support multi-core evaluation (the \Rcode{MulticoreParam} object can 
+  be used, but evaluation is serial). On other operating systems, the 
+  default number of workers equals the value of the global option 
+  \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
+  not set, the number of cores returned by \Rcode{parallel::detectCores()}.
+ 
+  \item{\Rcode{SnowParam}: }
+  Evaluate \BiocParallel-enabled code across several distinct \R{} 
+  instances, on one or several computers. This can be an easy way to 
+  parallelize code when working with one or several computers, and is 
+  based on facilities originally implemented in the \CRANpkg{snow} package. 
+  Different types of \CRANpkg{snow} `back-ends' are supported, including 
+  socket and MPI clusters.
+ 
+  \item{\Rcode{BatchJobsParam}: }
+  Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
+  like SGE. 
 
-  \item{\Rcode{MulticoreParam}:} 
-    Evaluate \BiocParallel-enabled code using multiple cores on a single 
-    computer. When available, this is the most efficient and least 
-    troublesome way to parallelize code. Unfortunately, Windows does not 
-    support multi-core evaluation (the \Rcode{MulticoreParam} object can 
-    be used, but evaluation is serial). On other operating systems, the 
-    default number of workers equals the value of the global option 
-    \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
-    not set, the number of cores returned by \Rcode{parallel::detectCores()}.
-
-  \item{\Rcode{SnowParam}:}
-    Evaluate \BiocParallel-enabled code across several distinct \R{} 
-    instances, on one or several computers. This can be an easy way to 
-    parallelize code when working with one or several computers, and is 
-    based on facilities originally implemented in the \CRANpkg{snow} package. 
-    Different types of \CRANpkg{snow} `back-ends' are supported, including 
-    socket and MPI clusters.
-
-  \item{\Rcode{BatchJobsParam}:}
-    Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
-    like SGE. 
-
-  \item{\Rcode{DoparParam}:}
-    Register a parallel back-end supported by the \CRANpkg{foreach} package 
-    for use with \BiocParallel.
+  \item[] \Rcode{DoparParam}:
+  Register a parallel back-end supported by the \CRANpkg{foreach} package 
+  for use with \BiocParallel.
 \end{itemize}
 
 The simplest illustration of creating \Rcode{BiocParallelParam} is
@@ -292,9 +294,6 @@ fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
 
 \subsection{Single machine}
 
-In this section we count overlaps between regions of interest and
-BAM files in both shared and non-shared memory environments.
-
 \subsubsection{Forking: MultiCoreParam}
 
 There are substantial benefits, such as shared memory, to be had using 
@@ -304,6 +303,9 @@ recommended back-end is multi-core which uses forked processes.
 Shared memory eliminates the need to pass large data between workers 
 and load common packages. The code we write in this section will take
 advantage of these aspects.
+
+In this example we count overlaps between BAM files and a defined
+set of ranges. 
 
 First create a GRanges with regions of interest (in practice this 
 could be large).
@@ -387,15 +389,17 @@ require significant adaptation; it is written from experience here at
 FHCRC, where we have a large cluster managed via SLURM. Nodes on the
 cluster have shared disks and common system images, minimizing
 complexity about making data resources available to individual nodes.
-There are two simple models for use of the cluster.
+There are two simple models for use of the cluster, Cluster-centric
+and R-centric.
 
-\paragraph{Cluster-centric} The idea is use cluster management
-software to allocate resources, and then arrange for an \R{} script to
-be evaluated in the context of allocated resources. For SLURM, we
-might request space for 4 tasks (with \verb+salloc+ or \verb+sbatch+),
-arrange to start the MPI environment (with \verb+orterun+) and on a
-single node in that universe run an \R{} script
-\verb+BiocParallel-MPI.R+. The command is
+\subsubsection{Cluster-centric}
+
+The idea is use cluster management software to allocate resources, and 
+then arrange for an \R{} script to be evaluated in the context of 
+allocated resources. For SLURM, we might request space for 4 tasks 
+(with \verb+salloc+ or \verb+sbatch+), arrange to start the MPI 
+environment (with \verb+orterun+) and on a single node in that universe 
+run an \R{} script \verb+BiocParallel-MPI.R+. The command is
 \begin{verbatim}
 $ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
 \end{verbatim}
@@ -469,7 +473,9 @@ bpstop(param)
 mpi.quit()
 @ 
 
-\paragraph{R-centric} A more \R-centric approach might start an \R{}
+\subsubsection{R-centric}
+
+A more \R-centric approach might start an \R{}
 script on the head node, and use \Rpackage{BatchJobs} to submit jobs
 from within the \R{} session. One way of doing this is to create a
 file containing a template for the job submission step, e.g., for
@@ -540,8 +546,11 @@ library) from disk.
 
 \subsection{\Bioconductor{} Amazon Machine Image (AMI)}
 
-A \Bioconductor{} AMI is available at
-\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/#using_cluster}.
+An AMI optimized for running \Bioconductor{} in the Elastic Compute
+Cloud (EC2) is available at
+\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
+The documentation provides detailed instructions for setting up 
+accounts, launching instances and starting sessions via RStudio or ssh.
 
 TODO
 
