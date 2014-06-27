@@ -423,7 +423,7 @@ register(param)
 Evaluate the work in parallel, process the results, clean up, and quit
 <<cluster-MPI-do, eval=FALSE>>=
 xx <- bplapply(1:100, FUN)
-table(unlist(x))
+table(unlist(xx))
 mpi.quit()
 @ 
 %% 
