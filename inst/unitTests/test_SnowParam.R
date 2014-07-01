@@ -108,3 +108,15 @@ test_SnowParam_coerce_from_MPI <- function()
     parallel::stopCluster(cl)
 }
 
+test_SnowParam_workers <- function()
+{
+    if (.Platform$OS.type == "windows")
+        return()
+    if (!(suppressWarnings(require(snow)) ||
+          suppressWarnings(require(Rmpi))))
+        ## quietly succeed if 'snow', 'Rmpi' not available
+        return()
+
+    checkException(SnowParam("host", "MPI"), silent=TRUE)
+    checkException(SnowParam("host", "FORK"), silent=TRUE)
+}
