@@ -34,6 +34,8 @@ SnowParam <-
         type <- parallel:::getClusterOption("type")
     else
         type <- match.arg(type)
+    if (any(type %in% c("FORK", "MPI")) && !is(workers, integer))
+        stop("'workers' must be integer when 'type' is FORK or MPI") 
 
     args <- c(list(spec=workers, type=type), list(...))
     # FIXME I don't think this is required, lists always inflict a copy
@@ -51,7 +53,7 @@ setMethod(bpworkers, "SnowParam",
     if (bpisup(x))
         length(bpbackend(x))
     else
-        x$.clusterargs$spec # TODO: This can be a non-integer, I think.
+        x$.clusterargs$spec
 })
 
 setMethod(bpstart, "SnowParam",

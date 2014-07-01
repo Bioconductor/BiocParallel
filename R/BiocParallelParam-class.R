@@ -2,7 +2,7 @@
     contains="VIRTUAL",
     fields=list(
       .controlled="logical",
-      workers="numeric",
+      workers="ANY",
       catch.errors="logical"),
     methods=list(
       initialize = function(..., workers=0, .controlled=TRUE,
@@ -23,7 +23,7 @@ setValidity("BiocParallelParam", function(object)
 {
     msg <- NULL
     if (length(bpworkers(object)) != 1L || bpworkers(object) < 0)
-        msg <- c(msg, "'workers' must be integer(1) and >= 0")
+        msg <- c(msg, "'workers' must be integer(1) or character() and >= 0")
     if (length(.controlled(object)) != 1L || is.na(.controlled(object)))
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
     if (length(object$catch.errors) != 1L || is.na(object$catch.errors))
