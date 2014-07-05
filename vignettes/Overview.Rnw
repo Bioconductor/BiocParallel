@@ -648,23 +648,9 @@ An AMI optimized for running \Bioconductor{} in the Elastic Compute
 Cloud (EC2) is available at
 \url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
 The documentation provides detailed instructions for setting up 
-accounts, launching instances and starting sessions via RStudio or SSH.
+accounts, launching instances and starting sessions via RStudio or ssh.
 
-General steps involved in setting up an instance of the AMI.
-\begin{enumerate}
-  \item Create an account with Amazon Web Services
-  \item Create a key pair
-    If you plan to connect to the AMI via SSH you need to create a
-    key pair file. If you plan to connect via a browser with
-    RStudio you can skip this step.
-  \item Start the AMI
-    The documentation has separate links for starting the AMI via SSH 
-    or RStudio. This step is where you choose the size / type of
-    computing resource. 
-
-
-
-\end{enumerate}
+TODO
 
 
 \section{For developers}
@@ -704,15 +690,14 @@ remote nodes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Analyzing genomic data in \Bioconductor{}}
+\section{Analyzing genomic data in \R{}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 General strategies exist for handling large genomic data that are well 
-suited to \R{} programs. A manuscript titled `Scalable Genomics with
-\R{} and \Bioconductor{}, by Michael Lawrence and Martin 
-Morgan, \url{http://www.imstat.org/sts/future_papers.html} 
-reviews various approaches and their implementation in \Bioconductor{}
+suited to \R{} programs. A manuscript in press at the journal 
+Statistical Science, \url{http://www.imstat.org/sts/future_papers.html}, 
+reviews such strategies and describes the implementation in \Bioconductor{}
 packages. Areas covered include scalable processing, summarization and 
 visualization. Presented techniques are well-established and include 
 restricting queries, compressing data, iterating, and parallel computing. 
