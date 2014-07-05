@@ -44,7 +44,7 @@ mclapply <- function(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
         }
         if (length(jobs)) {
             ## just in case there are zombies
-            mccollect(children(jobs), FALSE)
+
         }
     }
     on.exit(cleanup())

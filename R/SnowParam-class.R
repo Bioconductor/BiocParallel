@@ -34,8 +34,8 @@ SnowParam <-
         type <- parallel:::getClusterOption("type")
     else
         type <- match.arg(type)
-    if (any(type %in% c("FORK", "MPI")) && !is(workers, integer))
-        stop("'workers' must be integer when 'type' is FORK or MPI") 
+    if (any(type %in% c("FORK", "MPI")) && is(workers, "character"))
+        stop("'workers' must be integer(1) when 'type' is FORK or MPI") 
 
     args <- c(list(spec=workers, type=type), list(...))
     # FIXME I don't think this is required, lists always inflict a copy
