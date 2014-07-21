@@ -381,11 +381,11 @@ worker. This approach, however, has the advantage that it works on
 most platforms and does not require a coding change when switching between 
 windows and non-windows machines. 
 
-\subsection{\emph{Ad hoc} clusters}
+\subsection{\emph{Ad hoc} cluster of multiple machines}
 
-The term \emph{ad hoc} cluster defines a group of machines that can communicate
-with each other and to which the user has log-in access. This example uses a 
-group of compute machines ("the rhinos") on the FHCRC network. 
+We use the term \emph{ad hoc} cluster to define a group of machines that can 
+communicate with each other and to which the user has log-in access. This 
+example uses a group of compute machines ("the rhinos") on the FHCRC network. 
 
 \subsubsection{Sockets}
 
@@ -644,13 +644,174 @@ library) from disk.
 
 \subsection{\Bioconductor{} Amazon Machine Image (AMI)}
 
-An AMI optimized for running \Bioconductor{} in the Elastic Compute
-Cloud (EC2) is available at
+An AMI for running \Bioconductor{} in the Elastic Compute Cloud (EC2) 
+is available at
 \url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
 The documentation provides detailed instructions for setting up 
 accounts, launching instances and starting sessions via RStudio or SSH.
 
-TODO
+Motivation for running jobs in the cloud may be access to additional 
+CPUs and / or memory. Amazon Web Services (AWS) has a variety of instances 
+ranging from general purpose to those optimized for compute, memory or 
+I/O intensive jobs. See 
+\url{http://aws.amazon.com/ec2/instance-types/} for a full listing of 
+instances. 
+
+Single or multiple instances can be requested when starting 
+up the AMI. When a single instance is requested, interaction with
+the resource is the same as described in the `Single Machine`
+section above. Requesting multiple instances is essentially 
+creating a cluster. To do this with the \Bioconductor{} AMI the
+Star Cluster toolkit must be installed and a config file must
+be modified to specify the number and type of instances. Walk-
+through examples are provided in the \Bioconductor{} AMI web
+documentation.
+
+This example uses a cluster of three m3.large instances each of 
+which has 2 virtual CPUs. The name of the cluster in the config 
+file is `smallcluster` and can be started with the `start` command:
+\begin{verbatim}
+    starcluster start smallcluster 
+\end{verbatim}
+
+List the cluster nodes:
+
+\begin{verbatim}
+~ >starcluster listclusters
+StarCluster - (http://star.mit.edu/cluster) (v. 0.95.5)
+Software Tools for Academics and Researchers (STAR)
+Please submit bug reports to starcluster@mit.edu
+
+-----------------------------------------------
+smallcluster (security group: @sc-smallcluster)
+-----------------------------------------------
+Launch time: 2014-07-21 08:44:11
+Uptime: 0 days, 00:09:30
+Zone: us-east-1b
+Keypair: bioc-keypair-vobencha
+EBS volumes: N/A
+Cluster nodes:
+  smallcluster-master running i-1f757234 ec2-54-91-126-83.compute-1.amazonaws.com
+  smallcluster-node001 running i-1e757235 ec2-50-16-135-207.compute-1.amazonaws.com
+  smallcluster-node002 running i-19757232 ec2-54-89-112-24.compute-1.amazonaws.com
+Total nodes: 3
+\end{verbatim}
+
+Use the hostname for the master node to connect to the cluster via 
+RStudio or SSH. If you connect via RStudio an \R{} process starts 
+automatically.
+
+A primary difference between using the AMI cluster vs a cluster with formal 
+scheduler such as SLURM is how jobs are submitted. When using the AMI, jobs 
+are started from an interactive \R{} session when logged into the master node.
+As demonstrated in the section on `Clusters with Schedulers`, when using
+formal schedulers jobs are submitted in batch mode from the command line.
+
+The AMI cluster workers can communicate via SSH, SunGrid Engine or MPI.
+For MPI use a \Robject{SnowParam} with \Rcode{type = MPI}. Both SSH and 
+SunGrid Engine require a \Robject{BatchJobsParam} but differ slightly in 
+the set-up.
+
+For SSH, the individual nodes are defined as cluster functions. The
+`workers` should be the number of nodes and `ncpus` the number
+of processors per node.
+\begin{verbatim}
+> library(BiocParallel)
+> library(BatchJobs)
+> funs <- makeClusterFunctionsSSH(
++     makeSSHWorker(nodename="smallcluster-master"),
++     makeSSHWorker(nodename="smallcluster-node001"),
++     makeSSHWorker(nodename="smallcluster-node002")
+> )
+> param <- BatchJobsParam(workers=3, 
++                         resources=list(ncpus=2),
++                         cluster.functions=funs)
+\end{verbatim}
+
+SunGrid Engine only needs the number of `workers` and `ncpus`.
+\begin{verbatim}
+> library(BiocParallel)
+> library(BatchJobs)
+> param <- BatchJobsParam(3, resources=list(ncpus=2))
+\end{verbatim}
+
+This example uses 8 paired-end RNA-Seq BAM files, 1 per sequencing
+run, subset on chromosome 14 only.
+\begin{verbatim}
+> library(BiocParallel)
+> library(RNAseqData.HNRNPC.bam.chr14)
+> fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
+\end{verbatim}
+
+Reads with more than 2 gaps in the CIGAR are isolated and 
+\Rfunction{locateVariants} is used to identify where these multi-gap 
+reads fall with respect to the UCSC hg19 known gene model.
+
+\begin{verbatim}
+> FUN <- function(file, ...) {
++    library(GenomicAlignments)
++    library(VariantAnnotation)
++    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
++    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
++    gal <- readGAlignmentPairs(file)
++    gal_with_gaps <- gal[njunc(gal) > 2L]
++    locateVariants(granges(gal_with_gaps), txdb, AllVariants())
+> }
+\end{verbatim}
+
+Define a \Robject{BatchJobsParam} with 3 workers, 2 processors each.
+\begin{verbatim}
+> param <- BatchJobsParam(3, resources=(list(ncpus=2)))
+\end{verbatim}
+
+Execute in parallel over the 8 files. 
+\begin{verbatim}
+> res <- bplapply(fls, FUN, BPPARAM=param) 
+\end{verbatim}
+
+The return value is a list of GRanges, one for each file. The length of
+each \Robject{GRanges} will vary. 
+\begin{verbatim}
+> elementLengths(res)
+ERR127306 ERR127307 ERR127308 ERR127309 ERR127302 ERR127303 ERR127304 ERR127305 
+     5228      5202      5721      4326      4494      4909      4636      4538 
+\end{verbatim}
+
+Summarize the LOCATION and TXID output of \Rfunction{locateVariants} with 
+\Rfunction{xtabs}.
+\begin{verbatim}
+> mdat <- lapply(res, function(x) mcols(x)[c("LOCATION", "TXID")])
+> xtab <-  xtabs(~ LOCATION + TXID, do.call(rbind, mdat))
+\end{verbatim}
+
+The xtab object can be subset to isolate transcripts that meet a criteria.
+These are the top 5 transcripts hit by the multi-gap reads.
+\begin{verbatim}
+> xtab[,xtab["spliceSite", ] > 500]
+            TXID
+LOCATION     51581 51582 53506 53507 53508
+  spliceSite   994   994   520   548   548
+  intron         0     0     0     0     0
+  fiveUTR        0     0     0     0     0
+  threeUTR       0     0     0     0     0
+  coding         0     0     0     0     0
+  intergenic     0     0     0     0     0
+  promoter       0     0     0     0     0
+\end{verbatim}
+
+Extract the transcripts with multi-gap reads in promoter regions:
+\begin{verbatim}
+> xtab[,xtab["promoter", ] > 0]
+            TXID
+LOCATION     51495 52270 52272 52273 52528 52538 52540 52541 52716
+  spliceSite   152     0     1     1    52     0     0     0    46
+  intron         0     0     0     0     0     0     0     0     0
+  fiveUTR        0     0     0     0     0     0     0     0     0
+  threeUTR       0     0     0     0     0     0     0     0     0
+  coding         0     0     0     0     0     0     0     0     0
+  intergenic     0     0     0     0     0     0     0     0     0
+  promoter      38    31   314   314    54     3     3     3     7
+\end{verbatim}
 
 \section{For developers}
 
@@ -694,13 +855,18 @@ remote nodes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 General strategies exist for handling large genomic data that are well 
-suited to \R{} programs. A manuscript titled `Scalable Genomics with
-\R{} and \Bioconductor{}, by Michael Lawrence and Martin Morgan, 
-\url{http://www.imstat.org/sts/future_papers.html} 
-reviews these strategies and implementation in \Bioconductor{}. Problem 
-areas include scalable processing, summarization and visualization. 
-Presented techniques are well-established and include restricting queries, 
-compressing data, iterating, and parallel computing. 
+suited to \R{} programs. A manuscript titled \emph{Scalable Genomics with
+\R{} and \Bioconductor{}} 
+(\url{http://www.imstat.org/sts/future_papers.html}) by Michael Lawrence 
+and Martin Morgan, reviews several of these approaches and demonstrate 
+implementation with \Bioconductor{} packages. Problem areas include 
+scalable processing, summarization and visualization. The techniques 
+presented include restricting queries, compressing data, iterating, and 
+parallel computing. 
+
+Ideas are presented in an approachable fashion within a framework of 
+common use cases. This is a benificial read for anyone anyone tackling 
+genomics problems in \R{}. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
