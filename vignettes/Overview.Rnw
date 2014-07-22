@@ -662,10 +662,11 @@ up the AMI. When a single instance is requested, interaction with
 the resource is the same as described in the `Single Machine`
 section above. Requesting multiple instances is essentially 
 creating a cluster. To do this with the \Bioconductor{} AMI the
-Star Cluster toolkit must be installed and a config file must
+StarCluster toolkit must be installed and a config file must
 be modified to specify the number and type of instances. Walk-
 through examples are provided in the \Bioconductor{} AMI web
-documentation.
+documentation
+\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
 
 This example uses a cluster of three m3.large instances each of 
 which has 2 virtual CPUs. The name of the cluster in the config 
@@ -698,25 +699,23 @@ Total nodes: 3
 \end{verbatim}
 
 Use the hostname for the master node to connect to the cluster via 
-RStudio or SSH. If you connect via RStudio an \R{} process starts 
-automatically.
+RStudio or SSH.
 
-A primary difference between using the AMI cluster vs a cluster with formal 
-scheduler such as SLURM is how jobs are submitted. When using the AMI, jobs 
-are started from an interactive \R{} session when logged into the master node.
-As demonstrated in the section on `Clusters with Schedulers`, when using
-formal schedulers jobs are submitted in batch mode from the command line.
+The AMI cluster workers can communicate via SSH, SunGrid Engine (SGE) or MPI.
+For MPI, a \Robject{SnowParam} should be configured with \Rcode{type = MPI}. 
+\begin{verbatim}
+> library(BiocParallel}
+> param <- SnoParam(workers=3, type = "MPI") 
+\end{verbatim}
 
-The AMI cluster workers can communicate via SSH, SunGrid Engine or MPI.
-For MPI use a \Robject{SnowParam} with \Rcode{type = MPI}. Both SSH and 
-SunGrid Engine require a \Robject{BatchJobsParam} but differ slightly in 
-the set-up.
+Both SSH and SunGrid Engine require a \Robject{BatchJobsParam} but differ 
+slightly in the set-up.
 
-For SSH, the individual nodes are defined as cluster functions. The
-`workers` should be the number of nodes and `ncpus` the number
+For SSH, the nodes are registered as SSH workers. The `workers` argument
+to BatchJobsParam should be the number of nodes and `ncpus` the number
 of processors per node.
 \begin{verbatim}
-> library(BiocParallel)
+> library(BiocParallel}
 > library(BatchJobs)
 > funs <- makeClusterFunctionsSSH(
 +     makeSSHWorker(nodename="smallcluster-master"),
@@ -730,7 +729,7 @@ of processors per node.
 
 SunGrid Engine only needs the number of `workers` and `ncpus`.
 \begin{verbatim}
-> library(BiocParallel)
+> library(BiocParallel}
 > library(BatchJobs)
 > param <- BatchJobsParam(3, resources=list(ncpus=2))
 \end{verbatim}
