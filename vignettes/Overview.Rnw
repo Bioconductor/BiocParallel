@@ -812,7 +812,32 @@ LOCATION     51495 52270 52272 52273 52528 52538 52540 52541 52716
   promoter      38    31   314   314    54     3     3     3     7
 \end{verbatim}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Analyzing genomic data in \Bioconductor{}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+General strategies exist for handling large genomic data that are well 
+suited to \R{} programs. A manuscript titled \emph{Scalable Genomics with
+\R{} and \Bioconductor{}} 
+(\url{http://www.imstat.org/sts/future_papers.html}) by Michael Lawrence 
+and Martin Morgan, reviews several of these approaches and demonstrate 
+implementation with \Bioconductor{} packages. Problem areas include 
+scalable processing, summarization and visualization. The techniques 
+presented include restricting queries, compressing data, iterating, and 
+parallel computing. 
+
+Ideas are presented in an approachable fashion within a framework of 
+common use cases. This is a benificial read for anyone anyone tackling 
+genomics problems in \R{}. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{For developers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Developers wishing to use \BiocParallel{} in their own packages should
 include \BiocParallel{} in the \texttt{DESCRIPTION} file
@@ -845,27 +870,6 @@ Developers wishing to invoke back-ends other than
 \Rcode{MulticoreParam} need to take special care to ensure that
 required packages, data, and functions are available and loaded on the
 remote nodes.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Analyzing genomic data in \Bioconductor{}}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-General strategies exist for handling large genomic data that are well 
-suited to \R{} programs. A manuscript titled \emph{Scalable Genomics with
-\R{} and \Bioconductor{}} 
-(\url{http://www.imstat.org/sts/future_papers.html}) by Michael Lawrence 
-and Martin Morgan, reviews several of these approaches and demonstrate 
-implementation with \Bioconductor{} packages. Problem areas include 
-scalable processing, summarization and visualization. The techniques 
-presented include restricting queries, compressing data, iterating, and 
-parallel computing. 
-
-Ideas are presented in an approachable fashion within a framework of 
-common use cases. This is a benificial read for anyone anyone tackling 
-genomics problems in \R{}. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
