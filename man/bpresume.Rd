@@ -48,7 +48,7 @@
 \examples{
 
 ## -----------------------------------------------------------------------
-## Catching errors: 
+## Catch errors: 
 ## -----------------------------------------------------------------------
 
 ## By default 'catch.errors' is TRUE in BiocParallelParam objects.
@@ -90,7 +90,7 @@ First traceback:
 }
 
 ## -----------------------------------------------------------------------
-## Resuming calculations: 
+## Resume calculations: 
 ## -----------------------------------------------------------------------
 
 ## The 'resume' mechanism tries to re-run the data element that failed.
