@@ -40,11 +40,11 @@ mclapply <- function(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
             mccollect(children(jobs), FALSE)
             mckill(children(jobs),
                    if (is.integer(mc.cleanup)) mc.cleanup else tools::SIGTERM)
-            mccollect(children(jobs))
+            mccollect(children(jobs), FALSE, timeout=4)
         }
         if (length(jobs)) {
             ## just in case there are zombies
-            mccollect(children(jobs), FALSE)
+            mccollect(children(jobs), FALSE, timeout=4)
         }
     }
     on.exit(cleanup())
