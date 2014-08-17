@@ -9,6 +9,10 @@ setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
         BPPARAM=bpparam())
     standardGeneric("bpmapply"))
 
+setGeneric("bpiterate", signature=c("ITER", "FUN", "BPPARAM"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+    standardGeneric("bpiterate"))
+
 setGeneric("bpvec", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
     standardGeneric("bpvec"))
