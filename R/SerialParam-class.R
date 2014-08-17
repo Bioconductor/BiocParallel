@@ -65,3 +65,17 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
 
     mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
 })
+
+setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    ITER <- match.fun(ITER)
+    FUN <- match.fun(FUN)
+    ## BPRESUME not used
+
+    res <- list()
+    while (!is.null(dat <- ITER()))
+        res <- c(res, FUN(dat, ...))
+
+    res
+})

@@ -19,6 +19,20 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 ### Derived from multicore version 0.1-6 by Simon Urbanek
 
+.cleanup <- function(jobs, mc.cleanup) {
+    ## kill children if cleanup is requested
+    if (length(jobs) && mc.cleanup) {
+        ## first take care of uncollected children
+        mccollect(children(jobs), FALSE)
+        mckill(children(jobs),
+               if (is.integer(mc.cleanup)) mc.cleanup else tools::SIGTERM)
+        mccollect(children(jobs), FALSE, timeout=4)
+    }
+    if (length(jobs)) {
+        ## just in case there are zombies
+        mccollect(children(jobs), FALSE, timeout=4)
+    }
+}
 mclapply <- function(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
                      mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L),
                      mc.cleanup = TRUE, mc.allow.recursive = TRUE)
@@ -33,21 +47,7 @@ mclapply <- function(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
     if(mc.set.seed) mc.reset.stream()
 
     jobs <- list()
-    cleanup <- function() {
-        ## kill children if cleanup is requested
-        if (length(jobs) && mc.cleanup) {
-            ## first take care of uncollected children
-            mccollect(children(jobs), FALSE)
-            mckill(children(jobs),
-                   if (is.integer(mc.cleanup)) mc.cleanup else tools::SIGTERM)
-            mccollect(children(jobs), FALSE, timeout=4)
-        }
-        if (length(jobs)) {
-            ## just in case there are zombies
-            mccollect(children(jobs), FALSE, timeout=4)
-        }
-    }
-    on.exit(cleanup())
+    on.exit(.cleanup(jobs, mc.cleanup))
 
     if (!mc.preschedule) {              # sequential (non-scheduled)
         FUN <- match.fun(FUN)
