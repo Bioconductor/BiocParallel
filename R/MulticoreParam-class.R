@@ -172,3 +172,32 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
          mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
          mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
 })
+
+setMethod(bpiterate, c("ANY", "ANY", "MulticoreParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    ITER <- match.fun(ITER)
+    FUN <- match.fun(FUN)
+    ## BPRESUME not used
+
+    ## always wrap in a try: only way to throw an error for the user
+    ITER <- .composeTry(ITER)  ## necessary on master?
+    FUN <- .composeTry(FUN)
+
+    results <- .bpiterate(ITER, FUN, ...,
+        mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+        mc.cores=bpworkers(BPPARAM), 
+        mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
+
+    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
+    if (any(is.error)) {
+        if (BPPARAM$catch.errors)
+            LastError$store(results=results, is.error=is.error,
+                throw.error=TRUE)
+        stop(as.character(results[[head(which(is.error), 1L)]]))
+    }
+
+    results
+
+})
+

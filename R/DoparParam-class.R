@@ -96,3 +96,10 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
 
     .simplify(results, SIMPLIFY=SIMPLIFY)
 })
+
+setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    stop(paste0("currently only MulticoreParam and SerialParam are supported ",
+                " for bpiterate"))
+})

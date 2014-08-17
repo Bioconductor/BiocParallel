@@ -166,3 +166,11 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     .simplify(.rename(results, list(...), USE.NAMES=USE.NAMES),
               SIMPLIFY=SIMPLIFY)
 })
+
+setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    stop(paste0("currently only MulticoreParam and SerialParam are supported ",
+                " for bpiterate"))
+})
+

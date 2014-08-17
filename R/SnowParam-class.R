@@ -140,6 +140,15 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
     .simplify(results, SIMPLIFY=SIMPLIFY)
 })
 
+setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    warning("SnowParam not yet supported for bpiterate; using SerialParam")
+    ITER <- match.fun(ITER)
+    FUN <- match.fun(FUN)
+    bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()) 
+})
+
 ## parallel::SOCKcluster types
 
 setOldClass(c("SOCKcluster", "cluster"))
