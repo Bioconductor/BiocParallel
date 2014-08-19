@@ -95,7 +95,7 @@ if (all(require(Rsamtools) &&
         require(ShortRead))) {
 
 ### ----------------------------------------------------------------------
-### BAM files
+### Parallel iteration through a BAM file
 ### ----------------------------------------------------------------------
 
 ## Select a single file and set 'yieldSize' in the BamFile object.
@@ -140,8 +140,8 @@ cat("stop")
 length(res)
 colSums(do.call(rbind, res))
 
-#### ----------------------------------------------------------------------
-### FASTA files
+### ----------------------------------------------------------------------
+### Parallel iteration through a FASTA file
 ### ----------------------------------------------------------------------
 
 ## Set data chunk size with 'n' in the FastqStreamer object.
@@ -181,10 +181,11 @@ bpiterate(ITER, summary, BPPARAM = bpparam)
 ## ----------------------------------------------------------------------
 ## Multiple files
 ## ----------------------------------------------------------------------
-## Currently bpiterate() is only implemented for MulticoreParam. To
-## use bpiterate() on multiple files, first distribute the files over
-## a snow cluster with bplapply() then call bpiterate() on each cluster
-## node.
+## Currently bpiterate() is only implemented for the multi-core
+## environment (i.e., MulticoreParam). A single machine may not
+## have enough memory to process multiple files. In this case the
+## files can be distributed over a snow cluster with bplapply() 
+## then processed with bpiterate() on each cluster node.
 
 ## Select a subset of files, create a BamFileList.
 fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[1:3]
