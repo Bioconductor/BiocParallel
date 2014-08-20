@@ -15,7 +15,7 @@ BiocStyle::latex()
 \title{Introduction to \BiocParallel} 
 \author{Vincent Carey, Michael Lawrence, Martin
   Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
-\date{Edited: June 13, 2014; Compiled: \today}
+\date{Edited: August 19, 2014; Compiled: \today}
 
 \begin{document}
 
@@ -29,49 +29,55 @@ BiocStyle::latex()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Numerous approaches are available for parallel computing in \R. The Task 
-View document at
+Numerous approaches are available for parallel computing in \R{}. The
+CRAN Task View for high performance and parallel computing provides
+useful high-level summaries and package categorization. 
 \url{http://cran.r-project.org/web/views/HighPerformanceComputing.html}
-lists various package most of which cite or identify one or more of 
-\CRANpkg{snow}, \CRANpkg{Rmpi} or \CRANpkg{foreach} as relevant
-parallelization infrastructure. 
+Most Task View packages cite or identify one or more of \CRANpkg{snow}, 
+\CRANpkg{Rmpi}, \CRANpkg{multicore} or \CRANpkg{foreach} as relevant 
+parallelization infrastructure. Direct support in \R{} for parallel 
+computing started with release 2.14.0 with inclusion of the 
+\CRANpkg{parallel} package which contains modified versions of 
+\CRANpkg{multicore} and \CRANpkg{snow}.
 
-The \BiocParallel{} package provides a unified approach to specifying
-parallel evaluation while allowing for multiple back-ends. A basic
-objective of \BiocParallel{} is to reduce the complexity faced
+A basic objective of \BiocParallel{} is to reduce the complexity faced 
 when developing and using software that performs parallel computations.
-\BiocParallel{} introduces ``parameter'' arguments used at runtime
-to define the method of parallel execution. This allows developers to 
-focus on \textit{what} is to be computed, leaving the \textit{how} 
-to the infrastructure.
+With the introduction of the \Rcode{BiocParallelParam} object, 
+\BiocParallel{} aims to provide a unified interface to existing parallel
+infrastructure where code can be easily executed in different 
+environments. The \Rcode{BiocParallelParam} specifies the environment of 
+choice as well as computing resources and is invoked by `registration` or 
+passed as an argument to the \BiocParallel{} functions. 
 
-Tools available in \BiocParallel{} offer the following advantages over 
-\textit{ad hoc} \R{} programming for parallel computation.
+\BiocParallel{} offers the following conveniences over the 
+`roll your own` approach to parallel programming.
 
-\begin{description}
+\begin{itemize}
   \setlength{\itemsep}{5pt}
-  \item{uniform idiom: } 
-    \Rcode{BiocParallelParam} instances define parallel computing 
-    resources such as number of workers, error handling, cleanup, etc. 
-    Sensible default definitions are generated when the package is loaded.
+  \item{unified interface: }
+ 
+  \Rcode{BiocParallelParam} instances define the method of parallel 
+  evaluation (multi-core, snow cluster, etc.) and computing resources 
+  (number of workers, error handling, cleanup, etc.).
 
-  \item{iterative and vectorized operations: }
-    \Rcode{bplapply} and \Rcode{bpvec} address iteration and vectorized
-    operations in parallel respectively.
+  \item{parallel iteration over lists, files and vectorized operations: }
+
+  \Rcode{bplapply}, \Rcode{bpmapply} and \Rcode{bpvec} provide 
+  parallel list iteration and vectorized operations. \Rcode{bpiterate} 
+  iterates through files distributing chunks to parallel workers.
 
   \item{cluster scheduling: }
-    When the parallel environment is managed by a cluster scheduler
-    through \CRANpkg{BatchJobs}, job management and result retrieval are
-    considerably simplified.
+
+  When the parallel environment is managed by a cluster scheduler
+  through \CRANpkg{BatchJobs}, job management and result retrieval are
+  considerably simplified.
 
   \item{support of \Rcode{foreach}: }
-    The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported 
-    but registration of the parallel back end uses \Rcode{BiocParallelParam} 
-    instances.
-\end{description}
 
-In this vignette we illustrate the use of these tools in various computing
-environments.
+  The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported.
+  Registration of the parallel back end uses \Rcode{BiocParallelParam} 
+  instances.
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,17 +132,23 @@ bplapply(1:4, FUN, BPPARAM = param)
 
 \subsubsection{\Rcode{BiocParallelParam}}
 
-\Rcode{BiocParallelParam} instances describe parallel evaluation environments. 
-Different types of parallel computation are supported by creating and 
-\Rcode{register()}ing a `\Rcode{Param}'. Supported \Rcode{Param} objects are:
+\Rcode{BiocParallelParam} instances configure different parallel evaluation 
+environments. Creating and / or \Rcode{register()}ing a `\Rcode{Param}` 
+allows the same code to be used in different parallel environments without
+a code re-write. Params listed are supported on all of Unix, Mac and Windows
+except \Rcode{MulticoreParam} which is Unix and Mac only.
 
 \begin{itemize}
   \setlength{\itemsep}{5pt}
-  \item{\Rcode{SerialParam}: } 
+  \item{\Rcode{SerialParam}: }
+
+  Supported on all platforms. 
   Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
-  This is very useful when writing new scripts and trying to debug code.
+  This approach is useful when writing new scripts and trying to debug code.
  
   \item{\Rcode{MulticoreParam}: } 
+
+  Supported on Unix and Mac. 
   Evaluate \BiocParallel-enabled code using multiple cores on a single 
   computer. When available, this is the most efficient and least 
   troublesome way to parallelize code. Unfortunately, Windows does not 
@@ -146,7 +158,9 @@ Different types of parallel computation are supported by creating and
   \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
   not set, the number of cores returned by \Rcode{parallel::detectCores()}.
  
-  \item{\Rcode{SnowParam}: }
+  \item{\Rcode{SnowParam}: } 
+
+  Supported on all platforms. 
   Evaluate \BiocParallel-enabled code across several distinct \R{} 
   instances, on one or several computers. This can be an easy way to 
   parallelize code when working with one or several computers, and is 
@@ -155,10 +169,14 @@ Different types of parallel computation are supported by creating and
   socket and MPI clusters.
  
   \item{\Rcode{BatchJobsParam}: }
+
+  Applicable to clusters with formal schedulers.
   Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
   like SGE. 
 
-  \item[] \Rcode{DoparParam}:
+  \item{\Rcode{DoparParam}: }
+
+  Supported on all platforms. 
   Register a parallel back-end supported by the \CRANpkg{foreach} package 
   for use with \BiocParallel.
 \end{itemize}
@@ -225,22 +243,34 @@ for all back-ends. The functions (see the help pages, e.g.,
 \Rcode{?bplapply} for a full definition) include
 
 \begin{description}
-  \item{\Rcode{bplapply(X, FUN, ...)}: } 
+  \item{\Rcode{bplapply(X, FUN, ...)}: }
+ 
     Apply in parallel a function \Rcode{FUN} to each element of \Rcode{X}. 
     \Rcode{bplapply} invokes \Rcode{FUN} \Rcode{length(X)} times, each 
     time with a single element of \Rcode{X}.
 
   \item{\Rcode{bpmapply(FUN, ...)}: }
+
     Apply in parallel a function \Rcode{FUN} to the first, second, etc., 
     elements of each argument in \ldots.
 
+  \item{\Rcode{bpiterate(ITER, FUN, ...)}: }
+
+    Apply in parallel a function \Rcode{FUN} to the output of 
+    function \Rcode{ITER}. Data chunks are returned by \Rcode{ITER}
+    and distributed to parallel workers along with \Rcode{FUN}.
+    Intended for iteration though an undefined number of data chunks 
+    (i.e., records in a file).
+
   \item{\Rcode{bpvec(X, FUN, ...)}: } 
+
     Apply in parallel a function \Rcode{FUN} to subsets of \Rcode{X}. 
     \Rcode{bpvec} invokes function \Rcode{FUN} as many times as there are 
     cores or cluster nodes, with \Rcode{FUN} receiving a subset (typically 
     more than 1 element, in contrast to \Rcode{bplapply}) of \Rcode{X}.
 
   \item{\Rcode{bpaggregate(x, data, FUN, ...)}: }
+
     Use the formula in \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
 \end{description}
 
@@ -384,7 +414,8 @@ windows and non-windows machines.
 \subsection{\emph{Ad hoc} cluster of multiple machines}
 
 We use the term \emph{ad hoc} cluster to define a group of machines that can 
-communicate with each other and to which the user has log-in access. This 
+communicate with each other and to which the user has password-less
+log-in access. This 
 example uses a group of compute machines ("the rhinos") on the FHCRC network. 
 
 \subsubsection{Sockets}
