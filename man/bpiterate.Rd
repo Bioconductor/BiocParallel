@@ -46,8 +46,21 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
     Currently only MulticoreParam is supported for \code{bpiterate}.}
 
-  \item{\dots}{Additional named arguments for \code{FUN}.}
+  \item{\dots}{Arguments to other methods, specifically named 
+    arguments for \code{FUN}, or \code{REDUCE} or \code{init}.
 
+    \itemize{
+      \item{\code{REDUCE}: } Optional function that combines
+        (reduces) output from \code{FUN}. As each worker returns,
+        the data are combined with the \code{REDUCE} function.
+        \code{REDUCE} takes 2 arguments; one is the current
+        result and the other is the output of \code{FUN} from
+        a worker that just finished.
+
+      \item{\code{init}: } Optional initial value for \code{REDUCE};
+        must be of the same type as the object returned from \code{FUN}.
+    }
+  }
 }
 
 \details{
@@ -69,7 +82,9 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 }
 
-\value{A \code{list} of output type specified by \code{FUN}.}
+\value{A \code{list} of output type specified by \code{FUN}. When
+  \code{REDUCE} is supplied the list is of length 1.
+}
 
 \author{
   Valerie Obenchain \url{mailto:vobencha@fhcrc.org}.
@@ -95,7 +110,7 @@ if (all(require(Rsamtools) &&
         require(ShortRead))) {
 
 ### ----------------------------------------------------------------------
-### Parallel iteration through a BAM file
+### Iterating through a BAM file
 ### ----------------------------------------------------------------------
 
 ## Select a single file and set 'yieldSize' in the BamFile object.
@@ -141,7 +156,7 @@ length(res)
 colSums(do.call(rbind, res))
 
 ### ----------------------------------------------------------------------
-### Parallel iteration through a FASTA file
+### Iterating through a FASTA file
 ### ----------------------------------------------------------------------
 
 ## Set data chunk size with 'n' in the FastqStreamer object.
@@ -177,6 +192,14 @@ summary <- function(reads, ...) {
 
 bpparam <- MulticoreParam(workers = 2) 
 bpiterate(ITER, summary, BPPARAM = bpparam)
+
+
+## Results from the workers are combined on the fly when a 
+## REDUCE function is provided. Collapsing the data in this 
+## way can substantially reduce memory requirements.
+fqs <- FastqStreamer(fl, n = 100)
+bpiterate(fastqIterator(fqs), summary, BPPARAM = bpparam, 
+          REDUCE = merge, all = TRUE)
 
 ## ----------------------------------------------------------------------
 ## Multiple files
