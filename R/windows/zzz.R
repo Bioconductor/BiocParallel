@@ -1,12 +1,15 @@
 mclapply <- parallel::mclapply
 
-.bpiterate <- function(ITER, FUN, ...)
+.bpiterate <- function(ITER, FUN, ..., REDUCE)
 {
     res <- list()
     while (!is.null(dat <- ITER()))
         res <- c(res, FUN(dat, ...))
 
-    res
+    if (!missing(REDUCE))
+        REDUCE(res, ...)
+    else
+        res
 }
 
 isChild <- function() {
