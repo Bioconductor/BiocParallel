@@ -1,7 +1,7 @@
 ## This multi-core implementation of bpiterate() is a modified
 ## version of sclapply() by Gregoire Pau.
 
-.bpiterate <- function(ITER, FUN, ...,
+.bpiterate <- function(ITER, FUN, ..., REDUCE, init,
     mc.set.seed = TRUE, mc.silent = FALSE, 
     mc.cores = getOption("mc.cores", 2L),
     mc.cleanup = TRUE)
@@ -18,7 +18,7 @@
     ## start scheduler
     collect.timeout <- 2 ## 2 seconds wait between each iteration
     inextdata <- NULL
-    i <- 0
+    i <- 0; first <- TRUE 
     repeat {
         ## is there a new job to process?
         if (is.null(inextdata)) inextdata <- ITER()
@@ -30,18 +30,27 @@
 
         ## fire FUN(inextdata) on node i
         repeat {
-            i <- (i %% length(pnodes))+1
+            i <- (i %% length(pnodes)) + 1L
             process <- pnodes[[i]]
             if (!is.null(process)) {
               ## wait collect.timeout seconds        
-              status <- mccollect(process, wait=FALSE, timeout=collect.timeout) 
+              status <- mccollect(process, wait=FALSE, timeout=collect.timeout)
               if (is.null(status)) {
                 ## node busy
                 fire <- FALSE
               } else {
-                ## node done: save results and fire a new job
+                ## node done: save and / or reduce results
                 mccollect(process) ## kill job
-                rjobs[jnodes[i]] <- status
+                if (missing(REDUCE))
+                    rjobs[jnodes[i]] <- status
+                else if (first) {
+                    if (missing(init))
+                        rjobs <- unlist(status)
+                    else
+                        rjobs <- REDUCE(init, unlist(status), ...)
+                    first <- FALSE
+                } else
+                    rjobs <- REDUCE(rjobs, unlist(status), ...)
                 sjobs[jnodes[i]] <- "done"
               }
             } else {
@@ -64,5 +73,8 @@
         }
     }
 
-    rjobs
+    if (missing(REDUCE))
+        rjobs
+    else
+        list(rjobs)
 }

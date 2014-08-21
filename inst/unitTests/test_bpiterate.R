@@ -41,3 +41,21 @@ test_bpiterate_Params <- function()
     closeAllConnections()
     TRUE
 }
+
+test_bpiterate_REDUCE <- function() {
+    workers <- 3
+    FUN <- function(count, ...) rep(count, 10)
+    param <- MulticoreParam(workers)
+
+    ITER <- .lazyCount(workers)
+    result <- bpiterate(ITER, FUN, BPPARAM=param)
+    checkTrue(length(result) == 3L)
+    expected <- list(rep(1L, 10), rep(2L, 10), rep(3L, 10))
+    checkIdentical(expected, result)
+
+    ITER <- .lazyCount(workers)
+    result <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=`+`)
+    checkTrue(length(result) == 1L)
+    expected <- list(rep(6L, 10))
+    checkIdentical(expected, result)
+}
