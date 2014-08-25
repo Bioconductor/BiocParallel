@@ -55,7 +55,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
         the data are combined with the \code{REDUCE} function.
         \code{REDUCE} takes 2 arguments; one is the current
         result and the other is the output of \code{FUN} from
-        a worker that just finished.
+        a worker that just finished. Currently not supported
+        on Windows.
 
       \item{\code{init}: } Optional initial value for \code{REDUCE};
         must be of the same type as the object returned from \code{FUN}.
