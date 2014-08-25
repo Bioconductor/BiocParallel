@@ -24,8 +24,8 @@
         if (is.null(inextdata)) inextdata <- ITER()
         ## are all the jobs done?
         if (is.null(inextdata)) {
-          if (length(sjobs)==0) break ## no jobs have been run
-          if (all(sjobs=="done")) break
+            if (length(sjobs)==0) break ## no jobs have been run
+            if (all(sjobs=="done")) break
         }
 
         ## fire FUN(inextdata) on node i
@@ -33,39 +33,41 @@
             i <- (i %% length(pnodes)) + 1L
             process <- pnodes[[i]]
             if (!is.null(process)) {
-              ## wait collect.timeout seconds        
-              status <- mccollect(process, wait=FALSE, timeout=collect.timeout)
-              if (is.null(status)) {
-                ## node busy
-                fire <- FALSE
-              } else {
-                ## node done: save and / or reduce results
-                mccollect(process) ## kill job
-                if (missing(REDUCE))
-                    rjobs[jnodes[i]] <- status
-                else if (first) {
-                    if (missing(init))
-                        rjobs <- unlist(status)
-                    else
-                        rjobs <- REDUCE(init, unlist(status), ...)
-                    first <- FALSE
-                } else
-                    rjobs <- REDUCE(rjobs, unlist(status), ...)
-                sjobs[jnodes[i]] <- "done"
-              }
+                ## wait collect.timeout seconds        
+                status <- mccollect(process, wait=FALSE, 
+                                    timeout=collect.timeout)
+                if (is.null(status)) {
+                    ## node busy
+                    fire <- FALSE
+                } else {
+                    ## node done: save and / or reduce results
+                    mccollect(process) ## kill job
+                    if (missing(REDUCE))
+                        rjobs[jnodes[i]] <- status
+                    else if (first) {
+                        if (missing(init))
+                            rjobs <- unlist(status)
+                        else
+                            rjobs <- REDUCE(init, unlist(status))
+                        first <- FALSE
+                    } else
+                        rjobs <- REDUCE(rjobs, unlist(status))
+                  sjobs[jnodes[i]] <- "done"
+                }
             } else {
-              ## virgin node
-              fire <- TRUE
+                ## virgin node
+                fire <- TRUE
             }
 
             ## fire a new job
             if (fire && !is.null(inextdata)) {
-              jnodes[i] <- length(sjobs)+1
-              sjobs[jnodes[i]] <- "running"
-              pnodes[[i]] <- mcparallel(FUN(inextdata, ..., 
-                                        chunkid=jnodes[i]), mc.set.seed=TRUE)
-              inextdata <- NULL
-              break
+                jnodes[i] <- length(sjobs)+1
+                sjobs[jnodes[i]] <- "running"
+                pnodes[[i]] <- mcparallel(FUN(inextdata, ..., 
+                                          chunkid=jnodes[i]), 
+                                          mc.set.seed=TRUE)
+                inextdata <- NULL
+                break
             }
 
             ## no more jobs
