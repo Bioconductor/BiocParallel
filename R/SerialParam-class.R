@@ -71,11 +71,23 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    ## BPRESUME not used
+    N_GROW <- 100L
+    n <- 0
+    result <- vector("list", n)
+    i <- 0L
+    repeat {
+        if(is.null(dat <- ITER()))
+            break
+        else
+            value <- FUN(dat, ...)
 
-    res <- list()
-    while (!is.null(dat <- ITER()))
-        res <- c(res, FUN(dat, ...))
-
-    res
+        i <- i + 1L
+        if (i > n) {
+            n <- n + N_GROW
+            length(result) <- n
+        }
+        result[[i]] <- value
+    }
+    length(result) <- i
+    result
 })

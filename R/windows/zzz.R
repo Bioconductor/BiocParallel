@@ -1,16 +1,7 @@
 mclapply <- parallel::mclapply
 
-.bpiterate <- function(ITER, FUN, ..., REDUCE)
-{
-    res <- list()
-    while (!is.null(dat <- ITER()))
-        res <- c(res, FUN(dat, ...))
-
-    if (!missing(REDUCE))
-        REDUCE(res, ...)
-    else
-        res
-}
+.bpiterate <- function(ITER, FUN, ...)
+    bpiterate(ITER, FUN, ..., BPPARAM=SerialParam())
 
 isChild <- function() {
     FALSE
