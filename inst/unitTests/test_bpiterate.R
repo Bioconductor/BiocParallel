@@ -53,9 +53,11 @@ test_bpiterate_REDUCE <- function() {
     expected <- list(rep(1L, 10), rep(2L, 10), rep(3L, 10))
     checkIdentical(expected, result)
 
-    ITER <- .lazyCount(workers)
-    result <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=`+`)
-    checkTrue(length(result) == 1L)
-    expected <- list(rep(6L, 10))
-    checkIdentical(expected, result)
+    if (.Platform$OS.type != "windows") {
+        ITER <- .lazyCount(workers)
+        result <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=`+`)
+        checkTrue(length(result) == 1L)
+        expected <- list(rep(6L, 10))
+        checkIdentical(expected, result)
+    }
 }
