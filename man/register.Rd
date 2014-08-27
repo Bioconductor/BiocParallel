@@ -9,7 +9,7 @@
 
   Use functions on this page to add to or query a registry of back-ends,
   including the default for use when no \code{BPPARAM} object is
-  provided to functions..
+  provided to functions.
 
 }
 
@@ -43,18 +43,26 @@ bpparam(bpparamClass)
 
 \details{
 
-  Registering a back-end provides a configuration for parallel
-  evaluation. Only one instance of a particular \code{BiocParallelParam}
-  class present in the registry. Except when \code{default=FALSE}, the
-  most recently registered \code{BiocParallelParam} instance becomes the
-  default for subsequent parallel evaluation.
+  The registry is a list of back-ends with configuration parameters 
+  for parallel evaluation. The first list entry is the default and is 
+  used by \code{BiocParallel} functions when no \code{BPPARAM} argument 
+  is supplied.
 
-  \code{bpparam()} Select the \code{\link{BiocParallelParam}} instance
-  to use. For value \code{bpparamClass}, consult first global options,
+  By default, the registry includes \code{MulticoreParam},
+  \code{SnowParam}, \code{BatchJobsParam} and \code{SerialParam}.
+  The act of `registering` a back-end modifies the existing
+  \code{\link{BiocParallelParam}} in the list; only one param of each 
+  type can be present in the registry. When \code{default=TRUE}, the 
+  newly registered param is moved to the top of the list thereby making 
+  it the default. When \code{default=FALSE}, the param is modified 
+  `in place` vs being moved to the top.
+
+  \code{bpparam()}, invoked with no arguments, returns the default 
+  \code{\link{BiocParallelParam}} instance from the registry.
+  When called with the text name of a \code{bpparamClass}, the 
+  global options are consulted first,
   e.g., \code{options(MulticoreParam=MulticoreParam())} and then the
-  value of \code{registered(bpparamClass)}. If \code{bpparamClass} is
-  missing, use \code{name <- names(registered())[1]}.
-
+  value of \code{registered(bpparamClass)}.
 
 }
 
@@ -80,9 +88,54 @@ bpparam(bpparamClass)
 }
 
 \examples{
+
+## ----------------------------------------------------------------------
+## The registry 
+## ----------------------------------------------------------------------
+
+## The full registry.
 registered()
-bpparam()                               # default: registered()[[1]]
-bpparam("SnowParam")                    # registered SnowParam
+
+## When default = TRUE the last param registered becomes the new default.
+snowparam <- SnowParam(workers = 3, type = "MPI")
+register(snowparam, default = TRUE)
+registered()
+
+## Retrieve the default back-end,
+bpparam()
+
+## or a specific BiocParallelParam.
+bpparam("MulticoreParam")
+
+## ----------------------------------------------------------------------
+## Specifying a back-end for evaluation
+## ----------------------------------------------------------------------
+
+## The back-end of choice is specified in the BPPARAM argument to
+## the BiocParallel functions. None, one, or multiple back-ends can be
+## provided.
+
+## BPPARAM not specified:
+## The default back-end from the registry is used.
+bplapply(1:6, sqrt)
+
+## BPPARAM as a single param:
+bplapply(1:6, sqrt, BPPARAM = MulticoreParam(3))
+
+\dontrun{
+## TODO: recursion problem
+
+## BPPARAM as a list of params:
+## Useful for multiple levels of parallel evaluation. The 1:6 are divided
+## among Snow workers, each of which dispatch to Multicore workers.
+myfun <- function(x, BPPARAM, ...) {
+  library(BiocParallel)
+  res <- bplapply(x, sqrt, BPPARAM = BPPARAM)
+  do.call(mean, res)
+}
+params <- list(bpparam("SnowParam"), bpparam("MulticoreParam"))
+bplapply(list(1:2, 3:4, 5:6), myfun, BPPARAM = params)
+}
 }
 
 \keyword{manip}

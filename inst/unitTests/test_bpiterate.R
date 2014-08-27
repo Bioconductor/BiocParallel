@@ -60,4 +60,7 @@ test_bpiterate_REDUCE <- function() {
         expected <- list(rep(6L, 10))
         checkIdentical(expected, result)
     }
+
+    closeAllConnections()
+    TRUE
 }
