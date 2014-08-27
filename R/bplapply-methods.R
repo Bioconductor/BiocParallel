@@ -18,7 +18,7 @@ setMethod(bplapply, c("ANY", "list"),
     function(X, FUN, ..., BPPARAM=bpparam())
 {
     if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
-        stop("All elements in 'BPPARAM' must be BicoParallelParam objects")
+        stop("All elements in 'BPPARAM' must be BiocParallelParam objects")
     if (length(BPPARAM) == 0L)
         stop("'length(BPPARAM)' must be > 0")
     myFUN <- if (length(BPPARAM) > 1L)

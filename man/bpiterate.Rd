@@ -110,9 +110,9 @@ if (all(require(Rsamtools) &&
         require(GenomicAlignments) &&
         require(ShortRead))) {
 
-  ### ----------------------------------------------------------------------
-  ### Iterating through a BAM file
-  ### ----------------------------------------------------------------------
+  ## ----------------------------------------------------------------------
+  ## Iterating through a BAM file
+  ## ----------------------------------------------------------------------
   
   ## Select a single file and set 'yieldSize' in the BamFile object.
   fl <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]]
@@ -146,19 +146,17 @@ if (all(require(Rsamtools) &&
   counter <- function(reads, ...) {
       countOverlaps(roi, subject = reads)
   }
-  cat("start")
   ## Create a MulticoreParam and call bpiterate().
   bpparam <- MulticoreParam(workers = 2) 
   res <- bpiterate(ITER, counter, BPPARAM = bpparam)
-  cat("stop")
   
   ## The result length is the same as the number of data chunks.
   length(res)
   colSums(do.call(rbind, res))
   
-  ### ----------------------------------------------------------------------
-  ### Iterating through a FASTA file
-  ### ----------------------------------------------------------------------
+  ## ----------------------------------------------------------------------
+  ## Iterating through a FASTA file
+  ## ----------------------------------------------------------------------
   
   ## Set data chunk size with 'n' in the FastqStreamer object.
   sp <- SolexaPath(system.file('extdata', package = 'ShortRead'))
