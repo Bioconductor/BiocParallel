@@ -97,7 +97,7 @@ bpparam(bpparamClass)
 registered()
 
 ## When default = TRUE the last param registered becomes the new default.
-snowparam <- SnowParam(workers = 3, type = "MPI")
+snowparam <- SnowParam(workers = 3, type = "PSOCK")
 register(snowparam, default = TRUE)
 registered()
 
