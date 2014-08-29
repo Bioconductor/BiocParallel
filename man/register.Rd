@@ -122,9 +122,6 @@ bplapply(1:6, sqrt)
 ## BPPARAM as a single param:
 bplapply(1:6, sqrt, BPPARAM = MulticoreParam(3))
 
-\dontrun{
-## TODO: recursion problem
-
 ## BPPARAM as a list of params:
 ## Useful for multiple levels of parallel evaluation. The 1:6 are divided
 ## among Snow workers, each of which dispatch to Multicore workers.
@@ -135,7 +132,6 @@ myfun <- function(x, BPPARAM, ...) {
 }
 params <- list(bpparam("SnowParam"), bpparam("MulticoreParam"))
 bplapply(list(1:2, 3:4, 5:6), myfun, BPPARAM = params)
-}
 }
 
 \keyword{manip}
