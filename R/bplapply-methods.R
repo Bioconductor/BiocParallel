@@ -17,6 +17,7 @@ setMethod(bplapply, c("ANY", "BiocParallelParam"),
 setMethod(bplapply, c("ANY", "list"),
     function(X, FUN, ..., BPPARAM=bpparam())
 {
+    FUN <- match.fun(FUN)
     if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
         stop("All elements in 'BPPARAM' must be BiocParallelParam objects")
     if (length(BPPARAM) == 0L)
