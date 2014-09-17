@@ -78,7 +78,7 @@ setMethod(bpschedule, "MulticoreParam",
 ## evaluation
 setMethod(bplapply, c("ANY", "MulticoreParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM=bpparam())
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     ## recall on subset of input data
@@ -93,11 +93,13 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     ## always wrap in a try: this is the only way to throw an error for the user
     FUN <- .composeTry(FUN)
 
+    .traceStart(BPTRACE)
     results <- mclapply(X=X, FUN=FUN, ...,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
 
+    .traceCheckErrors(BPTRACE)
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error)) {
         if (BPPARAM$catch.errors)
@@ -105,13 +107,15 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
                 throw.error=TRUE)
         stop(as.character(results[[head(which(is.error), 1L)]]))
     }
+    .traceComplete(BPTRACE)
 
     results
 })
 
 setMethod(bpmapply, c("ANY", "MulticoreParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     ## recall on subset of input data
@@ -140,6 +144,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
       .mapply(.FUN, dots, .MoreArgs)[[1L]]
     })
 
+    .traceStart(BPTRACE)
     results <- mclapply(X=seq_along(ddd[[1L]]), FUN=wrap,
         .FUN=FUN, .ddd=ddd, .MoreArgs=MoreArgs,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
@@ -147,6 +152,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
     results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
 
+    .traceCheckErrors(BPTRACE)
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error)) {
         if (BPPARAM$catch.errors)
@@ -154,6 +160,7 @@ setMethod(bpmapply, c("ANY", "MulticoreParam"),
                 throw.error=TRUE)
         stop(as.character(results[[head(which(is.error), 1L)]]))
     }
+    .traceComplete(BPTRACE)
 
     .simplify(results, SIMPLIFY=SIMPLIFY)
 })

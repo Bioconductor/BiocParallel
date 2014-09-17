@@ -24,17 +24,17 @@
 \usage{
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+    BPTRACE=TRUE, BPPARAM=bpparam())
 
 \S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+    BPTRACE=TRUE, BPPARAM=bpparam())
 \S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+    BPTRACE=TRUE, BPPARAM=bpparam())
 \S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+    BPTRACE=TRUE, BPPARAM=bpparam())
 
 }
 
@@ -59,6 +59,10 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
   \item{BPRESUME}{Flag to determine if a previous partially successful run
     should be resumed.  See \code{\link{bpresume}} for details.}
+
+  \item{BPTRACE}{When TRUE, log messages are output to stdout. Logging
+    is done with the \code{futile.logger} package and on the master only
+    (similar to a `verbose` functionality).}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
