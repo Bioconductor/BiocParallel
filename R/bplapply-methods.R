@@ -1,6 +1,6 @@
 setMethod(bplapply, c("ANY", "missing"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM=bpparam())
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPPARAM=BPPARAM)
@@ -8,10 +8,10 @@ setMethod(bplapply, c("ANY", "missing"),
 
 setMethod(bplapply, c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPPARAM=bpparam())
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE,
-        BPRESUME=BPRESUME, BPPARAM=BPPARAM)
+        BPRESUME=BPRESUME, BPTRACE=BPTRACE, BPPARAM=BPPARAM)
 })
 
 setMethod(bplapply, c("ANY", "list"),

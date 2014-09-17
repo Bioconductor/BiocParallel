@@ -37,7 +37,9 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
   \item{FUN}{
     A function to process the object returned by \code{ITER};
-    run on parallel workers separate from the master.}
+    run on parallel workers separate from the master. When
+    BPPARAM is a MulticoreParam, FUN is `decorated` with additional
+    arguments and therefore must have \dots in the signature.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a

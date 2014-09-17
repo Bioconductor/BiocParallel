@@ -17,21 +17,25 @@ setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
 setMethod(bplapply, c("ANY", "SerialParam"),
     function(X, FUN, ...,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {
         return(.bpresume_lapply(X=X, FUN=FUN, ..., BPPARAM=BPPARAM))
     }
 
+    .traceStart(BPTRACE)
     if (BPPARAM$catch.errors) {
         FUN <- .composeTry(FUN)
         results <- lapply(X, FUN, ...)
 
+        .traceCheckErrors(BPTRACE)
         is.error <- vapply(results, inherits, logical(1L), what="remote-error")
         if (any(is.error))
             LastError$store(results=results, is.error=is.error,
                 throw.error=TRUE)
+        .traceComplete(BPTRACE)
         return(results)
     }
 
@@ -40,7 +44,8 @@ setMethod(bplapply, c("ANY", "SerialParam"),
 
 setMethod(bpmapply, c("ANY", "SerialParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
+        BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {
@@ -49,17 +54,20 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
         return(results)
     }
 
+    .traceStart(BPTRACE)
     if (BPPARAM$catch.errors) {
         FUN <- .composeTry(FUN)
         results <- mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE,
             USE.NAMES=USE.NAMES)
 
+        .traceCheckErrors(BPTRACE)
         is.error <- vapply(results, inherits, logical(1L),
                            what="remote-error")
         if (any(is.error))
             LastError$store(results=results, is.error=is.error,
                             throw.error=TRUE)
 
+        .traceComplete(BPTRACE)
         return(.simplify(results, SIMPLIFY=SIMPLIFY))
     }
 
