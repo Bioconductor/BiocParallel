@@ -13,6 +13,7 @@ Description: This package provides modified versions and novel
     use with Bioconductor objects.
 biocViews: Infrastructure
 License: GPL-2 | GPL-3
+Depends: futile.logger
 Imports: methods, parallel, foreach, tools, BatchJobs, BBmisc, BiocGenerics
 Suggests: doParallel, snow, Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14, 
     Rsamtools, GenomicAlignments, ShortRead, RUnit, BiocStyle, knitr
