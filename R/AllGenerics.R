@@ -1,6 +1,6 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPTRACE=FALSE, BPPARAM=bpparam())
+        BPTRACE=TRUE, BPPARAM=bpparam())
     standardGeneric("bplapply"))
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
