@@ -48,9 +48,7 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
   \item{BPRESUME}{Flag to determine if a previous partially successful run
       should be resumed.  See \code{\link{bpresume}} for details.}
 
-  \item{BPTRACE}{When TRUE, log messages are output to stdout. Logging
-    is done with the \code{futile.logger} package and on the master only
-    (similar to a `verbose` functionality).}
+  \item{BPTRACE}{Currently disabled.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a
