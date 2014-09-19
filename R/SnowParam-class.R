@@ -132,14 +132,11 @@ setMethod(bpmapply, c("ANY", "SnowParam"),
 
     if (BPPARAM$catch.errors)
         FUN <- .composeTry(FUN)
-    .traceStart(BPTRACE)
     results <- clusterMap(cl=bpbackend(BPPARAM), fun=FUN, ...,
         MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
-    .traceCheckErrors(BPTRACE)
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error))
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-    .traceComplete(BPTRACE)
 
     .simplify(results, SIMPLIFY=SIMPLIFY)
 })

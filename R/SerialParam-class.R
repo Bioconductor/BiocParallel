@@ -25,17 +25,14 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         return(.bpresume_lapply(X=X, FUN=FUN, ..., BPPARAM=BPPARAM))
     }
 
-    .traceStart(BPTRACE)
     if (BPPARAM$catch.errors) {
         FUN <- .composeTry(FUN)
         results <- lapply(X, FUN, ...)
 
-        .traceCheckErrors(BPTRACE)
         is.error <- vapply(results, inherits, logical(1L), what="remote-error")
         if (any(is.error))
             LastError$store(results=results, is.error=is.error,
                 throw.error=TRUE)
-        .traceComplete(BPTRACE)
         return(results)
     }
 
@@ -54,20 +51,17 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
         return(results)
     }
 
-    .traceStart(BPTRACE)
     if (BPPARAM$catch.errors) {
         FUN <- .composeTry(FUN)
         results <- mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=FALSE,
             USE.NAMES=USE.NAMES)
 
-        .traceCheckErrors(BPTRACE)
         is.error <- vapply(results, inherits, logical(1L),
                            what="remote-error")
         if (any(is.error))
             LastError$store(results=results, is.error=is.error,
                             throw.error=TRUE)
 
-        .traceComplete(BPTRACE)
         return(.simplify(results, SIMPLIFY=SIMPLIFY))
     }
 

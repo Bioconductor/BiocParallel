@@ -45,7 +45,6 @@ mclapply <- function(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
         return(lapply(X = X, FUN = FUN, ...))
 
     if(mc.set.seed) mc.reset.stream()
-
     jobs <- list()
     on.exit(.cleanup(jobs, mc.cleanup))
 
