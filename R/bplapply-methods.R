@@ -3,7 +3,7 @@ setMethod(bplapply, c("ANY", "missing"),
         BPTRACE=TRUE, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPPARAM=BPPARAM)
+    bplapply(X, FUN, ..., BPRESUME=BPRESUME, BPTRACE=BPTRACE, BPPARAM=BPPARAM)
 })
 
 setMethod(bplapply, c("ANY", "BiocParallelParam"),

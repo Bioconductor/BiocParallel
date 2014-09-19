@@ -36,10 +36,9 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
 }
 
 \arguments{
-  \item{X}{
-    Any object for which methods \code{length}, \code{[}, and \code{[[}
-    are implemented.
-  }
+
+  \item{X}{Any object for which methods \code{length}, \code{[}, and 
+    \code{[[} are implemented.}
 
   \item{FUN}{The \code{function} to be applied to each element of \code{X}.}
 
