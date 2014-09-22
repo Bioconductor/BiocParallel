@@ -2,29 +2,34 @@
 ## version of sclapply() by Gregoire Pau.
 
 .bpiterate <- function(ITER, FUN, ..., REDUCE, init,
-    mc.set.seed = TRUE, mc.silent = FALSE, 
+    reduce.in.order = FALSE, mc.set.seed = TRUE, mc.silent = FALSE, 
     mc.cores = getOption("mc.cores", 2L),
     mc.cleanup = TRUE)
 {
-    ## initialize scheduler
-    sjobs <- character(0)                   ## jobs (state)
-    rjobs <- list()                         ## jobs (result)
-    pnodes <- vector(mode="list", mc.cores) ## nodes (process)
-    jnodes <- rep(NA, mc.cores)             ## nodes (job id)
+    if (!missing(init) && !reduce.in.order) {
+        warning("'reduce.in.order' is set to TRUE when 'init' is provided")
+        reduce.in.order <- TRUE
+    }
 
-    ## cleanup procedure, based on mclapply
+    ## initialize
+    sjobs <- character()                    ## job state
+    rjobs <- list()                         ## job result
+    pnodes <- vector(mode="list", mc.cores) ## node process
+    jnodes <- rep(NA, mc.cores)             ## node job id
+    rindex <- 1                             ## reducer index
+    if (!missing(REDUCE) & !missing(init)) res <- init
+
+    ## cleanup based on mclapply
     on.exit(.cleanup(pnodes[!sapply(pnodes, is.null)], mc.cleanup))
 
-    ## start scheduler
-    collect.timeout <- 2 ## 2 seconds wait between each iteration
-    inextdata <- NULL
-    i <- 0; first <- TRUE 
+    collect.timeout <- 2                    ## wait between iterations
+    i <- 0; inextdata <- NULL
     repeat {
-        ## is there a new job to process?
+        ## new job to process?
         if (is.null(inextdata)) inextdata <- ITER()
-        ## are all the jobs done?
+        ## all jobs done?
         if (is.null(inextdata)) {
-            if (length(sjobs)==0) break ## no jobs have been run
+            if (length(sjobs)==0) break     ## no jobs have been run
             if (all(sjobs=="done")) break
         }
 
@@ -33,26 +38,52 @@
             i <- (i %% length(pnodes)) + 1L
             process <- pnodes[[i]]
             if (!is.null(process)) {
-                ## wait collect.timeout seconds        
                 status <- mccollect(process, wait=FALSE, 
                                     timeout=collect.timeout)
                 if (is.null(status)) {
                     ## node busy
                     fire <- FALSE
                 } else {
-                    ## node done: save and / or reduce results
-                    mccollect(process) ## kill job
-                    if (missing(REDUCE))
-                        rjobs[jnodes[i]] <- status
-                    else if (first) {
-                        if (missing(init))
-                            rjobs <- unlist(status)
+                    ## node done
+                    mccollect(process)      ## kill
+                    jindex <- jnodes[i]
+                    rjobs[jindex] <- status
+                    sjobs[jindex] <- "done"
+
+                    ## reduce.in.order = TRUE
+                    if (!missing(REDUCE) && reduce.in.order) {
+                        if (jindex == 1) {
+                            if (!missing(init))
+                                res <- REDUCE(init, unlist(rjobs[jindex]))
+                            else
+                                res <- unlist(rjobs[jindex])
+                            rjobs[jindex] <- NA
+                            rindex <- rindex + 1 
+                            while (sjobs[rindex] == "done") {
+                                res <- REDUCE(res, unlist(rjobs[rindex]))
+                                rjobs[rindex] <- NA 
+                                if (rindex == length(sjobs))
+                                    break
+                                else
+                                    rindex <- rindex + 1
+                            }
+                        } else if (jindex == rindex) { 
+                            while (sjobs[rindex] == "done") {
+                                res <- REDUCE(res, unlist(rjobs[rindex]))
+                                rjobs[rindex] <- NA
+                                if (rindex == length(sjobs))
+                                    break
+                                else
+                                    rindex <- rindex + 1
+                            }
+                        }
+                    ## reduce.in.order = FALSE 
+                    } else if (!missing(REDUCE) && !reduce.in.order) {
+                        if (exists("res"))
+                            res <- REDUCE(res, unlist(status))
                         else
-                            rjobs <- REDUCE(init, unlist(status))
-                        first <- FALSE
-                    } else
-                        rjobs <- REDUCE(rjobs, unlist(status))
-                  sjobs[jnodes[i]] <- "done"
+                            res <- unlist(status)
+                    }
                 }
             } else {
                 ## virgin node
@@ -78,5 +109,5 @@
     if (missing(REDUCE))
         rjobs
     else
-        list(rjobs)
+        list(res)
 }

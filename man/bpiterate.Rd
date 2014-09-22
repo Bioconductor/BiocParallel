@@ -62,6 +62,11 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
       \item{\code{init}: } Optional initial value for \code{REDUCE};
         must be of the same type as the object returned from \code{FUN}.
+        When supplied, \code{reduce.in.order} is set to TRUE.
+
+      \item{\code{reduce.in.order}: } Logical. When TRUE, REDUCE
+        is applied to the results from the workers in the same order 
+        the tasks were sent out.
     }
   }
 }
