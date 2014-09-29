@@ -68,7 +68,9 @@ bplasterror <-
 .convertToSimpleError <-
     function(x)
 {
-    if (!is(x, "simpleError"))
+    if (is.null(x))
+        simpleError(NA_character_)
+    else if (!is(x, "simpleError"))
         simpleError(as.character(x))
     else x
 }
