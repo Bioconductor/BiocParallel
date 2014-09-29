@@ -2,7 +2,7 @@ multicoreWorkers <- function() {
     cores <- if (.Platform$OS.type == "windows")
         1
     else
-        detectCores()
+        min(8L, detectCores())
     getOption("mc.cores", cores)
 }
 

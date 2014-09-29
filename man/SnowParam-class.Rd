@@ -7,6 +7,8 @@
 \alias{coerce,SOCKcluster,SnowParam-method}
 \alias{coerce,spawnedMPIcluster,SnowParam-method}
 
+\alias{snowWorkers}
+
 \alias{bpbackend,SnowParam-method}
 \alias{bpbackend<-,SnowParam,cluster-method}
 
@@ -24,16 +26,21 @@
 
   This class is used to parameterize simple network of workstations
   (SNOW) parallel evaluation on one or several physical computers.
+  \code{snowWorkers()} chooses the number of workers based on global
+  user preference (\code{options(mc.cores=...)}), or the minimum of 8
+  and the number of dectected cores (\code{detectCores()}).
 
 }
 
 \usage{
-SnowParam(workers = 0L, type=c("SOCK", "PSOCK", "FORK", "MPI"),
+SnowParam(workers = snowWorkers(), type=c("SOCK", "PSOCK", "FORK", "MPI"),
     catch.errors = TRUE, ...)
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
 \S4method{coerce}{spawnedMPIcluster,SnowParam}(from, to)
+
+snowWorkers()
 }
 
 \arguments{
@@ -103,6 +110,7 @@ SnowParam(workers = 0L, type=c("SOCK", "PSOCK", "FORK", "MPI"),
 }
 
 \examples{
+snowWorkers()
 p <- SnowParam(2L)
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
