@@ -49,8 +49,14 @@ bpparam(bpparamClass)
   is supplied.
 
   By default, the registry includes \code{MulticoreParam},
-  \code{SnowParam}, \code{BatchJobsParam} and \code{SerialParam}.
-  The act of `registering` a back-end modifies the existing
+  \code{SnowParam}, \code{BatchJobsParam} and \code{SerialParam}.  The
+  objects are constructed from global options of the corresponding name,
+  or from the default constructor (e.g., \code{SnowParam()}) if no
+  option is specified. The user can set customizations during start-up
+  (e.g., in an \code{.Rprofile} file) with, for instance,
+  \code{options(MulticoreParam=quote(MulticoreParam(workers=8)))}.
+
+  The act of \dQuote{registering} a back-end modifies the existing
   \code{\link{BiocParallelParam}} in the list; only one param of each 
   type can be present in the registry. When \code{default=TRUE}, the 
   newly registered param is moved to the top of the list thereby making 

@@ -22,8 +22,8 @@
   This class is used to parameterize single computer multicore parallel
   evaluation on non-Windows computers. \code{multicoreWorkers()} chooses
   the number of workers based on operating system (Windows only supports
-  1 core), global user preference (\code{options(mc.cores=...)}), or
-  number of detected cores (\code{detectCores()}).
+  1 core), global user preference (\code{options(mc.cores=...)}), or the
+  minimum of 8 and the number of detected cores (\code{detectCores()}).
 
 }
 
@@ -104,6 +104,7 @@ multicoreWorkers()
 }
 
 \examples{
+multicoreWorkers()
 p <- MulticoreParam()
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
