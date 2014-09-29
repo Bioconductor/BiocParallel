@@ -2,6 +2,11 @@
 ## parallel::stopCluster and then library(snow) overwrites
 ## parallel::stopCluster.default with snow::stopCluster.default,
 ## resulting in incorrect dispatch to snow::sendData
+snowWorkers <- function() {
+    cores <- min(8L, detectCores())
+    getOption("mc.cores", cores)
+}
+
 stopCluster <- parallel::stopCluster
 
 setOldClass(c("NULLcluster", "cluster"))
@@ -27,7 +32,7 @@ setOldClass(c("NULLcluster", "cluster"))
       }))
 
 SnowParam <-
-    function(workers=0L, type=c("SOCK", "PSOCK", "FORK", "MPI"),
+    function(workers=snowWorkers(), type=c("SOCK", "PSOCK", "FORK", "MPI"),
              catch.errors=TRUE, ...)
 {
     if (missing(type))

@@ -107,6 +107,13 @@ evaluation. The default is the top entry of the registry list.
 <<quickstart_registry>>=
 registered()
 @
+%% 
+Configure your R session to always use a particular back-end configure
+by setting options named after the back ends in an \Rcode{.Rprofile}
+file, e.g.,
+<<configure_registry, eval=FALSE>>=
+options(MulticoreParam=quote(MulticoreParam(workers=4)))
+@ 
 
 When a \BiocParallel{} function is invoked with no \Rcode{BPPARAM} 
 argument the default back-end is used.
