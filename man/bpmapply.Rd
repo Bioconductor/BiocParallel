@@ -23,18 +23,16 @@
 
 \usage{
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPTRACE=TRUE, BPPARAM=bpparam())
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 
 \S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPTRACE=TRUE, BPPARAM=bpparam())
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+
 \S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPTRACE=TRUE, BPPARAM=bpparam())
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+
 \S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPTRACE=TRUE, BPPARAM=bpparam())
+    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 
 }
 
@@ -59,8 +57,6 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
   \item{BPRESUME}{Flag to determine if a previous partially successful run
     should be resumed.  See \code{\link{bpresume}} for details.}
-
-  \item{BPTRACE}{Currently disabled.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.}
