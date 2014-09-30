@@ -17,8 +17,7 @@ setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
 setMethod(bplapply, c("ANY", "SerialParam"),
     function(X, FUN, ...,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
-        BPTRACE=TRUE, BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {
@@ -41,8 +40,7 @@ setMethod(bplapply, c("ANY", "SerialParam"),
 
 setMethod(bpmapply, c("ANY", "SerialParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
-        BPTRACE=TRUE, BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME) {

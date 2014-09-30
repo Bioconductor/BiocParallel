@@ -59,15 +59,3 @@
 
   return(ddd)
 }
-
-## trace functions
-
-.traceStart <- function(BPTRACE) 
-    if (BPTRACE) flog.info("computing ...")
-
-.traceCheckErrors<- function(BPTRACE) 
-    if (BPTRACE) flog.info("checking for errors")
-
-.traceComplete<- function(BPTRACE) 
-    if (BPTRACE) flog.info("computation complete")
- 
