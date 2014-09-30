@@ -1,12 +1,11 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPTRACE=TRUE, BPPARAM=bpparam())
+        BPPARAM=bpparam())
     standardGeneric("bplapply"))
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-        BPTRACE=TRUE, BPPARAM=bpparam())
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
     standardGeneric("bpmapply"))
 
 setGeneric("bpiterate", signature=c("ITER", "FUN", "BPPARAM"),
