@@ -1,0 +1,36 @@
+CHANGES IN VERSION 1.0.0
+------------------------
+
+NEW FEATURES
+
+    o Add vignette sections for cluster managers, AMI
+
+    o Add bpiterate generic and methods 
+
+    o Add REDUCE to bpiterate()
+
+    o Add 'reduce.in.order' to bpiterate()
+
+
+MODIFICATIONS
+
+    o Update vignette examples, reorganize sections 
+
+    o Allow 'workers' in BiocParallelParam to be character or integer
+
+    o Enhance bpresume() man page; add examples
+
+    o Enhance register() man page; add examples
+
+    o Improve default registration for SnowParam:
+      - max 8 cores
+      - use detectcores() / mc.cores if available
+
+    o Modify .convertToSimpleError() to convert NULL to NA_character_
+
+
+BUG FIXES
+
+    o Fix recursion problem for BPPARAM as list 
+
+    o Modify bpaggregate() to run in parallel
