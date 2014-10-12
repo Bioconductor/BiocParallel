@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 0.99.25
+Version: 0.99.27
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
@@ -13,8 +13,8 @@ Description: This package provides modified versions and novel
     use with Bioconductor objects.
 biocViews: Infrastructure
 License: GPL-2 | GPL-3
-Depends: futile.logger
-Imports: methods, parallel, foreach, tools, BatchJobs, BBmisc, BiocGenerics
+Depends: methods 
+Imports: parallel, foreach, tools, BatchJobs, BBmisc, BiocGenerics
 Suggests: doParallel, snow, Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14, 
     Rsamtools, GenomicAlignments, ShortRead, RUnit, BiocStyle, knitr
 Collate.unix: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R

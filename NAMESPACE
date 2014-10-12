@@ -2,8 +2,6 @@
 
 import(methods)
 
-import(futile.logger)
-
 importFrom(parallel, detectCores, makeCluster, nextRNGStream,
            splitIndices, clusterMap)
 
