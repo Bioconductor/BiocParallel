@@ -184,7 +184,7 @@ setMethod(bpiterate, c("ANY", "ANY", "MulticoreParam"),
     ITER <- .composeTry(ITER)  ## necessary on master?
     FUN <- .composeTry(FUN)
 
-    results <- .bpiterate(ITER, FUN, ...,
+    results <- .bpiterate_multicore(ITER, FUN, ...,
         mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
         mc.cores=bpworkers(BPPARAM), 
         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
