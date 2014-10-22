@@ -188,7 +188,7 @@ if (all(require(Rsamtools) &&
       }
   }
   
-  ## Initalize the iterator.
+  ## Initialize the iterator.
   ITER <- fastqIterator(fqs)
   
   ## The processor summarizes the number of times each sequence occurs.
