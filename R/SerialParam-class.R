@@ -66,8 +66,7 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
     mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
 })
 
-setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+.bpiterate_serial <- function(ITER, FUN, ..., REDUCE, init)
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
@@ -81,13 +80,25 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
         else
             value <- FUN(dat, ...)
 
-        i <- i + 1L
-        if (i > n) {
-            n <- n + N_GROW
-            length(result) <- n
+        if (missing(REDUCE)) {
+            i <- i + 1L
+            if (i > n) {
+                n <- n + N_GROW
+                length(result) <- n
+            }
+            result[[i]] <- value
+        } else {
+            if (!missing(init) && is.null(result[[1]]))
+                result[[1]] <- init
+            result[[1]] <- REDUCE(result[[1]], unlist(value))
         }
-        result[[i]] <- value
     }
     length(result) <- i
     result
+}
+
+setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+{
+    .bpiterate_serial(ITER, FUN, ...)
 })
