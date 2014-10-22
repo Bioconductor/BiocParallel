@@ -1,7 +1,7 @@
 ## This multi-core implementation of bpiterate() is a modified
 ## version of sclapply() by Gregoire Pau.
 
-.bpiterate <- function(ITER, FUN, ..., REDUCE, init,
+.bpiterate_multicore <- function(ITER, FUN, ..., REDUCE, init,
     reduce.in.order = FALSE, mc.set.seed = TRUE, mc.silent = FALSE, 
     mc.cores = getOption("mc.cores", 2L),
     mc.cleanup = TRUE)
@@ -17,6 +17,7 @@
     pnodes <- vector(mode="list", mc.cores) ## node process
     jnodes <- rep(NA, mc.cores)             ## node job id
     rindex <- 1                             ## reducer index
+    if (exists("res")) rm(res)
     if (!missing(REDUCE) & !missing(init)) res <- init
 
     ## cleanup based on mclapply
