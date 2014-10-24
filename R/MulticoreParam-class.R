@@ -184,10 +184,13 @@ setMethod(bpiterate, c("ANY", "ANY", "MulticoreParam"),
     ITER <- .composeTry(ITER)  ## necessary on master?
     FUN <- .composeTry(FUN)
 
-    results <- .bpiterate_multicore(ITER, FUN, ...,
-        mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
-        mc.cores=bpworkers(BPPARAM), 
-        mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
+    if (.Platform$OS.type == "windows")
+        results <- .bpiterate_serial(ITER, FUN, ...)
+    else
+        results <- .bpiterate_multicore(ITER, FUN, ...,
+            mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
+            mc.cores=bpworkers(BPPARAM), 
+            mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
 
     is.error <- vapply(results, inherits, logical(1L), what="remote-error")
     if (any(is.error)) {
