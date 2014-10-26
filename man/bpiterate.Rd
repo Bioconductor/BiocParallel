@@ -120,11 +120,11 @@ if (all(require(Rsamtools) &&
   ## ----------------------------------------------------------------------
   ## Iterating through a BAM file
   ## ----------------------------------------------------------------------
-  
+ 
   ## Select a single file and set 'yieldSize' in the BamFile object.
   fl <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]]
   bf <- BamFile(fl, yieldSize = 300000) 
-  
+ 
   ## bamIterator() is initalized with a BAM file and returns a function.
   ## The return function requires no arguments and iterates through the
   ## file returning data chunks the size of yieldSize.
@@ -132,7 +132,7 @@ if (all(require(Rsamtools) &&
       done <- FALSE
       if (!isOpen( bf))
           open(bf)
-  
+ 
       function() {
           if (done)
               return(NULL)
@@ -144,10 +144,10 @@ if (all(require(Rsamtools) &&
           } else yld
       }
   }
-  
+ 
   ## Initalize the iterator.
   ITER <- bamIterator(bf)
-  
+ 
   ## Create a FUN that counts reads in a region of interest.
   roi <- GRanges("chr14", IRanges(seq(19e6, 107e6, by = 10e6), width = 10e6))
   counter <- function(reads, ...) {
@@ -156,26 +156,26 @@ if (all(require(Rsamtools) &&
   ## Create a MulticoreParam and call bpiterate().
   bpparam <- MulticoreParam(workers = 2) 
   res <- bpiterate(ITER, counter, BPPARAM = bpparam)
-  
+ 
   ## The result length is the same as the number of data chunks.
   length(res)
   colSums(do.call(rbind, res))
-  
+ 
   ## ----------------------------------------------------------------------
   ## Iterating through a FASTA file
   ## ----------------------------------------------------------------------
-  
+ 
   ## Set data chunk size with 'n' in the FastqStreamer object.
   sp <- SolexaPath(system.file('extdata', package = 'ShortRead'))
   fl <- file.path(analysisPath(sp), "s_1_sequence.txt")
   fqs <- FastqStreamer(fl, n = 100)
-  
+ 
   ## Create an iterator that returns data chunks the size of 'n'.
   fastqIterator <- function(fqs) {
       done <- FALSE
       if (!isOpen(fqs))
           open(fqs)
-  
+ 
       function() {
           if (done)
               return(NULL)
@@ -187,26 +187,25 @@ if (all(require(Rsamtools) &&
           } else yld
       }
   }
-  
+ 
   ## Initialize the iterator.
   ITER <- fastqIterator(fqs)
-  
+ 
   ## The processor summarizes the number of times each sequence occurs.
   summary <- function(reads, ...) {
        tables(reads, n = 0)$distribution
   }
-  
+ 
   bpparam <- MulticoreParam(workers = 2) 
   bpiterate(ITER, summary, BPPARAM = bpparam)
-  
-  
+ 
   ## Results from the workers are combined on the fly when a 
   ## REDUCE function is provided. Collapsing the data in this 
   ## way can substantially reduce memory requirements.
   fqs <- FastqStreamer(fl, n = 100)
-  bpiterate(fastqIterator(fqs), summary, BPPARAM = bpparam, 
-            REDUCE = merge, all = TRUE)
-  
+  ITER <- fastqIterator(fqs)
+  bpiterate(ITER, summary, BPPARAM = bpparam, REDUCE = merge, all = TRUE)
+ 
   ## ----------------------------------------------------------------------
   ## Multiple files
   ## ----------------------------------------------------------------------
@@ -215,31 +214,31 @@ if (all(require(Rsamtools) &&
   ## have enough memory to process multiple files. In this case the
   ## files can be distributed over a snow cluster with bplapply() 
   ## then processed with bpiterate() on each cluster node.
-  
+ 
   ## Select a subset of files, create a BamFileList.
   fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[1:3]
   bfl <- BamFileList(fls, yieldSize = 200000) 
-  
+ 
   ## Cluster size is defined by the number of files.
   snowp <- SnowParam(workers = length(bfl))
-  
-  ## Currently bpiterate() is only supported in the multi-core
-  ## environment and must use MulticoreParam.
+ 
+  ## Currently bpiterate() is only supported in the multi-core environment
+  ## and must use MulticoreParam.
   myFUN <- function(file, bamIterator, counter, ...) {
     ITER <- bamIterator(file)
     bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers = 2), ...)
   }
-  
-  ## Distribute the files to the cluster workers with bplapply().
+ 
+  ## Distribute the files across the snow cluster workers with bplapply().
   ## Each cluster node acts as a master and spawns 2 children.
-  ## Note that 'bamIterator', 'counter' and 'roi' need to be explictly 
-  ## passed as arguments.
+  ## Note that 'bamIterator', 'counter' and 'roi' arguments need to be 
+  ## passed explicitly.
   res <- bplapply(bfl, myFUN, BPPARM = snowp, bamIterator = bamIterator,
                   counter=counter, roi=roi) 
-  
+ 
   ## The result is of length 3 (# of files).
   length(res)
-  
+ 
   ## Each list element is of length 2 (# workers on each node).
   elementLengths(res)
 }
