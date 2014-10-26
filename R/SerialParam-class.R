@@ -73,6 +73,7 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
     N_GROW <- 100L
     n <- 0
     result <- vector("list", n)
+    if (!missing(init)) result[[1]] <- init
     i <- 0L
     repeat {
         if(is.null(dat <- ITER()))
@@ -88,9 +89,10 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
             }
             result[[i]] <- value
         } else {
-            if (!missing(init) && is.null(result[[1]]))
-                result[[1]] <- init
-            result[[1]] <- REDUCE(result[[1]], unlist(value))
+            if (length(result))
+                result[[1]] <- REDUCE(result[[1]], unlist(value), ...)
+            else
+                result[[1]] <- value 
         }
     }
     length(result) <- i

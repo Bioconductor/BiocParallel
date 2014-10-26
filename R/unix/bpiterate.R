@@ -17,7 +17,7 @@
     pnodes <- vector(mode="list", mc.cores) ## node process
     jnodes <- rep(NA, mc.cores)             ## node job id
     rindex <- 1                             ## reducer index
-    if (exists("res")) rm(res)
+    res <- list()
     if (!missing(REDUCE) & !missing(init)) res <- init
 
     ## cleanup based on mclapply
@@ -80,7 +80,7 @@
                         }
                     ## reduce.in.order = FALSE 
                     } else if (!missing(REDUCE) && !reduce.in.order) {
-                        if (exists("res"))
+                        if (length(res))
                             res <- REDUCE(res, unlist(status))
                         else
                             res <- unlist(status)
