@@ -92,10 +92,3 @@ test_bpiterate_REDUCE <- function() {
     closeAllConnections()
     TRUE
 }
-
-    workers <- 3
-    FUN <- function(count, ...) rep(count, 10)
-    param <- MulticoreParam(workers)
-
-
-
