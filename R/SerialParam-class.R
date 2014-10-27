@@ -90,7 +90,7 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
             result[[i]] <- value
         } else {
             if (length(result))
-                result[[1]] <- REDUCE(result[[1]], unlist(value), ...)
+                result[[1]] <- REDUCE(result[[1]], unlist(value))
             else
                 result[[1]] <- value 
         }
