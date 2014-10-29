@@ -48,13 +48,15 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 
 \details{
 
-  When \code{BPPARAM} is an instance of a class derived from
-  \code{BiocParallelParam} for which no other method applies, this
-  method creates a vector of indexes and uses these in conjunction with
-  \code{bplapply} to arrange for parallel evaluation.
+  When \code{BPPARAM} is a \code{MulticoreParam} this method dispatches to the
+  \code{pvec} function from the parallel package. For all other
+  \code{BiocParallelParam}s, this method creates a vector of indices for
+  \code{X} that divide the elements as evenly as possible given the number of
+  workers. Indices and data are passed to \code{bplapply} for parallel
+  evaluation.
 
-  When \code{BPPARAM} is a class for which no method is defined (e.g.,
-  \code{\link{SerialParam}}), \code{FUN(X)} is used.
+  When \code{BPPARAM} is a class for which no method is defined 
+  \code{FUN(X)} is used.
 
   See \code{showMethods{bpvec}} for additional methods, e.g.,
   \code{method?bpvec("MulticoreParam")}.
