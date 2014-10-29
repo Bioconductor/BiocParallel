@@ -14,7 +14,6 @@ Possible TODO
 + subset SnowParam
 + elaborate SnowParam for SnowSocketParam, SnowForkParam, SnowMpiParam, ...
 + MulticoreParam on Windows
-+ Short vignette
 
 DONE
 ----
@@ -23,6 +22,7 @@ DONE
 + Standardize signatures
 + Make functions generics
 + parLapply-like function
++ Short vignette
 
 github notes
 ------------
