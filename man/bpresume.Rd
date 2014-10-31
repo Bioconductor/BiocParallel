@@ -6,7 +6,8 @@
 \title{Resume computation with partial results}
 
 \description{
-   Resume partial successful calls to  \code{\link{bplapply}} or \code{\link{bpmapply}}
+   Resume partial successful calls to  \code{\link{bplapply}} or 
+   \code{\link{bpmapply}}
 }
 
 \usage{
@@ -16,27 +17,36 @@
 
 \arguments{
     \item{expr}{expression}
-        A expression which calls either \code{bplapply} or \code{bpmapply}.
+       A expression which calls either \code{bplapply} or \code{bpmapply}.
 }
 
-\section{Usage}{
+\details{
 
-    The resume mechanism is triggered if the argument
-    \code{catch.errors} of the \code{\link{BiocParallelParam}} class is
-    set to \code{TRUE}.  The methods \code{\link{bplapply}} and
-    \code{\link{bpmapply}} then store the current state of computation.
-    Recalling the call directory with argument \code{BPRESUME} set to
-    \code{TRUE} will then only compute the missing parts of the previous
-    call and merge the results.
+  \itemize{
+    \item{bpresume}{
+      Implemented for \code{bplapply} and \code{bpmapply} only.
 
-    Alternatively, if the call to \code{\link{bplapply}} and
-    \code{\link{bpmapply}} is inside a function not accessible directly
-    by the user, the last call can be embedded into \code{bpresume}
-    which sets an option accordingly to enable the resume feature down
-    in the call stack.
+      The resume mechanism is triggered if the argument \code{catch.errors} of
+      the \code{\link{BiocParallelParam}} class is set to \code{TRUE}.  The
+      \code{\link{bplapply}} and \code{\link{bpmapply}} methods store the
+      current state of computation marking which jobs were successful and which
+      returned an error.
 
-    The function \code{bplasterror} returns a \code{LastError} object
-    containing the partial results and errors to investigate.
+      There are two approaches to re-computing jobs that returned errors. The
+      first is to set \code{BPRESUME=TRUE} in the call to \code{bplapply} or
+      \code{bpmapply}. Alternatively, if the call to \code{\link{bplapply}} and
+      \code{\link{bpmapply}} is inside a function and not directly accessible to
+      the user, the last call can be embedded in \code{bpresume()}. Wrapping in
+      \code{bpresume} sets an option accordingly to enable the resume feature
+      down in the call stack.  In both cases, only the computations with errors
+      are re-attempted.  New results are merged with the previous and returned
+      to the user.
+    }
+    \item{bplasterror}{
+      Returns a \code{LastError} object containing the partial results and 
+      errors to investigate.
+    }
+  }
 
     Note that nested calls of the apply functions can cause troubles in
     some scenarios.
@@ -98,8 +108,8 @@ First traceback:
 ## the runs below we replace the character with a numeric and compute the
 ## result.
 
-## There are two methods for resuming a suspended calculation, one 
-## approach is to wrap the original call in bpresume().
+## There are two approaches for resuming a suspended calculation, one 
+## is to wrap the original call in bpresume().
 \dontrun{
 > bpresume(res <- bplapply(list(1, 2, 3), sqrt, BPPARAM = snowp))
 Resuming previous calculation... 
@@ -114,7 +124,7 @@ Resuming previous calculation...
 [1] 1.732051
 }
 
-## An equivalent approach is to set 'BPRESUME = TRUE' in bplapply().
+## Another approach is to set 'BPRESUME = TRUE' in bplapply().
 \dontrun{
 res <- bplapply(list(1, 2, 3), sqrt, BPPARAM = snowp, BPRESUME = TRUE)
 }
