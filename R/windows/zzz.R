@@ -18,10 +18,10 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
         ## these fail under complex conditions, e.g., loading a data
         ## set with a class defined in a package that imports
         ## BiocParallel
+        register(getOption("MulticoreParam", MulticoreParam()))
         register(getOption("SerialParam", SerialParam()))
         register(getOption("BatchJobsParam", BatchJobsParam()))
         register(getOption("SnowParam", SnowParam(workers=detectCores())))
-        register(getOption("MulticoreParam", MulticoreParam()))
     }, error=function(err) {
         message("'BiocParallel' did not register default BiocParallelParams")
         NULL
