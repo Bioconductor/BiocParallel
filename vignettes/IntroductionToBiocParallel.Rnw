@@ -390,9 +390,8 @@ processes. \BiocParallel{} back-end choices for clusters on a single machine
 are \Rclass{SnowParam} for configuring a Snow cluster or the \Rclass{DoparParam} 
 for use with the \Rpackage{foreach} package.
 
-To re-run the counting example we need to modify FUN to run in a cluster 
-environment (not shared memory). `gr` data is passed as an argument 
-and \Biocpkg{GenomicAlignments} is loaded on each worker.
+To re-run the counting example, FUN needs to modified such that `gr` is 
+passed as a formal argument and required libraries are loaded on each worker.
 <<cluster_FUN>>=
 FUN <- function(fl, param, gr) {
   library(GenomicAlignments)
@@ -413,7 +412,7 @@ bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
 @
 
 The FUN written for the cluster adds some overhead due to the passing of the 
-GRanges and time due to loading \Biocpkg{GenomicAlignments} on each 
+GRanges and the loading of \Biocpkg{GenomicAlignments} on each 
 worker. This approach, however, has the advantage that it works on 
 most platforms and does not require a coding change when switching between 
 windows and non-windows machines. 
@@ -532,7 +531,12 @@ and R-centric.
 
 The idea is to use cluster management software to allocate resources, and 
 then arrange for an \R{} script to be evaluated in the context of 
-allocated resources. For SLURM, we might request space for 4 tasks 
+allocated resources. NOTE: Depending on your cluster configuration it may
+be necessary to add a line to the template file instructing workers to
+use the version of R on the master / head node. Otherwise the default R on
+the worker nodes will be used.
+
+For SLURM, we might request space for 4 tasks 
 (with \verb+salloc+ or \verb+sbatch+), arrange to start the MPI 
 environment (with \verb+orterun+) and on a single node in that universe 
 run an \R{} script \verb+BiocParallel-MPI.R+. The command is
