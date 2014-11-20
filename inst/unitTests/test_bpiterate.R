@@ -84,7 +84,7 @@ test_bpiterate_REDUCE <- function() {
         checkIdentical(unlist(res, use.names=FALSE), "0123")
 
         ITER <- .lazyCount(workers)
-        res <- suppressMessages(bpiterate(ITER, FUN, BPPARAM=param, 
+        res <- quiet(bpiterate(ITER, FUN, BPPARAM=param, 
             REDUCE=paste0, init=0, reduce.in.order=FALSE))
         checkIdentical(unlist(res, use.names=FALSE), "0123")
     }
