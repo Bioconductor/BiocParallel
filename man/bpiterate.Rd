@@ -225,6 +225,7 @@ if (all(require(Rsamtools) &&
   ## Currently bpiterate() is only supported in the multi-core environment
   ## and must use MulticoreParam.
   myFUN <- function(file, bamIterator, counter, ...) {
+    library(Rsamtools)
     ITER <- bamIterator(file)
     bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers = 2), ...)
   }

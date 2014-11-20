@@ -89,7 +89,6 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
         return(bplapply(X=X, FUN=FUN, ..., BPRESUME=BPRESUME,
             BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
 
-
     ## always wrap in a try: this is the only way to throw an error for the user
     FUN <- .composeTry(FUN)
 
