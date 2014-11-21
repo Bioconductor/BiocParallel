@@ -150,12 +150,12 @@ if (all(require(Rsamtools) &&
  
   ## Create a FUN that counts reads in a region of interest.
   roi <- GRanges("chr14", IRanges(seq(19e6, 107e6, by = 10e6), width = 10e6))
-  counter <- function(reads, ...) {
-      countOverlaps(roi, subject = reads)
+  counter <- function(reads, roi, ...) {
+      countOverlaps(query = roi, subject = reads)
   }
   ## Create a MulticoreParam and call bpiterate().
   bpparam <- MulticoreParam(workers = 2) 
-  res <- bpiterate(ITER, counter, BPPARAM = bpparam)
+  res <- bpiterate(ITER, counter, BPPARAM = bpparam, roi = roi)
  
   ## The result length is the same as the number of data chunks.
   length(res)
@@ -225,23 +225,29 @@ if (all(require(Rsamtools) &&
   ## Currently bpiterate() is only supported in the multi-core environment
   ## and must use MulticoreParam.
   myFUN <- function(file, bamIterator, counter, ...) {
-    library(Rsamtools)
+    library(BiocParallel)  ## for bpiterate
+    library(Rsamtools)     ## for Bam file manipulation
+    library(GenomicAlignments) ## for readGAlignments
     ITER <- bamIterator(file)
     bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers = 2), ...)
   }
  
   ## Distribute the files across the snow cluster workers with bplapply().
-  ## Each cluster node acts as a master and spawns 2 children.
-  ## Note that 'bamIterator', 'counter' and 'roi' arguments need to be 
-  ## passed explicitly.
+  ## Each cluster node acts as a master and spawns 2 children. 
+  ## NOTE: This example should only be run on machines with >= 6 cores.
+  \dontrun{
   res <- bplapply(bfl, myFUN, BPPARM = snowp, bamIterator = bamIterator,
-                  counter=counter, roi=roi) 
- 
+                  counter = counter, roi = roi) 
+  } 
   ## The result is of length 3 (# of files).
-  length(res)
+  ## > length(res)
+  ## [1] 3
+
  
-  ## Each list element is of length 2 (# workers on each node).
-  elementLengths(res)
+  ## Each list element is of length 5 (# of iterations of size 'yieldSize').
+  ## >  elementLengths(res)
+  ## ERR127306 ERR127307 ERR127308 
+  ##         5         5         5 
 }
 }
 
