@@ -229,16 +229,14 @@ if (all(require(Rsamtools) &&
     library(Rsamtools)     ## for Bam file manipulation
     library(GenomicAlignments) ## for readGAlignments
     ITER <- bamIterator(file)
-    bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers = 2), ...)
+    bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers=2), roi = roi)
   }
  
   ## Distribute the files across the snow cluster workers with bplapply().
   ## Each cluster node acts as a master and spawns 2 children. 
-  ## NOTE: This example should only be run on machines with >= 6 cores.
-  \dontrun{
   res <- bplapply(bfl, myFUN, BPPARM = snowp, bamIterator = bamIterator,
                   counter = counter, roi = roi) 
-  } 
+
   ## The result is of length 3 (# of files).
   ## > length(res)
   ## [1] 3
