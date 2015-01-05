@@ -64,14 +64,13 @@ test_bpiterate_REDUCE <- function() {
 
         ## reduce.in.order=TRUE
         FUN <- function(count, ...) {
-            if (count == 1)
-                Sys.sleep(3)
+            Sys.sleep(workers - count)
             count
         }
         ITER <- .lazyCount(workers)
         res <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=paste0, 
                          reduce.in.order=FALSE)
-        checkIdentical(unlist(res, use.names=FALSE), "231")
+        checkIdentical(unlist(res, use.names=FALSE), "321")
 
         ITER <- .lazyCount(workers)
         res <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=paste0, 
