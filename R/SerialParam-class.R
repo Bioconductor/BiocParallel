@@ -95,7 +95,7 @@ setMethod(bpmapply, c("ANY", "SerialParam"),
                 result[[1]] <- value 
         }
     }
-    length(result) <- i
+    length(result) <- ifelse(i == 0L, 1, i)
     result
 }
 
