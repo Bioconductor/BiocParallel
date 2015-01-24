@@ -37,6 +37,6 @@ export(MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
     ## error handlers
     bpresume, bplasterror,
     ## helpers
-    multicoreWorkers, snowWorkers)
+    multicoreWorkers, snowWorkers, bpvalidate)
 
 exportMethods(show)
