@@ -241,8 +241,6 @@ bpparam()
 
 \subsection{Functions}
 
-%% TODO: mention functions called from pkg dependencies
- 
 \subsubsection{Parallel looping, vectorized and aggregate operations}
 
 These are used in common functions, implemented as much as possible

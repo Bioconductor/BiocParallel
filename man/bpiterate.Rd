@@ -11,12 +11,10 @@
 \title{Parallel iteration over an indeterminate number of data chunks}
 
 \description{
-
   \code{bpiterate} iterates over an indeterminate number of data chunks
   (e.g., records in a file). Each chunk is processed by parallel workers 
   in an asynchronous fashion; as each worker finishes it recieves a 
   new chunk. Data are traversed a single time.
-
 }
 
 \usage{
@@ -72,7 +70,6 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 }
 
 \details{
-
   Currently only MulticoreParam and SerialParam are supported.
 
   \code{bpiterate} iterates through an unknown number of data
@@ -87,7 +84,6 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
   should continue to return NULL reguardless of the number of times
   it is invoked after reaching the end of the file. \code{FUN}
   is applied to each object (data chunk) returned by \code{ITER}.
-
 }
 
 \value{A \code{list} of output type specified by \code{FUN}. When
@@ -107,7 +103,6 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
     \item \code{\link{bplapply}} for parallel, lapply-like calculations.
     \item \code{\link{BiocParallelParam}} for details of \code{BPPARAM}.
   } 
-
 }
 
 \examples{
