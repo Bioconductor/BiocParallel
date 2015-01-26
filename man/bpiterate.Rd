@@ -110,7 +110,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 if (all(require(Rsamtools) && 
         require(RNAseqData.HNRNPC.bam.chr14) &&
         require(GenomicAlignments) &&
-        require(ShortRead))) {
+        require(ShortRead) &&
+        .Platform$OS.type != "windows")) {
 
   ## ----------------------------------------------------------------------
   ## Iterating through a BAM file
