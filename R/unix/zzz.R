@@ -17,6 +17,13 @@ mcfork <- function(...) parallel:::mcfork(...)
 
 mckill <- function(...) parallel:::mckill(...)
 
+mc.reset.stream <- function(...) parallel:::mc.reset.stream(...)
+
+mcparallel <- function(...) parallel:::mcparallel(...)
+
+mccollect <- function(...) parallel:::mccollect(...)
+
+
 processID <-function(...) parallel:::processID(...)
 
 readChild <- function(...) parallel:::readChild(...)

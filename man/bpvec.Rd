@@ -88,10 +88,11 @@ showMethods("bpvec")
 
 ## ten tasks (1:10), called with as many back-end elements are specified
 ## by BPPARAM.  Compare with bplapply
-system.time(result <- bpvec(1:10, function(v) {
-    message("working") ## 10 tasks
+fun <- function(v) {
+    message("working")
     sqrt(v)
-}))
+}
+system.time(result <- bpvec(1:10, fun)) 
 result
 
 }

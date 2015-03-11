@@ -1,3 +1,12 @@
+### =========================================================================
+### DoparParam objects
+### -------------------------------------------------------------------------
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Constructor 
+###
+
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
     fields=list()
@@ -9,7 +18,9 @@ DoparParam <-
     .DoparParam(catch.errors=catch.errors)
 }
 
-## control
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - control
+###
 
 setMethod(bpworkers, "DoparParam",
     function(x, ...)
@@ -22,12 +33,21 @@ setMethod(bpworkers, "DoparParam",
 setMethod(bpisup, "DoparParam",
     function(x, ...)
 {
-    ("package:foreach" %in% search()) &&
-        getDoParRegistered() && (getDoParName() != "doSEQ") &&
-            getDoParWorkers() > 1L
+    if (!suppressMessages(require(foreach))) {
+        warning("DoparParam class objects require the 'foreach' package")
+        FALSE
+    } else {
+        ("package:foreach" %in% search()) &&
+        getDoParRegistered() && 
+        (getDoParName() != "doSEQ") &&
+        getDoParWorkers() > 1L
+    }
 })
 
-## evaluation
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - evaluation
+###
+
 setMethod(bplapply, c("ANY", "DoparParam"),
     function(X, FUN, ...,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
@@ -37,8 +57,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
         return(.bpresume_lapply(FUN=FUN, ..., BPPARAM=BPPARAM))
     }
     if (!bpisup(BPPARAM)) {
-        return(bplapply(FUN=FUN, ...,
-            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
+        return(bplapply(FUN=FUN, ..., BPPARAM=SerialParam()))
     }
     if (BPPARAM$catch.errors)
         FUN <- .composeTry(FUN)
@@ -69,7 +88,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (!bpisup(BPPARAM)) {
         results <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs,
             SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
-            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors))
+            BPPARAM=SerialParam())
         return(results)
     }
 
@@ -100,6 +119,6 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("currently only MulticoreParam and SerialParam are supported ",
-                " for bpiterate"))
+    stop(paste0("bpiterate is only supported for MulticoreParam and ",
+                "SerialParam"))
 })

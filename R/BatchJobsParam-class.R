@@ -1,3 +1,11 @@
+### =========================================================================
+### BatchJobsParam objects
+### -------------------------------------------------------------------------
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Constructor 
+###
+
 .BatchJobsParam <- setRefClass("BatchJobsParam",
   contains="BiocParallelParam",
   fields=list(
@@ -8,15 +16,60 @@
     stop.on.error="logical",
     progressbar="logical"
   ),
-
   methods=list(
-    initialize = function(..., conf.pars=list(), workers=NA_integer_)
-    {
-        callSuper(...)
+    show = function() {
+        ## TODO more output
+        cat("class:", class(.self), "\n")
+        cat("bpisup:", bpisup(.self), "\n")
+        cat("bpworkers:", bpworkers(.self), "\n")
+        cat("catch.errors:", .self$catch.errors, "\n")
+        cat("cleanup:", .self$cleanup, "\n")
+        cat("stop.on.error:", .self$stop.on.error, "\n")
+        cat("progressbar:", .self$progressbar, "\n")
+  })
+)
 
+BatchJobsParam <-
+    function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
+        work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
+        conffile=NULL, cluster.functions=NULL, progressbar=TRUE, ...)
+{
+    not_null <- Negate(is.null)
+    reg.pars <- Filter(not_null, list(seed=seed, work.dir=work.dir))
+    submit.pars <- Filter(not_null, list(resources=resources))
+    conf.pars <- Filter(not_null,
+        list(conffile=conffile, cluster.functions=cluster.functions))
+
+    .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
+                    conf.pars=conf.pars, workers=workers, 
+                    catch.errors=catch.errors, cleanup=cleanup, 
+                    stop.on.error=stop.on.error, progressbar=progressbar,
+                    ...)
+}
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - control
+###
+
+setMethod(bpschedule, "BatchJobsParam",
+    function(x, ...)
+{
+    !getOption("BatchJobs.on.slave", FALSE)
+})
+
+setMethod(bpisup, "BatchJobsParam", 
+    function(x, ...) 
+{
+    if (!suppressMessages(require(BatchJobs)))
+        stop("BatchJobsParam class objects require the 'BatchJobs' package")
+
+    if (!length(x$conf.pars)) {
         ## save user config and reset it on exit
+        conf.pars <- x$conf.pars
+        workers <- x$workers
         prev.config <- getConfig()
-        on.exit(do.call(setConfig, prev.config))
+        ## FIXME: not sure how to handle this
+        #on.exit(do.call(setConfig, prev.config))
         if (!is.null(conf.pars$conffile))
             loadConfig(conf.pars$conffile)
         new.conf <- unclass(do.call(setConfig,
@@ -35,56 +88,33 @@
                        SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
             }
         } else as.integer(workers)
+        x$workers <- x_workers
+        x$conf.pars <- new.conf
+    }
 
-        initFields(workers=x_workers, conf.pars=new.conf)
-    },
-
-    show = function() {
-        ## TODO more output
-        callSuper()
-        fields <- c("cleanup", "stop.on.error", "progressbar")
-        vals <- c(.self$cleanup, .self$stop.on.error, .self$progressbar)
-        txt <- paste(sprintf("%s: %s", fields, vals), collapse="; ")
-        cat(strwrap(txt, exdent=2), sep="\n")
-  })
-)
-
-BatchJobsParam <-
-    function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
-        work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
-        conffile=NULL, cluster.functions=NULL, progressbar=TRUE, ...)
-{
-    not_null <- Negate(is.null)
-    reg.pars <- Filter(not_null, list(seed=seed, work.dir=work.dir))
-    submit.pars <- Filter(not_null, list(resources=resources))
-    conf.pars <- Filter(not_null,
-        list(conffile=conffile, cluster.functions=cluster.functions))
-
-    .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
-        conf.pars=conf.pars, workers=workers, catch.errors=catch.errors,
-        cleanup=cleanup, stop.on.error=stop.on.error, progressbar=progressbar,
-        ...)
-}
-
-
-## control
-
-setMethod(bpschedule, "BatchJobsParam",
-    function(x, ...)
-{
-    !getOption("BatchJobs.on.slave", FALSE)
+    TRUE
 })
-
-setMethod(bpisup, "BatchJobsParam", function(x, ...) TRUE)
 
 setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
-## evaluation
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - evaluation
+###
+
+setMethod(bplapply, c("ANY", "BatchJobsParam"),
+    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+        BPPARAM=bpparam())
+{
+    bpisup(BPPARAM)
+    bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE,
+        BPRESUME=BPRESUME, BPPARAM=BPPARAM)
+})
 
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
+    bpisup(BPPARAM)
     FUN <- match.fun(FUN)
     if (BPRESUME)
         return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
@@ -92,7 +122,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     if (!bpschedule(BPPARAM)) {
         result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
             USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
-            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors))
+            BPPARAM=SerialParam())
         return(result)
     }
 
@@ -170,7 +200,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("currently only MulticoreParam and SerialParam are supported ",
-                " for bpiterate"))
+    stop(paste0("bpiterate is only supported for MulticoreParam and ",
+                "SerialParam"))
 })
 

@@ -24,7 +24,8 @@
 
   \itemize{
     \item{bpresume}{
-      Implemented for \code{bplapply} and \code{bpmapply} only.
+      Implemented for \code{bplapply} and \code{bpmapply} only. Supported
+      for \code{BatchJobsParam} and \code{DoparParam} only.
 
       The resume mechanism is triggered if the argument \code{catch.errors} of
       the \code{\link{BiocParallelParam}} class is set to \code{TRUE}.  The
