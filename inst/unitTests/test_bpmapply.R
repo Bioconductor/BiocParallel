@@ -14,8 +14,7 @@ library(doParallel)                     # FIXME: unload?
 }
 
 params <- list(serial=SerialParam(),
-              snow0=SnowParam(2, "FORK"),
-              snow1=SnowParam(2, "PSOCK"),
+              snow1=SnowParam(2, "SOCK"),
               batchjobs=BatchJobsParam(),
               multi=MulticoreParam(),
               dopar=DoparParam())

@@ -27,6 +27,40 @@ setGeneric("bpaggregate",
 setGeneric("bpworkers",
     function(x, ...) standardGeneric("bpworkers"))
 
+## errors
+setGeneric("bpstopOnError",
+    function(x, ...) standardGeneric("bpstopOnError"))
+
+setGeneric("bpstopOnError<-",
+    function(x, ..., value) standardGeneric("bpstopOnError<-"))
+
+## logging
+setGeneric("bplog",
+    function(x, ...) standardGeneric("bplog"))
+
+setGeneric("bplog<-",
+    function(x, ..., value) standardGeneric("bplog<-"))
+
+setGeneric("bplogdir",
+    function(x, ...) standardGeneric("bplogdir"))
+
+setGeneric("bplogdir<-",
+    function(x, ..., value) standardGeneric("bplogdir<-"))
+
+setGeneric("bpthreshold",
+    function(x, ...) standardGeneric("bpthreshold"))
+
+setGeneric("bpthreshold<-",
+    function(x, ..., value) standardGeneric("bpthreshold<-"))
+
+## results
+setGeneric("bpresultdir",
+    function(x, ...) standardGeneric("bpresultdir"))
+
+setGeneric("bpresultdir<-",
+    function(x, ..., value) standardGeneric("bpresultdir<-"))
+
+## control
 setGeneric("bpstart",
     function(x, ...) standardGeneric("bpstart"))
 

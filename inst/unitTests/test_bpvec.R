@@ -17,8 +17,7 @@ test_bpvec_Params <- function()
 {
     params <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
-                   snow0=SnowParam(2, "FORK"),
-                   snow1=SnowParam(2, "PSOCK"),
+                   snow1=SnowParam(2, "SOCK"),
                    batchjobs=BatchJobsParam(workers=2),
                    dopar=DoparParam())
 

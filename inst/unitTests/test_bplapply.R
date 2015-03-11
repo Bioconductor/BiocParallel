@@ -19,8 +19,9 @@ test_bplapply_Params <- function()
 {
     params <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
-                   snow0=SnowParam(2, "FORK"),
-                   snow1=SnowParam(2, "PSOCK"),
+                   mclog=MulticoreParam(2, log=TRUE),
+                   snow=SnowParam(2, "SOCK"),
+                   snowlog=SnowParam(2, "SOCK", log=TRUE),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam())
     dop <- registerDoParallel(cores=2)
@@ -47,8 +48,9 @@ test_bplapply_symbols <- function()
 {
     params <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
-                   snow0=SnowParam(2, "FORK"),
-                   snow1=SnowParam(2, "PSOCK"),
+                   mclog=MulticoreParam(2, log=TRUE),
+                   snow=SnowParam(2, "SOCK"),
+                   snowlog=SnowParam(2, "SOCK", log=TRUE),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam())
     dop <- registerDoParallel(cores=2)

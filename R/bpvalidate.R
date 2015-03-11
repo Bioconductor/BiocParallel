@@ -35,7 +35,7 @@ bpvalidate <- function(fun)
         ## add package name
         required <- c(required, getNamespaceName(f_env))
         f_ls <- c(getNamespaceImports(f_env),
-                  setNames(list(ls(f_env, all=TRUE)),
+                  setNames(list(ls(f_env, all.names=TRUE)),
                            getNamespaceName(f_env)))
         f_symbols <- unique(unlist(f_ls, use.names=FALSE))
         ## filter symbols

@@ -46,7 +46,8 @@ bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
     \code{\link{lapply}}}
 
   \item{BPRESUME}{Flag to determine if a previous partially successful run
-      should be resumed.  See \code{\link{bpresume}} for details.}
+      should be resumed.  See \code{\link{bpresume}} for details. Only
+      supported for \code{BatchJobsParam} and \code{DoparParam}.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a

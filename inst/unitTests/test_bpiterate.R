@@ -16,8 +16,8 @@ test_bpiterate_Params <- function()
 {
     params1 <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
-                   snow0=SnowParam(2, "FORK"),
-                   snow1=SnowParam(2, "PSOCK"))
+                   snow1=SnowParam(2, "SOCK"),
+                   snow2=SnowParam(2, "MPI"))
     params2 <- list(dopar=DoparParam(), 
                    batchjobs=BatchJobsParam())
 

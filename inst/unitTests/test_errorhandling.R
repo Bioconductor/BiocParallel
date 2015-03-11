@@ -17,31 +17,13 @@ test_errorhandling <-
     y <- rev(x)
     f <- function(x, y) if (x > y) stop("whooops") else x + y
 
-    params <- list(serial=SerialParam(catch.errors=FALSE),
-        snow0=SnowParam(2, "FORK", catch.errors=FALSE),
-        snow1=SnowParam(2, "PSOCK", catch.errors=FALSE),
+    params <- list(
         batchjobs=BatchJobsParam(catch.errors=FALSE, progressbar=FALSE),
-        dopar=DoparParam(catch.errors=FALSE),
-        multi=MulticoreParam(catch.errors=FALSE))
-    if (grepl("windows", .Platform$OS.type))
-        params$snow0 <- NULL
+        dopar=DoparParam(catch.errors=FALSE))
 
     for (param in params) {
         checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
             "Error in FUN(...): whooops", negate=TRUE)
-    }
-
-    params <- list(serial=SerialParam(catch.errors=TRUE),
-        snow0=SnowParam(2, "FORK", catch.errors=TRUE),
-        snow1=SnowParam(2, "PSOCK", catch.errors=TRUE),
-        batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE),
-        multi=MulticoreParam(catch.errors=TRUE),
-        dopar=DoparParam(catch.errors=TRUE))
-    if (grepl("windows", .Platform$OS.type))
-        params$snow0 <- NULL
-    for (param in params) {
-        checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
-            "Error in FUN(...): whooops")
     }
 
     # check that resume works
@@ -50,6 +32,9 @@ test_errorhandling <-
     f <- function(x, y) if (x > y) stop("whooops") else x + y
     f.fix <- function(x, y) 0
 
+   params <- list(
+        batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE),
+        dopar=DoparParam(catch.errors=TRUE))
 
     for (param in params) {
         ok <- try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)
