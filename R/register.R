@@ -3,7 +3,7 @@
     methods=list(
       register = function(BPPARAM, default = TRUE) {
           BPPARAM <- eval(BPPARAM)
-          if ((!length(BPPARAM) == 1) && !is(BPPARAM, "BiocParallelParam"))
+          if ((!length(BPPARAM) == 1) || !is(BPPARAM, "BiocParallelParam"))
               stop("'BPPARAM' must be a 'BiocParallelParam' instance")
           .self$bpparams[[class(BPPARAM)]] <- BPPARAM
           if (default) {
