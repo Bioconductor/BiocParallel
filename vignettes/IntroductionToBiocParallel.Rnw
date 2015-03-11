@@ -1,0 +1,922 @@
+%\VignetteIndexEntry{Introduction to BiocParallel}
+%\VignetteKeywords{parallel, Infrastructure}
+%\VignettePackage{BiocParallel}
+%\VignetteEngine{knitr::knitr}
+
+
+\documentclass{article}
+
+<<style, eval=TRUE, echo=FALSE, results="asis">>=
+BiocStyle::latex()
+@ 
+
+\newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
+
+\title{Introduction to \BiocParallel} 
+\author{Vincent Carey, Michael Lawrence, Martin
+  Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
+\date{Edited: March 1, 2014; Compiled: \today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Numerous approaches are available for parallel computing in \R{}. The
+CRAN Task View for high performance and parallel computing provides
+useful high-level summaries and package categorization. 
+\url{http://cran.r-project.org/web/views/HighPerformanceComputing.html}
+Most Task View packages cite or identify one or more of \CRANpkg{snow}, 
+\CRANpkg{Rmpi}, \CRANpkg{multicore} or \CRANpkg{foreach} as relevant 
+parallelization infrastructure. Direct support in \R{} for parallel 
+computing started with release 2.14.0 with inclusion of the 
+\CRANpkg{parallel} package which contains modified versions of 
+\CRANpkg{multicore} and \CRANpkg{snow}.
+
+A basic objective of \BiocParallel{} is to reduce the complexity faced 
+when developing and using software that performs parallel computations.
+With the introduction of the \Rcode{BiocParallelParam} object, 
+\BiocParallel{} aims to provide a unified interface to existing parallel
+infrastructure where code can be easily executed in different 
+environments. The \Rcode{BiocParallelParam} specifies the environment of 
+choice as well as computing resources and is invoked by `registration` or 
+passed as an argument to the \BiocParallel{} functions. 
+
+\BiocParallel{} offers the following conveniences over the 
+`roll your own` approach to parallel programming.
+
+\begin{itemize}
+  \setlength{\itemsep}{5pt}
+  \item{unified interface:}{
+    \Rcode{BiocParallelParam} instances define the method of parallel 
+    evaluation (multi-core, snow cluster, etc.) and computing resources 
+    (number of workers, error handling, cleanup, etc.).
+  }
+  \item{parallel iteration over lists, files and vectorized operations:}{
+    \Rcode{bplapply}, \Rcode{bpmapply} and \Rcode{bpvec} provide 
+    parallel list iteration and vectorized operations. \Rcode{bpiterate} 
+    iterates through files distributing chunks to parallel workers.
+  }
+  \item{cluster scheduling:}{
+    When the parallel environment is managed by a cluster scheduler
+    through \CRANpkg{BatchJobs}, job management and result retrieval are
+    considerably simplified.
+  }
+  \item{support of \Rcode{foreach}:}{
+    The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported.
+    Registration of the parallel back end uses \Rcode{BiocParallelParam} 
+    instances.
+  }
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Quick start}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The \Rpackage{BiocParallel} package is available at bioconductor.org
+and can be downloaded via \Rcode{biocLite}:
+<<biocLite, eval=FALSE>>=
+source("http://bioconductor.org/biocLite.R")
+biocLite("BiocParallel")
+@
+
+Load \BiocParallel{}.
+<<BiocParallel>>=
+library(BiocParallel)
+@ 
+
+The test function simply returns the square root of ``x''.
+<<quickstart_FUN>>=
+FUN <- function(x) { round(sqrt(x), 4) }
+@
+ 
+Functions in \BiocParallel use the registered back-ends for parallel
+evaluation. The default is the top entry of the registry list.
+<<quickstart_registry>>=
+registered()
+@
+%% 
+Configure your R session to always use a particular back-end configure
+by setting options named after the back ends in an \Rcode{.Rprofile}
+file, e.g.,
+<<configure_registry, eval=FALSE>>=
+options(MulticoreParam=quote(MulticoreParam(workers=4)))
+@ 
+
+When a \BiocParallel{} function is invoked with no \Rcode{BPPARAM} 
+argument the default back-end is used.
+<<quickstart_bplapply_default, eval=FALSE>>=
+bplapply(1:4, FUN)
+@
+
+Environment specific back-ends can be defined for any of the registry entries.
+This example uses a 2-worker SOCK cluster.
+<<quickstart_snow>>=
+param <- SnowParam(workers = 2, type = "SOCK") 
+bplapply(1:4, FUN, BPPARAM = param)
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The \BiocParallel{} Interface}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Classes}
+
+\subsubsection{\Rcode{BiocParallelParam}}
+
+\Rcode{BiocParallelParam} instances configure different parallel evaluation 
+environments. Creating and / or \Rcode{register()}ing a `\Rcode{Param}` 
+allows the same code to be used in different parallel environments without
+a code re-write. Params listed are supported on all of Unix, Mac and Windows
+except \Rcode{MulticoreParam} which is Unix and Mac only.
+
+\begin{itemize}
+  \setlength{\itemsep}{5pt}
+  \item{\Rcode{SerialParam}: }
+
+  Supported on all platforms. 
+  Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
+  This approach is useful when writing new scripts and trying to debug code.
+ 
+  \item{\Rcode{MulticoreParam}: } 
+
+  Supported on Unix and Mac. 
+  Evaluate \BiocParallel-enabled code using multiple cores on a single 
+  computer. When available, this is the most efficient and least 
+  troublesome way to parallelize code. Windows does not 
+  support multi-core evaluation (the \Rcode{MulticoreParam} object can 
+  be used, but evaluation is serial). On other operating systems, the 
+  default number of workers equals the value of the global option 
+  \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
+  not set, the number of cores returned by \Rcode{parallel::detectCores()}.
+  Based on facilities originally implemented in the \CRANpkg{multicore}
+  package and subsequently the \CRANpkg{parallel} package in base \R{}.
+ 
+  \item{\Rcode{SnowParam}: } 
+
+  Supported on all platforms. 
+  Evaluate \BiocParallel-enabled code across several distinct \R{} 
+  instances, on one or several computers. This is a straightforward approach
+  for executing parallel code on one or several computers, and is 
+  based on facilities originally implemented in the \CRANpkg{snow} package. 
+  Different types of \CRANpkg{snow} `back-ends' are supported, including 
+  socket and MPI clusters.
+ 
+  \item{\Rcode{BatchJobsParam}: }
+
+  Applicable to clusters with formal schedulers.
+  Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
+  like SGE. 
+
+  \item{\Rcode{DoparParam}: }
+
+  Supported on all platforms. 
+  Register a parallel back-end supported by the \CRANpkg{foreach} package 
+  for use with \BiocParallel.
+\end{itemize}
+
+The simplest illustration of creating \Rcode{BiocParallelParam} is
+<<BiocParallelParam_SerialParam>>=
+serialParam <- SerialParam()
+serialParam
+@ 
+ 
+Most parameters have additional arguments influencing behavior, e.g.,
+specifying the number of `cores' to use when creating a
+\Rcode{MulticoreParam} instance
+<<BiocParallelParam_MulticoreParam>>=
+multicoreParam <- MulticoreParam(workers = 8)
+multicoreParam
+@ 
+ 
+Arguments are detailed on the corresponding help page, e.g.,
+\Rcode{?MulticoreParam}.
+
+\subsubsection{\Rcode{register()}ing \Rcode{BiocParallelParam} instances}
+
+The list of registered \Rcode{BiocParallelParam} instances represents
+the user's preferences for different types of back-ends. Individual
+algorithms may specify a preferred back-end, and different back-ends
+maybe chosen when parallel evaluation is nested.
+
+The registry behaves like a `stack' in that the last entry registered
+is added to the top of the list and becomes the ``next used`` 
+(i.e., the default).
+
+\Rcode{registered} invoked with no arguments lists all back-ends.
+<<register_registered>>=
+registered()
+@
+
+\Rcode{bpparam} returns the default from the top of the list.
+<<register_bpparam>>=
+bpparam()
+@
+
+Add a specialized instance with \Rcode{register}. When 
+\Rcode{default} is TRUE, the new instance becomes the default.
+<<register_BatchJobsParam>>=
+register(BatchJobsParam(workers = 10), default = TRUE)
+@
+
+BatchJobsParam has been moved to the top of the list and
+is now the default.
+<<register_BatchJobsParam2>>=
+names(registered())
+bpparam()
+@ 
+
+\subsection{Functions}
+
+\subsubsection{Parallel looping, vectorized and aggregate operations}
+
+These are used in common functions, implemented as much as possible
+for all back-ends. The functions (see the help pages, e.g.,
+\Rcode{?bplapply} for a full definition) include
+
+\begin{description}
+  \item{\Rcode{bplapply(X, FUN, ...)}: }
+ 
+    Apply in parallel a function \Rcode{FUN} to each element of \Rcode{X}. 
+    \Rcode{bplapply} invokes \Rcode{FUN} \Rcode{length(X)} times, each 
+    time with a single element of \Rcode{X}.
+
+  \item{\Rcode{bpmapply(FUN, ...)}: }
+
+    Apply in parallel a function \Rcode{FUN} to the first, second, etc., 
+    elements of each argument in \ldots.
+
+  \item{\Rcode{bpiterate(ITER, FUN, ...)}: }
+
+    Apply in parallel a function \Rcode{FUN} to the output of 
+    function \Rcode{ITER}. Data chunks are returned by \Rcode{ITER}
+    and distributed to parallel workers along with \Rcode{FUN}.
+    Intended for iteration though an undefined number of data chunks 
+    (i.e., records in a file).
+
+  \item{\Rcode{bpvec(X, FUN, ...)}: } 
+
+    Apply in parallel a function \Rcode{FUN} to subsets of \Rcode{X}. 
+    \Rcode{bpvec} invokes function \Rcode{FUN} as many times as there are 
+    cores or cluster nodes, with \Rcode{FUN} receiving a subset (typically 
+    more than 1 element, in contrast to \Rcode{bplapply}) of \Rcode{X}.
+
+  \item{\Rcode{bpaggregate(x, data, FUN, ...)}: }
+
+    Use the formula in \Rcode{x} to aggregate \Rcode{data} using \Rcode{FUN}.
+\end{description}
+
+\subsubsection{Parallel evaluation environment}
+
+These functions query and control the state of the parallel evaluation 
+environment.
+
+\begin{description}
+  \item{\Rcode{bpisup(x)}: } 
+    Query a \Rcode{BiocParallelParam} back-end \Rcode{x} for its status.
+
+  \item{\Rcode{bpworkers}: }
+    Query a \Rcode{BiocParallelParam} back-end for the number of workers 
+    available for parallel evaluation.
+
+  \item{\Rcode{bpstart(x)}: } 
+    Start a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}, 
+    if possible.
+
+  \item{\Rcode{bpstop(x)}: } 
+    Stop a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}.
+\end{description}
+
+\subsubsection{Error recovery}
+The following assist in recovering from errors.
+
+\begin{description}
+  \item{\Rcode{bplasterror}: }
+    Report the last error reported from a \BiocParallel{} evaluation.
+
+  \item{\Rcode{bpresume}: }
+    Attempt to resume computation after an error.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Use cases}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% TODO: advanced use of BPPARAM as list for nested calls to bplapply
+
+Sample data are BAM files from a transcription profiling experiment
+available in the \Rpackage{RNAseqData.HNRNPC.bam.chr14} package.
+
+<<use_cases_data>>=
+library(RNAseqData.HNRNPC.bam.chr14)
+fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
+@
+
+\subsection{Single machine}
+
+\subsubsection{Multi-core}
+
+There are substantial benefits, such as shared memory, to be had using 
+multiple cores on a single machine. On a single non-Windows machine the 
+recommended approach is multi-core, or forked processes. 
+
+In this example we count overlaps between BAM files and a defined
+set of ranges. Create a GRanges with regions of interest (in practice this 
+could be large).
+<<forking_gr, message=FALSE>>=
+library(GenomicAlignments) ## for GenomicRanges and readGAlignments()
+gr <- GRanges("chr14", IRanges((1000:3999)*5000, width=1000))
+@
+
+A \Rclass{ScanBamParam} defines regions to extract from the files.
+<<forking_param>>=
+param <- ScanBamParam(which=range(gr))
+@
+
+FUN counts overlaps between the ranges in `gr` and the files.
+<<forking_FUN>>=
+FUN <- function(fl, param) {
+  gal <- readGAlignments(fl, param = param)
+  sum(countOverlaps(gr, gal))
+}
+@
+
+All parameters necessary for running a job in a multi-core environment
+are specified in the \Rclass{MulticoreParam} instance. 
+<<forking_default_multicore>>=
+MulticoreParam()
+@
+
+The \BiocParallel{} functions, such as \Rfunction{bplapply}, use
+information in the \Rclass{MulticoreParam} to set up the appropriate 
+back-end and pass relevant arguments to low-level functions.
+\begin{verbatim}
+> bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
+$ERR127306
+[1] 1185
+
+$ERR127307
+[1] 1123
+
+$ERR127308
+[1] 1241
+\end{verbatim}
+
+Shared memory environments eliminate the need to pass large data between 
+workers or load common packages. Note that in this code the GRanges data was 
+not passed to all workers in \Rcode{bplapply} and FUN did not need to load 
+\Biocpkg{GenomicAlignments} for access to the \Rcode{readGAlignments} function.
+
+\subsubsection{Clusters}
+Both Windows and non-Windows machines can use the cluster approach to spawn 
+processes. \BiocParallel{} back-end choices for clusters on a single machine 
+are \Rclass{SnowParam} for configuring a Snow cluster or the \Rclass{DoparParam} 
+for use with the \Rpackage{foreach} package.
+
+To re-run the counting example, FUN needs to modified such that `gr` is 
+passed as a formal argument and required libraries are loaded on each worker.
+<<cluster_FUN>>=
+FUN <- function(fl, param, gr) {
+  library(GenomicAlignments)
+  gal <- readGAlignments(fl, param = param)
+  sum(countOverlaps(gr, gal))
+}
+@
+
+Define a 2-worker SOCK Snow cluster.
+<<cluster_snow_param>>=
+snow <- SnowParam(workers = 2, type = "SOCK")
+@
+
+A call to \Rcode{bplapply} with the \Rclass{SnowParam} creates the 
+cluster and distributes the work.
+<<cluster_bplapply>>=
+bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
+@
+
+The FUN written for the cluster adds some overhead due to the passing of the 
+GRanges and the loading of \Biocpkg{GenomicAlignments} on each 
+worker. This approach, however, has the advantage that it works on 
+most platforms and does not require a coding change when switching between 
+windows and non-windows machines. 
+
+\subsection{\emph{Ad hoc} cluster of multiple machines}
+
+We use the term \emph{ad hoc} cluster to define a group of machines that can 
+communicate with each other and to which the user has password-less
+log-in access. This 
+example uses a group of compute machines ("the rhinos") on the FHCRC network. 
+
+\subsubsection{Sockets}
+
+On Linux and Mac OS X, a socket cluster is created across machines
+by supplying machine names as the \Rcode{workers} argument to a
+\Rclass{BiocParallelParam} instance instead of a number. Each name 
+represents an \R{} process; repeat names indicate multiple workers on 
+the same machine.
+
+Create a \Rclass{SnowParam} with 2 cpus from `rhino01` and 1 from `rhino02`.
+<<ad_hoc_sock_snow_param>>=
+hosts <- c("rhino01", "rhino01", "rhino02")
+param <- SnowParam(workers = hosts, type = "SOCK")
+@
+
+Execute FUN 4 times across the workers. 
+\begin{verbatim}
+> FUN <- function(i) system("hostname", intern=TRUE)
+> bplapply(1:4, FUN, BPPARAM = param)
+[[1]]
+[1] "rhino01"
+
+[[2]]
+[1] "rhino01"
+
+[[3]]
+[1] "rhino02"
+
+[[4]]
+[1] "rhino01"
+\end{verbatim}
+
+When creating a cluster across Windows machines \Rcode{workers} must
+be IP addresses (e.g., "140.107.218.57") instead of machine names.
+
+\subsubsection{MPI}
+
+An MPI cluster across machines is created with \emph{mpirun} or
+\emph{mpiexec} from the command line or a script. A list of machine
+names provided as the -hostfile argument defines the mpi universe.
+
+The hostfile requests 2 processors on 3 different machines.
+\begin{verbatim}
+rhino01 slots=2
+rhino02 slots=2
+rhino03 slots=2
+\end{verbatim}
+
+From the command line, start a single interactive \R{} process on the 
+current machine.
+\begin{verbatim}
+mpiexec --np 1 --hostfile hostfile R --vanilla
+\end{verbatim}
+
+Load \BiocParallel{} and create an MPI Snow cluster. The number of 
+\Rcode{workers} in \Rclass{SnowParam} should match the number of slots
+requested in the hostfile. Using a smaller number of workers uses a
+subset of the slots.
+\begin{verbatim}
+> library(BiocParallel)
+> param <- SnowParam(workers = 6, type = "MPI")
+\end{verbatim}
+
+Execute FUN 6 times across the workers.
+\begin{verbatim}
+> FUN <- function(i) system("hostname", intern=TRUE)
+> bplapply(1:6, FUN, BPPARAM = param)
+bplapply(1:6, FUN, BPPARAM = param)
+	6 slaves are spawned successfully. 0 failed.
+[[1]]
+[1] "rhino01"
+
+[[2]]
+[1] "rhino02"
+
+[[3]]
+[1] "rhino02"
+
+[[4]]
+[1] "rhino03"
+
+[[5]]
+[1] "rhino03"
+
+[[6]]
+[1] "rhino01"
+\end{verbatim}
+
+Batch jobs can be launched with mpiexec and R CMD BATCH. Code to be 
+executed is in `Rcode.R`.
+\begin{verbatim}
+mpiexec --hostfile hostfile R CMD BATCH Rcode.R 
+\end{verbatim}
+
+\subsection{Clusters with schedulers}
+
+Computer clusters are far from standardized, so the following may
+require significant adaptation; it is written from experience here at
+FHCRC, where we have a large cluster managed via SLURM. Nodes on the
+cluster have shared disks and common system images, minimizing
+complexity about making data resources available to individual nodes.
+There are two simple models for use of the cluster, Cluster-centric
+and R-centric.
+
+\subsubsection{Cluster-centric}
+
+The idea is to use cluster management software to allocate resources, and 
+then arrange for an \R{} script to be evaluated in the context of 
+allocated resources. NOTE: Depending on your cluster configuration it may
+be necessary to add a line to the template file instructing workers to
+use the version of R on the master / head node. Otherwise the default R on
+the worker nodes will be used.
+
+For SLURM, we might request space for 4 tasks 
+(with \verb+salloc+ or \verb+sbatch+), arrange to start the MPI 
+environment (with \verb+orterun+) and on a single node in that universe 
+run an \R{} script \verb+BiocParallel-MPI.R+. The command is
+\begin{verbatim}
+$ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
+\end{verbatim}
+The \R{} script might do the following, using MPI for parallel
+evaluation. We start by loading necessary packages and defining
+\Rcode{FUN} work to be done
+<<cluster-MPI-work>>=
+library(BiocParallel)
+library(Rmpi)
+FUN <- function(i) system("hostname", intern=TRUE)
+@ 
+%% 
+Create a \Rclass{SnowParam} instance with the number of nodes equal to
+the size of the MPI universe minus 1 (let one node dispatch jobs to
+workers), and register this instance as the default
+<<cluster-MPI, eval=FALSE>>=
+param <- SnowParam(mpi.universe.size() - 1, "MPI")
+register(param)
+@ 
+%% 
+Evaluate the work in parallel, process the results, clean up, and quit
+<<cluster-MPI-do, eval=FALSE>>=
+xx <- bplapply(1:100, FUN)
+table(unlist(xx))
+mpi.quit()
+@ 
+%% 
+The entire session is as follows:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+$ salloc -N 4 orterun -n 1 R --vanilla -f BiocParallel-MPI.R 
+salloc: Job is in held state, pending scheduler release
+salloc: Pending job allocation 6762292
+salloc: job 6762292 queued and waiting for resources
+salloc: job 6762292 has been allocated resources
+salloc: Granted job allocation 6762292
+## ...
+> FUN <- function(i) system("hostname", intern=TRUE)
+> 
+> library(BiocParallel)
+> library(Rmpi)
+> param <- SnowParam(mpi.universe.size() - 1, "MPI")
+> register(param)
+> xx <- bplapply(1:100, FUN)
+	4 slaves are spawned successfully. 0 failed.
+> table(unlist(xx))
+
+gizmof13 gizmof71 gizmof86 gizmof88 
+      25       25       25       25 
+> 
+> mpi.quit()
+salloc: Relinquishing job allocation 6762292
+salloc: Job allocation 6762292 has been revoked.
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+One advantage of this approach is that the responsibility for managing
+the cluster lies firmly with the cluster management software -- if one
+wants more nodes, or needs special resources, then adjust parameters
+to \verb+salloc+ (or \verb+sbatch+).
+
+Notice that workers are spawned within the \Rcode{bplapply} function;
+it might often make sense to more explicitly manage workers with
+\Rfunction{bpstart} and \Rfunction{bpstop}, e.g.,
+<<cluster-MPI-bpstart, eval=FALSE>>=
+param <- bpstart(SnowParam(mpi.universe.size() - 1, "MPI"))
+register(param)
+xx <- bplapply(1:100, FUN)
+bpstop(param)
+mpi.quit()
+@ 
+
+\subsubsection{R-centric}
+
+A more \R-centric approach might start an \R{}
+script on the head node, and use \Rpackage{BatchJobs} to submit jobs
+from within the \R{} session. One way of doing this is to create a
+file containing a template for the job submission step, e.g., for
+SLURM\footnote{see
+  \url{https://github.com/tudo-r/BatchJobs/tree/master/examples/cfSLURM}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{verbatim}
+#!/bin/bash
+##
+## file: slurm.tmpl
+## Job Resource Interface Definition
+##
+## ntasks [integer(1)]: Number of required tasks.
+## ncpus [integer(1)]: Number of required cpus per task.
+## walltime [integer(1)]: Walltime for this job, in minutes.
+##
+## 'resources' is an argument provided to BatchJobsParam()
+
+#SBATCH --job-name=<%= job.name %>
+#SBATCH --output=<%= log.file %>
+#SBATCH --error=<%= log.file %>
+#SBATCH --ntasks=<%= resources$ntasks %>
+#SBATCH --cpus-per-task=<%= resources$ncpus %>
+#SBATCH --time=0:10:0
+
+## Run R: we merge R output with stdout from SLURM, which gets then
+## logged via --output option
+R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The \R{} script, run interactively or from the command line, might
+then look like
+<<cluster-BatchJobs, eval=FALSE>>=
+## define work to be done
+FUN <- function(i) system("hostname", intern=TRUE)
+
+library(BiocParallel)
+library(BatchJobs)
+
+## register SLURM cluster instructions from the template file
+funs <- makeClusterFunctionsSLURM("slurm.tmpl")
+param <- BatchJobsParam(4, resources=list(ncpus=1),
+                        cluster.functions=funs)
+register(param)
+
+## do work
+xx <- bplapply(1:100, FUN)
+table(unlist(xx))
+@ 
+%% 
+The code runs on the head node until \Rcode{bplapply}, where the \R{}
+script interacts with the SLURM scheduler to request a SLURM
+allocation, run jobs, and retrieve results. The argument \Rcode{4} to
+\Rcode{BatchJobsParam} specifies the number of workers to request from
+the scheduler; \Rcode{bplapply} divides the 100 jobs among the 4
+workers. If \Rcode{BatchJobsParam} had been created without specifying
+any workers, then 100 jobs implied by the argument to \Rcode{bplapply}
+would be associated with 100 tasks submitted to the scheduler.
+
+Because cluster tasks are running in independent \R{} instances, and
+often on physically separate machines, a convenient `best practice'
+is to write \Rcode{FUN} in a `functional programming' manner, such
+that all data required for the function is passed in as arguments or
+(for large data) loaded implicitly or explicitly (e.g., via an \R{}
+library) from disk.
+
+\subsection{\Bioconductor{} Amazon Machine Image (AMI)}
+
+An AMI for running \Bioconductor{} in the Elastic Compute Cloud (EC2) 
+is available at
+\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
+The documentation provides detailed instructions for setting up 
+accounts, launching instances and starting sessions via RStudio or SSH.
+
+Motivation for running jobs in the cloud may be access to additional 
+CPUs and / or memory. Amazon Web Services (AWS) has a variety of instances 
+ranging from general purpose to those optimized for compute, memory or 
+I/O intensive jobs. See 
+\url{http://aws.amazon.com/ec2/instance-types/} for a full listing of 
+instances. 
+
+Single or multiple instances can be requested when starting 
+up the AMI. When a single instance is requested, interaction with
+the resource is the same as described in the `Single Machine`
+section above. Requesting multiple instances is essentially 
+creating a cluster. To do this with the \Bioconductor{} AMI the
+StarCluster toolkit must be installed and a config file must
+be modified to specify the number and type of instances. Walk-
+through examples are provided in the \Bioconductor{} AMI web
+documentation
+\url{http://www.bioconductor.org/help/bioconductor-cloud-ami/}.
+
+This example uses a cluster of three m3.large instances each of 
+which has 2 virtual CPUs. The name of the cluster in the config 
+file is `smallcluster` and can be started with the `start` command:
+\begin{verbatim}
+    starcluster start smallcluster 
+\end{verbatim}
+
+List the cluster nodes:
+
+\begin{verbatim}
+~ >starcluster listclusters
+StarCluster - (http://star.mit.edu/cluster) (v. 0.95.5)
+Software Tools for Academics and Researchers (STAR)
+Please submit bug reports to starcluster@mit.edu
+
+-----------------------------------------------
+smallcluster (security group: @sc-smallcluster)
+-----------------------------------------------
+Launch time: 2014-07-21 08:44:11
+Uptime: 0 days, 00:09:30
+Zone: us-east-1b
+Keypair: bioc-keypair-vobencha
+EBS volumes: N/A
+Cluster nodes:
+  smallcluster-master running i-1f757234 ec2-54-91-126-83.compute-1.amazonaws.com
+  smallcluster-node001 running i-1e757235 ec2-50-16-135-207.compute-1.amazonaws.com
+  smallcluster-node002 running i-19757232 ec2-54-89-112-24.compute-1.amazonaws.com
+Total nodes: 3
+\end{verbatim}
+
+Use the hostname for the master node to connect to the cluster via 
+RStudio or SSH.
+
+The AMI cluster workers can communicate via SSH, SunGrid Engine (SGE) or MPI.
+For MPI, a \Robject{SnowParam} should be configured with \Rcode{type = MPI}. 
+\begin{verbatim}
+> library(BiocParallel}
+> param <- SnoParam(workers=3, type = "MPI") 
+\end{verbatim}
+
+Both SSH and SunGrid Engine require a \Robject{BatchJobsParam} but differ 
+slightly in the set-up.
+
+For SSH, the nodes are registered as SSH workers. The `workers` argument
+to BatchJobsParam should be the number of nodes and `ncpus` the number
+of processors per node.
+\begin{verbatim}
+> library(BiocParallel}
+> library(BatchJobs)
+> funs <- makeClusterFunctionsSSH(
++     makeSSHWorker(nodename="smallcluster-master"),
++     makeSSHWorker(nodename="smallcluster-node001"),
++     makeSSHWorker(nodename="smallcluster-node002")
+> )
+> param <- BatchJobsParam(workers=3, 
++                         resources=list(ncpus=2),
++                         cluster.functions=funs)
+\end{verbatim}
+
+SunGrid Engine only needs the number of `workers` and `ncpus`.
+\begin{verbatim}
+> library(BiocParallel}
+> library(BatchJobs)
+> param <- BatchJobsParam(3, resources=list(ncpus=2))
+\end{verbatim}
+
+This example uses 8 paired-end RNA-Seq BAM files, 1 per sequencing
+run, subset on chromosome 14 only.
+\begin{verbatim}
+> library(BiocParallel)
+> library(RNAseqData.HNRNPC.bam.chr14)
+> fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
+\end{verbatim}
+
+Reads with more than 2 gaps in the CIGAR are isolated and 
+\Rfunction{locateVariants} is used to identify where these multi-gap 
+reads fall with respect to the UCSC hg19 known gene model.
+
+\begin{verbatim}
+> FUN <- function(file, ...) {
++    library(GenomicAlignments)
++    library(VariantAnnotation)
++    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
++    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
++    gal <- readGAlignmentPairs(file)
++    gal_with_gaps <- gal[njunc(gal) > 2L]
++    locateVariants(granges(gal_with_gaps), txdb, AllVariants())
+> }
+\end{verbatim}
+
+Define a \Robject{BatchJobsParam} with 3 workers, 2 processors each.
+\begin{verbatim}
+> param <- BatchJobsParam(3, resources=(list(ncpus=2)))
+\end{verbatim}
+
+Execute in parallel over the 8 files. 
+\begin{verbatim}
+> res <- bplapply(fls, FUN, BPPARAM=param) 
+\end{verbatim}
+
+The return value is a list of GRanges, one for each file. The length of
+each \Robject{GRanges} will vary. 
+\begin{verbatim}
+> elementLengths(res)
+ERR127306 ERR127307 ERR127308 ERR127309 ERR127302 ERR127303 ERR127304 ERR127305 
+     5228      5202      5721      4326      4494      4909      4636      4538 
+\end{verbatim}
+
+Summarize the LOCATION and TXID output of \Rfunction{locateVariants} with 
+\Rfunction{xtabs}.
+\begin{verbatim}
+> mdat <- lapply(res, function(x) mcols(x)[c("LOCATION", "TXID")])
+> xtab <-  xtabs(~ LOCATION + TXID, do.call(rbind, mdat))
+\end{verbatim}
+
+The xtab object can be subset to isolate transcripts that meet a criteria.
+These are the top 5 transcripts hit by the multi-gap reads.
+\begin{verbatim}
+> xtab[,xtab["spliceSite", ] > 500]
+            TXID
+LOCATION     51581 51582 53506 53507 53508
+  spliceSite   994   994   520   548   548
+  intron         0     0     0     0     0
+  fiveUTR        0     0     0     0     0
+  threeUTR       0     0     0     0     0
+  coding         0     0     0     0     0
+  intergenic     0     0     0     0     0
+  promoter       0     0     0     0     0
+\end{verbatim}
+
+Extract the transcripts with multi-gap reads in promoter regions:
+\begin{verbatim}
+> xtab[,xtab["promoter", ] > 0]
+            TXID
+LOCATION     51495 52270 52272 52273 52528 52538 52540 52541 52716
+  spliceSite   152     0     1     1    52     0     0     0    46
+  intron         0     0     0     0     0     0     0     0     0
+  fiveUTR        0     0     0     0     0     0     0     0     0
+  threeUTR       0     0     0     0     0     0     0     0     0
+  coding         0     0     0     0     0     0     0     0     0
+  intergenic     0     0     0     0     0     0     0     0     0
+  promoter      38    31   314   314    54     3     3     3     7
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Analyzing genomic data in \Bioconductor{}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+General strategies exist for handling large genomic data that are well 
+suited to \R{} programs. A manuscript titled \emph{Scalable Genomics with
+\R{} and \Bioconductor{}} 
+(\url{http://www.imstat.org/sts/future_papers.html}) by Michael Lawrence 
+and Martin Morgan, reviews several of these approaches and demonstrate 
+implementation with \Bioconductor{} packages. Problem areas include 
+scalable processing, summarization and visualization. The techniques 
+presented include restricting queries, compressing data, iterating, and 
+parallel computing. 
+
+Ideas are presented in an approachable fashion within a framework of 
+common use cases. This is a benificial read for anyone anyone tackling 
+genomics problems in \R{}. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{For developers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Developers wishing to use \BiocParallel{} in their own packages should
+include \BiocParallel{} in the \texttt{DESCRIPTION} file
+\begin{verbatim}
+    Imports: BiocParallel
+\end{verbatim}
+and import the functions they wish to use in the \texttt{NAMESPACE}
+file, e.g.,
+\begin{verbatim}
+    importFrom(BiocParallel, bplapply)
+\end{verbatim}
+Then invoke the desired function in the code, e.g.,
+<<devel-bplapply>>=
+system.time(x <- bplapply(1:3, function(i) { Sys.sleep(i); i }))
+unlist(x)
+@ 
+%%
+This will use the back-end returned by \Rcode{bpparam()}, by default a
+\Rcode{MulticoreParam()} instance or the user's preferred back-end if
+they have used \Rcode{register()}.  The \Rcode{MulticoreParam} back-end
+does not require any special configuration or set-up and is therefore
+the safest option for developers. Unfortunately,
+\Rcode{MulticoreParam} provides only serial evaluation on Windows.
+
+Developers should document that their function uses \BiocParallel{}
+functions on the man page, and should perhaps include in their
+function signature an argument \Rcode{BPPARAM=bpparam()}.
+
+Developers wishing to invoke back-ends other than
+\Rcode{MulticoreParam} need to take special care to ensure that
+required packages, data, and functions are available and loaded on the
+remote nodes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{\Rcode{sessionInfo()}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<sessionInfo>>=
+toLatex(sessionInfo())
+@
+
+\end{document}

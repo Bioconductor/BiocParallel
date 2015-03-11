@@ -1,0 +1,82 @@
+setGeneric("bplapply", signature=c("X", "BPPARAM"),
+    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+        BPPARAM=bpparam())
+    standardGeneric("bplapply"))
+
+setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+    standardGeneric("bpmapply"))
+
+setGeneric("bpiterate", signature=c("ITER", "FUN", "BPPARAM"),
+    function(ITER, FUN, ..., BPPARAM=bpparam())
+    standardGeneric("bpiterate"))
+
+setGeneric("bpvec", signature=c("X", "BPPARAM"),
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
+    standardGeneric("bpvec"))
+
+setGeneric("bpvectorize",
+    function(FUN, ..., BPPARAM=bpparam())
+    standardGeneric("bpvectorize"))
+
+setGeneric("bpaggregate",
+    function(x, ..., BPPARAM=bpparam())
+    standardGeneric("bpaggregate"))
+
+setGeneric("bpworkers",
+    function(x, ...) standardGeneric("bpworkers"))
+
+## errors
+setGeneric("bpstopOnError",
+    function(x, ...) standardGeneric("bpstopOnError"))
+
+setGeneric("bpstopOnError<-",
+    function(x, ..., value) standardGeneric("bpstopOnError<-"))
+
+## logging
+setGeneric("bplog",
+    function(x, ...) standardGeneric("bplog"))
+
+setGeneric("bplog<-",
+    function(x, ..., value) standardGeneric("bplog<-"))
+
+setGeneric("bplogdir",
+    function(x, ...) standardGeneric("bplogdir"))
+
+setGeneric("bplogdir<-",
+    function(x, ..., value) standardGeneric("bplogdir<-"))
+
+setGeneric("bpthreshold",
+    function(x, ...) standardGeneric("bpthreshold"))
+
+setGeneric("bpthreshold<-",
+    function(x, ..., value) standardGeneric("bpthreshold<-"))
+
+## results
+setGeneric("bpresultdir",
+    function(x, ...) standardGeneric("bpresultdir"))
+
+setGeneric("bpresultdir<-",
+    function(x, ..., value) standardGeneric("bpresultdir<-"))
+
+## control
+setGeneric("bpstart",
+    function(x, ...) standardGeneric("bpstart"))
+
+setGeneric("bpstop",
+    function(x, ...) standardGeneric("bpstop"))
+
+setGeneric("bpisup",
+    function(x, ...) standardGeneric("bpisup"))
+
+setGeneric("bpbackend",
+    function(x, ...) standardGeneric("bpbackend"))
+
+setGeneric("bpbackend<-",
+    function(x, ..., value) standardGeneric("bpbackend<-"))
+
+## scheduling
+
+setGeneric("bpschedule",
+    function(x, ...) standardGeneric("bpschedule"))
