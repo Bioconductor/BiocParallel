@@ -15,7 +15,7 @@ BiocStyle::latex()
 \title{Introduction to \BiocParallel} 
 \author{Vincent Carey, Michael Lawrence, Martin
   Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
-\date{Edited: August 19, 2014; Compiled: \today}
+\date{Edited: March 1, 2014; Compiled: \today}
 
 \begin{document}
 
@@ -54,29 +54,26 @@ passed as an argument to the \BiocParallel{} functions.
 
 \begin{itemize}
   \setlength{\itemsep}{5pt}
-  \item{unified interface: }
- 
-  \Rcode{BiocParallelParam} instances define the method of parallel 
-  evaluation (multi-core, snow cluster, etc.) and computing resources 
-  (number of workers, error handling, cleanup, etc.).
-
-  \item{parallel iteration over lists, files and vectorized operations: }
-
-  \Rcode{bplapply}, \Rcode{bpmapply} and \Rcode{bpvec} provide 
-  parallel list iteration and vectorized operations. \Rcode{bpiterate} 
-  iterates through files distributing chunks to parallel workers.
-
-  \item{cluster scheduling: }
-
-  When the parallel environment is managed by a cluster scheduler
-  through \CRANpkg{BatchJobs}, job management and result retrieval are
-  considerably simplified.
-
-  \item{support of \Rcode{foreach}: }
-
-  The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported.
-  Registration of the parallel back end uses \Rcode{BiocParallelParam} 
-  instances.
+  \item{unified interface:}{
+    \Rcode{BiocParallelParam} instances define the method of parallel 
+    evaluation (multi-core, snow cluster, etc.) and computing resources 
+    (number of workers, error handling, cleanup, etc.).
+  }
+  \item{parallel iteration over lists, files and vectorized operations:}{
+    \Rcode{bplapply}, \Rcode{bpmapply} and \Rcode{bpvec} provide 
+    parallel list iteration and vectorized operations. \Rcode{bpiterate} 
+    iterates through files distributing chunks to parallel workers.
+  }
+  \item{cluster scheduling:}{
+    When the parallel environment is managed by a cluster scheduler
+    through \CRANpkg{BatchJobs}, job management and result retrieval are
+    considerably simplified.
+  }
+  \item{support of \Rcode{foreach}:}{
+    The \CRANpkg{foreach} and \CRANpkg{iterators} packages are fully supported.
+    Registration of the parallel back end uses \Rcode{BiocParallelParam} 
+    instances.
+  }
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,11 +118,10 @@ argument the default back-end is used.
 bplapply(1:4, FUN)
 @
 
-Environment specific back-ends can be defined for any of the
-registry entries. Here we create a 2-worker PSOCK cluster and
-use it in place of the default.
+Environment specific back-ends can be defined for any of the registry entries.
+This example uses a 2-worker SOCK cluster.
 <<quickstart_snow>>=
-param <- SnowParam(workers = 2, type = "PSOCK") 
+param <- SnowParam(workers = 2, type = "SOCK") 
 bplapply(1:4, FUN, BPPARAM = param)
 @
 
@@ -158,19 +154,21 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   Supported on Unix and Mac. 
   Evaluate \BiocParallel-enabled code using multiple cores on a single 
   computer. When available, this is the most efficient and least 
-  troublesome way to parallelize code. Unfortunately, Windows does not 
+  troublesome way to parallelize code. Windows does not 
   support multi-core evaluation (the \Rcode{MulticoreParam} object can 
   be used, but evaluation is serial). On other operating systems, the 
   default number of workers equals the value of the global option 
   \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is 
   not set, the number of cores returned by \Rcode{parallel::detectCores()}.
+  Based on facilities originally implemented in the \CRANpkg{multicore}
+  package and subsequently the \CRANpkg{parallel} package in base \R{}.
  
   \item{\Rcode{SnowParam}: } 
 
   Supported on all platforms. 
   Evaluate \BiocParallel-enabled code across several distinct \R{} 
-  instances, on one or several computers. This can be an easy way to 
-  parallelize code when working with one or several computers, and is 
+  instances, on one or several computers. This is a straightforward approach
+  for executing parallel code on one or several computers, and is 
   based on facilities originally implemented in the \CRANpkg{snow} package. 
   Different types of \CRANpkg{snow} `back-ends' are supported, including 
   socket and MPI clusters.
@@ -398,9 +396,9 @@ FUN <- function(fl, param, gr) {
 }
 @
 
-Define a 2-worker PSOCK Snow cluster.
+Define a 2-worker SOCK Snow cluster.
 <<cluster_snow_param>>=
-snow <- SnowParam(workers = 2, type = "PSOCK")
+snow <- SnowParam(workers = 2, type = "SOCK")
 @
 
 A call to \Rcode{bplapply} with the \Rclass{SnowParam} creates the 
@@ -433,7 +431,7 @@ the same machine.
 Create a \Rclass{SnowParam} with 2 cpus from `rhino01` and 1 from `rhino02`.
 <<ad_hoc_sock_snow_param>>=
 hosts <- c("rhino01", "rhino01", "rhino02")
-param <- SnowParam(workers = hosts, type = "PSOCK")
+param <- SnowParam(workers = hosts, type = "SOCK")
 @
 
 Execute FUN 4 times across the workers. 

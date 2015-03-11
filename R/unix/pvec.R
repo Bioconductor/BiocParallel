@@ -40,7 +40,7 @@ pvec <- function(v, FUN, ..., AGGREGATE=c,
             num.chunks <- ceiling(n/chunk.size)
         }
     }
-    si <- splitIndices(n, num.chunks)
+    si <- .splitIndices(n, num.chunks)
     si <- si[sapply(si, length) != 0]
     res0 <- mclapply(si, function(i) FUN(v[i], ...),
                      mc.set.seed=mc.set.seed,

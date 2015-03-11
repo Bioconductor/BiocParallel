@@ -17,18 +17,7 @@
 }
 
 \usage{
-SerialParam(catch.errors = TRUE) 
-}
-
-\arguments{
-
-    \item{catch.errors}{\code{logical(1)}} Flag to determine in
-        apply-like functions (see e.g. \code{\link{bplapply}}) whether
-        to quit with an error as soon as one application fails or
-        encapsulation of function calls in \code{\link[base]{try}}
-        blocks which triggers a resume mechanism (see
-        \link{bpresume}). Defaults to \code{TRUE}.
-
+SerialParam() 
 }
 
 \section{SerialParam constructor}{

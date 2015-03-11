@@ -205,43 +205,47 @@ if (all(require(Rsamtools) &&
   ## ----------------------------------------------------------------------
   ## Multiple files
   ## ----------------------------------------------------------------------
-  ## Currently bpiterate() is only implemented for the multi-core
-  ## environment (i.e., MulticoreParam). A single machine may not
-  ## have enough memory to process multiple files. In this case the
-  ## files can be distributed over a snow cluster with bplapply() 
-  ## then processed with bpiterate() on each cluster node.
+  ## Currently bpiterate() is implemented for MulticoreParam only. When
+  ## data are large a single machine may not have enough memory to 
+  ## process all files. Nested parallelism can be used to distribute the
+  ## files over a SnowParam cluster then process each file with MulticoreParam
+  ## workers.
+  ##
+  ## It is important to avoid creating too many processes and oversubscribing 
+  ## the CPU(s). The example below makes sense for a CPU with 6 cores even 
+  ## though a total of 9 workers are created. The outer SnowParam workers 
+  ## handle file management while the heavy lifting is left to the
+  ## MulticoreParam workers.
  
-  ## Select a subset of files, create a BamFileList.
+  ## Create a BamFileList with a subset of the files.
   fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[1:3]
   bfl <- BamFileList(fls, yieldSize = 200000) 
  
-  ## Cluster size is defined by the number of files.
-  snowp <- SnowParam(workers = length(bfl))
- 
-  ## Currently bpiterate() is only supported in the multi-core environment
-  ## and must use MulticoreParam.
+  ## The SnowParam cluster has one worker per file.
+  snowp <- SnowParam(length(bfl), "SOCK")
+
   myFUN <- function(file, bamIterator, counter, ...) {
     library(BiocParallel)  ## for bpiterate
     library(Rsamtools)     ## for Bam file manipulation
     library(GenomicAlignments) ## for readGAlignments
     ITER <- bamIterator(file)
-    bpiterate(ITER, counter, BPPARAM = MulticoreParam(workers=2), roi = roi)
+    bpiterate(ITER, counter, BPPARAM = MulticoreParam(2), roi = roi)
   }
  
   ## Distribute the files across the snow cluster workers with bplapply().
-  ## Each cluster node acts as a master and spawns 2 children. 
-  res <- bplapply(bfl, myFUN, BPPARM = snowp, bamIterator = bamIterator,
+  ## Each SOCK cluster node spawns 2 multicore children; 'myFUN' is run
+  ## on the multicore children.
+  ## FIXME: issue with parallel::sendData overwrite
+  \dontrun{
+  res <- bplapply(bfl, myFUN, BPPARAM = snowp, bamIterator = bamIterator,
                   counter = counter, roi = roi) 
 
   ## The result is of length 3 (# of files).
-  ## > length(res)
-  ## [1] 3
-
+  length(res)
  
   ## Each list element is of length 5 (# of iterations of size 'yieldSize').
-  ## >  elementLengths(res)
-  ## ERR127306 ERR127307 ERR127308 
-  ##         5         5         5 
+  elementLengths(res)
+  }
 }
 }
 

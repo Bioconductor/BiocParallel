@@ -1,13 +1,16 @@
+### =========================================================================
+### SnowParam objects
+### -------------------------------------------------------------------------
+
 ## 11 February, 2014 -- this is a hack: import'ing
 ## parallel::stopCluster and then library(snow) overwrites
 ## parallel::stopCluster.default with snow::stopCluster.default,
 ## resulting in incorrect dispatch to snow::sendData
+
 snowWorkers <- function() {
-    cores <- min(8L, detectCores())
+    cores <- min(8L, parallel::detectCores())
     getOption("mc.cores", cores)
 }
-
-stopCluster <- parallel::stopCluster
 
 setOldClass(c("NULLcluster", "cluster"))
 
@@ -19,38 +22,49 @@ setOldClass(c("NULLcluster", "cluster"))
     cl
 }
 
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Constructor 
+###
+
 .SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
-      .clusterargs="list",
-      cluster="cluster"),
+        .clusterargs="list",
+        cluster="cluster"),
     methods=list(
-      show = function() {
-          callSuper()
-          cat("cluster spec: ", .clusterargs$spec,
-              "; type: ", .clusterargs$type, "\n", sep="")
-      }))
+        show=function() {
+            callSuper()
+            cat("cluster type: ", .clusterargs$type, "\n")
+    })
+)
 
-SnowParam <-
-    function(workers=snowWorkers(), type=c("SOCK", "PSOCK", "FORK", "MPI"),
-             catch.errors=TRUE, ...)
+SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
+    stopOnError=FALSE, log=FALSE, threshold="INFO", logdir=character(),
+    resultdir=character(), ...)
 {
-    if (missing(type))
-        type <- parallel:::getClusterOption("type")
-    else
-        type <- match.arg(type)
-    if (any(type %in% c("FORK", "MPI")) && is(workers, "character"))
-        stop("'workers' must be integer(1) when 'type' is FORK or MPI") 
+    type <- match.arg(type)
+    if (!type %in% c("SOCK", "MPI", "FORK"))
+        stop("type must be one of 'SOCK', 'MPI' or 'FORK'")
+    if (any(type %in% c("MPI", "FORK")) && is(workers, "character"))
+        stop("'workers' must be integer(1) when 'type' is MPI or FORK") 
 
-    args <- c(list(spec=workers, type=type), list(...))
+    args <- c(list(spec=workers, type=type), list(...)) 
     # FIXME I don't think this is required, lists always inflict a copy
     .clusterargs <- lapply(args, force)
     cluster <- .NULLcluster()
-    .SnowParam(.clusterargs=.clusterargs, cluster=cluster,
-        .controlled=TRUE, workers=workers, catch.errors=catch.errors)
+ 
+    x <- .SnowParam(.clusterargs=.clusterargs, cluster=cluster, 
+                    .controlled=TRUE, workers=workers, 
+                    stopOnError=stopOnError, log=log, 
+                    threshold=.THRESHOLD(threshold), logdir=logdir,
+                    resultdir=resultdir, ...)
+    validObject(x)
+    x
 }
 
-## control
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - control
+###
 
 setMethod(bpworkers, "SnowParam",
     function(x, ...)
@@ -64,11 +78,24 @@ setMethod(bpworkers, "SnowParam",
 setMethod(bpstart, "SnowParam",
     function(x, ...)
 {
+    if (!require(parallel))
+        stop("SnowParam class objects require the 'parallel' package")
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
     if (bpisup(x))
         stop("cluster already started")
-    bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+
+    if (bplog(x)) {
+        ## worker script in BiocParallel
+        x$.clusterargs$useRscript <- FALSE
+        x$.clusterargs$scriptdir <- find.package("BiocParallel")
+        bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+        .initiateLogging(x)
+    } else {
+        ## worker script in snow 
+        x$.clusterargs$useRscript <- TRUE 
+        bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+    }
     invisible(x)
 })
 
@@ -107,54 +134,52 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     x
 })
 
-## evaluation
+setReplaceMethod("bplog", c("SnowParam", "logical"),
+    function(x, ..., value)
+{
+    x$log <- value 
+    if (bpisup(x)) {
+        bpstop(x)
+        bpstart(x)
+    }
+    x
+})
 
-setMethod(bpmapply, c("ANY", "SnowParam"),
-    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - evaluation
+###
+
+setMethod(bplapply, c("ANY", "SnowParam"),
+    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+    BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    # recall on subset
-    if (BPRESUME) {
-        return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
-            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
-    }
-
+    ## no scheduling -> serial evaluation 
+    if (!bpschedule(BPPARAM))
+        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
-
-    if (!bpschedule(BPPARAM))
-        return(bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
-            BPPARAM=SerialParam(catch.errors=BPPARAM$catch.errors)))
-
-    # clusterMap not consistent with mapply w.r.t. zero-length input
-    if (missing(...) || length(..1) == 0L)
-      return(list())
-
-    if (BPPARAM$catch.errors)
-        FUN <- .composeTry(FUN)
-    results <- clusterMap(cl=bpbackend(BPPARAM), fun=FUN, ...,
-        MoreArgs=MoreArgs, SIMPLIFY=FALSE, USE.NAMES=USE.NAMES, RECYCLE=TRUE)
-    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
-    if (any(is.error))
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-
-    .simplify(results, SIMPLIFY=SIMPLIFY)
+    cl <- bpbackend(BPPARAM)
+    argfun <- function(i) c(list(X[[i]]), list(...))
+    bpdynamicClusterApply(cl, FUN, length(X), names(X), argfun, BPPARAM) 
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    warning("SnowParam not yet supported for bpiterate; using SerialParam")
+    warning("SnowParam not supported for bpiterate; using SerialParam")
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
     bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()) 
 })
 
-## parallel::SOCKcluster types
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Coercion methods for SOCK and MPI clusters 
+###
+
+### parallel::SOCKcluster types
 
 setOldClass(c("SOCKcluster", "cluster"))
 
@@ -166,11 +191,11 @@ setAs("SOCKcluster", "SnowParam",
 {
     .clusterargs <- list(spec=length(from),
         type=sub("cluster$", "", class(from)[1L]))
-    .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-        workers=length(from), catch.errors=TRUE)
+    .SnowParam(.clusterargs=.clusterargs, cluster=from, 
+        .controlled=FALSE, workers=length(from))
 })
 
-## MPIcluster
+### MPIcluster
 
 setOldClass(c("spawnedMPIcluster", "MPIcluster", "cluster"))
 
@@ -180,5 +205,5 @@ setAs("spawnedMPIcluster", "SnowParam",
     .clusterargs <- list(spec=length(from),
         type=sub("cluster", "", class(from)[1L]))
     .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
-               workers=length(from), catch.errors=TRUE)
+               workers=length(from))
 })

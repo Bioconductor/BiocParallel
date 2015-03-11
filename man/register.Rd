@@ -103,7 +103,7 @@ bpparam(bpparamClass)
 registered()
 
 ## When default = TRUE the last param registered becomes the new default.
-snowparam <- SnowParam(workers = 3, type = "PSOCK")
+snowparam <- SnowParam(workers = 3, type = "SOCK")
 register(snowparam, default = TRUE)
 registered()
 
@@ -121,23 +121,11 @@ bpparam("MulticoreParam")
 ## the BiocParallel functions. None, one, or multiple back-ends can be
 ## provided.
 
-## BPPARAM not specified:
-## The default back-end from the registry is used.
-bplapply(1:6, sqrt)
-
-## BPPARAM as a single param:
 bplapply(1:6, sqrt, BPPARAM = MulticoreParam(3))
 
-## BPPARAM as a list of params:
-## Useful for multiple levels of parallel evaluation. The 1:6 are divided
-## among Snow workers, each of which dispatch to Multicore workers.
-myfun <- function(x, BPPARAM, ...) {
-  library(BiocParallel)
-  res <- bplapply(x, sqrt, BPPARAM = BPPARAM)
-  do.call(mean, res)
-}
-params <- list(bpparam("SnowParam"), bpparam("MulticoreParam"))
-bplapply(list(1:2, 3:4, 5:6), myfun, BPPARAM = params)
+## When not specified, the default from the registry is used.
+bplapply(1:6, sqrt)
+
 }
 
 \keyword{manip}
