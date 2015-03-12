@@ -80,7 +80,7 @@ bprunMPIslave <- function() {
 }
 
 .bpnewForkNode <- function(..., 
-    options = parallel:::defaultClusterOptions, rank)
+                           options = parallel:::defaultClusterOptions, rank)
 {
     getClusterOption <- parallel:::getClusterOption
     options <- parallel:::addClusterOptions(options, list(...))
@@ -89,6 +89,8 @@ bprunMPIslave <- function() {
     timeout <- getClusterOption("timeout", options)
     renice <- getClusterOption("renice", options)
 
+    ## FIXME: better way?
+    environment(bpslaveLoop) <- getNamespace('parallel')
     f <- mcfork()
     if (inherits(f, "masterProcess")) { # the slave
         on.exit(mcexit(1L, structure("fatal error in wrapper code",
@@ -103,7 +105,7 @@ bprunMPIslave <- function() {
                                     open = "a+b", timeout = timeout)
             structure(list(con = con), class = "SOCK0node")
         }
-        sinkWorkerOutput(outfile)
+        parallel:::sinkWorkerOutput(outfile)
         msg <- sprintf("starting worker pid=%d on %s at %s\n",
                        Sys.getpid(), paste(master, port, sep = ":"),
                        format(Sys.time(), "%H:%M:%OS3"))
@@ -112,6 +114,7 @@ bprunMPIslave <- function() {
         tools::pskill(Sys.getpid(), tools::SIGUSR1)
         if(!is.na(renice) && renice) ## ignore 0
             tools::psnice(Sys.getpid(), renice)
+
         bpslaveLoop(makeSOCKmaster(master, port, timeout))
         mcexit(0L)
     }
@@ -140,7 +143,8 @@ bprunMPIslave <- function() {
             function(i, level) {
                 library(futile.logger)
                 flog.threshold(level)
-                fun <- function(line) buffer <<- c(buffer, line)
+                fun <- function(line) 
+                    buffer <<- c(buffer, gsub("\n", "", line))
                 flog.appender(fun, 'ROOT')
         }, level=level)
     }
