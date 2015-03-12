@@ -6,6 +6,12 @@
 ## parallel::stopCluster and then library(snow) overwrites
 ## parallel::stopCluster.default with snow::stopCluster.default,
 ## resulting in incorrect dispatch to snow::sendData
+stopCluster <- parallel::stopCluster
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Constructor 
+###
 
 snowWorkers <- function() {
     cores <- min(8L, parallel::detectCores())
@@ -21,10 +27,6 @@ setOldClass(c("NULLcluster", "cluster"))
     class(cl) <- c("NULLcluster", "cluster")
     cl
 }
-
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
-###
 
 .SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
@@ -87,12 +89,16 @@ setMethod(bpstart, "SnowParam",
 
     if (bplog(x)) {
         ## worker script in BiocParallel
-        x$.clusterargs$useRscript <- FALSE
-        x$.clusterargs$scriptdir <- find.package("BiocParallel")
-        bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+        if (x$.clusterargs$type == "FORK") {
+            bpbackend(x) <- do.call(.bpmakeForkCluster, x$.clusterargs)
+        } else {
+            x$.clusterargs$useRscript <- FALSE
+            x$.clusterargs$scriptdir <- find.package("BiocParallel")
+            bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+        }
         .initiateLogging(x)
     } else {
-        ## worker script in snow 
+        ## worker script in snow/parallel 
         x$.clusterargs$useRscript <- TRUE 
         bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
     }
