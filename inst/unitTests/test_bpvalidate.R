@@ -1,31 +1,30 @@
+library(Rsamtools)
 test_bpvalidate_library <- function()
 {
     fun <- function(fl, ...) {
-        library(Rsamtools) 
         countBam(fl)
     }
-    res <- bpvalidate(fun) ## loads Rsamtools
-    checkIdentical(res$RequiredPackages, "Rsamtools")
-    checkIdentical(res$UnknownSymbols, character())
+    res <- suppressMessages(bpvalidate(fun))
+    checkIdentical(names(res$inPath), "countBam")
+    checkIdentical(res$unknown, character())
 }
 
 test_bpvalidate_args <- function()
 {
-    library(Rsamtools)
     param <- ScanBamParam(flag=scanBamFlag(isMinusStrand=FALSE))
     fun <- function(fl, ...) {
         library(Rsamtools) 
         countBam(fl, param=param)
     }
-    res <- suppressWarnings(bpvalidate(fun))
-    checkIdentical(res$RequiredPackages, "Rsamtools")
-    checkIdentical(res$UnknownSymbols, "param")
+    res <- bpvalidate(fun)
+    checkIdentical(unname(res$inPath), list())
+    checkIdentical(res$unknown, "param") ## no .GlobalEnv; param -> unknown
 
     fun <- function(fl, ..., param) {
         library(Rsamtools) 
         countBam(fl, param=param)
     }
     res <- bpvalidate(fun)
-    checkIdentical(res$RequiredPackages, "Rsamtools")
-    checkIdentical(res$UnknownSymbols, character())
+    checkIdentical(unname(res$inPath), list())
+    checkIdentical(res$unknown, character())
 }
