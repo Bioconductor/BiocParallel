@@ -7,7 +7,7 @@
 ## parallel::stopCluster.default with snow::stopCluster.default,
 ## resulting in incorrect dispatch to snow::sendData
 stopCluster <- parallel::stopCluster
-
+makeCluster <- parallel::makeCluster
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor 
@@ -31,18 +31,40 @@ setOldClass(c("NULLcluster", "cluster"))
 .SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
+        cluster="cluster",
         .clusterargs="list",
-        cluster="cluster"),
+        .controlled="logical",
+        log="logical",
+        threshold="ANY",
+        logdir="character",
+        resultdir="character"),
     methods=list(
+      initialize = function(..., 
+          .controlled=TRUE,
+          log=FALSE,
+          threshold="INFO",
+          logdir=character(),
+          resultdir=character())
+      { 
+          initFields(.controlled=.controlled, log=log, threshold=threshold, 
+                     logdir=logdir, resultdir=resultdir)
+          callSuper(...)
+      },
         show=function() {
             callSuper()
+            cat("bpisup:", bpisup(.self), "\n")
+            cat("bplog:", bplog(.self), "\n")
+            cat("bpthreshold:", names(bpthreshold(.self)), "\n")
+            cat("bplogdir:", bplogdir(.self), "\n")
+            cat("bpresultdir:", bpresultdir(.self), "\n")
+            cat("bpstopOnError:", bpstopOnError(.self), "\n")
             cat("cluster type: ", .clusterargs$type, "\n")
     })
 )
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
-    stopOnError=FALSE, log=FALSE, threshold="INFO", logdir=character(),
-    resultdir=character(), ...)
+                      stopOnError=FALSE, log=FALSE, threshold="INFO", 
+                      logdir=character(), resultdir=character(), ...)
 {
     type <- match.arg(type)
     if (!type %in% c("SOCK", "MPI", "FORK"))
@@ -63,6 +85,56 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     validObject(x)
     x
 }
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Validity
+###
+
+.valid.SnowParam.log <- function(object) {
+    msg <- NULL
+
+    if (!.isTRUEorFALSE(bplog(object)))
+        msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
+
+    if (object$.controlled) {
+        threshold <- bpthreshold(object)
+        if (length(threshold) != 1L) 
+            return(c(msg, "'bpthreshold(BPPARAM)' must be character(1)"))
+
+        nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+        if (!names(threshold) %in% nms) {
+            return(c(msg, paste0("'bpthreshold(BPPARAM)' must be one of ", 
+                   paste(sQuote(nms), collapse=", "))))
+        }
+
+        dir <- bplogdir(object) 
+        if (length(dir) > 1L || !is(dir, "character"))
+            msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
+    }
+
+    msg
+}
+
+.valid.SnowParam.result <- function(object) {
+    msg <- NULL
+
+    dir <- bpresultdir(object) 
+    if (length(dir) > 1L || !is(dir, "character"))
+        msg <- c(msg, "'bpresultdir(BPPARAM)' must be character(1)")
+
+    msg
+}
+
+setValidity("SnowParam", function(object)
+{
+    msg <- NULL
+    if (!.isTRUEorFALSE(.controlled(object)))
+        msg <- c(msg, "'.controlled' must be TRUE or FALSE")
+    msg <- c(msg, 
+             .valid.SnowParam.log(object),
+             .valid.SnowParam.result(object))
+    if (is.null(msg)) TRUE else msg
+})
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
@@ -87,7 +159,8 @@ setMethod(bpstart, "SnowParam",
     if (bpisup(x))
         stop("cluster already started")
 
-    x$.clusterargs$spec <- min(bpworkers(x), tasks) 
+    if (tasks > 0L)
+        x$.clusterargs$spec <- min(bpworkers(x), tasks) 
     if (bplog(x)) {
         ## worker script in BiocParallel
         if (x$.clusterargs$type == "FORK") {
@@ -165,7 +238,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
     if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
+        BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM))
     }
     cl <- bpbackend(BPPARAM)
@@ -182,6 +255,101 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()) 
 })
 
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Getters / Setters
+###
+
+.controlled <-
+    function(x)
+{
+    x$.controlled
+}
+
+setMethod("bpstopOnError", "SnowParam",
+    function(x, ...)
+{
+    x$stopOnError
+})
+
+setReplaceMethod("bpstopOnError", c("SnowParam", "logical"),
+    function(x, ..., value)
+{
+    x$stopOnError <- value 
+    x 
+})
+
+setMethod("bplog", "SnowParam",
+    function(x, ...)
+{
+    x$log
+})
+
+setReplaceMethod("bplog", c("SnowParam", "logical"),
+    function(x, ..., value)
+{
+    x$log <- value 
+    x
+})
+
+.THRESHOLD <- function(xx) {
+    if (!is.null(names(xx)))
+        xx <- names(xx)
+    switch(xx,
+           "FATAL"=futile.logger::FATAL,
+           "ERROR"=futile.logger::ERROR,
+           "WARN"=futile.logger::WARN,
+           "INFO"=futile.logger::INFO,
+           "DEBUG"=futile.logger::DEBUG,
+           "TRACE"=futile.logger::TRACE,
+           xx)
+}
+
+setMethod("bpthreshold", "SnowParam",
+    function(x, ...)
+{
+    x$threshold
+})
+
+setReplaceMethod("bpthreshold", c("SnowParam", "character"),
+    function(x, ..., value)
+{
+    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+    if (!value %in% nms)
+        stop(paste0("'value' must be one of ",
+             paste(sQuote(nms), collapse=", ")))
+    x$threshold <- .THRESHOLD(value) 
+    x
+})
+
+setMethod("bplogdir", "SnowParam",
+    function(x, ...)
+{
+    x$logdir
+})
+
+setReplaceMethod("bplogdir", c("SnowParam", "character"),
+    function(x, ..., value)
+{
+    x$logdir <- value 
+    if (is.null(msg <- .valid.SnowParam.log(x))) 
+        x
+    else 
+        stop(msg)
+})
+
+setMethod("bpresultdir", "SnowParam",
+    function(x, ...)
+{
+    x$resultdir
+})
+
+setReplaceMethod("bpresultdir", c("SnowParam", "character"),
+    function(x, ..., value)
+{
+    x$resultdir <- value 
+    if (is.null(msg <- .valid.SnowParam.result(x))) 
+        x
+})
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Coercion methods for SOCK and MPI clusters 
 ###

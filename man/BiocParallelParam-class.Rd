@@ -2,31 +2,9 @@
 \Rdversion{1.1}
 \docType{class}
 
-% BiocParallelParam class, functions and methods
+% Class 
 \alias{BiocParallelParam-class}
 \alias{BiocParallelParam}
-
-% Accessors
-\alias{bplog}
-\alias{bplog<-}
-\alias{bplog,BiocParallelParam-method}
-\alias{bplog<-,BiocParallelParam,logical-method}
-\alias{bpthreshold}
-\alias{bpthreshold<-}
-\alias{bpthreshold,BiocParallelParam-method}
-\alias{bpthreshold<-,BiocParallelParam,character-method}
-\alias{bplogdir}
-\alias{bplogdir<-}
-\alias{bplogdir,BiocParallelParam-method}
-\alias{bplogdir<-,BiocParallelParam,character-method}
-\alias{bpresultdir}
-\alias{bpresultdir<-}
-\alias{bpresultdir,BiocParallelParam-method}
-\alias{bpresultdir<-,BiocParallelParam,character-method}
-\alias{bpstopOnError}
-\alias{bpstopOnError<-}
-\alias{bpstopOnError,BiocParallelParam-method}
-\alias{bpstopOnError<-,BiocParallelParam,logical-method}
 
 % Control
 \alias{bpbackend}
@@ -85,46 +63,6 @@
     \item \code{MulticoreParam()}
     \item \code{BatchJobsParam()}
     \item \code{SerialParam()}
-  }
-}
-
-\section{Accessors}{
-  In the following code, \code{x} is a BiocParallelParam object.
-
-  \describe{
-    \item{}{
-      \code{bpstopOnError(x, ...)}, \code{bpststopOnError(x) <- value}: 
-      Get or set the value to enable stop on error. \code{value} must be a
-      \code{logical(1)}.  When TRUE, the function returns immediately upon
-      error; results for previously completed jobs are saved.
-    }
-    \item{}{
-      \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
-      Get or set the value to enable logging. \code{value} must be a
-      \code{logical(1)}.
-    }
-    \item{}{
-      \code{bpthreshold(x, ...)}, \code{bpthreshold(x) <- value}: 
-      Get or set the logging threshold. \code{value} must be a
-      \code{character(1)} string of one of the levels defined in the
-      \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
-      \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
-    }
-    \item{}{
-      \code{bplogdir(x, ...)}, \code{bplogdir(x) <- value}: 
-      Get or set the directory for the log file. \code{value} must be a
-      \code{character(1)} path, not a file name. The file is written out as
-      LOGFILE.out. If no \code{logdir} is provided and \code{bplog=TRUE} log
-      messages are sent to stdout.
-    }
-    \item{}{
-      \code{bpresultdir(x, ...)}, \code{bpresultdir(x) <- value}: 
-      Get or set the directory for the result files. \code{value} must be a
-      \code{character(1)} path, not a file name. Separate files are written for
-      each job with the prefix JOB (e.g., JOB1, JOB2, etc.).  When no
-      \code{resultdir} is provided the results are returned to the session as
-      \code{list}.
-    }
   }
 }
 
