@@ -89,7 +89,6 @@ bprunMPIslave <- function() {
     timeout <- getClusterOption("timeout", options)
     renice <- getClusterOption("renice", options)
 
-    ## FIXME: better way?
     environment(bpslaveLoop) <- getNamespace('parallel')
     f <- mcfork()
     if (inherits(f, "masterProcess")) { # the slave
