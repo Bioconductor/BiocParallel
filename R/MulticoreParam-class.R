@@ -17,11 +17,23 @@ multicoreWorkers <- function() {
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="SnowParam",
     fields=list(
-        setSeed="logical", ## FIXME: remove when mclapply goes away
+        setSeed="logical",
         recursive="logical",
         cleanup="logical",
         cleanupSignal="integer",
-        verbose="logical")
+        verbose="logical"),
+    methods=list(
+      initialize = function(..., 
+          setSeed=TRUE,
+          recursive=TRUE,
+          cleanup=TRUE,
+          cleanupSignal=tools::SIGTERM,
+          verbose=FALSE)
+      { 
+          initFields(setSeed=setSeed, recursive=recursive, cleanup=cleanup, 
+                     cleanupSignal=cleanupSignal, verbose=verbose)
+          callSuper(...)
+      })
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
@@ -81,7 +93,7 @@ setMethod(bplapply, c("ANY", "MulticoreParam"),
     if (!bpschedule(BPPARAM))
         return(bplapply(X=X, FUN=FUN, ..., BPPARAM=SerialParam()))
     if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
+        BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM))
     }
     cl <- bpbackend(BPPARAM)
