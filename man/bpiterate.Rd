@@ -235,17 +235,15 @@ if (all(require(Rsamtools) &&
   ## Distribute the files across the snow cluster workers with bplapply().
   ## Each SOCK cluster node spawns 2 multicore children; 'myFUN' is run
   ## on the multicore children.
-  ## FIXME: issue with parallel::sendData overwrite
   \dontrun{
   res <- bplapply(bfl, myFUN, BPPARAM = snowp, bamIterator = bamIterator,
                   counter = counter, roi = roi) 
-
+  }
   ## The result is of length 3 (# of files).
   length(res)
  
   ## Each list element is of length 5 (# of iterations of size 'yieldSize').
   elementLengths(res)
-  }
 }
 }
 
