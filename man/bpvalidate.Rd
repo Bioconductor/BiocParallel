@@ -1,11 +1,12 @@
 \name{bpvalidate}
 \alias{bpvalidate}
 
-\title{Validate functions to be used in parallel evaluation}
+\title{Tools for developing functions for parallel execution in
+       distributed memory}
 
 \description{
-  Test that a function is `self-contained` and can be run in a distributed 
-  memory environment.
+  \code{bpvalidate} interrogates the function environment and search path
+  to locate undefined symbols.
 }
 
 \usage{
@@ -18,35 +19,56 @@ bpvalidate(fun)
 }
 
 \details{
-  \code{bpvalidate} tests whether a function is `self-contained` such that
-  it can be run in a distributed memory environment (e.g., clusters, or Windows 
-  machines). \code{bpvalidate} checks that all symbols are defined in the
-  search path or NAMESPACE of \code{fun} and all required libraries are loaded
-  in the body of \code{fun}. The output is a list of undefined symbols and
-  required packages, if any.
+  \code{bpvalidate} tests if a function can be run in a distributed memory
+  environment (e.g., SOCK clusters, Windows machines). \code{bpvalidate} looks
+  in the environment of \code{fun}, in the NAMESPACE exports of libraries
+  loaded in \code{fun}, and along the search path to identify any symbols 
+  outside the scope of \code{fun}.
 
   \code{bpvalidate} can be used to check functions passed to the bp* family
   of functions in \code{BiocParallel} or other packages that support parallel
   evaluation on clusters such as \code{snow}, \code{BatchJobs}, \code{Rmpi}, 
   etc.
 
-  When \code{bpvalidate} is used to test a function called from within a 
-  package, that package should be loaded before calling \code{bpvalidate(fun)}. 
-  This loads the necessary libraries and simulates the environment present
-  when parallel execution occurs.
+  \describe{
+    \item{testing package functions}{
+      The environment of a function defined inside a package is the 
+      NAMESPACE of the package. It is important to test these functions
+      as they will be called from within the package, with the appropriate
+      environment. Specifically, do not copy/paste the function into
+      the workspace; once this is done the GlobalEnv becomes the function
+      environment.
+      
+      To test a package function, load the package then call the function by 
+      name (myfun) or explicitly (mypkg:::myfun) if not exported.
+    }
+    \item{testing workspace functions}{
+      The environment of a function defined in the workspace is the GlobalEnv.
+      Because these functions do not have an associated package NAMESPACE,
+      the functions and variables used in the body must be explicitly passed
+      or defined. See examples.
+
+      Defining functions in the workspace is often done during development or
+      testing. If the function is later moved inside a package, it can be
+      rewritten in a more lightweight form by taking advantage of imported
+      symbols in the package NAMESPACE.
+    }
+  }
+  NOTE: \code{bpvalidate} does not currently work on Generics.
 }
 
 \value{
-  A \code{list} of length 2 with named elements `RequiredPackages`
-  and `UnknownSymbols`.
+  A \code{list} of length 2 with named elements `inPath` and `unknown`.
   \itemize{
-    \item{RequiredPackages}{
-      A vector of package names required for execution of \code{fun}. Packages
-      that appear in this list should be loaded in the body of \code{fun}
-      with library() or require(). 
+    \item{inPath}{
+      A named list of symbols and where they were found. These symbols were
+      found on the search path instead of the function environment and 
+      should probably be imported in the NAMESPACE or otherwise defined in 
+      the package.
     }
-    \item{UnknownSymbols}{
-      A vector of undefined symbols. These may be function or argument names.
+    \item{unknown}{
+      A vector of symbols not found in the function environment or the
+      search path.
     }
   }
 }
@@ -58,63 +80,66 @@ bpvalidate(fun)
 
 \examples{
 
-library(Rsamtools)
-library(RNAseqData.HNRNPC.bam.chr14)
-files <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
-param <- ScanBamParam(flag=scanBamFlag(isMinusStrand=FALSE))
-
-## Forgetting to load libraries or explicitly pass arguments are 
-## common errors when writing functions for cluster use. The examples below 
-## show how bpvalidate() can help identify these problems.
-
 ## ---------------------------------------------------------------------
-## A. Loading libraries:
+## Testing package functions
 ## ---------------------------------------------------------------------
 
-## This function counts records on the "+" strand in BAM files with
-## countBam() from Rsamtools. 
-fun1 <- function(fl, ...) countBam(fl)
+\dontrun{
+library(myPkg)
 
-## bpvalidate() suggests that Rsamtools be loaded in the body of 'fun': 
-res1 <- bpvalidate(fun1)
-res1$RequiredPackages
-res1$UnknownSymbols
+## Test exported functions by name or the double colon:
+bpvalidate(myExportedFun)
+bpvalidate(myPkg::myExportedFun)
 
-## When Rsamtools is explicitly loaded we see it still appears in 
-## 'RequiredPackages'. This list serves as a check/reminder of what
-## packages should be loaded and does not indicate the function is invalid.
+## Non-exported functions are called with the triple colon:
+bpvalidate(myPkg:::myInternalFun)
+}
+
+## ---------------------------------------------------------------------
+## Testing workspace functions
+## ---------------------------------------------------------------------
+
+## Functions defined in the workspace have the .GlobalEnv as their
+## environment. Often the symbols used inside the function body
+## are not defined in .GlobalEnv and must be passed explicitly.
+
+## Loading libraries:
+## In 'fun1' countBam() is flagged as unknown:
+fun1 <- function(fl, ...) 
+    countBam(fl)
+bpvalidate(fun1)
+
+## countBam() is not defined in .GlobalEnv and must be passed as
+## an argument or made available by loading the library.
 fun2 <- function(fl, ...) {
     library(Rsamtools)
     countBam(fl)
 }
-bpvalidate(fun2)$RequiredPackages
+bpvalidate(fun2)
 
-## ---------------------------------------------------------------------
-## B. Passing arguments:
-## ---------------------------------------------------------------------
+## Passing arguments:
+## 'param' is defined in the workspace but not passed to 'fun3'. 
+## bpvalidate() flags 'param' as being found 'inPath' which means
+## it is not defined in the function environment or inside the function.
+library(Rsamtools)
+param <- ScanBamParam(flag=scanBamFlag(isMinusStrand=FALSE))
 
-## Here 'param' is used in the body but not specified as an argument.
 fun3 <- function(fl, ...) {
   library(Rsamtools)
   countBam(fl, param=param)
 }
+bpvalidate(fun3)
 
-## bpvalidate() flags 'param' as unknown:
-bpvalidate(fun3)$UnknownSymbols
-
-## If we add 'param' as a formal argument it is not flagged:
+## 'param' is explicitly passed by adding it as a formal argument.
 fun4 <- function(fl, ..., param) {
   library(Rsamtools)
   countBam(fl, param=param)
 }
-bpvalidate(fun4)$UnknownSymbols
+bpvalidate(fun4)
 
-## Note that 'param' must be passed to the bp* function explicitly.
-## This call will fail:
-\dontrun{bplapply(files, fun4, BPPARAM=SnowParam(2))}
-
-## This call is correct: 
+## The corresponding call to a bp* function includes 'param':
 \dontrun{bplapply(files, fun4, param=param, BPPARAM=SnowParam(2))}
+
 }
 
 \keyword{manip}

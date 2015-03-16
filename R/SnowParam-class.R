@@ -74,11 +74,11 @@ setMethod(bpworkers, "SnowParam",
     if (bpisup(x))
         length(bpbackend(x))
     else
-        x$.clusterargs$spec
+        x$workers
 })
 
 setMethod(bpstart, "SnowParam",
-    function(x, ...)
+    function(x, tasks = bpworkers(x), ...)
 {
     if (!require(parallel))
         stop("SnowParam class objects require the 'parallel' package")
@@ -87,6 +87,7 @@ setMethod(bpstart, "SnowParam",
     if (bpisup(x))
         stop("cluster already started")
 
+    x$.clusterargs$spec <- min(bpworkers(x), tasks) 
     if (bplog(x)) {
         ## worker script in BiocParallel
         if (x$.clusterargs$type == "FORK") {
