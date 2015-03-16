@@ -130,24 +130,19 @@ bprunMPIslave <- function() {
 ###
 
 .initiateLogging <- function(BPPARAM) {
-    if (!require(futile.logger)) {
-        bplog(BPPARAM) <- FALSE
-        warning("futile.logger cannot be loaded")
-    } else {
-        level <- bpthreshold(BPPARAM)
-        flog.threshold(level)
-        flog.info("loading futile.logger on workers")
-        cl <- bpbackend(BPPARAM)
-        clusterExport(cl, c(buffer=NULL))  ## global assignment
-        clusterApply(cl, seq_along(cl), 
-            function(i, level) {
-                library(futile.logger)
-                flog.threshold(level)
-                fun <- function(line) 
-                    buffer <<- c(buffer, gsub("\n", "", line))
-                flog.appender(fun, 'ROOT')
-        }, level=level)
-    }
+    level <- bpthreshold(BPPARAM)
+    flog.threshold(level)
+    flog.info("loading futile.logger on workers")
+    cl <- bpbackend(BPPARAM)
+    clusterExport(cl, c(buffer=NULL))  ## global assignment
+    clusterApply(cl, seq_along(cl), 
+        function(i, level) {
+            library(futile.logger)
+            flog.threshold(level)
+            fun <- function(line) 
+                buffer <<- c(buffer, gsub("\n", "", line))
+            flog.appender(fun, 'ROOT')
+    }, level=level)
 }
 
 .bpwriteLog <- function(con, d) {
