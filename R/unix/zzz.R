@@ -17,12 +17,11 @@ mcfork <- function(...) parallel:::mcfork(...)
 
 mckill <- function(...) parallel:::mckill(...)
 
-mc.reset.stream <- function(...) parallel:::mc.reset.stream(...)
+mc.reset.stream <- function(...) parallel::mc.reset.stream(...)
 
-mcparallel <- function(...) parallel:::mcparallel(...)
+mcparallel <- function(...) parallel::mcparallel(...)
 
-mccollect <- function(...) parallel:::mccollect(...)
-
+mccollect <- function(...) parallel::mccollect(...)
 
 processID <-function(...) parallel:::processID(...)
 
@@ -38,7 +37,6 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
         ## set with a class defined in a package that imports
         ## BiocParallel
         register(getOption("SerialParam", SerialParam()))
-        register(getOption("BatchJobsParam", BatchJobsParam()))
         register(getOption("SnowParam", SnowParam()))
         register(getOption("MulticoreParam", MulticoreParam()))
     }, error=function(err) {

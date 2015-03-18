@@ -9,19 +9,19 @@
         catch.errors="logical", ## BatchJobs, DoPar
         stopOnError="logical"), ## SnowParam
     methods=list(
-      initialize = function(..., 
-          workers=0, 
-          catch.errors=TRUE,
-          stopOnError=FALSE)
-      {
-          initFields(workers=workers, catch.errors=catch.errors, 
-                     stopOnError=stopOnError)
-          callSuper(...)
-      },
-      show = function() {
-          cat("class:", class(.self), "\n")
-          cat("bpworkers:", bpworkers(.self), "\n")
-      })
+        initialize = function(..., 
+            workers=0, 
+            catch.errors=TRUE,
+            stopOnError=FALSE)
+        {
+            initFields(workers=workers, catch.errors=catch.errors, 
+                       stopOnError=stopOnError)
+            callSuper(...)
+        },
+        show = function() {
+            cat("class:", class(.self), "\n")
+            cat("bpworkers:", bpworkers(.self), "\n")
+        })
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
