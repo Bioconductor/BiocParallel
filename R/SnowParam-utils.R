@@ -136,7 +136,7 @@ bprunMPIslave <- function() {
     clusterExport(cl, c(buffer=NULL))  ## global assignment
     clusterApply(cl, seq_along(cl), 
         function(i, level) {
-            library(futile.logger)
+            attachNamespace("futile.logger")
             flog.threshold(level)
             fun <- function(line) 
                 buffer <<- c(buffer, gsub("\n", "", line))

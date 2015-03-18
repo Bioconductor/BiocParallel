@@ -7,26 +7,56 @@
 ###
 
 .BatchJobsParam <- setRefClass("BatchJobsParam",
-  contains="BiocParallelParam",
-  fields=list(
-    reg.pars="list",
-    submit.pars="list",
-    conf.pars="list",
-    cleanup="logical",
-    stop.on.error="logical",
-    progressbar="logical"
-  ),
-  methods=list(
-    show = function() {
-        ## TODO more output
-        cat("class:", class(.self), "\n")
-        cat("bpisup:", bpisup(.self), "\n")
-        cat("bpworkers:", bpworkers(.self), "\n")
-        cat("catch.errors:", .self$catch.errors, "\n")
-        cat("cleanup:", .self$cleanup, "\n")
-        cat("stop.on.error:", .self$stop.on.error, "\n")
-        cat("progressbar:", .self$progressbar, "\n")
-  })
+    contains="BiocParallelParam",
+    fields=list(
+        reg.pars="list",
+        submit.pars="list",
+        conf.pars="list",
+        cleanup="logical",
+        stop.on.error="logical",
+        progressbar="logical"),
+    methods=list(
+        initialize = function(..., 
+            conf.pars=list(), 
+            workers=NA_integer_) 
+        {
+            callSuper(...)
+
+            ## save user config and reset it on exit
+            prev.config <- getConfig()
+            on.exit(do.call(setConfig, prev.config))
+            if (!is.null(conf.pars$conffile))
+                loadConfig(conf.pars$conffile)
+            new.conf <- unclass(do.call(setConfig,
+                conf.pars[setdiff(names(conf.pars), "conffile")]))
+
+            x_workers <- if (is.na(workers)) {
+                getNumberCPUs <- function(conf) {
+                    x <- 
+                      environment(new.conf$cluster.functions$submitJob)$workers
+                    vapply(x, "[[", integer(1L), "ncpus")
+                }
+                cf.name <- new.conf$cluster.functions$name
+                if (is.null(cf.name)) {
+                    NA_integer_
+                } else {
+                    switch(cf.name, Multicore=getNumberCPUs(new.conf),
+                           SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
+                }
+            } else as.integer(workers)
+
+            initFields(workers=x_workers, conf.pars=new.conf)
+        },
+        show = function() {
+            ## TODO more output
+            cat("class:", class(.self), "\n")
+            cat("bpisup:", bpisup(.self), "\n")
+            cat("bpworkers:", bpworkers(.self), "\n")
+            cat("catch.errors:", .self$catch.errors, "\n")
+            cat("cleanup:", .self$cleanup, "\n")
+            cat("stop.on.error:", .self$stop.on.error, "\n")
+            cat("progressbar:", .self$progressbar, "\n")
+        })
 )
 
 BatchJobsParam <-
@@ -34,6 +64,15 @@ BatchJobsParam <-
         work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
         conffile=NULL, cluster.functions=NULL, progressbar=TRUE, ...)
 {
+    if (!"package:BatchJobs" %in% search()) {
+        tryCatch({
+            attachNamespace("BatchJobs")
+        }, error=function(err) {
+            stop(conditionMessage(err), 
+                "BatchJobsParam class objects require the 'BatchJobs' package")
+        })
+    }
+
     not_null <- Negate(is.null)
     reg.pars <- Filter(not_null, list(seed=seed, work.dir=work.dir))
     submit.pars <- Filter(not_null, list(resources=resources))
@@ -57,43 +96,7 @@ setMethod(bpschedule, "BatchJobsParam",
     !getOption("BatchJobs.on.slave", FALSE)
 })
 
-setMethod(bpisup, "BatchJobsParam", 
-    function(x, ...) 
-{
-    if (!suppressMessages(require(BatchJobs)))
-        stop("BatchJobsParam class objects require the 'BatchJobs' package")
-
-    if (!length(x$conf.pars)) {
-        ## save user config and reset it on exit
-        conf.pars <- x$conf.pars
-        workers <- x$workers
-        prev.config <- getConfig()
-        ## FIXME: not sure how to handle this
-        #on.exit(do.call(setConfig, prev.config))
-        if (!is.null(conf.pars$conffile))
-            loadConfig(conf.pars$conffile)
-        new.conf <- unclass(do.call(setConfig,
-            conf.pars[setdiff(names(conf.pars), "conffile")]))
-
-        x_workers <- if (is.na(workers)) {
-            getNumberCPUs <- function(conf) {
-                x <- environment(new.conf$cluster.functions$submitJob)$workers
-                vapply(x, "[[", integer(1L), "ncpus")
-            }
-            cf.name <- new.conf$cluster.functions$name
-            if (is.null(cf.name)) {
-                NA_integer_
-            } else {
-                switch(cf.name, Multicore=getNumberCPUs(new.conf),
-                       SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
-            }
-        } else as.integer(workers)
-        x$workers <- x_workers
-        x$conf.pars <- new.conf
-    }
-
-    TRUE
-})
+setMethod(bpisup, "BatchJobsParam", function(x, ...) TRUE)
 
 setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
@@ -105,7 +108,6 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
         BPPARAM=bpparam())
 {
-    bpisup(BPPARAM)
     bpmapply(FUN, X, MoreArgs=list(...), SIMPLIFY=FALSE,
         BPRESUME=BPRESUME, BPPARAM=BPPARAM)
 })
@@ -114,7 +116,6 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 {
-    bpisup(BPPARAM)
     FUN <- match.fun(FUN)
     if (BPRESUME)
         return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
@@ -165,7 +166,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
     if (is.na(BPPARAM$workers))
         pars$ids <- ids
     else
-        pars$ids <- chunk(ids, n.chunks=BPPARAM$workers, shuffle=TRUE)
+        pars$ids <- BBmisc::chunk(ids, n.chunks=BPPARAM$workers, shuffle=TRUE)
     suppressMessages(do.call(submitJobs, pars))
 
     # wait for the jobs to terminate

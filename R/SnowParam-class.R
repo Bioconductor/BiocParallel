@@ -39,18 +39,18 @@ setOldClass(c("NULLcluster", "cluster"))
         logdir="character",
         resultdir="character"),
     methods=list(
-      initialize = function(..., 
-          .controlled=TRUE,
-          log=FALSE,
-          threshold="INFO",
-          logdir=character(),
-          resultdir=character())
-      { 
-          initFields(.controlled=.controlled, log=log, threshold=threshold, 
-                     logdir=logdir, resultdir=resultdir)
-          callSuper(...)
-      },
-        show=function() {
+        initialize = function(..., 
+            .controlled=TRUE,
+            log=FALSE,
+            threshold="INFO",
+            logdir=character(),
+            resultdir=character())
+        { 
+            initFields(.controlled=.controlled, log=log, threshold=threshold, 
+                       logdir=logdir, resultdir=resultdir)
+            callSuper(...)
+        },
+        show = function() {
             callSuper()
             cat("bpisup:", bpisup(.self), "\n")
             cat("bplog:", bplog(.self), "\n")
@@ -59,7 +59,7 @@ setOldClass(c("NULLcluster", "cluster"))
             cat("bpresultdir:", bpresultdir(.self), "\n")
             cat("bpstopOnError:", bpstopOnError(.self), "\n")
             cat("cluster type: ", .clusterargs$type, "\n")
-    })
+        })
 )
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
@@ -152,12 +152,18 @@ setMethod(bpworkers, "SnowParam",
 setMethod(bpstart, "SnowParam",
     function(x, tasks = bpworkers(x), ...)
 {
-    if (!require(parallel))
-        stop("SnowParam class objects require the 'parallel' package")
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
     if (bpisup(x))
         stop("cluster already started")
+    if (!"package:parallel" %in% search()) {
+        tryCatch({
+            attachNamespace("parallel")
+        }, error=function(err) {
+            stop(conditionMessage(err), 
+                "SnowParam class objects require the 'parallel' package")
+        })
+    }
 
     if (tasks > 0L)
         x$.clusterargs$spec <- min(bpworkers(x), tasks) 
@@ -217,12 +223,16 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 setReplaceMethod("bplog", c("SnowParam", "logical"),
     function(x, ..., value)
 {
-    x$log <- value 
-    if (bpisup(x)) {
-        bpstop(x)
-        bpstart(x)
+    if (x$.controlled) {
+        x$log <- value 
+        if (bpisup(x)) {
+            bpstop(x)
+            bpstart(x)
+        }
+        x
+    } else {
+        stop("'bplog' not available; instance from outside BiocParallel?")
     }
-    x
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

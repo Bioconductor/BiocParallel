@@ -9,12 +9,25 @@
 
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
-    fields=list()
+    fields=list(),
+    methods=list(
+        show = function() {
+            callSuper()
+            cat("catch.errors:", .self$catch.errors, "\n")
+        })
 )
 
 DoparParam <-
     function(catch.errors=TRUE)
 {
+    if (!"package:foreach" %in% search()) {
+        tryCatch({
+            attachNamespace("foreach")
+        }, error=function(err) {
+            stop(conditionMessage(err), 
+                "DoparParam class objects require the 'foreach' package")
+        })
+    }
     .DoparParam(catch.errors=catch.errors)
 }
 
@@ -33,14 +46,11 @@ setMethod(bpworkers, "DoparParam",
 setMethod(bpisup, "DoparParam",
     function(x, ...)
 {
-    if (!suppressMessages(require(foreach))) {
-        warning("DoparParam class objects require the 'foreach' package")
-        FALSE
+    if ("package:foreach" %in% search() && getDoParRegistered() && 
+        (getDoParName() != "doSEQ") && getDoParWorkers() > 1L) {
+        TRUE
     } else {
-        ("package:foreach" %in% search()) &&
-        getDoParRegistered() && 
-        (getDoParName() != "doSEQ") &&
-        getDoParWorkers() > 1L
+        FALSE
     }
 })
 
