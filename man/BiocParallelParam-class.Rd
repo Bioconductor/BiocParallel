@@ -109,7 +109,7 @@
     }
     \item{}{
       \code{bpstart(x, ...)}:
-      Starts the back-end, if necessary. For instance,
+      Starts the back-end, if necessary.
     }
     \item{}{
       \code{bpstop(x, ...)}:
