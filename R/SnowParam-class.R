@@ -170,7 +170,9 @@ setMethod(bpstart, "SnowParam",
     if (bplog(x)) {
         ## worker script in BiocParallel
         if (x$.clusterargs$type == "FORK") {
-            bpbackend(x) <- do.call(.bpmakeForkCluster, x$.clusterargs)
+            bpbackend(x) <- do.call(.bpmakeForkCluster, 
+                                    c(list(nnodes=x$.clusterargs$spec),
+                                      x$.clusterargs))
         } else {
             x$.clusterargs$useRscript <- FALSE
             x$.clusterargs$scriptdir <- find.package("BiocParallel")
