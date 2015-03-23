@@ -115,7 +115,7 @@ registered()
 bpparam()
 
 ## or a specific BiocParallelParam.
-bpparam("MulticoreParam")
+bpparam("SnowParam")
 
 ## ----------------------------------------------------------------------
 ## Specifying a back-end for evaluation
