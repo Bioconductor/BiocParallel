@@ -33,10 +33,6 @@
 \alias{bpresultdir<-}
 \alias{bpresultdir,SnowParam-method}
 \alias{bpresultdir<-,SnowParam,character-method}
-\alias{bpstopOnError}
-\alias{bpstopOnError<-}
-\alias{bpstopOnError,SnowParam-method}
-\alias{bpstopOnError<-,SnowParam,logical-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}
@@ -60,8 +56,9 @@
 
 \usage{
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
-          stopOnError = FALSE, log = FALSE, threshold = "INFO",
-          logdir = character(), resultdir = character(), ...)
+          catch.errors=TRUE, stop.on.error = FALSE, 
+          log = FALSE, tasks = 0L, threshold = "INFO", logdir = character(), 
+          resultdir = character(), ...)
 
 ## invoke as(cl, "SnowParam")
 \S4method{coerce}{SOCKcluster,SnowParam}(from, to)
@@ -79,27 +76,38 @@ snowWorkers()
 
   \describe{
     \item{error handling:}{
-      When \code{bpstopOnError(BPPARAM) == TRUE} the job will stop when
-      an error is encountered. The return object includes results for
-      completed tasks (i.e., complete before the error) and NULL for 
-      tasks incomplete at the time of the error. When FALSE, all jobs are
-      attempted and the result list contains all successfully completed
-      tasks.
+      Two flags control error handling: \code{catch.errors} and
+      \code{stop.on.error}.
+
+      The \code{catch.errors} flag determines whether apply-like functions quit
+      with an error as soon as one task fails. When \code{FALSE}, this is the
+      behavior seen in the \code{parallel} and \code{snow} packages; an error is
+      returned with no results.  When \code{TRUE}, errors are returned for tasks
+      that failed as well as results for those that completed successfully.
+
+      \code{stop.on.error} offers and additional level of control and is only
+      applicable when \code{catch.errors == TRUE}. When this argument is
+      \code{TRUE} the job terminates upon the first error is encountered but the
+      results also contain the successfully completed tasks. \code{catch.errors}
+      must be \code{TRUE} when \code{stop.on.error} is \code{TRUE}. When
+      \code{FALSE}, the job runs to completion and all successfully completed
+      tasks are returned along with any error messages.
     }
     \item{logging:}{
       Logging is implemented on the workers with the \code{futile.logger}
       package. When \code{bplog(BPPARAM) == TRUE} cluster workers use a script
       in the \code{BiocParallel} package instead of \code{snow}. This modified
       script captures warning and error messages and collects additional task
-      statistics such as gc output and node name. Log messages in a
-      user-supplied function are also be captured by the logging mechanism.
-      Messages are returned real-time (i.e., as each tasks completes) instead of
-      after all jobs have finished.
+      statistics such as gc output and node name.
+      
+      Any \code{futile.logger} messages the user provides in their function will
+      be captured by the logging mechanism. Messages are returned real-time
+      (i.e., as each tasks completes) instead of after all jobs have finished.
     }
     \item{write log and result files:}{
       Results and logs can be written to a file instead of returned to
-      the workspace. Writing to files is done real-time from the master 
-      as each task completes. These options are controlled with \code{logdir} 
+      the workspace. Writing to files is done from the master as each task 
+      completes. These options are controlled with \code{logdir} 
       and \code{resultdir}. 
     }
   }
@@ -121,7 +129,29 @@ snowWorkers()
     \code{SOCK} (default) and \code{MPI}. Instead of \code{type=FORK} use
     \code{MulticoreParam}.
   }
-  \item{stopOnError}{
+  \item{tasks}{
+    \code{integer(1)}. The number of tasks per job. \code{value} must be a 
+    scalar integer >= 0L.
+ 
+    We define a job as a single call to a function such as \code{bplapply}, 
+    \code{bpmapply} etc. A task is the division of the \code{X} argument
+    into chunks. When \code{tasks == 0} (default), \code{X} is divided by
+    the number of workers. This approach distributes \code{X} in 
+    (approximately) equal chunks.
+ 
+    A \code{tasks} value of > 0 dictates the total number of tasks. Values
+    can range from 1 (all of \code{X} to a single worker) to the length of 
+    \code{X} (each element of \code{X} to a different worker). 
+ 
+    When the length of \code{X} is less than the number of workers each
+    element of \code{X} is sent to a worker and \code{tasks} is ignored.
+ 
+    Currently used in \code{SnowParam} and \code{MulticoreParam} only. 
+  } 
+  \item{catch.errors}{
+    \code{logical(1)} Enable the catching of errors and warnings.
+  }
+  \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
   \item{log}{
@@ -156,8 +186,9 @@ snowWorkers()
   \describe{
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
-                      stopOnError = FALSE, log = FALSE, threshold = "INFO",
-                      logdir = character(), resultdir = character(), ...)}:
+                      catch.errors = TRUE, stop.on.error = FALSE,
+                      log = FALSE, threshold = "INFO", logdir = character(), 
+                      resultdir = character(), ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -171,10 +202,36 @@ snowWorkers()
 
   \describe{
     \item{}{
+      \code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}: 
+      Get or set the flag to determine if apply-like functions quit with an
+      error as soon as one application fails.  See ?\code{SnowParam} and
+      ?\code{BatchJobsParam} for details applicable to each class.
+    }
+    \item{}{
       \code{bpstopOnError(x, ...)}, \code{bpststopOnError(x) <- value}: 
       Get or set the value to enable stop on error. \code{value} must be a
       \code{logical(1)}.  When TRUE, the function returns immediately upon
       error; results for previously completed jobs are saved.
+    }
+    \item{}{
+      \code{bptasks(x, ...)}, \code{bptasks(x) <- value}: 
+      Get or set the number of tasks for a job. \code{value} must be a scalar
+      integer >= 0L.
+ 
+      In this documentation a job is defined as a single call to a function such
+      as \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+      \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
+      is divided by the number of workers. This approach distributes \code{X} in
+      (approximately) equal chunks.
+ 
+      A \code{tasks} value of > 0 dictates the total number of tasks. Values
+      can range from 1 (all of \code{X} to a single worker) to the length of 
+      \code{X} (each element of \code{X} to a different worker). 
+ 
+      When the length of \code{X} is less than the number of workers each
+      element of \code{X} is sent to a worker and \code{tasks} is ignored.
+ 
+      Currently used in \code{SnowParam} and \code{MulticoreParam} only. 
     }
     \item{}{
       \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
@@ -269,8 +326,7 @@ snowWorkers()
 ## job statistics.
 bpparam <- SnowParam(3, type="SOCK")
 
-## By default, logging is off (log=FALSE) and results are returned
-## as an R object instead of written to a file (resultdir=character()).
+## By default, logging is off.
 bpparam
 
 ## -----------------------------------------------------------------------
@@ -300,7 +356,7 @@ fun <- function(x) {
 bplog(bpparam) <- TRUE
 bplapply(X, fun, BPPARAM=bpparam)
 
-## When a 'logdir' is given the output is redirected to a file:
+## When a 'logdir' location is given the log messages are redirected to a file:
 bplogdir(bpparam) <- tempdir()
 bplapply(X, fun, BPPARAM=bpparam)
 list.files(bplogdir(bpparam))
@@ -309,8 +365,7 @@ list.files(bplogdir(bpparam))
 ## Managing results:
 ## -----------------------------------------------------------------------
 
-## By default results are returned as an R object (list). They can be 
-## written to a file by providing a 'resultdir' location.
+## Results can be written to a file by providing a 'resultdir' location.
 bpparam <- SnowParam(2, type="SOCK", resultdir = tempdir())
 bplapply(X, fun, BPPARAM=bpparam)
 
@@ -319,9 +374,8 @@ bplapply(X, fun, BPPARAM=bpparam)
 ## -----------------------------------------------------------------------
 
 ## When 'stopOnError' is TRUE, the method returns as soon as an error
-## is thrown. The return list contains all results compelted prior to
-## the error.
-bpparam <- SnowParam(2, type="SOCK", stopOnError=TRUE)
+## is thrown.
+bpparam <- SnowParam(2, type="SOCK", stop.on.error=TRUE)
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
 res
 

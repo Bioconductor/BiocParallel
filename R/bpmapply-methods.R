@@ -9,7 +9,7 @@ setMethod(bpmapply, c("ANY", "missing"),
 })
 
 ## BatchJobsParam, DoparParam, SerialParam have methods for mapply
-## SnowParam, Multicore dispatch to lapply
+## SnowParam, Multicore dispatch to lapply via this method
 setMethod(bpmapply, c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
         BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 

@@ -49,17 +49,26 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 \details{
 
   When \code{BPPARAM} is a \code{MulticoreParam} this method dispatches to the
-  \code{pvec} function from the parallel package. For all other
-  \code{BiocParallelParam}s, this method creates a vector of indices for
-  \code{X} that divide the elements as evenly as possible given the number of
-  workers. Indices and data are passed to \code{bplapply} for parallel
-  evaluation.
+  \code{pvec} function from the parallel package.
+  
+  For all other \code{BiocParallelParam}s, this method creates a vector of
+  indices for \code{X} that divide the elements as evenly as possible given the
+  number of workers. Indices and data are passed to \code{bplapply} for parallel
+  evaluation. Further control over how \code{X} is divided is done through the
+  \code{tasks} argument in the \code{BPPARAM}.  See ?\code{bptasks}.
 
-  When \code{BPPARAM} is a class for which no method is defined 
-  \code{FUN(X)} is used.
+  When \code{BPPARAM} is a class for which no method is defined \code{FUN(X)} is
+  used.
 
-  See \code{showMethods{bpvec}} for additional methods, e.g.,
-  \code{method?bpvec("MulticoreParam")}.
+  The distinction between \code{bpvec} and \code{bplapply} is that
+  \code{bplapply} will run \code{FUN} on each element of \code{X} separately
+  whereas \code{bpvec} assumes that \code{c(FUN(x[1]), FUN(x[2]))} is
+  equivalent to \code{FUN(x[1:2])}. This approach can be more efficient than
+  \code{bplapply} but requires the assumption that \code{FUN} takes a 
+  vector input and creates a vector output of the same length as the input
+  which does not depend on partitioning of the vector. This behavior is
+  consistent with \code{parallel:::pvec} and ?\code{pvec} should be
+  consulted for further details.
 
 }
 
@@ -80,6 +89,8 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
   \code{\link{bplapply}} for parallel lapply.
 
   \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
+
+  \code{\link{pvec}} for background.
 
 }
 

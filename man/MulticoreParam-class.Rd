@@ -23,10 +23,11 @@
 }
 
 \usage{
-MulticoreParam(workers = multicoreWorkers(), stopOnError = FALSE,
+MulticoreParam(workers = multicoreWorkers(), 
+               catch.errors = TRUE, stop.on.error = FALSE,
                log = FALSE, threshold = "INFO", logdir = character(),
                resultdir = character(), setSeed = TRUE,
-               recursive = TRUE, cleanup = TRUE, cleanupSignal=tools::SIGTERM,
+               recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM,
                verbose = FALSE, ...)
 
 multicoreWorkers()
@@ -44,7 +45,10 @@ multicoreWorkers()
     \code{integer(1)} Number of workers. Defaults to all cores available as
     determined by \code{detectCores}.
   }
-  \item{stopOnError}{
+  \item{catch.errors}{
+    \code{logical(1)} Enable the catching of errors and warnings.
+  }
+  \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
   \item{log}{
@@ -92,7 +96,8 @@ multicoreWorkers()
 \section{Constructor}{
   \describe{
     \item{}{
-      \code{MulticoreParam(workers = multicoreWorkers(), stopOnError = FALSE, 
+      \code{MulticoreParam(workers = multicoreWorkers(), 
+                           catch.errors = TRUE, stop.on.error = FALSE,
                            log = FALSE, threshold = "INFO",
                            logdir = character(), resultdir = character(), 
                            cleanupSignal = tools::SIGTERM, 
@@ -119,7 +124,8 @@ multicoreWorkers()
   }
   See the ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpstopOnError(x, ...)}, \code{bpststopOnError(x) <- value}}
+    \item{}{\code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}}
+    \item{}{\code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}}
     \item{}{\code{bplog(x, ...)}, \code{bplog(x) <- value}}
     \item{}{\code{bpthreshold(x, ...)}, \code{bpthreshold(x) <- value}} 
     \item{}{\code{bplogdir(x, ...)}, \code{bplogdir(x) <- value}} 
