@@ -6,21 +6,26 @@
     contains="VIRTUAL",
     fields=list(
         workers="ANY",
-        catch.errors="logical", ## BatchJobs, DoPar
-        stopOnError="logical"), ## SnowParam
+        tasks="integer",
+        catch.errors="logical",
+        stop.on.error="logical"),
     methods=list(
         initialize = function(..., 
             workers=0, 
+            tasks=0L, 
             catch.errors=TRUE,
-            stopOnError=FALSE)
+            stop.on.error=FALSE)
         {
-            initFields(workers=workers, catch.errors=catch.errors, 
-                       stopOnError=stopOnError)
+            initFields(workers=workers, tasks=tasks,
+                       catch.errors=catch.errors, stop.on.error=stop.on.error)
             callSuper(...)
         },
         show = function() {
             cat("class:", class(.self), "\n")
             cat("bpworkers:", bpworkers(.self), "\n")
+            cat("bptasks:", bptasks(.self), "\n")
+            cat("bpcatchErrors:", bpcatchErrors(.self), "\n")
+            cat("bpstopOnError:", bpstopOnError(.self), "\n")
         })
 )
 
@@ -31,19 +36,34 @@
 setValidity("BiocParallelParam", function(object)
 {
     msg <- NULL
-    if (is.numeric(bpworkers(object))) 
-        if (length(bpworkers(object)) != 1L || bpworkers(object) < 0)
+
+    ## workers and tasks
+    workers <- bpworkers(object)
+    if (is.numeric(workers)) 
+        if (length(workers) != 1L || workers < 0)
             msg <- c(msg, "'workers' must be integer(1) and >= 0")
 
-    if (is.character(bpworkers(object)))
-        if (length(bpworkers(object)) < 1L)
+    tasks <- bptasks(object)
+    if (!is.numeric(tasks))
+        msg <- c(msg, "bptasks(BPPARAM) must be an integer")
+    if (length(tasks) > 1L)
+        msg <- c(msg, "length(bpwtasks(BPPARAM)) must be == 1") 
+
+    if (is.character(workers)) {
+        if (length(workers) < 1L)
             msg <- c(msg, "length(bpworkers(BPPARAM)) must be > 0") 
+        if (tasks > 0L && tasks < workers)
+            msg <- c(msg, "number of tasks is less than number of workers")
+    }
 
-    if (!.isTRUEorFALSE(object$catch.errors))
+    ## error handling
+    if (!.isTRUEorFALSE(bpcatchErrors(object)))
         msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
-
     if (!.isTRUEorFALSE(bpstopOnError(object)))
         msg <- c(msg, "'bpstopOnError(BPPARAM)' must be logical(1)")
+    if (bpstopOnError(object) && !bpcatchErrors(object))
+        msg <- c(msg, paste0("'catch.errors' must be TRUE when ",
+                 " 'stop.on.error' is TRUE"))
 
     if (is.null(msg)) TRUE else msg
 })
@@ -58,6 +78,47 @@ setMethod(bpworkers, "BiocParallelParam",
     x$workers
 })
 
+setMethod(bptasks, "BiocParallelParam",
+   function(x, ...)
+{
+    x$tasks
+})
+
+setReplaceMethod("bptasks", c("BiocParallelParam", "numeric"),
+    function(x, ..., value)
+{
+    x$tasks <- as.integer(value)
+    x 
+})
+
+setMethod("bpstopOnError", "BiocParallelParam",
+    function(x, ...)
+{
+    x$stop.on.error
+})
+
+setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
+    function(x, ..., value)
+{
+    x$stop.on.error <- value 
+    validObject(x)
+    x 
+})
+
+setMethod("bpcatchErrors", "BiocParallelParam",
+    function(x, ...)
+{
+    x$catch.errors
+})
+
+setReplaceMethod("bpcatchErrors", c("BiocParallelParam", "logical"),
+    function(x, ..., value)
+{
+    x$catch.errors <- value 
+    x 
+})
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Helpers
 ###

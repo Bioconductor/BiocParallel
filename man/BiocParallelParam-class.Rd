@@ -23,6 +23,18 @@
 \alias{bpworkers}
 \alias{bpworkers,missing-method}
 \alias{bpworkers,BiocParallelParam-method}
+\alias{bptasks}
+\alias{bptasks,BiocParallelParam-method}
+\alias{bptasks<-}
+\alias{bptasks<-,BiocParallelParam,numeric-method}
+\alias{bpcatchErrors}
+\alias{bpcatchErrors,BiocParallelParam-method}
+\alias{bpcatchErrors<-}
+\alias{bpcatchErrors<-,BiocParallelParam,logical-method}
+\alias{bpstopOnError}
+\alias{bpstopOnError,BiocParallelParam-method}
+\alias{bpstopOnError<-}
+\alias{bpstopOnError<-,BiocParallelParam,logical-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -62,6 +74,7 @@
     \item \code{SnowParam()}
     \item \code{MulticoreParam()}
     \item \code{BatchJobsParam()}
+    \item \code{DoparParam()}
     \item \code{SerialParam()}
   }
 }
@@ -108,6 +121,26 @@
       value >= 0.
     }
     \item{}{
+      \code{bptasks(x, ...)}, \code{bptasks(x, ..., value)}:
+      Get or set the number of tasks for a job. \code{value} must be a scalar
+      integer >= 0L.
+ 
+      In this documentation a job as a single call to a function such as
+      \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+      \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
+      is divided by the number of workers. This approach distributes \code{X} in
+      (approximately) equal chunks.
+ 
+      A \code{tasks} value of > 0 dictates the total number of tasks. Values
+      can range from 1 (all of \code{X} to a single worker) to the length of 
+      \code{X} (each element of \code{X} to a different worker). 
+ 
+      When the length of \code{X} is less than the number of workers each
+      element of \code{X} is sent to a worker and \code{tasks} is ignored.
+ 
+      Currently used in \code{SnowParam} and \code{MulticoreParam} only. 
+    }
+    \item{}{
       \code{bpstart(x, ...)}:
       Starts the back-end, if necessary.
     }
@@ -125,6 +158,24 @@
       \code{bpbackend(x, ...)}, \code{bpbackend(x) <- value}: 
       Gets or sets the parallel \code{bpbackend}. Not all back-ends can
       be retrieved; see \code{showMethods("backend")}.
+    }
+  }
+}
+
+\section{Methods: Error Handling}{
+  In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+
+  \describe{
+    \item{}{
+      \code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}: 
+      Get or set the flag to determine if apply-like functions quit with an
+      error as soon as one application fails.  See ?\code{SnowParam} and
+      ?\code{BatchJobsParam} for details applicable to each class.
+    }
+    \item{}{
+      \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}: 
+      Get or set the flag to determine if all jobs should be stopped as
+      soon as one fails or if all should be attempted.
     }
   }
 }

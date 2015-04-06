@@ -26,7 +26,6 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
     {
         sapply(.x[.ind,, drop=FALSE], .AGGRFUN, ..., simplify=.simplify)
     }
-
     ind <- Filter(length, split(seq_len(nrow(x)), by))
     grp <- rep(seq_along(ind), sapply(ind, length))
     grp <- grp[match(seq_len(nrow(x)), unlist(ind))]

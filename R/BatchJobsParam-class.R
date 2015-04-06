@@ -13,7 +13,6 @@
         submit.pars="list",
         conf.pars="list",
         cleanup="logical",
-        stop.on.error="logical",
         progressbar="logical"),
     methods=list(
         initialize = function(..., 
@@ -52,9 +51,9 @@
             cat("class:", class(.self), "\n")
             cat("bpisup:", bpisup(.self), "\n")
             cat("bpworkers:", bpworkers(.self), "\n")
-            cat("catch.errors:", .self$catch.errors, "\n")
+            cat("catch.errors:", bpcatchErrors(.self), "\n")
             cat("cleanup:", .self$cleanup, "\n")
-            cat("stop.on.error:", .self$stop.on.error, "\n")
+            cat("stop.on.error:", bpstopOnError(.self), "\n")
             cat("progressbar:", .self$progressbar, "\n")
         })
 )
@@ -69,7 +68,7 @@ BatchJobsParam <-
             attachNamespace("BatchJobs")
         }, error=function(err) {
             stop(conditionMessage(err), 
-                "BatchJobsParam class objects require the 'BatchJobs' package")
+                ": BatchJobsParam class objects require the 'BatchJobs' package")
         })
     }
 
