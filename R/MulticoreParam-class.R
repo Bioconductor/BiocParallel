@@ -37,15 +37,17 @@ multicoreWorkers <- function() {
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
-        stopOnError=FALSE, log=FALSE, threshold="INFO", logdir=character(),
+        catch.errors=TRUE, stop.on.error=FALSE, 
+        log=FALSE, threshold="INFO", logdir=character(),
         resultdir=character(), setSeed=TRUE,
         recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
         verbose=FALSE, ...)
 {
     .MulticoreParam(setSeed=setSeed, recursive=recursive, cleanup=cleanup,
         cleanupSignal=cleanupSignal, verbose=verbose,
-        workers=as.integer(workers), stopOnError=stopOnError, log=log,
-        threshold=threshold, logdir=logdir, resultdir=resultdir,
+        workers=as.integer(workers), 
+        catch.errors=catch.errors, stop.on.error=stop.on.error, 
+        log=log, threshold=threshold, logdir=logdir, resultdir=resultdir,
         .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
 }
 
@@ -85,20 +87,19 @@ setMethod(bpschedule, "MulticoreParam",
 ### Methods - evaluation
 ###
 
-setMethod(bplapply, c("ANY", "MulticoreParam"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+setMethod(bpvec, c("ANY", "MulticoreParam"),
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    ## no scheduling -> serial evaluation 
+    AGGREGATE <- match.fun(AGGREGATE)
+
     if (!bpschedule(BPPARAM))
-        return(bplapply(X=X, FUN=FUN, ..., BPPARAM=SerialParam()))
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM))
-    }
-    cl <- bpbackend(BPPARAM)
-    argfun <- function(i) c(list(X[[i]]), list(...))
-    bpdynamicClusterApply(cl, FUN, length(X), names(X), argfun, BPPARAM) 
+        return(FUN(X, ...))
+
+    pvec(X, FUN, ..., AGGREGATE=AGGREGATE,
+         mc.set.seed=BPPARAM$setSeed,
+         mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
+         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "MulticoreParam"),

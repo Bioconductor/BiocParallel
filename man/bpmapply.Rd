@@ -56,22 +56,22 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
   \item{USE.NAMES}{If \code{TRUE} the result will be named.}
 
   \item{BPRESUME}{Flag to determine if a previous partially successful run
-    should be resumed.  See \code{\link{bpresume}} for details. Only
-    supported for \code{BatchJobsParam} and \code{DoparParam}.}
+    should be resumed.  See \code{\link{bpresume}} for details.
+    Supported for \code{BatchJobsParam} and \code{DoparParam} only.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evaluation.}
+    defining the parallel back-end to be used during evaluation.}
 
 }
 
 \details{
-
-  See \code{showMethods{bplapply}} for additional methods, e.g.,
-  \code{method?bplapply("MulticoreParam")}.
+  
+  See \code{showMethods{bpmapply}} for additional methods, e.g.,
+  \code{method?bpmapply("MulticoreParam")}.
 
 }
 
-\value{See \code{\link[base]{lapply}}.}
+\value{See \code{\link[base]{mapply}}.}
 
 \author{
   

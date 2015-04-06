@@ -2,7 +2,7 @@ test_SnowParam_SOCK <- function() {
     if (!suppressWarnings(require(snow)))
         ## quietly succeed if 'snow' not available
         return()
-    param <- SnowParam(2, "SOCK")
+    param <- SnowParam(2, "SOCK", tasks=2)
     checkIdentical(FALSE, bpisup(param))
 
     exp <- bplapply(1:2, function(i) Sys.getpid(), BPPARAM=param)
@@ -17,7 +17,7 @@ test_SnowParam_MPI <- function() {
           suppressWarnings(require(Rmpi))))
         ## quietly succeed if 'snow', 'Rmpi' not available
         return()
-    param <- SnowParam(2, "MPI")
+    param <- SnowParam(2, "MPI", tasks=2)
     checkIdentical(FALSE, bpisup(param))
 
     exp <- bplapply(1:2, function(i) mpi.comm.rank(), BPPARAM=param)

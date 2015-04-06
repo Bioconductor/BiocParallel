@@ -22,38 +22,46 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+bplapply(X, FUN, ..., 
+         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
+         BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+\S4method{bplapply}{ANY,ANY}(X, FUN, ...,
+         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
+         BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+\S4method{bplapply}{ANY,missing}(X, FUN, ...,
+         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
+         BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ...,
+         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
+         BPPARAM=bpparam())
 }
 
 \arguments{
 
-  \item{X}{Any object for which methods \code{length}, \code{[}, and 
-    \code{[[} are implemented.}
-
-  \item{FUN}{The \code{function} to be applied to each element of \code{X}.}
-
-  \item{\dots}{Additional arguments for \code{FUN}, as in
-    \code{\link{lapply}}}
-
-  \item{BPRESUME}{Flag to determine if a previous partially successful run
-      should be resumed.  See \code{\link{bpresume}} for details. Only
-      supported for \code{BatchJobsParam} and \code{DoparParam}.}
-
-  \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
+  \item{X}{
+    Any object for which methods \code{length}, \code{[}, and 
+    \code{[[} are implemented.
+  }
+  \item{FUN}{
+    The \code{function} to be applied to each element of \code{X}.
+  }
+  \item{\dots}{
+    Additional arguments for \code{FUN}, as in \code{\link{lapply}}.
+  }
+  \item{BPRESUME}{
+    Flag to determine if a previous partially successful run
+    should be resumed.  See \code{\link{bpresume}} for details.
+    Supported for \code{BatchJobsParam} and \code{DoparParam} only.
+  }
+  \item{BPPARAM}{
+    An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a
     \code{list} of \code{BiocParallelParam} instances, to be applied in
-    sequence for nested calls to \code{bplapply}.}
-
+    sequence for nested calls to \code{bplapply}.
+  }
 }
 
 \details{

@@ -19,6 +19,18 @@
     }
 }
 
+.splitX <- function(X, workers, tasks) 
+{
+    if (tasks == 0)
+        idx <- .splitIndices(length(X), workers)
+    else 
+        idx <- .splitIndices(length(X), min(tasks, length(X)))
+    if (length(idx) == 1L)
+        list(X)
+    else
+        relist(X, idx)
+}
+
 .rename <-
     function(results, dots, USE.NAMES=FALSE)
 {

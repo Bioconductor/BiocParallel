@@ -201,50 +201,8 @@ if (all(require(Rsamtools) &&
   fqs <- FastqStreamer(fl, n = 100)
   ITER <- fastqIterator(fqs)
   bpiterate(ITER, summary, BPPARAM = bpparam, REDUCE = merge, all = TRUE)
- 
-  ## ----------------------------------------------------------------------
-  ## Multiple files
-  ## ----------------------------------------------------------------------
-  ## Currently bpiterate() is implemented for MulticoreParam only. When
-  ## data are large a single machine may not have enough memory to 
-  ## process all files. Nested parallelism can be used to distribute the
-  ## files over a SnowParam cluster then process each file with MulticoreParam
-  ## workers.
-  ##
-  ## It is important to avoid creating too many processes and oversubscribing 
-  ## the CPU(s). The example below makes sense for a CPU with 6 cores even 
-  ## though a total of 9 workers are created. The outer SnowParam workers 
-  ## handle file management while the heavy lifting is left to the
-  ## MulticoreParam workers.
- 
-  ## Create a BamFileList with a subset of the files.
-  fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[1:3]
-  bfl <- BamFileList(fls, yieldSize = 200000) 
- 
-  ## The SnowParam cluster has one worker per file.
-  snowp <- SnowParam(length(bfl), "SOCK")
 
-  myFUN <- function(file, bamIterator, counter, ...) {
-    library(BiocParallel)  ## for bpiterate
-    library(Rsamtools)     ## for Bam file manipulation
-    library(GenomicAlignments) ## for readGAlignments
-    ITER <- bamIterator(file)
-    bpiterate(ITER, counter, BPPARAM = MulticoreParam(2), roi = roi)
   }
- 
-  ## Distribute the files across the snow cluster workers with bplapply().
-  ## Each SOCK cluster node spawns 2 multicore children; 'myFUN' is run
-  ## on the multicore children.
-  \dontrun{
-  res <- bplapply(bfl, myFUN, BPPARAM = snowp, bamIterator = bamIterator,
-                  counter = counter, roi = roi) 
-  }
-  ## The result is of length 3 (# of files).
-  length(res)
- 
-  ## Each list element is of length 5 (# of iterations of size 'yieldSize').
-  elementLengths(res)
-}
 }
 
 \keyword{manip}
