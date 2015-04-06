@@ -8,7 +8,7 @@
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK
-###
+### This loop is used when log=TRUE, error handling is done in .composeTry_log
 
 bpslaveLoop <- function(master)
 {
@@ -23,18 +23,7 @@ bpslaveLoop <- function(master)
                 success <- TRUE
                 gc(reset=TRUE)
                 t1 <- proc.time()
-                value <- withCallingHandlers(tryCatch({
-                    do.call(msg$data$fun, msg$data$args, quote = TRUE)
-                    }, error=function(e) {
-                        success <<- FALSE
-                        call <- sapply(sys.calls(), deparse)
-                        flog.debug(capture.output(traceback(call)))
-                        flog.error("%s", e)
-                        structure(conditionMessage(e),
-                                  class = c("snow-try-error","try-error"))
-                    }), warning=function(w) {
-                        flog.warn("%s", w)
-                    })
+                value <- tryCatch(docall(msg$data$fun, msg$data$args))
                 t2 <- proc.time()
                 node <- Sys.info()["nodename"]
                 value <- list(type = "VALUE", value = value, success = success,
@@ -134,7 +123,7 @@ bprunMPIslave <- function() {
     flog.info("loading futile.logger on workers")
     cl <- bpbackend(BPPARAM)
     clusterExport(cl, c(buffer=NULL))  ## global assignment
-    clusterApply(cl, seq_along(cl), 
+    parallel::clusterApply(cl, seq_along(cl), 
         function(i, level) {
             attachNamespace("futile.logger")
             flog.threshold(level)
@@ -178,11 +167,10 @@ bprunMPIslave <- function() {
 ### Dynamic cluster apply, run on master, used by all cluster types.
 ###
 
-bpdynamicClusterApply <- function(cl, fun, n, nnames, argfun, BPPARAM)
+bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
 {
     ## result output
     val <- vector("list", n)
-    names(val) <- nnames 
     if (length(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
@@ -206,7 +194,7 @@ bpdynamicClusterApply <- function(cl, fun, n, nnames, argfun, BPPARAM)
         for (i in 1:n) {
             d <- parallel:::recvOneData(cl)
             value <- d$value$value
-            val[d$value$tag] <- list(value)
+            val[[d$value$tag]] <- value
             ## logging
             if (bplog(BPPARAM))
                 .bpwriteLog(con, d)

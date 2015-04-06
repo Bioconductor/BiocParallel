@@ -179,3 +179,31 @@ bpresume <-
     options(BiocParallel.BPRESUME=TRUE)
     expr
 }
+
+## experimental wrap w/ logging
+.try_log <- function(expr) {
+    error_handle = function(e) {
+        success <<- FALSE
+        call <- sapply(sys.calls(), deparse)
+        flog.debug(capture.output(traceback(call)))
+        flog.error("%s", e)
+        ee <- structure(conditionMessage(e),
+            class = c("snow-try-error","try-error"))
+        invokeRestart("abort", ee)
+    }
+    warning_handle = function(w) {
+        flog.warn("%s", w)
+        invokeRestart("muffleWarning")
+    }
+    abort_handle = function(a) a 
+
+    withRestarts(withCallingHandlers(
+        expr, warning=warning_handle, error=error_handle), abort=abort_handle)
+}
+
+.composeTry_log <-
+    function(FUN)
+{
+    FUN <- match.fun(FUN)
+    function(...) .try_log(FUN(...))
+}

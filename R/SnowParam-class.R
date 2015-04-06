@@ -63,7 +63,8 @@ setOldClass(c("NULLcluster", "cluster"))
 )
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
-                      stopOnError=FALSE, log=FALSE, threshold="INFO", 
+                      catch.errors=TRUE, stop.on.error=FALSE, 
+                      log=FALSE, tasks=0L, threshold="INFO", 
                       logdir=character(), resultdir=character(), ...)
 {
     type <- match.arg(type)
@@ -78,9 +79,9 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     cluster <- .NULLcluster()
  
     x <- .SnowParam(.clusterargs=.clusterargs, cluster=cluster, 
-                    .controlled=TRUE, workers=workers, 
-                    stopOnError=stopOnError, log=log, 
-                    threshold=.THRESHOLD(threshold), logdir=logdir,
+                    .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
+                    catch.errors=catch.errors, stop.on.error=stop.on.error, 
+                    log=log, threshold=.THRESHOLD(threshold), logdir=logdir,
                     resultdir=resultdir, ...)
     validObject(x)
     x
@@ -96,21 +97,13 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
 
-    if (object$.controlled) {
-        threshold <- bpthreshold(object)
-        if (length(threshold) != 1L) 
-            return(c(msg, "'bpthreshold(BPPARAM)' must be character(1)"))
+    dir <- bplogdir(object) 
+    if (length(dir) > 1L || !is(dir, "character"))
+        msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
-        nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-        if (!names(threshold) %in% nms) {
-            return(c(msg, paste0("'bpthreshold(BPPARAM)' must be one of ", 
-                   paste(sQuote(nms), collapse=", "))))
-        }
-
-        dir <- bplogdir(object) 
-        if (length(dir) > 1L || !is(dir, "character"))
-            msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
-    }
+    if (bplog(object) && bpstopOnError(object))
+        msg <- c(msg, paste0("when bpstopOnError(BPPARAM) == TRUE ",
+                             "bplog(BPPARAM) must be TRUE")) 
 
     msg
 }
@@ -130,9 +123,22 @@ setValidity("SnowParam", function(object)
     msg <- NULL
     if (!.isTRUEorFALSE(.controlled(object)))
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
-    msg <- c(msg, 
-             .valid.SnowParam.log(object),
-             .valid.SnowParam.result(object))
+
+    if (.controlled(object)) {
+        threshold <- bpthreshold(object)
+        if (length(threshold) != 1L) 
+            return(c(msg, "'bpthreshold(BPPARAM)' must be character(1)"))
+
+        nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+        if (!names(threshold) %in% nms) {
+            return(c(msg, paste0("'bpthreshold(BPPARAM)' must be one of ", 
+                   paste(sQuote(nms), collapse=", "))))
+        }
+        msg <- c(msg, 
+                 .valid.SnowParam.log(object),
+                 .valid.SnowParam.result(object))
+    }
+
     if (is.null(msg)) TRUE else msg
 })
 
@@ -150,7 +156,7 @@ setMethod(bpworkers, "SnowParam",
 })
 
 setMethod(bpstart, "SnowParam",
-    function(x, tasks = bpworkers(x), ...)
+    function(x, lenX = bpworkers(x), ...)
 {
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
@@ -165,10 +171,10 @@ setMethod(bpstart, "SnowParam",
         })
     }
 
-    if (tasks > 0L)
-        x$.clusterargs$spec <- min(bpworkers(x), tasks) 
-    if (bplog(x)) {
-        ## worker script in BiocParallel
+    if (lenX > 0)
+        x$.clusterargs$spec <- min(bpworkers(x), lenX) 
+    ## worker script in BiocParallel 
+    if (bplog(x)) { 
         if (x$.clusterargs$type == "FORK") {
             bpbackend(x) <- do.call(.bpmakeForkCluster, 
                                     c(list(nnodes=x$.clusterargs$spec),
@@ -179,8 +185,8 @@ setMethod(bpstart, "SnowParam",
             bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
         }
         .initiateLogging(x)
+    ## worker script in snow/parallel: no log, no errors 
     } else {
-        ## worker script in snow/parallel 
         x$.clusterargs$useRscript <- TRUE 
         bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
     }
@@ -242,20 +248,37 @@ setReplaceMethod("bplog", c("SnowParam", "logical"),
 ###
 
 setMethod(bplapply, c("ANY", "SnowParam"),
-    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-    BPPARAM=bpparam())
+    function(X, FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+    nms <- names(X)
+    if (!length(X))
+        return(list())
+
     ## no scheduling -> serial evaluation 
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
+    ## FIXME: push data or push indices
+    if (bpcatchErrors(BPPARAM)) {
+        if (bplog(BPPARAM)) {
+            FUN <- .composeTry_log(FUN)
+        } else FUN <- .composeTry(FUN)
+    }
+
+    ## X elements wrapped in list b/c workers iterate w/ lapply
+    X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM))
     }
     cl <- bpbackend(BPPARAM)
-    argfun <- function(i) c(list(X[[i]]), list(...))
-    bpdynamicClusterApply(cl, FUN, length(X), names(X), argfun, BPPARAM) 
+    argfun <- function(i) c(list(X[[i]]), list(FUN), list(...))
+    res <- bpdynamicClusterApply(cl, lapply, length(X), argfun, BPPARAM)
+    if (!length(bpresultdir(BPPARAM)))
+        res <- do.call(c, res, quote=TRUE)
+
+    names(res) <- nms
+    res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
@@ -276,19 +299,6 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
 {
     x$.controlled
 }
-
-setMethod("bpstopOnError", "SnowParam",
-    function(x, ...)
-{
-    x$stopOnError
-})
-
-setReplaceMethod("bpstopOnError", c("SnowParam", "logical"),
-    function(x, ..., value)
-{
-    x$stopOnError <- value 
-    x 
-})
 
 setMethod("bplog", "SnowParam",
     function(x, ...)

@@ -25,7 +25,7 @@ DoparParam <-
             attachNamespace("foreach")
         }, error=function(err) {
             stop(conditionMessage(err), 
-                "DoparParam class objects require the 'foreach' package")
+                ": DoparParam class objects require the 'foreach' package")
         })
     }
     .DoparParam(catch.errors=catch.errors)
