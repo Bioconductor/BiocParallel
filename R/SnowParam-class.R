@@ -252,32 +252,32 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 {
     FUN <- match.fun(FUN)
     nms <- names(X)
+
     if (!length(X))
         return(list())
-
-    ## no scheduling -> serial evaluation 
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
-    ## FIXME: push data or push indices
     if (bpcatchErrors(BPPARAM)) {
         if (bplog(BPPARAM)) {
             FUN <- .composeTry_log(FUN)
         } else FUN <- .composeTry(FUN)
     }
 
-    ## X elements wrapped in list b/c workers iterate w/ lapply
+    ## split X
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
+    argfun <- function(i) c(list(X[[i]]), list(FUN), list(...))
+    ## start cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM))
     }
-    cl <- bpbackend(BPPARAM)
-    argfun <- function(i) c(list(X[[i]]), list(FUN), list(...))
-    res <- bpdynamicClusterApply(cl, lapply, length(X), argfun, BPPARAM)
-    if (!length(bpresultdir(BPPARAM)))
+    res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, length(X), 
+                                 argfun, BPPARAM)
+    if (!length(bpresultdir(BPPARAM))) {
         res <- do.call(c, res, quote=TRUE)
+        names(res) <- nms
+    }
 
-    names(res) <- nms
     res
 })
 
