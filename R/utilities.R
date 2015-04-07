@@ -9,7 +9,7 @@
 {
     ## derived from parallel
     i <- seq_len(nx)
-    if (ncl <= 1L || nx <= 1L)          # allow nx, nc == 0
+    if (ncl <= 1L || nx <= 1L)  # allow nx, nc == 0
         i
     else {
         fuzz <- min((nx - 1L)/1000, 0.4 * nx/ncl)
@@ -21,14 +21,13 @@
 
 .splitX <- function(X, workers, tasks) 
 {
-    if (tasks == 0)
+    if (tasks == 1)
+        return(list(X))
+    else if (tasks == 0)
         idx <- .splitIndices(length(X), workers)
-    else 
-        idx <- .splitIndices(length(X), min(tasks, length(X)))
-    if (length(idx) == 1L)
-        list(X)
     else
-        relist(X, idx)
+        idx <- .splitIndices(length(X), min(tasks, length(X)))
+    relist(X, idx)
 }
 
 .rename <-
