@@ -1,3 +1,58 @@
+CHANGES IN VERSION 1.2.0
+------------------------
+
+NEW FEATURES
+
+    o Add support for iterative REDUCE in .bpiterate_serial() 
+
+    o Refactor BiocParallelParam class:
+      - add 'log', 'tasks', 'threshold', 'logdir', 'resultdir' fields
+      - 'tasks' is used by SnowParam and MulticoreParam only
+
+    o MulticoreParam now uses SnowParam(..., type=FORK)
+
+    o Add bpvalidate() 
+
+MODIFICATIONS
+
+    o Add check to bipiterate() for Windows 
+
+    o Invoke REDUCE without '...' in .bpiterate_serial()
+
+    o Update README and bpvec() man page
+
+    o Change default BPPARAM to SnowParam() for Windows
+
+    o Update bpiterate() man pages for Windows 
+
+    o Add note to vignette re: module load in template file
+      from Thomas Girke
+
+    o SnowParam:
+      - bpmapply() now dispatches to bplapply()
+      - remove BPRESUME
+      - logging, gc ouput on worker
+      - write results or logs to file
+      - new error handling with futile.logger
+
+    o Lighten the NAMESPACE by importing only parallel, snow
+
+    o Modify which params are registered at load time:
+      - Windows: SnowParam(), SerialParam() 
+      - Non-Windows: MulticoreParam(), SnowParam(), SerialParam()
+
+    o bpvalidate() looks for symbols in 'fun' environment, NAMESPACE
+      of loaded libraries, and the search path
+
+BUG FIXES
+
+    o Bug fix in bpiterate_multicore(); update doc examples 
+
+    o Bug fix in bpiterate() in ordering results from Martin
+
+    o Bug fix in .bpiterate_serial() when REDUCE is given
+
+
 CHANGES IN VERSION 1.0.0
 ------------------------
 
