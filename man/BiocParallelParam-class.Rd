@@ -43,13 +43,16 @@
 \title{BiocParallelParam objects}
 
 \description{
+
   The \code{BiocParallelParam} virtual class stores configuration parameters
   for parallel execution. Concrete subclasses include \code{SnowParam}, 
   \code{MulticoreParam}, \code{BatchJobsParam}, and \code{DoparParam}
   and \code{SerialParam}.
+
 }
 
 \details{
+
   \code{BiocParallelParam} is the virtual base class on which other
   parameter objects build. There are 5 concrete subclasses:
 
@@ -64,11 +67,13 @@
   The parameter objects hold configuration parameters related to the 
   method of parallel execution such as shared memory, independent
   memory or computing with a cluster scheduler.
+
 }
 
 \section{Construction}{
+
   The \code{BiocParallelParam} class is virtual and has no constructor. 
-  Instances of the subclasses can be created with the following constructors:
+  Instances of the subclasses can be created with the following:
 
   \itemize{
     \item \code{SnowParam()}
@@ -77,112 +82,130 @@
     \item \code{DoparParam()}
     \item \code{SerialParam()}
   }
+
 }
 
-\section{Methods: Evaluation}{
-  In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
-  Full documentation for these functions are on separate man pages: see
-  ?\code{bpmapply}, ?\code{bplapply}, ?\code{bpvec}, ?\code{bpiterate} and
-  ?\code{bpaggregate}.
+\section{Accessors}{
 
-  \describe{
-    \item{}{
-      \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-                     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
-                     BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bplapply(X, FUN, ..., 
-                     BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-                     BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{show(x)}
+  \subsection{Back-end control}{
+    In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+
+    \describe{
+      \item{}{
+        \code{bpworkers(x, ...)}:
+        \code{integer(1)} or \code{character()}. Gets the number or names of 
+        the back-end workers.
+      }
+      \item{}{
+        \code{bptasks(x, ...)}, \code{bptasks(x) <- value}:
+        \code{integer(1)}. Get or set the number of tasks for a job. \code{value}
+        must be a scalar integer >= 0L. This argument applies
+        to \code{SnowParam} and \code{MulticoreParam} only; \code{DoparParam}
+        and \code{BatchJobsParam} have their own approach to dividing a job
+        among workers. 
+ 
+        In this documentation a job is defined as a single call to a function,
+        \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+        \code{X} argument into chunks. When \code{tasks == 0} (default),
+        \code{X} is divided by the number of workers. This approach distributes
+        \code{X} in (approximately) equal chunks.
+ 
+        A \code{tasks} value of > 0 dictates the total number of tasks. Values
+        can range from 1 (all of \code{X} to a single worker) to the length of 
+        \code{X} (each element of \code{X} to a different worker). 
+ 
+        When the length of \code{X} is less than the number of workers each
+        element of \code{X} is sent to a worker and \code{tasks} is ignored.
+      }
+      \item{}{
+        \code{bpstart(x, ...)}:
+        \code{logical(1)}. Starts the back-end, if necessary.
+      }
+      \item{}{
+        \code{bpstop(x, ...)}:
+        \code{logical(1)}. Stops the back-end, if necessary and possible.
+      }
+      \item{}{
+        \code{bpisup(x, ...)}:
+        \code{logical(1)}. Tests whether the back-end is available for processing,
+        returning a scalar logical value. \code{bp*} functions such as
+        \code{bplapply} automatically start the back-end if necessary.
+      }
+      \item{}{
+        \code{bpbackend(x, ...)}, \code{bpbackend(x) <- value}: 
+        Gets or sets the parallel \code{bpbackend}. Not all back-ends can
+        be retrieved; see \code{showMethods("backend")}.
+      }
     }
   }
+
+  \subsection{Error Handling}{
+    In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+
+    \describe{
+      \item{}{
+        \code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}: 
+        Get or set the flag to determine if apply-like functions quit with an
+        error as soon as one application fails.  See ?\code{SnowParam} and
+        ?\code{BatchJobsParam} for details applicable to each class.
+      }
+      \item{}{
+        \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}: 
+        Get or set the flag to determine if all jobs should be stopped as
+        soon as one fails or if all should be attempted.
+      }
+    }
+  }
+
 }
 
-\section{Methods: Back-end control}{
-  In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+\section{Methods}{
 
-  \describe{
-    \item{}{
-      \code{bpworkers(x, ...)}:
-      Reports the number of workers in the back-end as a scalar integer with 
-      value >= 0.
-    }
-    \item{}{
-      \code{bptasks(x, ...)}, \code{bptasks(x, ..., value)}:
-      Get or set the number of tasks for a job. \code{value} must be a scalar
-      integer >= 0L.
- 
-      In this documentation a job as a single call to a function such as
-      \code{bplapply}, \code{bpmapply} etc. A task is the division of the
-      \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
-      is divided by the number of workers. This approach distributes \code{X} in
-      (approximately) equal chunks.
- 
-      A \code{tasks} value of > 0 dictates the total number of tasks. Values
-      can range from 1 (all of \code{X} to a single worker) to the length of 
-      \code{X} (each element of \code{X} to a different worker). 
- 
-      When the length of \code{X} is less than the number of workers each
-      element of \code{X} is sent to a worker and \code{tasks} is ignored.
- 
-      Currently used in \code{SnowParam} and \code{MulticoreParam} only. 
-    }
-    \item{}{
-      \code{bpstart(x, ...)}:
-      Starts the back-end, if necessary.
-    }
-    \item{}{
-      \code{bpstop(x, ...)}:
-      Stops the back-end, if necessary and possible.
-    }
-    \item{}{
-      \code{bpisup(x, ...)}:
-      Tests whether the back-end is available for processing, returning a 
-      scalar logical value. \code{bp*} functions such as \code{bplapply} 
-      automatically start the back-end if necessary.
-    }
-    \item{}{
-      \code{bpbackend(x, ...)}, \code{bpbackend(x) <- value}: 
-      Gets or sets the parallel \code{bpbackend}. Not all back-ends can
-      be retrieved; see \code{showMethods("backend")}.
+  \subsection{Evaluation}{
+    In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+    Full documentation for these functions are on separate man pages: see
+    ?\code{bpmapply}, ?\code{bplapply}, ?\code{bpvec}, ?\code{bpiterate} and
+    ?\code{bpaggregate}.
+
+    \describe{
+      \item{}{
+        \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+                       BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
+                       BPPARAM=bpparam())}
+      }
+      \item{}{
+        \code{bplapply(X, FUN, ..., 
+                       BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
+                       BPPARAM=bpparam())}
+      }
+      \item{}{
+        \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
+      }
+      \item{}{
+        \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
+      }
+      \item{}{
+        \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
+      }
     }
   }
-}
 
-\section{Methods: Error Handling}{
-  In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
+  \subsection{Other}{
+    In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
-  \describe{
-    \item{}{
-      \code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}: 
-      Get or set the flag to determine if apply-like functions quit with an
-      error as soon as one application fails.  See ?\code{SnowParam} and
-      ?\code{BatchJobsParam} for details applicable to each class.
-    }
-    \item{}{
-      \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}: 
-      Get or set the flag to determine if all jobs should be stopped as
-      soon as one fails or if all should be attempted.
+    \describe{
+      \item{}{
+        \code{show(x)}
+      }
     }
   }
+
 }
 
 \author{Martin Morgan and Valerie Obenchain.}
 
 \seealso{
+
   \itemize{
     \item \code{\link{SnowParam}} for computing in distributed memory
 
@@ -194,6 +217,7 @@
 
     \item \code{\link{SerialParam}} for non-parallel execution
   }
+
 }
 
 \examples{
