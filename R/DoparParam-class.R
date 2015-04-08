@@ -13,7 +13,6 @@
     methods=list(
         show = function() {
             callSuper()
-            cat("catch.errors:", .self$catch.errors, "\n")
         })
 )
 
@@ -69,7 +68,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
     if (!bpisup(BPPARAM)) {
         return(bplapply(FUN=FUN, ..., BPPARAM=SerialParam()))
     }
-    if (BPPARAM$catch.errors)
+    if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN)
 
     i <- NULL
@@ -108,7 +107,7 @@ setMethod(bpmapply, c("ANY", "DoparParam"),
     if (!is.list(MoreArgs))
         MoreArgs <- as.list(MoreArgs)
 
-    if (BPPARAM$catch.errors)
+    if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN)
 
     i <- NULL

@@ -22,6 +22,7 @@
 }
 
 \usage{
+
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
 
@@ -82,11 +83,11 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
 \seealso{
 
-  \code{\link{bpvec}} for parallel, vectorized
-  calculations.
+  \itemize{
+    \item \code{\link{bpvec}} for parallel, vectorized calculations.
 
-  \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
-
+    \item \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
+  }
 }
 
 \examples{

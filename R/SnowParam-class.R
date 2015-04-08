@@ -57,14 +57,13 @@ setOldClass(c("NULLcluster", "cluster"))
             cat("bpthreshold:", names(bpthreshold(.self)), "\n")
             cat("bplogdir:", bplogdir(.self), "\n")
             cat("bpresultdir:", bpresultdir(.self), "\n")
-            cat("bpstopOnError:", bpstopOnError(.self), "\n")
             cat("cluster type: ", .clusterargs$type, "\n")
         })
 )
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
-                      catch.errors=TRUE, stop.on.error=FALSE, 
-                      log=FALSE, tasks=0L, threshold="INFO", 
+                      tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
+                      log=FALSE, threshold="INFO", 
                       logdir=character(), resultdir=character(), ...)
 {
     type <- match.arg(type)

@@ -37,7 +37,7 @@ multicoreWorkers <- function() {
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
-        catch.errors=TRUE, stop.on.error=FALSE, 
+        tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
         log=FALSE, threshold="INFO", logdir=character(),
         resultdir=character(), setSeed=TRUE,
         recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
@@ -45,7 +45,7 @@ MulticoreParam <- function(workers=multicoreWorkers(),
 {
     .MulticoreParam(setSeed=setSeed, recursive=recursive, cleanup=cleanup,
         cleanupSignal=cleanupSignal, verbose=verbose,
-        workers=as.integer(workers), 
+        workers=as.integer(workers), tasks=as.integer(tasks),
         catch.errors=catch.errors, stop.on.error=stop.on.error, 
         log=log, threshold=threshold, logdir=logdir, resultdir=resultdir,
         .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
