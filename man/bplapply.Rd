@@ -22,6 +22,7 @@
 }
 
 \usage{
+
 bplapply(X, FUN, ..., 
          BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
          BPPARAM=bpparam())
@@ -37,6 +38,7 @@ bplapply(X, FUN, ...,
 \S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ...,
          BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
          BPPARAM=bpparam())
+
 }
 
 \arguments{
@@ -62,6 +64,7 @@ bplapply(X, FUN, ...,
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bplapply}.
   }
+
 }
 
 \details{
@@ -74,17 +77,19 @@ bplapply(X, FUN, ...,
 \value{See \code{\link[base]{lapply}}.}
 
 \author{
+
   Martin Morgan \url{mailto:mtmorgan@fhcrc.org}. Original code as
   attributed in \code{\link[parallel]{mclapply}}.
+
 }
 
 \seealso{
 
-  \code{\link{bpvec}} for parallel, vectorized
-  calculations.
+  \itemize{
+    \item \code{\link{bpvec}} for parallel, vectorized calculations.
 
-  \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
-
+    \item \code{\link{BiocParallelParam}} for possible values of \code{BPPARAM}.
+  }
 }
 
 \examples{

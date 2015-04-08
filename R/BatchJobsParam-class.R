@@ -48,12 +48,9 @@
         },
         show = function() {
             ## TODO more output
-            cat("class:", class(.self), "\n")
+            callSuper()
             cat("bpisup:", bpisup(.self), "\n")
-            cat("bpworkers:", bpworkers(.self), "\n")
-            cat("catch.errors:", bpcatchErrors(.self), "\n")
             cat("cleanup:", .self$cleanup, "\n")
-            cat("stop.on.error:", bpstopOnError(.self), "\n")
             cat("progressbar:", .self$progressbar, "\n")
         })
 )
@@ -81,8 +78,7 @@ BatchJobsParam <-
     .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
                     conf.pars=conf.pars, workers=workers, 
                     catch.errors=catch.errors, cleanup=cleanup, 
-                    stop.on.error=stop.on.error, progressbar=progressbar,
-                    ...)
+                    stop.on.error=stop.on.error, progressbar=progressbar, ...)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
