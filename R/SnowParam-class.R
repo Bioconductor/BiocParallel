@@ -264,7 +264,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 
     ## split X
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
-    argfun <- function(i) c(list(X[[i]]), list(FUN), list(...))
+    argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
     ## start cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
