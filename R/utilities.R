@@ -21,7 +21,7 @@
 
 .splitX <- function(X, workers, tasks) 
 {
-    if (tasks == 1)
+    if (tasks == 1 || length(X) == 1L)
         return(list(X))
     else if (tasks == 0)
         idx <- .splitIndices(length(X), workers)
