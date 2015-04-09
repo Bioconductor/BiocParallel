@@ -136,7 +136,7 @@ bplapply(1:4, FUN, BPPARAM = param)
 \subsubsection{\Rcode{BiocParallelParam}}
 
 \Rcode{BiocParallelParam} instances configure different parallel evaluation 
-environments. Creating and / or \Rcode{register()}ing a `\Rcode{Param}` 
+environments. Creating or \Rcode{register()}ing a `\Rcode{Param}` 
 allows the same code to be used in different parallel environments without
 a code re-write. Params listed are supported on all of Unix, Mac and Windows
 except \Rcode{MulticoreParam} which is Unix and Mac only.
@@ -290,6 +290,12 @@ environment.
     Query a \Rcode{BiocParallelParam} back-end for the number of workers 
     available for parallel evaluation.
 
+  \item{\Rcode{bptasks}: }
+    Divides a job (e.g., single call to *lapply function) into tasks.
+    Applicable to \Rcode{MulticoreParam} only; \Rcode{DoparParam} and 
+    \Rcode{BatchJobsParam} have their own approach to dividing a job 
+    among workers. 
+
   \item{\Rcode{bpstart(x)}: } 
     Start a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}, 
     if possible.
@@ -298,15 +304,36 @@ environment.
     Stop a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}.
 \end{description}
 
-\subsubsection{Error recovery}
-The following assist in recovering from errors.
+\subsubsection{Error recovery and logging}
+
+Logging and advanced error recovery for \Rcode{SnowParam} and
+\Rcode{MulticoreParam} is available in \Rcode{BiocParallel} 1.1.25 and later.
+The \Rcode{futile.logger} package is used for logging and supports the setting
+of a log threshold and user-specific log messages. Errors and warning messages
+are returned from the worker.
+
+\Rcode{BatchJobsParam} uses the default \Rcode{BatchJobs} behavior and
+writes error messages to the result files.
+
+The following assist in error handling and logging.
 
 \begin{description}
+  \item{\Rcode{bpcatchErrors}: }
+    Determine if apply-like functions quite with an error as soon as
+    one application fails.
+
+  \item{\Rcode{bpstopOnError}: }
+    Determine if all jobs stop as soon as one fails or if all should
+    be attempted.
+
   \item{\Rcode{bplasterror}: }
     Report the last error reported from a \BiocParallel{} evaluation.
 
   \item{\Rcode{bpresume}: }
     Attempt to resume computation after an error.
+
+  \item{\Rcode{bplog}: }
+    Enable logging on the workers.
 \end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,8 +341,6 @@ The following assist in recovering from errors.
 \section{Use cases}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% TODO: advanced use of BPPARAM as list for nested calls to bplapply
 
 Sample data are BAM files from a transcription profiling experiment
 available in the \Rpackage{RNAseqData.HNRNPC.bam.chr14} package.
@@ -333,9 +358,9 @@ There are substantial benefits, such as shared memory, to be had using
 multiple cores on a single machine. On a single non-Windows machine the 
 recommended approach is multi-core, or forked processes. 
 
-In this example we count overlaps between BAM files and a defined
-set of ranges. Create a GRanges with regions of interest (in practice this 
-could be large).
+This example counts overlaps between BAM files and a defined set of ranges.
+First create a GRanges with regions of interest (in practice this could be
+large).
 <<forking_gr, message=FALSE>>=
 library(GenomicAlignments) ## for GenomicRanges and readGAlignments()
 gr <- GRanges("chr14", IRanges((1000:3999)*5000, width=1000))
@@ -539,9 +564,9 @@ run an \R{} script \verb+BiocParallel-MPI.R+. The command is
 \begin{verbatim}
 $ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
 \end{verbatim}
-The \R{} script might do the following, using MPI for parallel
-evaluation. We start by loading necessary packages and defining
-\Rcode{FUN} work to be done
+
+The \R{} script might do the following, using MPI for parallel evaluation. Start
+by loading necessary packages and defining \Rcode{FUN} work to be done
 <<cluster-MPI-work>>=
 library(BiocParallel)
 library(Rmpi)
