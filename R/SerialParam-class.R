@@ -29,18 +29,8 @@ setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 ### Methods - evaluation
 ###
 
-setMethod(bpmapply, c("ANY", "SerialParam"),
-    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-             BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
-             BPPARAM=bpparam())
-{
-    FUN <- match.fun(FUN)
-    mapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES)
-})
-
 setMethod(bplapply, c("ANY", "SerialParam"),
-    function(X, FUN, ..., BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
-             BPPARAM=bpparam())
+    function(X, FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     lapply(X, FUN, ...)

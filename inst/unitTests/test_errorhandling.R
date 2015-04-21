@@ -33,8 +33,7 @@ test_errorhandling <-
     f.fix <- function(x, y) 0
 
    params <- list(
-        batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE),
-        dopar=DoparParam(catch.errors=TRUE))
+        batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE))
 
     for (param in params) {
         ok <- try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)

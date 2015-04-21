@@ -170,12 +170,10 @@
     \describe{
       \item{}{
         \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-                       BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), 
                        BPPARAM=bpparam())}
       }
       \item{}{
         \code{bplapply(X, FUN, ..., 
-                       BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
                        BPPARAM=bpparam())}
       }
       \item{}{
