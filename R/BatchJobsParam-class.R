@@ -108,16 +108,18 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
 })
 
 setMethod(bpmapply, c("ANY", "BatchJobsParam"),
-    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+    function(FUN, ...,
+        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE),
+        MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
+        BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (BPRESUME)
         return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
             SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM)) {
-        result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-            USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
+        result <- bpmapply(FUN=FUN, ..., BPRESUME=BPRESUME, 
+            MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES,
             BPPARAM=SerialParam())
         return(result)
     }

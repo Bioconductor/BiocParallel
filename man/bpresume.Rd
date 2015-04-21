@@ -22,10 +22,11 @@
 
 \details{
 
+  \code{bpresume} and \code{bplasterror} are implemented for \code{bplapply} 
+  and \code{bpmapply} with \code{BatchJobsParam} only.
+
   \itemize{
     \item{bpresume}{
-      Implemented for \code{bplapply} and \code{bpmapply} only. Supported
-      for \code{BatchJobsParam} and \code{DoparParam} only.
 
       The resume mechanism is triggered if the argument \code{catch.errors} of
       the \code{\link{BiocParallelParam}} class is set to \code{TRUE}.  The
@@ -58,75 +59,9 @@
 
 \examples{
 
-## -----------------------------------------------------------------------
-## Catch errors: 
-## -----------------------------------------------------------------------
+## These functions are applicable to bplapply and bpmapply with
+## BatchJobsParam only. 
 
-## By default 'catch.errors' is TRUE in BiocParallelParam objects.
-SnowParam(workers = 2)
-
-## If 'catch.errors' is FALSE an ill-fated bplapply() simply stops
-## displaying the error message.
-snowp <- SnowParam(workers = 2, catch.errors = FALSE)
-\dontrun{
-> res <- bplapply(list(1, "two", 3), sqrt, BPPARAM = snowp)
-Error in checkForRemoteErrors(val) : 
-  one node produced an error: non-numeric argument to mathematical function
 }
 
-## When 'catch.errors' is TRUE the same call provides traceback
-## information (truncated here) and suggests use of bplasterror() and
-## bpresume().
-snowp <- SnowParam(workers = 2)
-\dontrun{
-> res <- bplapply(list(1, "two", 3), sqrt, BPPARAM = snowp)
-Error: 1 errors; first error:
-  Error in FUN(...): non-numeric argument to mathematical function
-
-For more information, use bplasterror(). To resume calculation, re-call
-  the function and set the argument 'BPRESUME' to TRUE or wrap the
-  previous call in bpresume().
-
-First traceback:
-  19: parallel:::.slaveRSOCK()
-  18: slaveLoop(makeSOCKmaster(master, port, timeout, useXDR))
-...
-}
-
-## bplasterror() reports the number of successful results and error message.
-\dontrun{
-> bplasterror()
-2 / 3 partial results stored. First 1 error messages:
-[2]: Error in FUN(...): non-numeric argument to mathematical function
-}
-
-## -----------------------------------------------------------------------
-## Resume calculations: 
-## -----------------------------------------------------------------------
-
-## The 'resume' mechanism attempts to re-run the data element that failed.
-## In our example the character "two" list element will never succeed. In 
-## the runs below we replace the character with a numeric and compute the
-## result.
-
-## There are two approaches for resuming a suspended calculation, one 
-## is to wrap the original call in bpresume().
-\dontrun{
-> bpresume(res <- bplapply(list(1, 2, 3), sqrt, BPPARAM = snowp))
-Resuming previous calculation... 
-> res
-[[1]]
-[1] 1
-
-[[2]]
-[1] 1.414214
-
-[[3]]
-[1] 1.732051
-}
-
-## Another approach is to set 'BPRESUME = TRUE' in bplapply().
-\dontrun{
-res <- bplapply(list(1, 2, 3), sqrt, BPPARAM = snowp, BPRESUME = TRUE)
-}
 }

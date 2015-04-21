@@ -23,21 +23,13 @@
 
 \usage{
 
-bplapply(X, FUN, ..., 
-         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-         BPPARAM=bpparam())
+bplapply(X, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,ANY}(X, FUN, ...,
-         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-         BPPARAM=bpparam())
+\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ...,
-         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-         BPPARAM=bpparam())
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ...,
-         BPRESUME = getOption("BiocParallel.BPRESUME", FALSE),
-         BPPARAM=bpparam())
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., BPPARAM=bpparam())
 
 }
 
@@ -52,11 +44,13 @@ bplapply(X, FUN, ...,
   }
   \item{\dots}{
     Additional arguments for \code{FUN}, as in \code{\link{lapply}}.
-  }
-  \item{BPRESUME}{
-    Flag to determine if a previous partially successful run
-    should be resumed.  See \code{\link{bpresume}} for details.
-    Supported for \code{BatchJobsParam} and \code{DoparParam} only.
+    \itemize{
+      \item{BPRESUME}{
+        Flag to determine if a previous partially successful run
+        should be resumed.  See \code{\link{bpresume}} for details.
+        Supported for \code{BatchJobsParam} only.
+      }
+    }
   }
   \item{BPPARAM}{
     An optional \code{\link{BiocParallelParam}} instance
