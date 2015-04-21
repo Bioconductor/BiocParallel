@@ -24,16 +24,16 @@
 \usage{
 
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+    BPPARAM=bpparam())
 
-\S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+\S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
+    USE.NAMES=TRUE, BPPARAM=bpparam())
 
-\S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+\S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
+    USE.NAMES=TRUE, BPPARAM=bpparam())
 
-\S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+\S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, 
+    SIMPLIFY=TRUE, USE.NAMES=TRUE, BPPARAM=bpparam())
 
 }
 
@@ -51,14 +51,10 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
   \item{SIMPLIFY}{
     If \code{TRUE} the result will be simplified using
-    \code{\link[base]{simplify2array}}.
-  }
+    \code{\link[base]{simplify2array}}.}
 
   \item{USE.NAMES}{If \code{TRUE} the result will be named.}
 
-  \item{BPRESUME}{Flag to determine if a previous partially successful run
-    should be resumed.  See \code{\link{bpresume}} for details.
-    Supported for \code{BatchJobsParam} and \code{DoparParam} only.}
 
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     defining the parallel back-end to be used during evaluation.}
