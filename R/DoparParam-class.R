@@ -58,16 +58,11 @@ setMethod(bpisup, "DoparParam",
 ###
 
 setMethod(bplapply, c("ANY", "DoparParam"),
-    function(X, FUN, ...,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
+    function(X, FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    if (BPRESUME) {
-        return(.bpresume_lapply(FUN=FUN, ..., BPPARAM=BPPARAM))
-    }
-    if (!bpisup(BPPARAM)) {
+    if (!bpisup(BPPARAM))
         return(bplapply(FUN=FUN, ..., BPPARAM=SerialParam()))
-    }
     if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN)
 
@@ -82,47 +77,6 @@ setMethod(bplapply, c("ANY", "DoparParam"),
         LastError$store(results=results, is.error=is.error, throw.error=TRUE)
 
     results
-})
-
-setMethod(bpmapply, c("ANY", "DoparParam"),
-    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-        BPRESUME=getOption("BiocParallel.BPRESUME", FALSE), BPPARAM=bpparam())
-{
-    FUN <- match.fun(FUN)
-    if (BPRESUME) {
-        results <- .bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
-            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
-        return(results)
-    }
-    if (!bpisup(BPPARAM)) {
-        results <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs,
-            SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPRESUME=BPRESUME,
-            BPPARAM=SerialParam())
-        return(results)
-    }
-
-    ddd <- .getDotsForMapply(...)
-    if (!length(ddd) || !length(ddd[[1L]]))
-      return(list())
-    if (!is.list(MoreArgs))
-        MoreArgs <- as.list(MoreArgs)
-
-    if (bpcatchErrors(BPPARAM))
-        FUN <- .composeTry(FUN)
-
-    i <- NULL
-    results <-
-      foreach(i=seq_along(ddd[[1L]]), .errorhandling="stop") %dopar% {
-          dots <- lapply(ddd, `[`, i)
-          .mapply(FUN, dots, MoreArgs)[[1L]]
-      }
-    results <- .rename(results, ddd, USE.NAMES=USE.NAMES)
-
-    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
-    if (any(is.error))
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-
-    .simplify(results, SIMPLIFY=SIMPLIFY)
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),
