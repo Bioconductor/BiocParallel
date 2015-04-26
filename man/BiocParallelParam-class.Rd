@@ -104,18 +104,21 @@
         and \code{BatchJobsParam} have their own approach to dividing a job
         among workers. 
  
-        In this documentation a job is defined as a single call to a function,
-        \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+        We define a job as a single call to a function such as \code{bplapply}, 
+        \code{bpmapply} etc. A task is the division of the
         \code{X} argument into chunks. When \code{tasks == 0} (default),
         \code{X} is divided by the number of workers. This approach distributes
         \code{X} in (approximately) equal chunks.
  
         A \code{tasks} value of > 0 dictates the total number of tasks. Values
-        can range from 1 (all of \code{X} to a single worker) to the length of 
+        can range from 1 (all of \code{X} to a single worker) to the length of
         \code{X} (each element of \code{X} to a different worker). 
  
         When the length of \code{X} is less than the number of workers each
         element of \code{X} is sent to a worker and \code{tasks} is ignored.
+        Another case where the \code{tasks} value is ignored is when using the
+        \code{bpiterate} function; the number of tasks are defined by the number
+        of data chunks returned by the \code{ITER} function. 
       }
       \item{}{
         \code{bpstart(x, ...)}:

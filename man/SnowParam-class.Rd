@@ -112,7 +112,7 @@ snowWorkers()
       in the \code{BiocParallel} package instead of \code{snow}. This modified
       script captures warning and error messages and collects additional task
       statistics such as gc output and node name.
-      
+ 
       Any \code{futile.logger} messages the user provides in their function will
       be captured by the logging mechanism. Messages are returned real-time
       (i.e., as each tasks completes) instead of after all jobs have finished.
@@ -137,7 +137,7 @@ snowWorkers()
   \describe{
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
-                      catch.errors = TRUE, stop.on.error = FALSE,
+                      tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
                       log = FALSE, threshold = "INFO", logdir = character(), 
                       resultdir = character(), ...)}:
 
@@ -357,9 +357,15 @@ snowWorkers()
 ## Job configuration:
 ## -----------------------------------------------------------------------
 
-## SnowParam supports distributed memory computing. Fields control the
-## division of tasks, error handling, logging and how results are returned. 
+## SnowParam supports distributed memory computing. The object fields
+## control the division of tasks, error handling, logging and 
+## result format.
 bpparam <- SnowParam()
+bpparam
+
+## Fields are modified with accessors of the same name:
+bplog(bpparam) <- TRUE
+bpresultdir(bpparam) <- "/myResults/"
 bpparam
 
 ## -----------------------------------------------------------------------
@@ -387,41 +393,42 @@ fun <- function(x) {
     }
 }
 
-## By default logging is off; turn it on with bplog():
-bpparam <- SnowParam(3)
-bplog(bpparam) <- TRUE
+## By default logging is off. Turn it on with the bplog()<- setter
+## or by specifying 'log = TRUE' in the constructor.
+bpparam <- SnowParam(3, log = TRUE)
 bplapply(X, fun, BPPARAM=bpparam)
 
 ## When a 'logdir' location is given the messages are redirected to a file:
 bplogdir(bpparam) <- tempdir()
-bplapply(X, fun, BPPARAM=bpparam)
+bplapply(X, fun, BPPARAM = bpparam)
 list.files(bplogdir(bpparam))
 
 ## -----------------------------------------------------------------------
 ## Managing results:
 ## -----------------------------------------------------------------------
 
-## Results are written to a file by providing a directory path in
-## 'resultdir'.
-bpparam <- SnowParam(2, type="SOCK", resultdir = tempdir())
-bplapply(X, fun, BPPARAM=bpparam)
+## By default results are returned as a list. When 'resultdir' is given
+## files are saved in the directory specified by job, e.g., 'JOB1.Rda', 
+## 'JOB2.Rda', etc.
+bpparam <- SnowParam(2, resultdir = tempdir())
+bplapply(X, fun, BPPARAM = bpparam)
+list.files(bpresultdir(bpparam))
 
 ## -----------------------------------------------------------------------
 ## Error handling:
 ## -----------------------------------------------------------------------
 
-## When 'stop.on.error' is TRUE, the method returns as soon as an error
-## is thrown.
-bpparam <- SnowParam(2, type="SOCK", stop.on.error=TRUE)
-res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
-res
+## When 'stop.on.error' is TRUE, 'log' must also be TRUE. The process
+## returns as soon as an error is thrown. Tasks not yet run return NULL.
+bpparam <- SnowParam(2, stop.on.error=TRUE, log=TRUE)
+bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
 
-## bpok() returns TRUE for the elements that did not return an error.
-bpok(res)
-
-## When 'stop.on.error' is FALSE, all results are computed.
+## When 'stop.on.error' is FALSE, all tasks attempted. The
+## return list contains both errors and complete results.
 bpstopOnError(bpparam) <- FALSE 
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
+
+## Calling bpok() on the result list returns TRUE for elements with no error.
 bpok(res)
 
 }

@@ -2,7 +2,6 @@
 \alias{bpiterate}
 \alias{bpiterate,ANY,ANY,missing-method}
 \alias{bpiterate,ANY,ANY,BiocParallelParam-method}
-\alias{bpiterate,ANY,ANY,MulticoreParam-method}
 \alias{bpiterate,ANY,ANY,SerialParam-method}
 \alias{bpiterate,ANY,ANY,SnowParam-method}
 \alias{bpiterate,ANY,ANY,BatchJobsParam-method}
@@ -11,10 +10,12 @@
 \title{Parallel iteration over an indeterminate number of data chunks}
 
 \description{
+
   \code{bpiterate} iterates over an indeterminate number of data chunks
   (e.g., records in a file). Each chunk is processed by parallel workers 
-  in an asynchronous fashion; as each worker finishes it recieves a 
+  in an asynchronous fashion; as each worker finishes it receives a 
   new chunk. Data are traversed a single time.
+
 }
 
 \usage{
@@ -26,26 +27,25 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 }
 
 \arguments{
+
   \item{ITER}{
     A function with no arguments that returns an object to process,
     generally a chunk of data from a file. When no objects 
     are left (i.e., end of file) it should return NULL and continue to
     return NULL reguardless of the number of times it is invoked after
-    reaching the end of file. This function is run on the master.}
-
+    reaching the end of file. This function is run on the master.
+  }
   \item{FUN}{
     A function to process the object returned by \code{ITER};
     run on parallel workers separate from the master. When
     BPPARAM is a MulticoreParam, FUN is `decorated` with additional
-    arguments and therefore must have \dots in the signature.}
-
+    arguments and therefore must have \dots in the signature.
+  }
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bpiterate}.
-
-    Currently only MulticoreParam is supported for \code{bpiterate}.}
-
+  }
   \item{\dots}{Arguments to other methods, specifically named 
     arguments for \code{FUN}, or \code{REDUCE} or \code{init}.
 
@@ -55,8 +55,7 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
         the data are combined with the \code{REDUCE} function.
         \code{REDUCE} takes 2 arguments; one is the current
         result and the other is the output of \code{FUN} from
-        a worker that just finished. Currently not supported
-        on Windows.
+        a worker that just finished.
 
       \item{\code{init}: } Optional initial value for \code{REDUCE};
         must be of the same type as the object returned from \code{FUN}.
@@ -67,15 +66,17 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
         the tasks were sent out.
     }
   }
+
 }
 
 \details{
-  Currently only MulticoreParam and SerialParam are supported.
+
+  Supported for \code{SnowParam} and \code{MulticorParam}.
 
   \code{bpiterate} iterates through an unknown number of data
   chunks, dispatching chunks to parallel workers as they
   become available. In contrast, other \code{bp*apply} functions
-  such as code{bplapply} or \code{bpmapply} require the number of 
+  such as \code{bplapply} or \code{bpmapply} require the number of 
   data chunks to be specified ahead of time. This quality makes 
   \code{bpiterate} useful for iterating through files of unknown length.
 
@@ -84,25 +85,30 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
   should continue to return NULL reguardless of the number of times
   it is invoked after reaching the end of the file. \code{FUN}
   is applied to each object (data chunk) returned by \code{ITER}.
+
 }
 
-\value{A \code{list} of output type specified by \code{FUN}. When
-  \code{REDUCE} is supplied the list is of length 1.
+\value{
+
+  A \code{list} the same length as the number of chunks in ITER(). When
+  \code{REDUCE} is used list length is 1.
+
 }
 
 \author{
+
   Valerie Obenchain \url{mailto:vobencha@fhcrc.org}.
 
-  The multi-core implementation is a modification of the \code{sclapply} 
-  in \code{HTSeqGeni} by Gregorie Pau.
 }
 
 \seealso{
+
   \itemize{
     \item \code{\link{bpvec}} for parallel, vectorized calculations.
     \item \code{\link{bplapply}} for parallel, lapply-like calculations.
     \item \code{\link{BiocParallelParam}} for details of \code{BPPARAM}.
   } 
+
 }
 
 \examples{
@@ -141,22 +147,23 @@ if (all(require(Rsamtools) &&
       }
   }
  
-  ## Initalize the iterator.
-  ITER <- bamIterator(bf)
- 
-  ## Create a FUN that counts reads in a region of interest.
+  ## FUN counts reads in a region of interest.
   roi <- GRanges("chr14", IRanges(seq(19e6, 107e6, by = 10e6), width = 10e6))
   counter <- function(reads, roi, ...) {
       countOverlaps(query = roi, subject = reads)
   }
-  ## Create a MulticoreParam and call bpiterate().
+
+  ## Initialize the iterator.
+  ITER <- bamIterator(bf)
+
+  ## The number of chunks returned by ITER() determines the result length.
   bpparam <- MulticoreParam(workers = 2) 
-  res <- bpiterate(ITER, counter, BPPARAM = bpparam, roi = roi)
- 
-  ## The result length is the same as the number of data chunks.
-  length(res)
-  colSums(do.call(rbind, res))
- 
+  bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
+
+  ## Combine on the fly with REDUCE:
+  ITER <- bamIterator(bf)
+  bpiterate(ITER, counter, REDUCE = sum, roi = roi, BPPARAM = bpparam)
+
   ## ----------------------------------------------------------------------
   ## Iterating through a FASTA file
   ## ----------------------------------------------------------------------
@@ -164,7 +171,6 @@ if (all(require(Rsamtools) &&
   ## Set data chunk size with 'n' in the FastqStreamer object.
   sp <- SolexaPath(system.file('extdata', package = 'ShortRead'))
   fl <- file.path(analysisPath(sp), "s_1_sequence.txt")
-  fqs <- FastqStreamer(fl, n = 100)
  
   ## Create an iterator that returns data chunks the size of 'n'.
   fastqIterator <- function(fqs) {
@@ -184,23 +190,25 @@ if (all(require(Rsamtools) &&
       }
   }
  
-  ## Initialize the iterator.
-  ITER <- fastqIterator(fqs)
- 
-  ## The processor summarizes the number of times each sequence occurs.
+  ## The process function summarizes the number of times each sequence occurs.
   summary <- function(reads, ...) {
-       tables(reads, n = 0)$distribution
+       ShortRead::tables(reads, n = 0)$distribution
   }
- 
-  bpparam <- MulticoreParam(workers = 2) 
-  bpiterate(ITER, summary, BPPARAM = bpparam)
- 
-  ## Results from the workers are combined on the fly when a 
-  ## REDUCE function is provided. Collapsing the data in this 
-  ## way can substantially reduce memory requirements.
+
+  ## Create a param.
+  bpparam <- SnowParam(workers = 2) 
+
+  ## Initialize the streamer and iterator.
   fqs <- FastqStreamer(fl, n = 100)
   ITER <- fastqIterator(fqs)
-  bpiterate(ITER, summary, BPPARAM = bpparam, REDUCE = merge, all = TRUE)
+  bpiterate(ITER, summary, BPPARAM = bpparam)
+ 
+  ## Results from the workers are combined on the fly when REDUCE is used.
+  ## Collapsing the data in this way can substantially reduce memory 
+  ## requirements.
+  fqs <- FastqStreamer(fl, n = 100)
+  ITER <- fastqIterator(fqs)
+  bpiterate(ITER, summary, REDUCE = merge, all = TRUE, BPPARAM = bpparam)
 
   }
 }

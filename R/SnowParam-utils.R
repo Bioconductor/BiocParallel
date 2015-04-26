@@ -7,15 +7,16 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Worker loop used by SOCK, MPI and FORK
-### This loop is used when log=TRUE, error handling is done in .composeTry_log
+### Worker loop used by SOCK, MPI and FORK when log=TRUE.
+### Error handling is done in .composeTry_log.
 
 bpslaveLoop <- function(master)
 {
     repeat
         tryCatch({
-            buffer <<- NULL
             msg <- recvData(master)
+            buffer <<- NULL  ## futile.logger buffer
+
             if (msg$type == "DONE") {
                 closeNode(master)
                 break;
@@ -23,7 +24,7 @@ bpslaveLoop <- function(master)
                 success <- TRUE
                 gc(reset=TRUE)
                 t1 <- proc.time()
-                value <- tryCatch(docall(msg$data$fun, msg$data$args))
+                value <- do.call(msg$data$fun, msg$data$args)
                 t2 <- proc.time()
                 node <- Sys.info()["nodename"]
                 value <- list(type = "VALUE", value = value, success = success,
@@ -130,7 +131,7 @@ bprunMPIslave <- function() {
             fun <- function(line) 
                 buffer <<- c(buffer, gsub("\n", "", line))
             flog.appender(fun, 'ROOT')
-    }, level=level)
+        }, level=level)
 }
 
 .bpwriteLog <- function(con, d) {
@@ -164,13 +165,21 @@ bprunMPIslave <- function() {
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Dynamic cluster apply, run on master, used by all cluster types.
+### bpdynamicClusterApply() and bpdynamicClusterIterate()
 ###
 
+## These functions are used by all cluster types (SOCK, MPI, FORK) 
+## and run on the master. Both enable logging, writing logs/results
+## to files and 'stop on error'.
+
+## bpdynamicClusterApply:
+## Derived from snow::dynamicClusterApply.
+## - length of 'X' is known
+## - results list is pre-allocated
+## - args sent to workers as argfun(), invoked with index 'i'
 bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
 {
     ## result output
-    val <- vector("list", n)
     if (length(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
@@ -186,6 +195,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
 
     snow::checkCluster(cl)
     p <- length(cl)
+    val <- vector("list", n)
     if (n > 0 && p > 0) {
         submit <- function(node, job) 
             parallel:::sendCall(cl[[node]], fun, argfun(job), tag = job)
@@ -211,6 +221,131 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
         }
     }
 
-    if (!length(bpresultdir(BPPARAM)))
-        val
+    if (length(bpresultdir(BPPARAM)))
+        NULL 
+    else val 
+}
+
+## bpdynamicClusterIterate():
+## Derived from snow::dynamicClusterApply and parallel::mclapply.
+## - length of 'X' is unknown (defined by ITER())
+## - results not pre-allocated; list grows each iteration if REDUCE is provided
+## - args wrapped in arglist with different chunks from ITER()
+bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init, 
+                                    reduce.in.order=FALSE, BPPARAM, ...)
+{
+    if (missing(REDUCE) && reduce.in.order)
+        stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
+
+    ## result output
+    if (length(resdir <- bpresultdir(BPPARAM)))
+        BatchJobs:::checkDir(resdir)
+
+    ## log connection
+    if (bplog(BPPARAM) && length(bplogdir(BPPARAM))) {
+        con <- .bplogSetUp(bplogdir(BPPARAM))
+        on.exit({ 
+            sink(NULL, type = "message")
+            sink(NULL, type = "output")
+            close(con)
+        })
+    } else con <- NULL
+
+    snow::checkCluster(cl)
+    p <- length(cl)
+
+    ## initialize
+    sjobs <- character()                    ## job status ('running', 'done')
+    rjobs <- list()                         ## non-reduced result
+    rindex <- 1                             ## reducer index
+    val <- list()                           ## final result
+    if (!missing(REDUCE) & !missing(init))
+        val <- init
+
+    inextdata <- NULL
+    ## load available workers
+    for (i in 1:p) {
+        if (is.null(inextdata <- ITER())) {
+            warning("first invocation of 'ITER()' returned NULL")
+            return(list())
+        } else {
+            sjobs[i] <- "running"
+            arglist <- c(list(inextdata), list(...))
+            parallel:::sendCall(cl[[i]], fun, arglist, tag = i)
+        }
+    }
+ 
+    repeat {
+        ## collect
+        d <- parallel:::recvOneData(cl)
+        njob <- d$value$tag
+        rjobs[[njob]] <- d$value$value 
+        sjobs[njob] <- "done"
+        ## stop on error
+        if (bpstopOnError(BPPARAM) && !d$value$success) {
+            warning(paste0("error in job ", njob))
+            return(val)
+        }
+
+        ## REDUCE
+        if (!missing(REDUCE))  {
+            if (reduce.in.order) {
+                if (njob == 1) {
+                    if (length(val))
+                        val <- REDUCE(val, rjobs[[njob]])
+                    else
+                        val <- rjobs[[njob]]
+                    rjobs[[njob]] <- NA
+                    rindex <- rindex + 1 
+                    while (sjobs[rindex] == "done") {
+                        val <- REDUCE(val, rjobs[[rindex]])
+                        rjobs[[rindex]] <- NA 
+                        if (rindex == length(sjobs))
+                            break
+                        else
+                            rindex <- rindex + 1
+                    }
+                } else if (njob == rindex) { 
+                    while (sjobs[rindex] == "done") {
+                        val <- REDUCE(val, rjobs[[rindex]])
+                        rjobs[[rindex]] <- NA
+                        if (rindex == length(sjobs))
+                            break
+                        else
+                            rindex <- rindex + 1
+                    }
+                }
+            } else {
+                if (length(val))
+                    val <- REDUCE(val, unlist(rjobs[[njob]]))
+                else
+                   val <- unlist(rjobs[[njob]])
+            }
+        }
+
+        ## logging
+        if (bplog(BPPARAM))
+            .bpwriteLog(con, val)
+
+        ## load remaining jobs
+        if (!is.null(inextdata <- ITER())) {
+            i <- i + 1
+            sjobs[i] <- "running"
+            arglist <- c(list(inextdata), list(...))
+            parallel:::sendCall(cl[[d$node]], fun, arglist, tag = i)
+        } else { 
+            if ((length(sjobs) == 0) || (all(sjobs == "done")))
+                break
+        }
+    }
+
+    ## results
+    if (length(bpresultdir(BPPARAM))) {
+        NULL 
+    } else {
+        if (missing(REDUCE))
+            rjobs
+        else
+            list(val)
+    }
 }

@@ -82,6 +82,5 @@ setMethod(bplapply, c("ANY", "DoparParam"),
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("bpiterate is only supported for MulticoreParam and ",
-                "SerialParam"))
+    stop(paste0("bpiterate not supported for DoparParam"))
 })
