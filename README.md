@@ -30,3 +30,9 @@ github notes
 + commit one-liners with names
 
     git log --pretty=format:"- %h %an: %s"
+
+TO FIX
+-------------
+
++ DoparParam does not pass foreach args 
+  (specifically access to .options.nws for chunking)

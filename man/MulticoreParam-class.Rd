@@ -31,10 +31,8 @@
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                catch.errors = TRUE, stop.on.error = FALSE,
-               log = FALSE, threshold = "INFO", logdir = character(),
-               resultdir = character(), setSeed = TRUE,
-               recursive = TRUE, cleanup = TRUE, cleanupSignal = tools::SIGTERM,
-               verbose = FALSE, ...)
+               log = FALSE, threshold = "INFO", 
+               logdir = character(), resultdir = character(), ...)
 
 ## detect workers 
 ## ------------------------------------
@@ -58,10 +56,9 @@ multicoreWorkers()
     \item{}{
       \code{MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                            catch.errors = TRUE, stop.on.error = FALSE,
-                           log = FALSE, threshold = "INFO",
+                           tasks = 0L, log = FALSE, threshold = "INFO",
                            logdir = character(), resultdir = character(), 
-                           cleanupSignal = tools::SIGTERM, 
-                           verbose = FALSE, ...)}:
+                           ...)}:
 
         Return an object representing a FORK cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -113,29 +110,6 @@ multicoreWorkers()
   \item{resultdir}{
     \code{character(1)} Job results directory. When not provided, results
     are returned as an \R{} object (list) to the workspace.
-  }
-  \item{setSeed}{
-    \code{logical(1)} as described in parallel::mcparallel argument 
-    \code{mc.set.seed}.
-  }
-  \item{recursive}{
-    \code{logical(1)} indicating whether recursive calls are evaluated in
-    parallel; see parallel::mclapply argument \code{mc.allow.recursive}.
-  }
-  \item{cleanup}{
-    \code{logical(1)} indicating whether forked children will be
-    terminated before \code{bplapply} returns, as for parallel::mclapply
-    argument \code{cleanup}. If TRUE, then the signal sent to the child
-    is \code{cleanupSignal}.
-  }
-  \item{cleanupSignal}{
-    \code{integer(1)} the signal sent to forked
-    processes when \code{cleanup=TRUE}.
-  }
-  \item{verbose}{
-    \code{logical(1)} when \code{TRUE} echo stdout of
-    forked processes. This is the complement of
-    \code{parallel::mclapply}'s argument \code{mc.silent}.
   }
   \item{\dots}{
     Additional arguments passed to \code{\link[snow]{makeCluster}}

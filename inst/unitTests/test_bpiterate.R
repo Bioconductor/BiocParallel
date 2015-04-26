@@ -53,7 +53,6 @@ test_bpiterate_REDUCE <- function() {
     expected <- list(rep(1L, 10), rep(2L, 10), rep(3L, 10))
     checkIdentical(expected, res)
 
-    ## reduce.in.order=FALSE
     if (.Platform$OS.type != "windows") {
         FUN <- function(count, ...) rep(count, 10)
         ITER <- .lazyCount(workers)
@@ -62,7 +61,6 @@ test_bpiterate_REDUCE <- function() {
         expected <- list(rep(6L, 10))
         checkIdentical(expected, res)
 
-        ## reduce.in.order=TRUE
         FUN <- function(count, ...) {
             Sys.sleep(workers - count)
             count
@@ -73,6 +71,11 @@ test_bpiterate_REDUCE <- function() {
         checkIdentical(unlist(res, use.names=FALSE), "321")
 
         ITER <- .lazyCount(workers)
+        res <- quiet(bpiterate(ITER, FUN, BPPARAM=param, 
+            REDUCE=paste0, init=0, reduce.in.order=FALSE))
+        checkIdentical(unlist(res, use.names=FALSE), "0321")
+
+        ITER <- .lazyCount(workers)
         res <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=paste0, 
                          reduce.in.order=TRUE)
         checkIdentical(unlist(res, use.names=FALSE), "123")
@@ -80,11 +83,6 @@ test_bpiterate_REDUCE <- function() {
         ITER <- .lazyCount(workers)
         res <- bpiterate(ITER, FUN, BPPARAM=param, REDUCE=paste0, 
                          init=0, reduce.in.order=TRUE)
-        checkIdentical(unlist(res, use.names=FALSE), "0123")
-
-        ITER <- .lazyCount(workers)
-        res <- quiet(bpiterate(ITER, FUN, BPPARAM=param, 
-            REDUCE=paste0, init=0, reduce.in.order=FALSE))
         checkIdentical(unlist(res, use.names=FALSE), "0123")
     }
 
