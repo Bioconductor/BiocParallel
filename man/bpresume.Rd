@@ -64,4 +64,5 @@
 
 }
 
-}
+\keyword{manip}
+\keyword{methods}

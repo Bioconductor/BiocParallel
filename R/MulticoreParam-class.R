@@ -17,37 +17,40 @@ multicoreWorkers <- function() {
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="SnowParam",
     fields=list(
-        setSeed="logical",
-        recursive="logical",
-        cleanup="logical",
-        cleanupSignal="integer",
-        verbose="logical"),
+        cluster="cluster",
+        .clusterargs="list",
+        .controlled="logical",
+        log="logical",
+        threshold="ANY",
+        logdir="character",
+        resultdir="character"),
     methods=list(
-      initialize = function(..., 
-          setSeed=TRUE,
-          recursive=TRUE,
-          cleanup=TRUE,
-          cleanupSignal=tools::SIGTERM,
-          verbose=FALSE)
-      { 
-          initFields(setSeed=setSeed, recursive=recursive, cleanup=cleanup, 
-                     cleanupSignal=cleanupSignal, verbose=verbose)
-          callSuper(...)
-      })
+        initialize = function(..., 
+            .controlled=TRUE,
+            log=FALSE,
+            threshold="INFO",
+            logdir=character(),
+            resultdir=character())
+        { 
+            callSuper(...)
+            initFields(.controlled=.controlled, log=log, threshold=threshold, 
+                       logdir=logdir, resultdir=resultdir)
+        },
+        show = function() {
+            callSuper()
+        })
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
         tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
         log=FALSE, threshold="INFO", logdir=character(),
-        resultdir=character(), setSeed=TRUE,
-        recursive=TRUE, cleanup=TRUE, cleanupSignal=tools::SIGTERM,
-        verbose=FALSE, ...)
+        resultdir=character(), ...)
 {
-    .MulticoreParam(setSeed=setSeed, recursive=recursive, cleanup=cleanup,
-        cleanupSignal=cleanupSignal, verbose=verbose,
-        workers=as.integer(workers), tasks=as.integer(tasks),
-        catch.errors=catch.errors, stop.on.error=stop.on.error, 
-        log=log, threshold=threshold, logdir=logdir, resultdir=resultdir,
+    .MulticoreParam(workers=as.integer(workers), 
+        tasks=as.integer(tasks), catch.errors=catch.errors, 
+        stop.on.error=stop.on.error, 
+        log=log, threshold=.THRESHOLD(threshold), logdir=logdir, 
+        resultdir=resultdir,
         .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
 }
 
@@ -80,7 +83,10 @@ setValidity("MulticoreParam",
 setMethod(bpschedule, "MulticoreParam",
     function(x, ...)
 {
-    (.Platform$OS.type != "windows") && (x$recursive || !isChild())
+    if (.Platform$OS.type == "windows") 
+        FALSE
+    else
+        TRUE
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,27 +102,5 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
     if (!bpschedule(BPPARAM))
         return(FUN(X, ...))
 
-    pvec(X, FUN, ..., AGGREGATE=AGGREGATE,
-         mc.set.seed=BPPARAM$setSeed,
-         mc.silent=!BPPARAM$verbose, mc.cores=bpworkers(BPPARAM),
-         mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
+    pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
 })
-
-setMethod(bpiterate, c("ANY", "ANY", "MulticoreParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
-{
-    ITER <- match.fun(ITER)
-    FUN <- match.fun(FUN)
-
-    if (.Platform$OS.type == "windows")
-        results <- .bpiterate_serial(ITER, FUN, ...)
-    else
-        results <- .bpiterate_multicore(ITER, FUN, ...,
-            mc.set.seed=BPPARAM$setSeed, mc.silent=!BPPARAM$verbose,
-            mc.cores=bpworkers(BPPARAM), 
-            mc.cleanup=if (BPPARAM$cleanup) BPPARAM$cleanupSignal else FALSE)
-
-    results
-
-})
-

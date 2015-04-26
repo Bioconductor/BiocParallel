@@ -61,7 +61,7 @@ bpschedule(x, ...)
 bpschedule(SnowParam()) 		# TRUE
 bpschedule(MulticoreParam(2))		# FALSE on windows
 
-p <- MulticoreParam(recursive=FALSE)
+p <- MulticoreParam()
 bpschedule(p)                           # TRUE
 bplapply(1:2, function(i, p) {
     bpschedule(p)                       # FALSE
