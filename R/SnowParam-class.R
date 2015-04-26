@@ -100,10 +100,13 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     if (length(dir) > 1L || !is(dir, "character"))
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
-    if (bplog(object) && bpstopOnError(object))
+    if (!bplog(object) && bpstopOnError(object))
         msg <- c(msg, paste0("when bpstopOnError(BPPARAM) == TRUE ",
                              "bplog(BPPARAM) must be TRUE")) 
 
+    if (bplog(object) && !bpcatchErrors(object))
+        msg <- c(msg, paste0("when bplog(BPPARAM) == TRUE ",
+                             "bpcatchErrors(BPPARAM) must be TRUE")) 
     msg
 }
 
@@ -174,6 +177,7 @@ setMethod(bpstart, "SnowParam",
         x$.clusterargs$spec <- min(bpworkers(x), lenX) 
     ## worker script in BiocParallel 
     if (bplog(x)) { 
+        ## FORK should call makeForkCluster if not logging, not makeCluster
         if (x$.clusterargs$type == "FORK") {
             bpbackend(x) <- do.call(.bpmakeForkCluster, 
                                     c(list(nnodes=x$.clusterargs$spec),
@@ -283,10 +287,24 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    warning("SnowParam not supported for bpiterate; using SerialParam")
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()) 
+
+    if (!bpschedule(BPPARAM) || .Platform$OS.type == "windows")
+        return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
+    if (bpcatchErrors(BPPARAM)) {
+        if (bplog(BPPARAM)) {
+            FUN <- .composeTry_log(FUN)
+        } else FUN <- .composeTry(FUN)
+    }
+
+    ## start cluster
+    if (!bpisup(BPPARAM)) {
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM))
+    }
+
+    bpdynamicClusterIterate(bpbackend(BPPARAM), FUN, ITER, ..., BPPARAM=BPPARAM)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

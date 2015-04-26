@@ -198,7 +198,6 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("bpiterate is only supported for MulticoreParam and ",
-                "SerialParam"))
+    stop(paste0("bpiterate not supported for BatchJobsParam"))
 })
 
