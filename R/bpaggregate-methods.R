@@ -1,3 +1,12 @@
+### =========================================================================
+### bpaggregate methods 
+### -------------------------------------------------------------------------
+
+## All params use bpaggregate,data.frame,BiocParallelParam.
+## bpaggretate() dispatches to bplapply() where errors and
+## logging are handled.
+
+
 setMethod("bpaggregate", c("ANY", "missing"),
     function(x, ..., BPPARAM=bpparam())
 {

@@ -8,13 +8,29 @@
 
 .SerialParam <- setRefClass("SerialParam",
     contains="BiocParallelParam",
-    fields=list()
+    fields=list(
+        log="logical",
+        threshold="ANY"),
+    methods=list(
+        initialize = function(..., 
+            log=FALSE,
+            threshold="INFO")
+        { 
+            initFields(log=log, threshold=threshold)
+            callSuper(...)
+        },
+        show = function() {
+            callSuper()
+            cat("bplog:", bplog(.self), "\n")
+            cat("bpthreshold:", names(bpthreshold(.self)), "\n")
+        })
 )
 
-SerialParam <-
-    function()
+SerialParam <- function(log=FALSE, threshold="INFO", ...) 
 {
-    .SerialParam(workers=1L)
+    x <- .SerialParam(workers=1L, log=log, threshold=.THRESHOLD(threshold))
+    validObject(x)
+    x
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,6 +41,37 @@ setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
 
 setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
 
+setMethod("bplog", "SerialParam",
+    function(x, ...)
+{
+    x$log
+})
+
+setReplaceMethod("bplog", c("SerialParam", "logical"),
+    function(x, ..., value)
+{
+    x$log <- value 
+    validObject(x)
+    x
+})
+
+setMethod("bpthreshold", "SerialParam",
+    function(x, ...)
+{
+    x$threshold
+})
+
+setReplaceMethod("bpthreshold", c("SerialParam", "character"),
+    function(x, ..., value)
+{
+    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+    if (!value %in% nms)
+        stop(paste0("'value' must be one of ",
+             paste(sQuote(nms), collapse=", ")))
+    x$threshold <- .THRESHOLD(value) 
+    x
+})
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -33,6 +80,14 @@ setMethod(bplapply, c("ANY", "SerialParam"),
     function(X, FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+
+    if (!length(X))
+        return(list())
+    if (bpcatchErrors(BPPARAM)) {
+        if (bplog(BPPARAM)) {
+            FUN <- .composeTry_log(FUN)
+        } else FUN <- .composeTry(FUN)
+    }
     lapply(X, FUN, ...)
 })
 
@@ -72,5 +127,12 @@ setMethod(bplapply, c("ANY", "SerialParam"),
 setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
+    ITER <- match.fun(ITER)
+    FUN <- match.fun(FUN)
+    if (bpcatchErrors(BPPARAM)) {
+        if (bplog(BPPARAM)) {
+            FUN <- .composeTry_log(FUN)
+        } else FUN <- .composeTry(FUN)
+    }
     .bpiterate_serial(ITER, FUN, ...)
 })
