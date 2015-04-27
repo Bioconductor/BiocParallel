@@ -35,6 +35,7 @@
 \alias{bpstopOnError,BiocParallelParam-method}
 \alias{bpstopOnError<-}
 \alias{bpstopOnError<-,BiocParallelParam,logical-method}
+\alias{bpstopOnError<-,DoparParam,logical-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
