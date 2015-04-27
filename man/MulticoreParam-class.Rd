@@ -8,8 +8,6 @@
 \alias{multicoreWorkers}
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
-
-\alias{bpvec,ANY,MulticoreParam-method}
 \alias{show,MulticoreParam-method}
 
 \title{Enable multi-core parallel evaluation}
