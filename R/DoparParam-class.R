@@ -53,6 +53,13 @@ setMethod(bpisup, "DoparParam",
     }
 })
 
+setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
+    function(x, ..., value)
+{
+    if (value)
+        stop("'stop.on.error == TRUE' not implemented for DoparParam")
+})
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -68,16 +75,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
         FUN <- .composeTry(FUN)
 
     i <- NULL
-    results <-
-      foreach(i=seq_along(X), .errorhandling="stop") %dopar% {
-          FUN(X[[i]], ...)
-    }
-
-    is.error <- vapply(results, inherits, logical(1L), what="remote-error")
-    if (any(is.error))
-        LastError$store(results=results, is.error=is.error, throw.error=TRUE)
-
-    results
+    foreach(i=seq_along(X), .errorhandling="stop") %dopar% { FUN(X[[i]], ...) }
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),

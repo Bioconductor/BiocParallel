@@ -88,8 +88,8 @@ snowWorkers()
 
   \describe{
     \item{error handling:}{
-      Two flags control error handling: \code{catch.errors} and
-      \code{stop.on.error}.
+      Two mutually exclusive flags control error handling: \code{catch.errors} i
+      and \code{stop.on.error}.
 
       The \code{catch.errors} flag determines whether apply-like functions quit
       with an error as soon as one task fails. When \code{FALSE}, this is the
@@ -98,20 +98,19 @@ snowWorkers()
       for tasks that failed as well as results for those that completed
       successfully.
 
-      \code{stop.on.error} offers and additional level of control and is only
-      applicable when \code{catch.errors == TRUE}. When this argument is
-      \code{TRUE} the job terminates upon the first error is encountered but the
-      results also contain the successfully completed tasks. \code{catch.errors}
-      must be \code{TRUE} when \code{stop.on.error} is \code{TRUE}. When
-      \code{FALSE}, the job runs to completion and all successfully completed
-      tasks are returned along with any error messages.
+      \code{stop.on.error} terminates the process when the first error is
+      encountered. The result list contains all results successfully completed
+      prior to the error. When \code{FALSE}, the job runs to completion and 
+      successfully completed tasks are returned along with any error messages.
     }
     \item{logging:}{
       Logging is implemented on the workers with the \code{futile.logger}
-      package. When \code{bplog(BPPARAM) == TRUE} cluster workers use a script
-      in the \code{BiocParallel} package instead of \code{snow}. This modified
-      script captures warning and error messages and collects additional task
-      statistics such as gc output and node name.
+      package. The argument to the constructor is \code{log} and the value is
+      accessed with \code{bplog(BPPARAM)}. When \code{log == TRUE}, cluster
+      workers use a script in the \code{BiocParallel} package instead of
+      \code{snow}. This modified script captures warning and error messages and
+      collects additional task statistics such as gc output and node name. When
+      \code{log == TRUE} \code{catch.errors} must also be TRUE.
  
       Any \code{futile.logger} messages the user provides in their function will
       be captured by the logging mechanism. Messages are returned real-time
@@ -418,14 +417,16 @@ list.files(bpresultdir(bpparam))
 ## Error handling:
 ## -----------------------------------------------------------------------
 
-## When 'stop.on.error' is TRUE, 'log' must also be TRUE. The process
-## returns as soon as an error is thrown. Tasks not yet run return NULL.
-bpparam <- SnowParam(2, stop.on.error=TRUE, log=TRUE)
+## When 'stop.on.error' is TRUE, 'catch.errors' must be FALSE and
+## the process returns as soon as an error is thrown. Tasks not 
+## run are returned as NULL.
+bpparam <- SnowParam(2, catch.errors=FALSE, stop.on.error=TRUE)
 bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
 
-## When 'stop.on.error' is FALSE, all tasks attempted. The
-## return list contains both errors and complete results.
+## When 'stop.on.error' is FALSE and 'catch.errors' is TRUE all tasks
+## are attempted. The return list contains both errors and completed results.
 bpstopOnError(bpparam) <- FALSE 
+bpcatchErrors(bpparam) <- TRUE 
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
 
 ## Calling bpok() on the result list returns TRUE for elements with no error.

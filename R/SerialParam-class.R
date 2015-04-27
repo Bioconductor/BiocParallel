@@ -26,7 +26,7 @@
         })
 )
 
-SerialParam <- function(log=FALSE, threshold="INFO", ...) 
+SerialParam <- function(log=FALSE, threshold="INFO") 
 {
     x <- .SerialParam(workers=1L, log=log, threshold=.THRESHOLD(threshold))
     validObject(x)
@@ -83,10 +83,10 @@ setMethod(bplapply, c("ANY", "SerialParam"),
 
     if (!length(X))
         return(list())
-    if (bpcatchErrors(BPPARAM)) {
-        if (bplog(BPPARAM)) {
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
             FUN <- .composeTry_log(FUN)
-        } else FUN <- .composeTry(FUN)
+    } else if (bpcatchErrors(BPPARAM)) {
+        FUN <- .composeTry(FUN)
     }
     lapply(X, FUN, ...)
 })
@@ -129,10 +129,10 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    if (bpcatchErrors(BPPARAM)) {
-        if (bplog(BPPARAM)) {
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
             FUN <- .composeTry_log(FUN)
-        } else FUN <- .composeTry(FUN)
+    } else if (bpcatchErrors(BPPARAM)) {
+        FUN <- .composeTry(FUN)
     }
     .bpiterate_serial(ITER, FUN, ...)
 })
