@@ -19,16 +19,33 @@
 }
 
 \usage{
-SerialParam() 
+SerialParam(log = FALSE, threshold = "INFO", ...) 
 }
 
-\section{SerialParam constructor}{
+\section{Constructor}{
 
-  Return an object to be used for serial evaluation of otherwise
-  parallel functions such as \code{\link{bplapply}},
-  \code{\link{bpvec}}.
+  \describe{
+    \item{}{
+      \code{SerialParam(log = FALSE, threshold = "INFO", ...)}:
+
+       Return an object to be used for serial evaluation of otherwise
+       parallel functions such as \code{\link{bplapply}},
+       \code{\link{bpvec}}.
+    }
+  }
+
 }
 
+\arguments{
+
+  \item{log}{
+    \code{logical(1)} Enable logging.
+  }
+  \item{threshold}{
+    \code{character(1)} Logging threshold as defined in \code{futile.logger}.
+  }
+
+}
 
 \section{Methods}{
 

@@ -109,6 +109,5 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
         } else FUN <- .composeTry(FUN)
     }
 
-    res <- pvec(X, FUN, ..., mc.cores=bpworkers(BPPARAM))
-    do.call(AGGREGATE, res)
+    pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
 })
