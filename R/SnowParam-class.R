@@ -231,21 +231,6 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     x
 })
 
-setReplaceMethod("bplog", c("SnowParam", "logical"),
-    function(x, ..., value)
-{
-    if (x$.controlled) {
-        x$log <- value 
-        if (bpisup(x)) {
-            bpstop(x)
-            bpstart(x)
-        }
-        x
-    } else {
-        stop("'bplog' not available; instance from outside BiocParallel?")
-    }
-})
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -326,8 +311,16 @@ setMethod("bplog", "SnowParam",
 setReplaceMethod("bplog", c("SnowParam", "logical"),
     function(x, ..., value)
 {
-    x$log <- value 
-    x
+    if (x$.controlled) {
+        x$log <- value 
+        if (bpisup(x)) {
+            bpstop(x)
+            bpstart(x)
+        }
+        x
+    } else {
+        stop("'bplog' not available; instance from outside BiocParallel?")
+    }
 })
 
 .THRESHOLD <- function(xx) {

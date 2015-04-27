@@ -1,14 +1,12 @@
 \name{bplapply}
 \alias{bplapply}
-\alias{bplapply,ANY,ANY-method}
+\alias{bplapply,ANY,list-method}
 \alias{bplapply,ANY,missing-method}
 \alias{bplapply,ANY,BiocParallelParam-method}
 \alias{bplapply,ANY,BatchJobsParam-method}
 \alias{bplapply,ANY,DoparParam-method}
-\alias{bplapply,ANY,MulticoreParam-method}
 \alias{bplapply,ANY,SerialParam-method}
 \alias{bplapply,ANY,SnowParam-method}
-\alias{bplapply,ANY,list-method}
 
 \title{Parallel lapply-like functionality}
 
@@ -24,8 +22,6 @@
 \usage{
 
 bplapply(X, FUN, ..., BPPARAM=bpparam())
-
-\S4method{bplapply}{ANY,ANY}(X, FUN, ..., BPPARAM=bpparam())
 
 \S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM=bpparam())
 

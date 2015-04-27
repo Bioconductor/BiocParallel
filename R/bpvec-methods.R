@@ -1,9 +1,17 @@
-setMethod(bpvec, c("ANY", "ANY"),
-    function(X, FUN, ..., AGGREGATE=c,  BPPARAM=bpparam())
+### =========================================================================
+### bpvec methods 
+### -------------------------------------------------------------------------
+
+## MulticoreParam has a dedicated bpvec() method all others use
+## bpvec,ANY,BiocParallelParam. bpvec() dispatches to bplapply()
+## where errors and logging are handled.
+
+setMethod(bpvec, c("ANY", "missing"),
+    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
-    FUN(X, ..., AGGREGATE=AGGREGATE)
+    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=BPPARAM)
 })
 
 setMethod(bpvec, c("ANY", "BiocParallelParam"),
@@ -22,11 +30,3 @@ setMethod(bpvec, c("ANY", "BiocParallelParam"),
     do.call(AGGREGATE, ans)
 })
 
-setMethod(bpvec, c("ANY", "missing"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
-{
-    FUN <- match.fun(FUN)
-    AGGREGATE <- match.fun(AGGREGATE)
-
-    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=BPPARAM)
-})

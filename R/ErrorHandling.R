@@ -89,7 +89,6 @@ bplasterror <-
         function(e)
     {
         call <- sapply(sys.calls(), deparse)
-        # FIXME one might try to cleanup the traceback ...
         tb <<- capture.output(traceback(call))
         invokeRestart("abort", e)
     }
@@ -150,7 +149,7 @@ bplasterror <-
 {
     message("Resuming previous calculation... ")
     if (length(LastError$is.error) == 1L && is.na(LastError$is.error))
-        stop("No last error catched")
+        stop("No last error caught")
     if (length(LastError$results) != length(list(...)[[1L]]))
         stop("Cannot resume: length mismatch in arguments")
     results <- LastError$results
@@ -171,9 +170,7 @@ bplasterror <-
     }
 }
 
-bpresume <-
-    function(expr)
-{
+bpresume <- function(expr) {
     prev <- getOption("BiocParallel.BPRESUME", FALSE)
     on.exit(options("BiocParallel.BPRESUME"=prev))
     options(BiocParallel.BPRESUME=TRUE)
@@ -201,9 +198,12 @@ bpresume <-
         expr, warning=warning_handle, error=error_handle), abort=abort_handle)
 }
 
-.composeTry_log <-
-    function(FUN)
-{
+.composeTry_log <- function(FUN) {
     FUN <- match.fun(FUN)
     function(...) .try_log(FUN(...))
+}
+
+`print.remote-error` = function(x, ...) {
+    print(x[[1]])
+    cat("traceback() available as 'attr(x, \"traceback\")'\n")
 }
