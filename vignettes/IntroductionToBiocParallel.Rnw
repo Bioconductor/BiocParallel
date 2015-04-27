@@ -768,7 +768,7 @@ The AMI cluster workers can communicate via SSH, SunGrid Engine (SGE) or MPI.
 For MPI, a \Robject{SnowParam} should be configured with \Rcode{type = MPI}. 
 \begin{verbatim}
 > library(BiocParallel}
-> param <- SnoParam(workers=3, type = "MPI") 
+> param <- SnowParam(workers=3, type = "MPI") 
 \end{verbatim}
 
 Both SSH and SunGrid Engine require a \Robject{BatchJobsParam} but differ 
