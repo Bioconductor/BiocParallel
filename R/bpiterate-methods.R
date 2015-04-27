@@ -1,3 +1,9 @@
+### =========================================================================
+### bpiterate methods 
+### -------------------------------------------------------------------------
+
+## All params have dedicated bpiterate() methods.
+
 setMethod(bpiterate, c("ANY", "ANY", "missing"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {

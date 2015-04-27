@@ -99,8 +99,16 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
 
+    if (!length(X))
+        return(list())
     if (!bpschedule(BPPARAM))
-        return(FUN(X, ...))
+        return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=SerialParam()))
+    if (bpcatchErrors(BPPARAM)) {
+        if (bplog(BPPARAM)) {
+            FUN <- .composeTry_log(FUN)
+        } else FUN <- .composeTry(FUN)
+    }
 
-    pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
+    res <- pvec(X, FUN, ..., mc.cores=bpworkers(BPPARAM))
+    do.call(AGGREGATE, res)
 })

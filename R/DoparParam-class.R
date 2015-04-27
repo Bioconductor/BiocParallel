@@ -61,8 +61,9 @@ setMethod(bplapply, c("ANY", "DoparParam"),
     function(X, FUN, ..., BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+
     if (!bpisup(BPPARAM))
-        return(bplapply(FUN=FUN, ..., BPPARAM=SerialParam()))
+        return(bplapply(X, FUN=FUN, ..., BPPARAM=SerialParam()))
     if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN)
 

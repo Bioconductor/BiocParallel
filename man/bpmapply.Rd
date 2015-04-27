@@ -1,13 +1,9 @@
 \name{bpmapply}
 \alias{bpmapply}
-\alias{bpmapply,ANY,ANY-method}
+\alias{bpmapply,ANY,list-method}
 \alias{bpmapply,ANY,missing-method}
 \alias{bpmapply,ANY,BiocParallelParam-method}
 \alias{bpmapply,ANY,BatchJobsParam-method}
-\alias{bpmapply,ANY,DoparParam-method}
-\alias{bpmapply,ANY,MulticoreParam-method}
-\alias{bpmapply,ANY,SerialParam-method}
-\alias{bpmapply,ANY,SnowParam-method}
 
 \title{Parallel mapply-like functionality}
 
@@ -25,9 +21,6 @@
 
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     BPPARAM=bpparam())
-
-\S4method{bpmapply}{ANY,ANY}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
-    USE.NAMES=TRUE, BPPARAM=bpparam())
 
 \S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
     USE.NAMES=TRUE, BPPARAM=bpparam())
