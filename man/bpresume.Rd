@@ -2,7 +2,7 @@
 
 \alias{bpresume}
 \alias{bplasterror}
-\alias{print,remote-error-method}
+\alias{print.remote-error}
 
 
 \title{Resume computation with partial results}
