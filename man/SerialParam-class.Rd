@@ -8,6 +8,8 @@
 \alias{bpworkers,SerialParam-method}
 \alias{bplog,SerialParam-method}
 \alias{bpthreshold,SerialParam-method}
+\alias{`bplog<-`,SerialParam,logical-method}
+\alias{`bpthreshold<-`,SerialParam,character-method}
 
 \title{Enable serial evaluation}
 
@@ -19,14 +21,14 @@
 }
 
 \usage{
-SerialParam(log = FALSE, threshold = "INFO", ...) 
+SerialParam(log = FALSE, threshold = "INFO") 
 }
 
 \section{Constructor}{
 
   \describe{
     \item{}{
-      \code{SerialParam(log = FALSE, threshold = "INFO", ...)}:
+      \code{SerialParam(log = FALSE, threshold = "INFO")}:
 
        Return an object to be used for serial evaluation of otherwise
        parallel functions such as \code{\link{bplapply}},

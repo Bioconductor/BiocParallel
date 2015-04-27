@@ -61,9 +61,9 @@ setValidity("BiocParallelParam", function(object)
         msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
     if (!.isTRUEorFALSE(bpstopOnError(object)))
         msg <- c(msg, "'bpstopOnError(BPPARAM)' must be logical(1)")
-    if (bpstopOnError(object) && !bpcatchErrors(object))
-        msg <- c(msg, paste0("'catch.errors' must be TRUE when ",
-                 " 'stop.on.error' is TRUE"))
+    if (bpstopOnError(object) && bpcatchErrors(object))
+        msg <- c(msg, paste0("'catch.errors' and 'stop.on.error' are ",
+                             "mutually exclusive"))
 
     if (is.null(msg)) TRUE else msg
 })
