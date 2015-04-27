@@ -1,6 +1,7 @@
 test_SnowParam_valid <- function() {
     checkException(SnowParam(1, log=TRUE, catch.errors=FALSE), silent=TRUE)
-    checkException(SnowParam(1, log=FALSE, stop.on.error=TRUE), silent=TRUE)
+    checkException(SnowParam(1, catch.errors=TRUE, stop.on.error=TRUE), 
+                   silent=TRUE)
 }
 
 test_SnowParam_SOCK <- function() {

@@ -100,13 +100,9 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     if (length(dir) > 1L || !is(dir, "character"))
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
-    if (!bplog(object) && bpstopOnError(object))
-        msg <- c(msg, paste0("when bpstopOnError(BPPARAM) == TRUE ",
-                             "bplog(BPPARAM) must be TRUE")) 
-
     if (bplog(object) && !bpcatchErrors(object))
-        msg <- c(msg, paste0("when bplog(BPPARAM) == TRUE ",
-                             "bpcatchErrors(BPPARAM) must be TRUE")) 
+        msg <- c(msg, paste0("when 'log' is TRUE 'catch.errors' must be TRUE"))
+
     msg
 }
 
@@ -176,8 +172,7 @@ setMethod(bpstart, "SnowParam",
     if (lenX > 0)
         x$.clusterargs$spec <- min(bpworkers(x), lenX) 
     ## worker script in BiocParallel 
-    if (bplog(x)) { 
-        ## FORK should call makeForkCluster if not logging, not makeCluster
+    if (bplog(x) || bpstopOnError(x)) { 
         if (x$.clusterargs$type == "FORK") {
             bpbackend(x) <- do.call(.bpmakeForkCluster, 
                                     c(list(nnodes=x$.clusterargs$spec),
@@ -187,7 +182,8 @@ setMethod(bpstart, "SnowParam",
             x$.clusterargs$scriptdir <- find.package("BiocParallel")
             bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
         }
-        .initiateLogging(x)
+        if (bplog(x))
+            .initiateLogging(x)
     ## worker script in snow/parallel: no log, no errors 
     } else {
         x$.clusterargs$useRscript <- TRUE 
@@ -245,10 +241,10 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         return(list())
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
-    if (bpcatchErrors(BPPARAM)) {
-        if (bplog(BPPARAM)) {
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
             FUN <- .composeTry_log(FUN)
-        } else FUN <- .composeTry(FUN)
+    } else if (bpcatchErrors(BPPARAM)) {
+        FUN <- .composeTry(FUN)
     }
 
     ## split X
@@ -277,10 +273,10 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
 
     if (!bpschedule(BPPARAM) || .Platform$OS.type == "windows")
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
-    if (bpcatchErrors(BPPARAM)) {
-        if (bplog(BPPARAM)) {
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
             FUN <- .composeTry_log(FUN)
-        } else FUN <- .composeTry(FUN)
+    } else if (bpcatchErrors(BPPARAM)) {
+        FUN <- .composeTry(FUN)
     }
 
     ## start cluster
