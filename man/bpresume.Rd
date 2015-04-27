@@ -1,6 +1,8 @@
 \name{bpresume}
+
 \alias{bpresume}
 \alias{bplasterror}
+\alias{print,remote-error-method}
 
 
 \title{Resume computation with partial results}

@@ -1,8 +1,8 @@
 \name{bpvec}
 \alias{bpvec}
-\alias{bpvec,ANY,ANY-method}
-\alias{bpvec,ANY,BiocParallelParam-method}
 \alias{bpvec,ANY,missing-method}
+\alias{bpvec,ANY,MulticoreParam-method}
+\alias{bpvec,ANY,BiocParallelParam-method}
 
 \title{Parallel, vectorized evaluation}
 
@@ -17,8 +17,6 @@
 
 \usage{
 bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
-
-\S4method{bpvec}{ANY,ANY}(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 
 \S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
 

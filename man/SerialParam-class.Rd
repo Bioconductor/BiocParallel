@@ -6,6 +6,8 @@
 
 \alias{bpisup,SerialParam-method}
 \alias{bpworkers,SerialParam-method}
+\alias{bplog,SerialParam-method}
+\alias{bpthreshold,SerialParam-method}
 
 \title{Enable serial evaluation}
 
