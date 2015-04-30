@@ -75,7 +75,11 @@ setMethod(bplapply, c("ANY", "DoparParam"),
         FUN <- .composeTry(FUN)
 
     i <- NULL
-    foreach(i=seq_along(X), .errorhandling="stop") %dopar% { FUN(X[[i]], ...) }
+    if (bpcatchErrors(BPPARAM))
+        handle <- "pass"
+    else
+        handle <- "stop"
+    foreach(i=seq_along(X), .errorhandling=handle) %dopar% { FUN(X[[i]], ...) }
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),

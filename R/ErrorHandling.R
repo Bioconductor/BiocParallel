@@ -1,3 +1,9 @@
+### =========================================================================
+### Error handling 
+### -------------------------------------------------------------------------
+
+## LastError object used by BatchJobs
+
 .LastError <- setRefClass("LastError",
   fields=list(
     results="list",         # partial results
@@ -32,6 +38,8 @@
             lapply(results[is.error], .convertToSimpleError))
         .self$is.error <- is.error
         if (throw.error) {
+          ## FIXME: currently stamped as 'remote-error'; either use print()
+          ##        or drop BPRESUME and return partial list
           msg0 <- sprintf("%d errors; first error:\n  %s", sum(is.error),
               paste(conditionMessage(.self$results[is.error][[1L]]),
                     collapse="\n  "))
@@ -39,6 +47,7 @@
               resume calculation, re-call the function and set the argument
               'BPRESUME' to TRUE or wrap the previous call in bpresume().",
               exdent=2), collapse="\n")
+          ## FIXME: use print() to tame output
           msg2 <- NULL
           if (length(.self$traceback))
               msg2 <- sprintf("First traceback:\n  %s",
@@ -75,49 +84,7 @@ bplasterror <-
     else x
 }
 
-.try <-
-    function(expr)
-{
-    handler_warning <-
-        function(w)
-    {
-        cache.warnings <<- c(cache.warnings, as.character(w))
-        invokeRestart("muffleWarning")
-    }
-
-    handler_error <-
-        function(e)
-    {
-        call <- sapply(sys.calls(), deparse)
-        tb <<- capture.output(traceback(call))
-        invokeRestart("abort", e)
-    }
-
-    handler_abort <- function(e) e
-
-    tb <- NULL
-    cache.warnings <- character(0L)
-    x <- withRestarts(withCallingHandlers(expr, warning=handler_warning,
-        error=handler_error), abort=handler_abort)
-
-    ## we cannot use try-error or snow's internal error handling will be
-    ## triggered
-    if (inherits(x, "error")) {
-        tmp <- x
-        x <- as.character(x)
-        class(x) <- "remote-error"
-        attr(x, "condition") <- tmp$condition
-        attr(x, "traceback") <- tb
-    }
-    return(x)
-}
-
-.composeTry <-
-    function(FUN)
-{
-    FUN <- match.fun(FUN)
-    function(...) .try(FUN(...))
-}
+## bpresume() used by BatchJobs
 
 .bpresume_lapply <-
     function(X, FUN, ..., BPPARAM)
@@ -177,30 +144,60 @@ bpresume <- function(expr) {
     expr
 }
 
-## experimental wrap w/ logging
+## .try() functions
+
+.try <- function(expr) {
+    ## FIXME: does not catch warnings -> remove 'cache.warnings'?
+    handler_warning <- function(w) {
+        cache.warnings <<- c(cache.warnings, as.character(w))
+        invokeRestart("muffleWarning")
+    }
+    handler_error <- function(e) {
+        call <- sapply(sys.calls(), deparse)
+        #e <- structure(e, class = c("remote-error", class(e)),
+        e <- structure(e, class = c("remote-error", "condition"),
+                       traceback = capture.output(traceback(call))) 
+        invokeRestart("abort", e)
+    }
+    handler_abort <- function(e) e
+
+    cache.warnings <- character(0L)
+    withRestarts(withCallingHandlers(expr, 
+                                     warning=handler_warning,
+                                     error=handler_error), 
+                                     abort=handler_abort)
+}
+
 .try_log <- function(expr) {
-    error_handle = function(e) {
+    handler_warning = function(w) {
+        flog.warn("%s", w)
+        invokeRestart("muffleWarning")
+    }
+    handler_error = function(e) {
         success <<- FALSE
         call <- sapply(sys.calls(), deparse)
         flog.debug(capture.output(traceback(call)))
         flog.error("%s", e)
-        ee <- structure(conditionMessage(e),
-            class = c("snow-try-error","try-error"))
-        invokeRestart("abort", ee)
+        e <- structure(e, class = c("remote-error", class(e)),
+                       traceback = capture.output(traceback(call))) 
+        invokeRestart("abort", e)
     }
-    warning_handle = function(w) {
-        flog.warn("%s", w)
-        invokeRestart("muffleWarning")
-    }
-    abort_handle = function(a) a 
+    handler_abort = function(e) e 
 
-    withRestarts(withCallingHandlers(
-        expr, warning=warning_handle, error=error_handle), abort=abort_handle)
+    withRestarts(withCallingHandlers(expr, 
+                                     warning=handler_warning, 
+                                     error=handler_error), 
+                                     abort=handler_abort)
 }
 
-.composeTry_log <- function(FUN) {
+.composeTry <-
+    function(FUN, log = FALSE)
+{
     FUN <- match.fun(FUN)
-    function(...) .try_log(FUN(...))
+    if (log)
+        function(...) .try_log(FUN(...))
+    else 
+        function(...) .try(FUN(...))
 }
 
 `print.remote-error` = function(x, ...) {

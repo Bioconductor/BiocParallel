@@ -118,9 +118,8 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
         return(.bpresume_mapply(FUN=FUN, ..., MoreArgs=MoreArgs,
             SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES, BPPARAM=BPPARAM))
     if (!bpschedule(BPPARAM)) {
-        result <- bpmapply(FUN=FUN, ..., BPRESUME=BPRESUME, 
-            MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, USE.NAMES=USE.NAMES,
-            BPPARAM=SerialParam())
+        result <- bpmapply(FUN=FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY, 
+            USE.NAMES=USE.NAMES, BPPARAM=SerialParam())
         return(result)
     }
 
@@ -200,4 +199,5 @@ setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
 {
     stop(paste0("bpiterate not supported for BatchJobsParam"))
 })
+
 
