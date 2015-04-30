@@ -88,20 +88,27 @@ snowWorkers()
 
   \describe{
     \item{error handling:}{
-      Two mutually exclusive flags control error handling: \code{catch.errors} i
-      and \code{stop.on.error}.
+      Two flags control error handling: \code{catch.errors} and 
+      \code{stop.on.error}.
+      \itemize{
+        \item \code{catch.errors} determines whether errors are caught and
+              returned with other results. When \code{TRUE}, all computations 
+              are attempted and output contains both errors and successfully 
+              completed results. When \code{FALSE}, the job is terminated as 
+              soon as the first error is hit and only the error message is 
+              returned (no results); this is the default behavior of the 
+              parent packages, e.g., \code{parallel}, \code{snow}, 
+              \code{foreach}.
 
-      The \code{catch.errors} flag determines whether apply-like functions quit
-      with an error as soon as one task fails. When \code{FALSE}, this is the
-      default behavior seen in the \code{parallel} and \code{snow} packages; an
-      error is returned with no results.  When \code{TRUE}, errors are returned
-      for tasks that failed as well as results for those that completed
-      successfully.
-
-      \code{stop.on.error} terminates the process when the first error is
-      encountered. The result list contains all results successfully completed
-      prior to the error. When \code{FALSE}, the job runs to completion and 
-      successfully completed tasks are returned along with any error messages.
+        \item \code{stop.on.error} controls whether the job stops after an 
+              error is thrown. When \code{TRUE}, the output contains all 
+              successfully completed results up to and including the error. 
+              Unlike \code{catch.errors == TRUE}, when 
+              \code{stop.on.error == TRUE} all computations stop once the 
+              error is hit. When \code{FALSE}, the job runs to completion 
+              and successful results are returned along with any error messages.
+      }
+    \code{catch.errors} and \code{stop.on.error} cannot both be \code{TRUE}.
     }
     \item{logging:}{
       Logging is implemented on the workers with the \code{futile.logger}
@@ -239,7 +246,7 @@ snowWorkers()
       \code{bpresultdir(x, ...)}, \code{bpresultdir(x) <- value}: 
       Get or set the directory for the result files. \code{value} must be a
       \code{character(1)} path, not a file name. Separate files are written for
-      each job with the prefix JOB (e.g., JOB1, JOB2, etc.).  When no
+      each job with the prefix TASK (e.g., TASK1, TASK2, etc.).  When no
       \code{resultdir} is provided the results are returned to the session as
       \code{list}.
     }
@@ -407,8 +414,8 @@ list.files(bplogdir(bpparam))
 ## -----------------------------------------------------------------------
 
 ## By default results are returned as a list. When 'resultdir' is given
-## files are saved in the directory specified by job, e.g., 'JOB1.Rda', 
-## 'JOB2.Rda', etc.
+## files are saved in the directory specified by job, e.g., 'TASK1.Rda', 
+## 'TASK2.Rda', etc.
 bpparam <- SnowParam(2, resultdir = tempdir())
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))

@@ -1,10 +1,12 @@
-test_SnowParam_valid <- function() {
+test_SnowParam_valid <- function() 
+{
     checkException(SnowParam(1, log=TRUE, catch.errors=FALSE), silent=TRUE)
     checkException(SnowParam(1, catch.errors=TRUE, stop.on.error=TRUE), 
                    silent=TRUE)
 }
 
-test_SnowParam_SOCK <- function() {
+test_SnowParam_SOCK <- function() 
+{
     if (!suppressWarnings(require(snow)))
         ## quietly succeed if 'snow' not available
         return()
@@ -16,7 +18,8 @@ test_SnowParam_SOCK <- function() {
     checkIdentical(FALSE, bpisup(param))
 }
 
-test_SnowParam_MPI <- function() {
+test_SnowParam_MPI <- function() 
+{
     if (.Platform$OS.type == "windows")
         return()
     if (!(suppressWarnings(require(snow)) ||

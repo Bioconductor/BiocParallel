@@ -197,10 +197,12 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
     p <- length(cl)
     val <- vector("list", n)
     if (n > 0 && p > 0) {
+        ## initial load
         submit <- function(node, job) 
             parallel:::sendCall(cl[[node]], fun, argfun(job), tag = job)
         for (i in 1:min(n, p)) 
             submit(i, i)
+        ## collect and re-load
         for (i in 1:n) {
             d <- parallel:::recvOneData(cl)
             value <- d$value$value
@@ -217,7 +219,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
             if (j <= n) 
                 submit(d$node, j)
             if (length(resdir))
-                save(value, file=paste0(resdir, "/JOB", d$value$tag, ".Rda"))
+                save(value, file=paste0(resdir, "/TASK", d$value$tag, ".Rda"))
         }
     }
 

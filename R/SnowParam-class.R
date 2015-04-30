@@ -241,11 +241,10 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         return(list())
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
-            FUN <- .composeTry_log(FUN)
-    } else if (bpcatchErrors(BPPARAM)) {
-        FUN <- .composeTry(FUN)
-    }
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+        FUN <- .composeTry(FUN, TRUE)
+    else if (bpcatchErrors(BPPARAM))
+        FUN <- .composeTry(FUN, FALSE)
 
     ## split X
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
@@ -255,9 +254,14 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM))
     }
-    res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, length(X), 
-                                 argfun, BPPARAM)
-    if (!length(bpresultdir(BPPARAM))) {
+
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+        res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
+                                     length(X), argfun, BPPARAM)
+    else
+        res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), lapply, 
+                                              length(X), argfun)
+    if (!is.null(res)) {
         res <- do.call(c, res, quote=TRUE)
         names(res) <- nms
     }
@@ -273,11 +277,10 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
 
     if (!bpschedule(BPPARAM) || .Platform$OS.type == "windows")
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
-            FUN <- .composeTry_log(FUN)
-    } else if (bpcatchErrors(BPPARAM)) {
-        FUN <- .composeTry(FUN)
-    }
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+        FUN <- .composeTry(FUN, TRUE)
+    else if (bpcatchErrors(BPPARAM))
+        FUN <- .composeTry(FUN, FALSE)
 
     ## start cluster
     if (!bpisup(BPPARAM)) {
