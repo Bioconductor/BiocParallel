@@ -103,11 +103,10 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
         return(list())
     if (!bpschedule(BPPARAM))
         return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=SerialParam()))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM)) {
-            FUN <- .composeTry_log(FUN)
-    } else if (bpcatchErrors(BPPARAM)) {
-        FUN <- .composeTry(FUN)
-    }
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+        FUN <- .composeTry(FUN, TRUE)
+    else if (bpcatchErrors(BPPARAM))
+        FUN <- .composeTry(FUN, FALSE)
 
     pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
 })
