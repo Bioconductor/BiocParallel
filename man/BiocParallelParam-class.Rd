@@ -148,17 +148,33 @@
 
     \describe{
       \item{}{
-        \code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}: 
-        Get or set the flag to determine if apply-like functions quit with an
-        error as soon as one application fails.  See ?\code{SnowParam} and
-        ?\code{BatchJobsParam} for details applicable to each class.
+        \code{bpcatchErrors(x, ...)}, \code{bpCatchErrors(x) <- value}:
+        \code{logical()}. Controls if errors are caught and returned with
+        completed results.
+
+        \code{catch.errors} determines whether errors are caught and
+        returned with other results. When \code{TRUE}, all computations 
+        are attempted and output contains both errors and successfully 
+        completed results. When \code{FALSE}, the job is terminated as 
+        soon as the first error is hit and only the error message is 
+        returned (no results); this is the default behavior of the 
+        parent packages, e.g., \code{parallel}, \code{snow}, 
+        \code{foreach}.
       }
       \item{}{
-        \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}: 
-        Get or set the flag to determine if all jobs should be stopped as
-        soon as one fails or if all should be attempted.
+        \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}:
+        \code{logical()}. Controls if the job stops when an error is hit.
+
+        \code{stop.on.error} controls whether the job stops after an 
+        error is thrown. When \code{TRUE}, the output contains all 
+        successfully completed results up to and including the error. 
+        Unlike \code{catch.errors == TRUE}, when 
+        \code{stop.on.error == TRUE} all computations stop once the 
+        error is hit. When \code{FALSE}, the job runs to completion 
+        and successful results are returned along with any error messages.
       }
     }
+    \code{catch.errors} and \code{stop.on.error} cannot both be \code{TRUE}.
   }
 
 }
