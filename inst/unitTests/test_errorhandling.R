@@ -20,8 +20,10 @@ test_catch.errors <- function()
         batchjobs=BatchJobsParam(catch.errors=FALSE, progressbar=FALSE),
         dopar=DoparParam(catch.errors=FALSE),
         snow=SnowParam(catch.errors=FALSE),
-        multi=MulticoreParam(catch.errors=FALSE),
         serial=SerialParam(catch.errors=FALSE))
+
+    if (!.Platform$OS.type == "windows")
+        params <- c(params, multi=MulticoreParam(catch.errors=FALSE))
 
     for (param in params) {
         checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
@@ -32,8 +34,10 @@ test_catch.errors <- function()
     params <- list(
         dopar=DoparParam(),
         snow=SnowParam(),
-        multi=MulticoreParam(),
         serial=SerialParam())
+
+    if (!.Platform$OS.type == "windows")
+        params <- c(params, multi=MulticoreParam())
 
     for (param in params) {
         res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
