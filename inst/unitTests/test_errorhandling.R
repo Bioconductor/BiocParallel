@@ -22,7 +22,7 @@ test_catch.errors <- function()
         snow=SnowParam(catch.errors=FALSE),
         serial=SerialParam(catch.errors=FALSE))
 
-    if (!.Platform$OS.type == "windows")
+    if (.Platform$OS.type != "windows")
         params <- c(params, multi=MulticoreParam(catch.errors=FALSE))
 
     for (param in params) {
@@ -36,7 +36,7 @@ test_catch.errors <- function()
         snow=SnowParam(),
         serial=SerialParam())
 
-    if (!.Platform$OS.type == "windows")
+    if (.Platform$OS.type != "windows")
         params <- c(params, multi=MulticoreParam())
 
     for (param in params) {
