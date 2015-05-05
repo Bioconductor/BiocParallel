@@ -8,6 +8,7 @@
 \alias{multicoreWorkers}
 \alias{bpisup,MulticoreParam-method}
 \alias{bpschedule,MulticoreParam-method}
+\alias{bpworkers<-,MulticoreParam,numeric-method}
 \alias{show,MulticoreParam-method}
 
 \title{Enable multi-core parallel evaluation}
@@ -29,7 +30,7 @@
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                catch.errors = TRUE, stop.on.error = FALSE,
-               log = FALSE, threshold = "INFO", 
+               progressbar = FALSE, log = FALSE, threshold = "INFO", 
                logdir = character(), resultdir = character(), ...)
 
 ## detect workers 
@@ -44,8 +45,11 @@ multicoreWorkers()
   \code{MulticoreParam} is used for shared memory computing. Under the hood
   the cluster is created with \code{SnowParam(..., type="FORK")}. See
   ?\code{SnowParam} for a description of error handling, logging
-  and writing out results.
+  and returning results.
 
+  On Windows, \code{MulticoreParam} defaults to \code{SerialParam}.
+  The class object can be instantiated and used in the bp*apply functions
+  but computations are run in serial (i.e., equivalent to a single worker).
 }
 
 \section{Constructor}{
@@ -54,9 +58,9 @@ multicoreWorkers()
     \item{}{
       \code{MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                            catch.errors = TRUE, stop.on.error = FALSE,
-                           tasks = 0L, log = FALSE, threshold = "INFO",
-                           logdir = character(), resultdir = character(), 
-                           ...)}:
+                           tasks = 0L, progressbar = FALSE, log = FALSE, 
+                           threshold = "INFO", logdir = character(), 
+                           resultdir = character(), ...)}:
 
         Return an object representing a FORK cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -95,6 +99,9 @@ multicoreWorkers()
   \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
+  \item{progressbar}{
+    \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
+  }
   \item{log}{
     \code{logical(1)} Enable logging.
   }
@@ -119,6 +126,11 @@ multicoreWorkers()
 
   In the following code, \code{x} is a \code{MulticoreParam} object.
   \describe{
+    \item{}{
+      \code{bpprogress(x, ...)}, \code{bpprogress(x) <- value}: 
+      Get or set the value to enable text progress bar. 
+      \code{value} must be a \code{logical(1)}.
+    }
     \item{}{
       \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
       Get or set the value to enable logging. \code{value} must be a

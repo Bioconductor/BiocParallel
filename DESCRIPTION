@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.3.7
+Version: 1.3.8
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
@@ -24,12 +24,13 @@ Collate.unix: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R
     bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
     bpaggregate-methods.R bpvalidate.R SnowParam-class.R MulticoreParam-class.R
     register.R SerialParam-class.R DoparParam-class.R SnowParam-utils.R
-    BatchJobsParam-class.R utilities.R unix/pvec.R unix/mclapply.R unix/zzz.R
+    BatchJobsParam-class.R progress.R utilities.R unix/pvec.R 
+    unix/mclapply.R unix/zzz.R
 Collate.windows: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R bpmapply-methods.R
     bpiterate-methods.R bpschedule-methods.R bpstart-methods.R bpstop-methods.R
     bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
     bpaggregate-methods.R bpvalidate.R SnowParam-class.R MulticoreParam-class.R
     register.R SerialParam-class.R DoparParam-class.R SnowParam-utils.R
-    BatchJobsParam-class.R utilities.R windows/zzz.R
+    BatchJobsParam-class.R progress.R utilities.R windows/zzz.R
 VignetteBuilder: knitr

@@ -12,8 +12,7 @@
         reg.pars="list",
         submit.pars="list",
         conf.pars="list",
-        cleanup="logical",
-        progressbar="logical"),
+        cleanup="logical"),
     methods=list(
         initialize = function(..., 
             conf.pars=list(), 
@@ -49,9 +48,9 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("bpisup:", bpisup(.self), "\n")
+            cat("  bpisup:", bpisup(.self), "\n")
+            cat("  bpprogressbar:", bpprogressbar(.self), "\n")
             cat("cleanup:", .self$cleanup, "\n")
-            cat("progressbar:", .self$progressbar, "\n")
         })
 )
 
@@ -125,7 +124,7 @@ setMethod(bpmapply, c("ANY", "BatchJobsParam"),
 
     ## turn progressbar on/off
     prev.pb <- getOption("BBmisc.ProgressBar.style")
-    options(BBmisc.ProgressBar.style=c("off", "text")[BPPARAM$progressbar+1L])
+    options(BBmisc.ProgressBar.style=c("off", "text")[bpprogressbar(BPPARAM)+1L])
     on.exit(options(BBmisc.ProgressBar.style=prev.pb))
 
     ## create registry, handle cleanup
@@ -199,5 +198,3 @@ setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
 {
     stop(paste0("bpiterate not supported for BatchJobsParam"))
 })
-
-

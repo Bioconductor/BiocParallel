@@ -172,12 +172,8 @@ bprunMPIslave <- function() {
 ## and run on the master. Both enable logging, writing logs/results
 ## to files and 'stop on error'.
 
-## bpdynamicClusterApply:
-## Derived from snow::dynamicClusterApply.
-## - length of 'X' is known
-## - results list is pre-allocated
-## - args sent to workers as argfun(), invoked with index 'i'
-bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
+## derived from snow::dynamicClusterApply.
+bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 {
     ## result output
     if (length(resdir <- bpresultdir(BPPARAM)))
@@ -202,11 +198,13 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM)
             parallel:::sendCall(cl[[node]], fun, argfun(job), tag = job)
         for (i in 1:min(n, p)) 
             submit(i, i)
+
         ## collect and re-load
         for (i in 1:n) {
             d <- parallel:::recvOneData(cl)
             value <- d$value$value
             val[[d$value$tag]] <- value
+            progress$step()
             ## logging
             if (bplog(BPPARAM))
                 .bpwriteLog(con, d)

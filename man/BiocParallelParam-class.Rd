@@ -21,6 +21,7 @@
 \alias{bpstop,ANY-method}
 \alias{bpstop,missing-method}
 \alias{bpworkers}
+\alias{bpworkers<-}
 \alias{bpworkers,missing-method}
 \alias{bpworkers,BiocParallelParam-method}
 \alias{bptasks}
@@ -36,6 +37,10 @@
 \alias{bpstopOnError<-}
 \alias{bpstopOnError<-,BiocParallelParam,logical-method}
 \alias{bpstopOnError<-,DoparParam,logical-method}
+\alias{bpprogress}
+\alias{bpprogress,BiocParallelParam-method}
+\alias{bpprogress<-}
+\alias{bpprogress<-,BiocParallelParam,logical-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -93,9 +98,10 @@
 
     \describe{
       \item{}{
-        \code{bpworkers(x, ...)}:
+        \code{bpworkers(x, ...)}, \code{bpworkers(x, ...)}:
         \code{integer(1)} or \code{character()}. Gets the number or names of 
-        the back-end workers.
+        the back-end workers. The setter is supported for SnowParam and 
+        MulticoreParam only.
       }
       \item{}{
         \code{bptasks(x, ...)}, \code{bptasks(x) <- value}:
