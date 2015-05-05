@@ -16,26 +16,8 @@ multicoreWorkers <- function() {
 
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="SnowParam",
-    fields=list(
-        cluster="cluster",
-        .clusterargs="list",
-        .controlled="logical",
-        log="logical",
-        threshold="ANY",
-        logdir="character",
-        resultdir="character"),
+    fields=list(),
     methods=list(
-        initialize = function(..., 
-            .controlled=TRUE,
-            log=FALSE,
-            threshold="INFO",
-            logdir=character(),
-            resultdir=character())
-        { 
-            callSuper(...)
-            initFields(.controlled=.controlled, log=log, threshold=threshold, 
-                       logdir=logdir, resultdir=resultdir)
-        },
         show = function() {
             callSuper()
         })
@@ -43,12 +25,15 @@ multicoreWorkers <- function() {
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
         tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
-        log=FALSE, threshold="INFO", logdir=character(),
+        progressbar=FALSE, log=FALSE, threshold="INFO", logdir=character(),
         resultdir=character(), ...)
 {
+    if (.Platform$OS.type == "windows")
+        warning("MulticoreParam not supported on Windows. Using SerialParam().")
+
     .MulticoreParam(workers=as.integer(workers), 
         tasks=as.integer(tasks), catch.errors=catch.errors, 
-        stop.on.error=stop.on.error, 
+        stop.on.error=stop.on.error, progressbar=progressbar, 
         log=log, threshold=.THRESHOLD(threshold), logdir=logdir, 
         resultdir=resultdir,
         .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
@@ -79,6 +64,15 @@ setValidity("MulticoreParam",
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
 ###
+
+setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
+    function(x, ..., value)
+{
+    if (value > multicoreWorkers())
+        stop("'value' exceeds available workers detected by multicoreWorkers()")
+    x$tasks <- as.integer(value)
+    x 
+})
 
 setMethod(bpschedule, "MulticoreParam",
     function(x, ...)

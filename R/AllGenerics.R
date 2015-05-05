@@ -26,6 +26,9 @@ setGeneric("bpaggregate",
 setGeneric("bpworkers",
     function(x, ...) standardGeneric("bpworkers"))
 
+setGeneric("bpworkers<-",
+    function(x, ..., value) standardGeneric("bpworkers<-"))
+
 setGeneric("bptasks",
     function(x, ...) standardGeneric("bptasks"))
 
@@ -45,7 +48,12 @@ setGeneric("bpstopOnError",
 setGeneric("bpstopOnError<-",
     function(x, ..., value) standardGeneric("bpstopOnError<-"))
 
-## logging
+setGeneric("bpprogressbar",
+    function(x, ...) standardGeneric("bpprogressbar"))
+
+setGeneric("bpprogressbar<-",
+    function(x, ..., value) standardGeneric("bpprogressbar<-"))
+
 setGeneric("bplog",
     function(x, ...) standardGeneric("bplog"))
 

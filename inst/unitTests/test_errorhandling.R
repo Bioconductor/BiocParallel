@@ -1,3 +1,6 @@
+## Test 'stop.on.error', 'catch.errors'. See test_logging.R
+## for tests with 'log' and 'progressbar'.
+
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 {
     x <- try(eval(expr), silent=TRUE)
@@ -70,27 +73,6 @@ test_bpresume <- function()
 
         res <- bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
         checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
-    }
-
-    closeAllConnections()
-    TRUE
-}
-
-test_log <- function()
-{
-    ## SnowParam, MulticoreParam only
-    params <- list(
-        snow=SnowParam(log=FALSE),
-        snowLog=SnowParam(log=TRUE),
-        multi=MulticoreParam(log=FALSE),
-        multiLog=MulticoreParam(log=TRUE))
-
-    for (param in params) {
-        res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-        checkTrue(length(res) == 3L)
-        msg <- "non-numeric argument to mathematical function"
-        checkIdentical(conditionMessage(res[[2]]), msg)
-        checkTrue(length(attr(res[[2]], "traceback")) > 0L)
     }
 
     closeAllConnections()

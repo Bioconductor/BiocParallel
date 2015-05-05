@@ -8,24 +8,26 @@
         workers="ANY",
         tasks="integer",
         catch.errors="logical",
-        stop.on.error="logical"),
+        stop.on.error="logical",
+        progressbar="logical"),
     methods=list(
         initialize = function(..., 
             workers=0, 
             tasks=0L, 
             catch.errors=TRUE,
-            stop.on.error=FALSE)
+            stop.on.error=FALSE,
+            progressbar=FALSE)
         {
-            initFields(workers=workers, tasks=tasks,
-                       catch.errors=catch.errors, stop.on.error=stop.on.error)
+            initFields(workers=workers, tasks=tasks, catch.errors=catch.errors, 
+                       stop.on.error=stop.on.error, progressbar=progressbar)
             callSuper(...)
         },
         show = function() {
             cat("class:", class(.self), "\n")
-            cat("bpworkers:", bpworkers(.self), "\n")
-            cat("bptasks:", bptasks(.self), "\n")
-            cat("bpcatchErrors:", bpcatchErrors(.self), "\n")
-            cat("bpstopOnError:", bpstopOnError(.self), "\n")
+            cat("  bpworkers:", bpworkers(.self), "\n")
+            cat("  bptasks:", bptasks(.self), "\n")
+            cat("  bpcatchErrors:", bpcatchErrors(.self), "\n")
+            cat("  bpstopOnError:", bpstopOnError(.self), "\n")
         })
 )
 
@@ -116,6 +118,19 @@ setReplaceMethod("bpcatchErrors", c("BiocParallelParam", "logical"),
 {
     x$catch.errors <- value 
     x 
+})
+
+setMethod("bpprogressbar", "BiocParallelParam",
+    function(x, ...)
+{
+    x$progressbar
+})
+
+setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
+    function(x, ..., value)
+{
+    x$progressbar <- value 
+    x
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
