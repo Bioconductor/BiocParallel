@@ -46,24 +46,26 @@ setOldClass(c("NULLcluster", "cluster"))
             logdir=character(),
             resultdir=character())
         { 
-            initFields(.controlled=.controlled, log=log, threshold=threshold, 
+            initFields(.controlled=.controlled,
+                       log=log, threshold=threshold, 
                        logdir=logdir, resultdir=resultdir)
             callSuper(...)
         },
         show = function() {
             callSuper()
-            cat("bpisup:", bpisup(.self), "\n")
-            cat("bplog:", bplog(.self), "\n")
-            cat("bpthreshold:", names(bpthreshold(.self)), "\n")
-            cat("bplogdir:", bplogdir(.self), "\n")
-            cat("bpresultdir:", bpresultdir(.self), "\n")
-            cat("cluster type: ", .clusterargs$type, "\n")
+            cat("  bpisup:", bpisup(.self), "\n")
+            cat("  bplog:", bplog(.self), "\n")
+            cat("  bpthreshold:", names(bpthreshold(.self)), "\n")
+            cat("  bplogdir:", bplogdir(.self), "\n")
+            cat("  bpresultdir:", bpresultdir(.self), "\n")
+            cat("  bpprogressbar:", bpprogressbar(.self), "\n")
+            cat("cluster type:", .clusterargs$type, "\n")
         })
 )
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
                       tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
-                      log=FALSE, threshold="INFO", 
+                      progressbar=FALSE, log=FALSE, threshold="INFO", 
                       logdir=character(), resultdir=character(), ...)
 {
     type <- match.arg(type)
@@ -80,7 +82,8 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     x <- .SnowParam(.clusterargs=.clusterargs, cluster=cluster, 
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
-                    log=log, threshold=.THRESHOLD(threshold), logdir=logdir,
+                    progressbar=progressbar, log=log, 
+                    threshold=.THRESHOLD(threshold), logdir=logdir, 
                     resultdir=resultdir, ...)
     validObject(x)
     x
@@ -153,6 +156,27 @@ setMethod(bpworkers, "SnowParam",
         x$workers
 })
 
+setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
+    function(x, ..., value)
+{
+    value <- as.integer(value)
+    if (value > snowWorkers())
+        stop("'value' exceeds available workers detected by snowWorkers()")
+        
+    x$tasks <- value 
+    x 
+})
+
+setReplaceMethod("bpworkers", c("SnowParam", "character"),
+    function(x, ..., value)
+{
+    if (length(value) > snowWorkers())
+        stop("'value' exceeds available workers detected by snowWorkers()")
+        
+    x$tasks <- value 
+    x 
+})
+
 setMethod(bpstart, "SnowParam",
     function(x, lenX = bpworkers(x), ...)
 {
@@ -172,7 +196,7 @@ setMethod(bpstart, "SnowParam",
     if (lenX > 0)
         x$.clusterargs$spec <- min(bpworkers(x), lenX) 
     ## worker script in BiocParallel 
-    if (bplog(x) || bpstopOnError(x)) { 
+    if (bplog(x) || bpstopOnError(x) || bpprogressbar(x)) { 
         if (x$.clusterargs$type == "FORK") {
             bpbackend(x) <- do.call(.bpmakeForkCluster, 
                                     c(list(nnodes=x$.clusterargs$spec),
@@ -199,11 +223,14 @@ setMethod(bpstop, "SnowParam",
         stop("'bpstop' not available; instance from outside BiocParallel?")
     if (!bpisup(x))
         stop("cluster already stopped")
-    tryCatch(stopCluster(bpbackend(x)), error=function(err) {
-        txt <- sprintf("failed to stop %s cluster: %s",
-                       sQuote(class(bpbackend(x))[[1]]), conditionMessage(err))
-        stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
-    })
+
+    tryCatch(stopCluster(bpbackend(x)), 
+        error=function(err) {
+            txt <- sprintf("failed to stop %s cluster: %s",
+                           sQuote(class(bpbackend(x))[[1]]), 
+                           conditionMessage(err))
+            stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
+        })
     bpbackend(x) <- .NULLcluster()
     invisible(x)
 })
@@ -239,25 +266,32 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 
     if (!length(X))
         return(list())
-    if (!bpschedule(BPPARAM))
+    if (!bpschedule(BPPARAM)) 
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
+
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
     else if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN, FALSE)
 
-    ## split X
+    ## split into tasks 
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
+
     ## start cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM))
+        on.exit(bpstop(BPPARAM), TRUE)
     }
 
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+    ## progress bar
+    progress <- .progress(active=bpprogressbar(BPPARAM))  
+    progress$init(length(X))
+    on.exit(progress$term(), TRUE)
+
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM) || bpprogressbar(BPPARAM))
         res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
-                                     length(X), argfun, BPPARAM)
+                                     length(X), argfun, BPPARAM, progress)
     else
         res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                               length(X), argfun)
@@ -275,7 +309,7 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
-    if (!bpschedule(BPPARAM) || .Platform$OS.type == "windows")
+    if (!bpschedule(BPPARAM))
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
@@ -285,7 +319,7 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     ## start cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM))
+        on.exit(bpstop(BPPARAM), TRUE)
     }
 
     bpdynamicClusterIterate(bpbackend(BPPARAM), FUN, ITER, ..., BPPARAM=BPPARAM)

@@ -40,10 +40,10 @@ export(
     bplapply, bpvec, bpvectorize, bpmapply, bpaggregate, bpiterate,
 
     ## bp-controls
-    bpworkers, bpbackend, "bpbackend<-", bptasks, "bptasks<-",
+    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", bptasks, "bptasks<-",
     bpstart, bpstop, bpisup, 
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
-    bplog, "bplog<-", bplogdir, "bplogdir<-",
+    bpprogressbar, "bpprogressbar<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
     ## schedule

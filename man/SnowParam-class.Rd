@@ -14,7 +14,8 @@
 \alias{bpstart,SnowParam-method}
 \alias{bpstop,SnowParam-method}
 \alias{bpworkers,SnowParam-method}
-\alias{bplog<-,SnowParam,logical-method}
+\alias{bpworkers<-,SnowParam,numeric-method}
+\alias{bpworkers<-,SnowParam,character-method}
 
 % Accessors
 \alias{bplog}
@@ -63,8 +64,8 @@
 
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
-          log = FALSE, threshold = "INFO", logdir = character(), 
-          resultdir = character(), ...)
+          progressbar = FALSE, log = FALSE, threshold = "INFO", 
+          logdir = character(), resultdir = character(), ...)
 
 ## coercion 
 ## ------------------------------------
@@ -144,8 +145,8 @@ snowWorkers()
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
-                      log = FALSE, threshold = "INFO", logdir = character(), 
-                      resultdir = character(), ...)}:
+                      progressbar = FALSE, log = FALSE, threshold = "INFO", 
+                      logdir = character(), resultdir = character(), ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -190,6 +191,9 @@ snowWorkers()
   \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
+  \item{progressbar}{
+    \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
+  }
   \item{log}{
     \code{logical(1)} Enable logging.
   }
@@ -223,6 +227,11 @@ snowWorkers()
 
   In the following code, \code{x} is a \code{SnowParam} object.
   \describe{
+    \item{}{
+      \code{bpprogressbar(x, ...)}, \code{bpprogressbar(x) <- value}: 
+      Get or set the value to enable text progress bar. 
+      \code{value} must be a \code{logical(1)}.
+    }
     \item{}{
       \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
       Get or set the value to enable logging. \code{value} must be a
@@ -259,7 +268,7 @@ snowWorkers()
   In the code below \code{x} is a \code{SnowParam} object.  See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpworkers(x, ...)}}
+    \item{}{\code{bpworkers(x, ...)}, \code{bpworkers(x) <- value}}
     \item{}{\code{bptasks(x, ...)}, \code{bptasks(x) <- value}}
     \item{}{\code{bpstart(x, ...)}}
     \item{}{\code{bpstop(x, ...)}}
