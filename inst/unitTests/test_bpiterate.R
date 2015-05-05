@@ -41,7 +41,11 @@ test_bpiterate_Params <- function()
 test_bpiterate_REDUCE <- function() {
 
     ncount <- 3L
-    params <- list(snow=SnowParam(ncount), multi=MulticoreParam(ncount))
+    params <- list(snow=SnowParam(ncount))
+    ## On Windows MulticoreParam dispatches to SerialParam where
+    ## 'reduce.in.order' does not apply (always TRUE)
+    if (.Platform$OS.type != "windows") 
+        params <- c(params, multi=MulticoreParam(ncount))
 
     for (p in params) {
         ## no REDUCE
@@ -64,6 +68,7 @@ test_bpiterate_REDUCE <- function() {
             Sys.sleep(3 - count)
             count
         }
+        ## 'reduce.in.order' FALSE
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
                          reduce.in.order=FALSE)
@@ -74,6 +79,7 @@ test_bpiterate_REDUCE <- function() {
                                reduce.in.order=FALSE))
         checkIdentical(unlist(res, use.names=FALSE), "0321")
 
+        ## 'reduce.in.order' TRUE 
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
                          reduce.in.order=TRUE)
