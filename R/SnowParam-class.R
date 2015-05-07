@@ -103,9 +103,6 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     if (length(dir) > 1L || !is(dir, "character"))
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
-    if (bplog(object) && !bpcatchErrors(object))
-        msg <- c(msg, paste0("when 'log' is TRUE 'catch.errors' must be TRUE"))
-
     msg
 }
 
