@@ -39,8 +39,8 @@
 \alias{bpstopOnError<-,DoparParam,logical-method}
 \alias{bpprogress}
 \alias{bpprogress,BiocParallelParam-method}
-\alias{bpprogress<-}
-\alias{bpprogress<-,BiocParallelParam,logical-method}
+\alias{bpprogressbar<-}
+\alias{bpprogressbar<-,BiocParallelParam,logical-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
