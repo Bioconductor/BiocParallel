@@ -248,7 +248,7 @@ snowWorkers()
       \code{bplogdir(x, ...)}, \code{bplogdir(x) <- value}: 
       Get or set the directory for the log file. \code{value} must be a
       \code{character(1)} path, not a file name. The file is written out as
-      LOGFILE.out. If no \code{logdir} is provided and \code{bplog=TRUE} log
+      BPLOG.out. If no \code{logdir} is provided and \code{bplog=TRUE} log
       messages are sent to stdout.
     }
     \item{}{
@@ -433,17 +433,17 @@ list.files(bpresultdir(bpparam))
 ## Error handling:
 ## -----------------------------------------------------------------------
 
-## When 'stop.on.error' is TRUE, 'catch.errors' must be FALSE and
-## the process returns as soon as an error is thrown. Tasks not 
-## run are returned as NULL.
-bpparam <- SnowParam(2, catch.errors=FALSE, stop.on.error=TRUE)
-bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
+## When 'stop.on.error' is TRUE, the process returns as soon as an error 
+## is thrown. 
+bpparam <- SnowParam(2, stop.on.error = TRUE)
+bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 
-## When 'stop.on.error' is FALSE and 'catch.errors' is TRUE all tasks
-## are attempted. The return list contains both errors and completed results.
-bpstopOnError(bpparam) <- FALSE 
-bpcatchErrors(bpparam) <- TRUE 
-res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM=bpparam)
+## When 'stop.on.error' is FALSE, behavior is dictated by 'catch.errors'.
+## By default 'catch.errors' is TRUE and will try all computations,
+## successful or not.
+bpparam <- SnowParam(2, stop.on.error = FALSE)
+res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+res
 
 ## Calling bpok() on the result list returns TRUE for elements with no error.
 bpok(res)

@@ -1,0 +1,442 @@
+%\VignetteIndexEntry{Errors, Logs and Debugging}
+%\VignetteKeywords{parallel, Infrastructure}
+%\VignettePackage{BiocParallel}
+%\VignetteEngine{knitr::knitr}
+
+
+\documentclass{article}
+
+<<style, eval=TRUE, echo=FALSE, results="asis">>=
+BiocStyle::latex()
+@ 
+
+\newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
+
+\title{Errors, Logs and Debugging in \BiocParallel} 
+\author{Valerie Obenchain and Martin Morgan}
+\date{Edited: May 13, 2015; Compiled: \today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This vignette is part of the \BiocParallel{} package and focuses on error
+handling and logging. A section at the end demonstrates how the two can be used
+together as part of an effective debugging routine.
+
+\BiocParallel{} provides a unified interface to the parallel infrastructure in
+several packages including \CRANpkg{snow}, \CRANpkg{parallel},
+\CRANpkg{BatchJobs} and \CRANpkg{foreach}.  When implementing error handling in
+\BiocParallel{} the primary goals were to enable the return of partial results
+when an error is thrown (vs just the error) and to establish logging on the
+workers. In cases where error handling existed, such as \CRANpkg{BatchJobs} and
+\CRANpkg{foreach}, those behaviors were preserved.  Clusters created with
+\CRANpkg{snow} and \CRANpkg{parallel} now have flexible error handling and
+logging available through \Rcode{SnowParma} and \Rcode{MulticoreParam} objects.
+
+In this document the term ``job'' is used to describe a single call to a
+bp*apply function (e.g., the \Rcode{X} in \Rcode{bplapply}). A ``job'' consists
+of one or more ``tasks'', where each ``task'' is run separately on a worker. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Error Handling}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The \Rpackage{BiocParallel} package is available at bioconductor.org
+and can be downloaded via \Rcode{biocLite}:
+<<biocLite, eval=FALSE>>=
+source("http://bioconductor.org/biocLite.R")
+biocLite("BiocParallel")
+@
+
+Load \BiocParallel{}.
+<<BiocParallel>>=
+library(BiocParallel)
+@ 
+
+\subsection{Parameters}
+
+Error handling is controlled by two fields in the \Rcode{BiocParallelParam}:
+\Rcode{catch.errors} and \Rcode{stop.on.error}. These values are set when the
+param is constructed and can be modified with the \Rcode{bpcatchErrors} and
+\Rcode{bpstopOnError} accessors.
+
+When \Rcode{catch.errors} is TRUE, all computations are attempted and
+successful results are returned along with error messages.  When
+\Rcode{stop.on.error} is TRUE, the process stops when an error is hit; output
+includes results up to and including the error.
+
+Summary of \Rcode{catch.errors} and \Rcode{stop.on.error} behavior:
+
+\begin{itemize}
+  \item{\Rcode{catch.errors = TRUE}}{
+
+    All computations are attempted. Results contain error
+    messages along with all successfully completed results.
+  }
+  \item{\Rcode{catch.errors = FALSE}}{
+
+    Computations stop once an error is hit. Only the error is returned,
+    no results. This is the default behavior
+    of cluster workers in the \CRANpkg{snow} and \CRANpkg{parallel}
+    packages.
+  }
+  \item{\Rcode{stop.on.error = TRUE}}{
+
+    Computations stop once error is hit. Results contain the
+    error message along with results computed up to the error.
+  }
+  \item{\Rcode{stop.on.error = FALSE}}{
+
+    Defaults to behavior specified by \Rcode{catch.errors}. 
+  }
+\end{itemize}
+
+\subsection{Catching errors}
+
+\Rcode{catch.errors} is TRUE by default.
+
+<<errors_constructor>>=
+param <- SnowParam()
+param
+@
+
+Error message(s) are returned along with successful results.
+
+<<errors_catchErrors>>=
+res <- bplapply(list(1, 2, "3", 4), sqrt, BPPARAM = param)
+res
+@
+
+\Rcode{bpok()} returns TRUE if the tasks was successful.
+
+<<errors_bpok>>=
+bpok(res)
+@
+
+When \Rcode{catch.errors = FALSE} only the error message is returned. This
+is the default behavior of clusters created with the \CRANpkg{snow} and 
+\CRANpkg{parallel} packages.
+
+\begin{verbatim}
+  > bpcatchErrors(param) <- FALSE 
+  > bplapply(list(1, 2, "3", 4), sqrt, BPPARAM = param)
+  Error in checkForRemoteErrors(val) : 
+    one node produced an error: non-numeric argument to mathematical function
+\end{verbatim}
+
+\subsection{Stopping early}
+
+\Rcode{stop.on.error} forces the job to return when an error is hit. Output
+contains both the error message and results completed before the error was hit.
+
+In this example the \Rcode{tasks} field is set equal to the length of 'X'. This
+forces each element of 'X' to be executed separately (vs grouped) and more
+clearly demonstrates the behavior of \Rcode{stop.on.error}.  Results for task 1
+and 2 are returned along with the error message for task 3; tasks 4, 5 and 6
+are not executed.
+
+<<errors_4tasks_stopOnError>>=
+X <- list(1, 2, "3", 4, 5, 6)
+param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
+bplapply(X, sqrt, BPPARAM = param)
+@
+
+The default value for \Rcode{tasks} is 0 which means 'X' is split evenly as
+possible across the number of workers. In this example with 3 workers, the
+first task consists of list(1, 2), the second is list("3", 4) and the third is
+list(5, 6).  There are two things to note: the warning message reports an error
+in task 2 (not 3 as in previous example) and a result for '4' is included
+because it was part of the second task.
+
+<<errors_2tasks_stopOnError>>=
+X <- list(1, 2, "3", 4, 5, 6)
+FUN <- function(i) { Sys.sleep(i); sqrt(i) } ## sleep to enforce order
+param <- SnowParam(3, stop.on.error = TRUE)
+bplapply(X, FUN, BPPARAM = param)
+@
+
+Sleep time was added to 'FUN' to simulate a longer running computation and
+force task 2 to finish before task 3.  Results are collected from workers as
+they finish which is not necessarily the same order in which they were loaded.
+Depending on how tasks are divided among workers it is possible that the task
+with an error completes after all others. In that situation the output will
+includes all results along with the error message and it may appear that
+\Rcode{stop.on.error} is not doing much good. This is simply a heads up that
+the usefulness of \Rcode{stop.on.error} may vary with run time and 
+distribution of tasks over workers.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Logging}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Parameters}
+
+Logging is controlled by three fields in the \Rcode{BiocParallelParam}:
+\Rcode{log}, \Rcode{threshold} and \Rcode{logdir}. When \Rcode{log = TRUE} the 
+\CRANpkg{futile.logger} package is loaded on each worker.
+
+Values are set when the param is constructed or modified with the 
+accessors \Rcode{bplog} and \Rcode{bpthreshold}.
+
+By default \Rcode{log} is FALSE and \Rcode{threshold} is {\it INFO}.
+
+<<logs_constructor>>=
+param <- SnowParam()
+param
+@
+
+Turn logging on and set the threshold to {\it TRACE}.
+
+<<logs_accessors>>=
+bplog(param) <- TRUE
+bpthreshold(param) <- "TRACE"
+param
+@
+
+\subsection{Setting a threshold}
+
+All thresholds defined in \CRANpkg{futile.logger} are all supported: {\it
+FATAL}, {\it ERROR}, {\it WARN}, {\it INFO}, {\it DEBUG} and {\it TRACE}.
+All messages greater than or equal to the severity of the threshold are 
+shown. For example, a threshold of {\it INFO} will
+print all messages tagged as {\it FATAL}, {\it ERROR}, {\it WARN} and {\it
+INFO}.
+
+In this code chunk an {\it INFO}-level message is emitted when 
+\CRANpkg{futile.logger} is loaded on the workers and a {\it ERROR}-level
+message when attempting the square root of a character ("2"). 
+
+<<logs_bplapply>>=
+bpthreshold(param) <- "INFO"
+bplapply(list(1, "2", 3), sqrt, BPPARAM = param)
+@
+
+All user-supplied messages written in the \CRANpkg{futile.logger} syntax
+are also captured. This function performs argument checking and includes 
+a couple of {\it WARN} and {\it DEBUG}-level messages.
+
+<<logs_FUN>>=
+FUN <- function(i) {
+  flog.debug(paste0("value of 'i': ", i))
+
+  if (!length(i)) {
+      flog.warn("'i' is missing")
+      NA 
+  } else if (!is(i, "numeric")) {
+      flog.warn("coercing to numeric")
+      as.numeric(i)
+  } else {
+      i
+  }
+}
+@
+
+Turn logging on and set the threshold to {\it WARN}.
+
+<<logs_WARN>>=
+param <- SnowParam(2, log = TRUE, threshold = "WARN")
+bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+@
+
+Changing the threshold to {\it DEBUG} catches all {\it WARN}, {\it INFO} 
+and {\it DEBUG} messages.
+
+<<logs_ERROR>>=
+param <- SnowParam(2, log = TRUE, threshold = "DEBUG")
+bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+@
+
+\subsection{Log files}
+
+\CRANpkg{futile.logger} messages are written to the console by default.  When
+\Rcode{logdir} is given, these messages along with additional statistics of
+memory use, duration, node name etc. are written to a file called
+``BPLOG.out''.
+
+\begin{verbatim}
+  > param <- SnowParam(2, log = TRUE, threshold = "DEBUG", logdir = tempdir())
+  > res <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+  > list.files(bplogdir(param))
+  [1] "BPLOG.out"
+\end{verbatim}
+
+Read in the log file from \Rcode{logdir}:
+
+\begin{verbatim}
+  > readLines(paste0(bplogdir(param), "/BPLOG.out"))
+   [1] "############### LOG OUTPUT ###############"      
+   [2] "Task: 1"                                         
+   [3] "Node: 1"                                         
+   [4] "Timestamp: 2015-05-13 13:56:44"                  
+   [5] "Success: TRUE"                                   
+   [6] "Task duration: "                                 
+   [7] "   user  system elapsed "                        
+   [8] "  0.005   0.000   0.006 "                        
+   [9] "Memory use (gc): "                               
+  [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
+  [11] "Ncells 325527 17.4     592000 31.7   341634 18.3"
+  [12] "Vcells 435180  3.4    1023718  7.9   517994  4.0"
+  [13] "Log messages:"                                   
+  [14] "DEBUG [2015-05-13 13:56:44] value of 'i': 1"     
+  [15] ""                                                
+  [16] ""                                                
+  [17] "############### LOG OUTPUT ###############"      
+  [18] "Task: 2"                                         
+  [19] "Node: 2"                                         
+  [20] "Timestamp: 2015-05-13 13:56:44"                  
+  [21] "Success: TRUE"                                   
+  [22] "Task duration: "                                 
+  [23] "   user  system elapsed "                        
+  [24] "  0.010   0.001   0.010 "                        
+  [25] "Memory use (gc): "                               
+  [26] "         used (Mb) gc trigger (Mb) max used (Mb)"
+  [27] "Ncells 325562 17.4     592000 31.7   382180 20.5"
+  [28] "Vcells 435229  3.4    1023718  7.9   526791  4.1"
+  [29] "Log messages:"                                   
+  [30] "DEBUG [2015-05-13 13:56:44] value of 'i': 2"     
+  [31] ""                                                
+  [32] "WARN [2015-05-13 13:56:44] coercing to numeric"  
+  [33] "DEBUG [2015-05-13 13:56:44] value of 'i': "      
+  [34] ""                                                
+  [35] "WARN [2015-05-13 13:56:44] 'i' is missing"       
+  [36] ""                                                
+  > 
+\end{verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Debugging}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Effective debugging strategies vary by problem and often involve a combination
+of error handling and logging techniques.  In general, when debugging
+\R{}-generated errors the traceback is often the best place to start followed
+by adding debug messages to the worker function. When trouble shooting
+unexpected behavior (i.e., not a formal error or warning) adding debug messages
+or switching to \Rcode{SerialParam} are good approaches. Below is an overview
+of these different strategies as applied in \BiocParallel{}. 
+
+\subsection{Accessing the traceback}
+
+The traceback is a good place to start when tracking down \R{}-generated 
+errors. Because the function is executed on the workers it's not accessible for
+interactive debugging with functions such as \Rcode{trace} or \Rcode{debug}.
+The traceback provides a snapshot of the state of the worker at the time 
+the error was thrown.
+
+This function takes the absolute value of a vector followed by the square root.
+
+<<debug_sqrtabs>>=
+fun1 <- function(x) {
+    v <- abs(x)
+    sapply(1:length(v), function(i) sqrt(v[i]))
+}
+@
+
+Calling ``fun1'' with a character throws an error:
+
+<<errors_bplapply>>=
+res <- bplapply(list(c(1,3), 5, "6"), fun1)
+res
+@
+
+The error (i.e., third element of ``res'') is a \Rcode{condition} object:
+
+<<debug_condition>>=
+is(res[[3]], "condition")
+@
+
+The traceback is an attribute of the \Rcode{condition} and can be accessed with 
+the \Rcode{attr} function. 
+
+<<debug_traceback>>=
+tail(attr(res[[3]], "traceback"))
+@
+
+\subsection{Adding debug messages}
+
+When a \Rcode{numeric()} is passed to ``fun1'' no formal error is thrown
+but the length of the second list element is 2 when it should be 1.
+
+<<debug_fun1>>=
+bplapply(list(c(1,3), numeric(), 6), fun1)
+@
+
+Without a formal error we have no traceback so we'll try adding a few debug
+messages to ``fun1''. The \CRANpkg{futile.logger} syntax tags messages with
+different levels of severity. A message created with \Rcode{flog.debug} will
+only print if the threshold is {\it DEBUG} or lower.
+
+``fun2'' has debug statements that show the value of `x', length of `v' and 
+the index `i'.
+
+<<debug_fun1_debug>>=
+fun2 <- function(x) {
+    v <- abs(x)
+    flog.debug(
+      paste0("'x' = ", paste(x, collapse=","), ": length(v) = ", length(v))
+    )
+    sapply(1:length(v), function(i) {
+      flog.debug(paste0("'i': ", i))
+      sqrt(v[i])
+    })
+}
+@
+
+Create a param that logs at a threshold level of {\it DEBUG}.
+
+<<debug_param_debug>>=
+param <- SnowParam(3, log = TRUE, threshold = "DEBUG")
+@
+
+The debug messages reveal the problem occurs when `x' is \Rcode{numeric()}.
+The index for \Rcode{sapply} is along `v' which in this case has length 0.
+This forces `i' to take values of `1' and `0' giving an output of length 2 for
+a single element (i.e., \Rcode{NA} and \Rcode{numeric(0)}).
+
+<<debug_DEBUG>>=
+param <- SnowParam(3, log = TRUE, threshold = "DEBUG")
+res <- bplapply(list(c(1,3), numeric(), 6), fun2, BPPARAM = param)
+res
+@
+
+``fun2'' can be fixed by using \Rcode{seq\_along(v)} to create the index instead
+of \Rcode{1:length(v)}.
+
+\subsection{\Rcode{SerialParam}}
+
+Another option for troubleshooting parallel code is to use \Rcode{SerialParam}.
+This param removes the ``parallel'' component and is the same as running a
+straight \Rcode{*apply} function. The function is run in the workspace instead
+of on a worker which enables the interactive use of \Rcode{debug} and
+\Rcode{browser}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{\Rcode{sessionInfo()}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<sessionInfo>>=
+toLatex(sessionInfo())
+@
+
+\end{document}

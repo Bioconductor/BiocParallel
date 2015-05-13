@@ -1,3 +1,8 @@
+test_SnowParam_valid <- function() 
+{
+    checkException(SnowParam(logdir = tempdir())) 
+}
+
 test_SnowParam_SOCK <- function() 
 {
     if (!suppressWarnings(require(snow)))

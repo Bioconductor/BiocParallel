@@ -153,8 +153,8 @@ bpresume <- function(expr) {
         invokeRestart("muffleWarning")
     }
     handler_error <- function(e) {
+        success <<- FALSE
         call <- sapply(sys.calls(), deparse)
-        #e <- structure(e, class = c("remote-error", class(e)),
         e <- structure(e, class = c("remote-error", "condition"),
                        traceback = capture.output(traceback(call))) 
         invokeRestart("abort", e)
