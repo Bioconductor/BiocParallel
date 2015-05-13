@@ -16,12 +16,12 @@ bpslaveLoop <- function(master)
         tryCatch({
             msg <- recvData(master)
             buffer <<- NULL  ## futile.logger buffer
+            success <<- TRUE ## modified in .try() and .try_log() 
 
             if (msg$type == "DONE") {
                 closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
-                success <- TRUE
                 gc(reset=TRUE)
                 t1 <- proc.time()
                 value <- do.call(msg$data$fun, msg$data$args)
@@ -128,8 +128,8 @@ bprunMPIslave <- function() {
         function(i, level) {
             attachNamespace("futile.logger")
             flog.threshold(level)
-            fun <- function(line) 
-                buffer <<- c(buffer, gsub("\n", "", line))
+            fun <- function(line)
+                buffer <<- c(buffer, line)
             flog.appender(fun, 'ROOT')
         }, level=level)
 }
@@ -138,6 +138,7 @@ bprunMPIslave <- function() {
     node <- d$node
     value <- d$value
     jobid <- d$value$tag
+
     if (is.null(con)) {
         if (!is.null(value$log))
             print(value$log)
@@ -145,11 +146,11 @@ bprunMPIslave <- function() {
         sink(con, type = "message")
         sink(con, type = "output")
         message("############### LOG OUTPUT ###############")
-        message(sprintf("Job: %i", jobid))
+        message(sprintf("Task: %i", jobid))
         message(sprintf("Node: %s", node))
         message(sprintf("Timestamp: %s", Sys.time()))
         message(sprintf("Success: %s", value$success))
-        message("Job duration: ")
+        message("Task duration: ")
         print(value$time)
         message("Memory use (gc): ")
         print(value$gc)
@@ -160,7 +161,7 @@ bprunMPIslave <- function() {
 
 .bplogSetUp <- function(logdir) {
     BatchJobs:::checkDir(logdir)
-    file(paste0(logdir, "/LOGFILE.out"), open="w")
+    file(paste0(logdir, "/BPLOG.out"), open="w")
 }
 
 
@@ -210,7 +211,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
                 .bpwriteLog(con, d)
             ## stop on error
             if (bpstopOnError(BPPARAM) && !d$value$success) {
-                warning(paste0("error in job ", d$value$tag))
+                warning(paste0("error in task ", d$value$tag))
                 return(val)
             }
             j <- i + min(n, p)
@@ -283,7 +284,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         sjobs[njob] <- "done"
         ## stop on error
         if (bpstopOnError(BPPARAM) && !d$value$success) {
-            warning(paste0("error in job ", njob))
+            warning(paste0("error in task ", njob))
             return(val)
         }
 

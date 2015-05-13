@@ -15,7 +15,7 @@ BiocStyle::latex()
 \title{Introduction to \BiocParallel} 
 \author{Vincent Carey, Michael Lawrence, Martin
   Morgan\footnote{\url{mtmorgan@fhcrc.org}}} 
-\date{Edited: March 1, 2014; Compiled: \today}
+\date{Edited: May 6, 2015; Compiled: \today}
 
 \begin{document}
 
@@ -146,12 +146,15 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   \item{\Rcode{SerialParam}: }
 
   Supported on all platforms. 
+
   Evaluate \BiocParallel-enabled code with parallel evaluation disabled. 
   This approach is useful when writing new scripts and trying to debug code.
  
   \item{\Rcode{MulticoreParam}: } 
 
-  Supported on Unix and Mac. 
+  Supported on Unix and Mac. On Windows, \Rcode{MulticoreParam} dispatches
+  to \Rcode{SerialParam}.
+
   Evaluate \BiocParallel-enabled code using multiple cores on a single 
   computer. When available, this is the most efficient and least 
   troublesome way to parallelize code. Windows does not 
@@ -166,6 +169,7 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   \item{\Rcode{SnowParam}: } 
 
   Supported on all platforms. 
+ 
   Evaluate \BiocParallel-enabled code across several distinct \R{} 
   instances, on one or several computers. This is a straightforward approach
   for executing parallel code on one or several computers, and is 
@@ -176,12 +180,14 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   \item{\Rcode{BatchJobsParam}: }
 
   Applicable to clusters with formal schedulers.
+
   Evaluate \BiocParallel-enabled code by submitting to a cluster scheduler 
   like SGE. 
 
   \item{\Rcode{DoparParam}: }
 
   Supported on all platforms. 
+ 
   Register a parallel back-end supported by the \CRANpkg{foreach} package 
   for use with \BiocParallel.
 \end{itemize}
@@ -200,7 +206,7 @@ multicoreParam <- MulticoreParam(workers = 8)
 multicoreParam
 @ 
  
-Arguments are detailed on the corresponding help page, e.g.,
+Arguments are described on the corresponding help page, e.g.,
 \Rcode{?MulticoreParam}.
 
 \subsubsection{\Rcode{register()}ing \Rcode{BiocParallelParam} instances}
@@ -304,37 +310,16 @@ environment.
     Stop a parallel back end specified by \Rcode{BiocParallelParam} \Rcode{x}.
 \end{description}
 
-\subsubsection{Error recovery and logging}
+\subsubsection{Error handling and logging}
 
-Logging and advanced error recovery for \Rcode{SnowParam} and
-\Rcode{MulticoreParam} is available in \Rcode{BiocParallel} 1.1.25 and later.
-The \Rcode{futile.logger} package is used for logging and supports the setting
-of a log threshold and user-specific log messages. Errors and warning messages
-are returned from the worker.
+Logging and advanced error recovery is available in \Rcode{BiocParallel} 1.1.25
+and later. For a more details see the vignette titled "Error Handling and
+Logging":
 
-\Rcode{BatchJobsParam} uses the default \Rcode{BatchJobs} behavior and
-writes error messages to the result files.
+<<error-vignette, eval=FALSE>>=
+browseVignettes("BiocParallel")
+@
 
-The following assist in error handling and logging.
-
-\begin{description}
-  \item{\Rcode{bpcatchErrors}: }
-    Determine if apply-like functions quite with an error as soon as
-    one application fails.
-
-  \item{\Rcode{bpstopOnError}: }
-    Determine if all jobs stop as soon as one fails or if all should
-    be attempted.
-
-  \item{\Rcode{bplasterror}: }
-    Report the last error reported from a \BiocParallel{} evaluation.
-
-  \item{\Rcode{bpresume}: }
-    Attempt to resume computation after an error.
-
-  \item{\Rcode{bplog}: }
-    Enable logging on the workers.
-\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -144,5 +144,5 @@ bpok <- function(x) {
     if (!is(x, "list"))
         stop("'x' must be a list")
 
-    lapply(x, function(elt) !is(elt, "try-error"))
+    lapply(x, function(elt) !is(elt, "condition"))
 }
