@@ -100,9 +100,11 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
         msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
 
     dir <- bplogdir(object) 
-    if (length(dir) > 1L || !is(dir, "character"))
+    if (length(dir) > 0L && !is(dir, "character"))
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
+    if (length(dir) > 0L && !bplog(object))
+        msg <- c(msg, "'bplog(BPPARAM)' must be TRUE when 'logdir' is provided")
     msg
 }
 

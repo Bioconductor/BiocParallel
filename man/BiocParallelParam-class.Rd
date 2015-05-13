@@ -37,8 +37,8 @@
 \alias{bpstopOnError<-}
 \alias{bpstopOnError<-,BiocParallelParam,logical-method}
 \alias{bpstopOnError<-,DoparParam,logical-method}
-\alias{bpprogress}
-\alias{bpprogress,BiocParallelParam-method}
+\alias{bpprogressbar}
+\alias{bpprogressbar,BiocParallelParam-method}
 \alias{bpprogressbar<-}
 \alias{bpprogressbar<-,BiocParallelParam,logical-method}
 
@@ -180,7 +180,6 @@
         and successful results are returned along with any error messages.
       }
     }
-    \code{catch.errors} and \code{stop.on.error} cannot both be \code{TRUE}.
   }
 
 }
