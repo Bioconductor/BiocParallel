@@ -173,7 +173,9 @@ bprunMPIslave <- function() {
 ## and run on the master. Both enable logging, writing logs/results
 ## to files and 'stop on error'.
 
+## bpdynamicClusterApply():
 ## derived from snow::dynamicClusterApply.
+
 bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 {
     ## result output
@@ -230,13 +232,49 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 ## bpdynamicClusterIterate():
 ## Derived from snow::dynamicClusterApply and parallel::mclapply.
 ## - length of 'X' is unknown (defined by ITER())
-## - results not pre-allocated; list grows each iteration if REDUCE is provided
+## - results not pre-allocated; list grows each iteration if no REDUCE
 ## - args wrapped in arglist with different chunks from ITER()
+
+.reduce_while_done <- function(ss, REDUCE) {
+    while (ss$sjobs[ss$rindex] == "done") {
+        ss$val <- REDUCE(ss$val, ss$rjobs[[ss$rindex]])
+        ss$rjobs[[ss$rindex]] <- NA 
+        if (ss$rindex == length(ss$sjobs))
+            break
+        ss$rindex <- ss$rindex + 1
+    }
+    ss
+}
+
+.reduce <- function(ss, njob, REDUCE, reduce.in.order) {
+    if (reduce.in.order) {
+        if (njob == 1) {
+            if (length(ss$val))
+                ss$val <- REDUCE(ss$val, ss$rjobs[[njob]])
+            else
+                ss$val <- ss$rjobs[[njob]]
+            ss$rjobs[[njob]] <- NA
+            ss$rindex <- ss$rindex + 1 
+            ss <- .reduce_while_done(ss, REDUCE)
+        } else if (njob == ss$rindex) { 
+            ss <- .reduce_while_done(ss, REDUCE)
+        }
+    } else {
+        if (length(ss$val))
+            ss$val <- REDUCE(ss$val, unlist(ss$rjobs[[njob]]))
+        else
+           ss$val <- unlist(ss$rjobs[[njob]])
+    }
+    ss 
+}
+
 bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init, 
                                     reduce.in.order=FALSE, BPPARAM, ...)
 {
     if (missing(REDUCE) && reduce.in.order)
         stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
+    if (missing(REDUCE) && !missing(init))
+        stop("REDUCE must be provided when 'init' is given")
 
     ## result output
     if (length(resdir <- bpresultdir(BPPARAM)))
@@ -256,21 +294,24 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
     p <- length(cl)
 
     ## initialize
-    sjobs <- character()                    ## job status ('running', 'done')
-    rjobs <- list()                         ## non-reduced result
-    rindex <- 1                             ## reducer index
-    val <- list()                           ## final result
-    if (!missing(REDUCE) & !missing(init))
-        val <- init
+    ss <- list(sjobs = character(), ## job status ('running', 'done')
+               rjobs = list(),      ## non-reduced result
+               rindex = 1,          ## reducer index
+               val = if (missing(init)) list() else init) ## result
 
     inextdata <- NULL
-    ## load available workers
+    ## initial load
     for (i in 1:p) {
         if (is.null(inextdata <- ITER())) {
-            warning("first invocation of 'ITER()' returned NULL")
-            return(list())
+            if (i == 1) {
+                warning("first invocation of 'ITER()' returned NULL")
+                return(list())
+            ## FIXME: close unused workers
+            } else {
+                break
+            }
         } else {
-            sjobs[i] <- "running"
+            ss$sjobs[i] <- "running"
             arglist <- c(list(inextdata), list(...))
             parallel:::sendCall(cl[[i]], fun, arglist, tag = i)
         }
@@ -280,62 +321,30 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         ## collect
         d <- parallel:::recvOneData(cl)
         njob <- d$value$tag
-        rjobs[[njob]] <- d$value$value 
-        sjobs[njob] <- "done"
+        ss$rjobs[[njob]] <- d$value$value 
+        ss$sjobs[njob] <- "done"
         ## stop on error
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             warning(paste0("error in task ", njob))
-            return(val)
+            return(ss$val)
         }
 
-        ## REDUCE
-        if (!missing(REDUCE))  {
-            if (reduce.in.order) {
-                if (njob == 1) {
-                    if (length(val))
-                        val <- REDUCE(val, rjobs[[njob]])
-                    else
-                        val <- rjobs[[njob]]
-                    rjobs[[njob]] <- NA
-                    rindex <- rindex + 1 
-                    while (sjobs[rindex] == "done") {
-                        val <- REDUCE(val, rjobs[[rindex]])
-                        rjobs[[rindex]] <- NA 
-                        if (rindex == length(sjobs))
-                            break
-                        else
-                            rindex <- rindex + 1
-                    }
-                } else if (njob == rindex) { 
-                    while (sjobs[rindex] == "done") {
-                        val <- REDUCE(val, rjobs[[rindex]])
-                        rjobs[[rindex]] <- NA
-                        if (rindex == length(sjobs))
-                            break
-                        else
-                            rindex <- rindex + 1
-                    }
-                }
-            } else {
-                if (length(val))
-                    val <- REDUCE(val, unlist(rjobs[[njob]]))
-                else
-                   val <- unlist(rjobs[[njob]])
-            }
-        }
+        ## reduce 
+        if (!missing(REDUCE))
+            ss <- .reduce(ss, njob, REDUCE, reduce.in.order)
 
-        ## logging
+        ## log
         if (bplog(BPPARAM))
-            .bpwriteLog(con, val)
+            .bpwriteLog(con, ss$val)
 
-        ## load remaining jobs
+        ## re-load
         if (!is.null(inextdata <- ITER())) {
             i <- i + 1
-            sjobs[i] <- "running"
+            ss$sjobs[i] <- "running"
             arglist <- c(list(inextdata), list(...))
             parallel:::sendCall(cl[[d$node]], fun, arglist, tag = i)
         } else { 
-            if ((length(sjobs) == 0) || (all(sjobs == "done")))
+            if ((length(ss$sjobs) == 0) || (all(ss$sjobs == "done")))
                 break
         }
     }
@@ -345,8 +354,8 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         NULL 
     } else {
         if (missing(REDUCE))
-            rjobs
+            ss$rjobs
         else
-            list(val)
+            list(ss$val)
     }
 }

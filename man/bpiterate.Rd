@@ -119,7 +119,7 @@ if (all(require(Rsamtools) &&
         require(ShortRead))) { 
 
   ## ----------------------------------------------------------------------
-  ## Iterating through a BAM file
+  ## Iterate through a BAM file
   ## ----------------------------------------------------------------------
  
   ## Select a single file and set 'yieldSize' in the BamFile object.
@@ -164,7 +164,7 @@ if (all(require(Rsamtools) &&
   bpiterate(ITER, counter, REDUCE = sum, roi = roi, BPPARAM = bpparam)
 
   ## ----------------------------------------------------------------------
-  ## Iterating through a FASTA file
+  ## Iterate through a FASTA file
   ## ----------------------------------------------------------------------
  
   ## Set data chunk size with 'n' in the FastqStreamer object.
