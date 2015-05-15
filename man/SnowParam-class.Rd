@@ -65,7 +65,7 @@
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
           progressbar = FALSE, log = FALSE, threshold = "INFO", 
-          logdir = character(), resultdir = character(), ...)
+          logdir = NA_character_, resultdir = NA_character_, ...)
 
 ## coercion 
 ## ------------------------------------
@@ -127,8 +127,9 @@ snowWorkers()
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
       the workspace. Writing to files is done from the master as each task 
-      completes. These options are controlled with \code{logdir} 
-      and \code{resultdir}. 
+      completes. Options can be set with the \code{logdir} and 
+      \code{resultdir} fields in the constructor or with the accessors,
+      \code{bplogdir} and \code{bpresultdir}. 
     }
   }
 
@@ -146,7 +147,7 @@ snowWorkers()
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
                       progressbar = FALSE, log = FALSE, threshold = "INFO", 
-                      logdir = character(), resultdir = character(), ...)}:
+                      logdir = NA_character_, resultdir = NA_character_, ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 

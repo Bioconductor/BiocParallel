@@ -21,8 +21,8 @@
         },
         show = function() {
             callSuper()
-            cat("bplog:", bplog(.self), "\n")
-            cat("bpthreshold:", names(bpthreshold(.self)), "\n")
+            cat("  bplog:", bplog(.self),
+                   "; bpthreshold:", names(bpthreshold(.self)), "\n", sep="")
         })
 )
 

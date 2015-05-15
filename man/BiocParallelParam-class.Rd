@@ -146,6 +146,10 @@
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
         be retrieved; see \code{showMethods("backend")}.
       }
+      \item{progressbar}{
+        \code{logical(1)} Enable progress bar. Applicable to
+        \code{BatchJobsParam}, \code{SnowParam} and \code{MulticoreParam} only.
+      }
     }
   }
 

@@ -12,8 +12,6 @@ Possible TODO
 + lazy DoparParam
 + SnowParam support for setSeed, recursive, cleanup
 + subset SnowParam
-+ elaborate SnowParam for SnowSocketParam, SnowForkParam, SnowMpiParam, ...
-+ MulticoreParam on Windows
 
 DONE
 ----
@@ -23,6 +21,8 @@ DONE
 + Make functions generics
 + parLapply-like function
 + Short vignette
++ elaborate SnowParam for SnowSocketParam, SnowForkParam, SnowMpiParam, ...
++ MulticoreParam on Windows
 
 github notes
 ------------

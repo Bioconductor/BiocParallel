@@ -24,10 +24,6 @@
         },
         show = function() {
             cat("class:", class(.self), "\n")
-            cat("  bpworkers:", bpworkers(.self), "\n")
-            cat("  bptasks:", bptasks(.self), "\n")
-            cat("  bpcatchErrors:", bpcatchErrors(.self), "\n")
-            cat("  bpstopOnError:", bpstopOnError(.self), "\n")
         })
 )
 

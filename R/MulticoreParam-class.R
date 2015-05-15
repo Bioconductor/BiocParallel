@@ -25,8 +25,8 @@ multicoreWorkers <- function() {
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
         tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
-        progressbar=FALSE, log=FALSE, threshold="INFO", logdir=character(),
-        resultdir=character(), ...)
+        progressbar=FALSE, log=FALSE, threshold="INFO", logdir=NA_character_,
+        resultdir=NA_character_, ...)
 {
     if (.Platform$OS.type == "windows")
         warning("MulticoreParam not supported on Windows. Using SerialParam().")

@@ -48,9 +48,12 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("  bpisup:", bpisup(.self), "\n")
-            cat("  bpprogressbar:", bpprogressbar(.self), "\n")
-            cat("cleanup:", .self$cleanup, "\n")
+            cat("  bpworkers:", bpworkers(.self),
+                   "; bpisup:", bpisup(.self), "\n", sep="")
+            cat("  bpcatchErrors:", bpcatchErrors(.self),
+                   "; bpstopOnError:", bpstopOnError(.self), "\n", sep="")
+            cat("  bpprogressbar:", bpprogressbar(.self), "\n", sep="")
+            cat("  cleanup:", .self$cleanup, "\n", sep="")
         })
 )
 

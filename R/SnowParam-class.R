@@ -43,8 +43,8 @@ setOldClass(c("NULLcluster", "cluster"))
             .controlled=TRUE,
             log=FALSE,
             threshold="INFO",
-            logdir=character(),
-            resultdir=character())
+            logdir=NA_character_,
+            resultdir=NA_character_)
         { 
             initFields(.controlled=.controlled,
                        log=log, threshold=threshold, 
@@ -53,12 +53,16 @@ setOldClass(c("NULLcluster", "cluster"))
         },
         show = function() {
             callSuper()
-            cat("  bpisup:", bpisup(.self), "\n")
-            cat("  bplog:", bplog(.self), "\n")
-            cat("  bpthreshold:", names(bpthreshold(.self)), "\n")
-            cat("  bplogdir:", bplogdir(.self), "\n")
-            cat("  bpresultdir:", bpresultdir(.self), "\n")
-            cat("  bpprogressbar:", bpprogressbar(.self), "\n")
+            cat("  bpworkers:", bpworkers(.self), 
+                   "; bptasks:", bptasks(.self),
+                   "; bpisup:", bpisup(.self), "\n", sep="")
+            cat("  bplog:", bplog(.self),
+                   "; bpthreshold:", names(bpthreshold(.self)),
+                   "; bplogdir:", bplogdir(.self),
+                   "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
+            cat("  bpcatchErrors:", bpcatchErrors(.self),
+                   "; bpstopOnError:", bpstopOnError(.self), "\n", sep="")
+            cat("  bpresultdir:", bpresultdir(.self), "\n", sep="")
             cat("cluster type:", .clusterargs$type, "\n")
         })
 )
@@ -66,7 +70,7 @@ setOldClass(c("NULLcluster", "cluster"))
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
                       tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
                       progressbar=FALSE, log=FALSE, threshold="INFO", 
-                      logdir=character(), resultdir=character(), ...)
+                      logdir=NA_character_, resultdir=NA_character_, ...)
 {
     type <- match.arg(type)
     if (!type %in% c("SOCK", "MPI", "FORK"))
@@ -100,11 +104,11 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
         msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
 
     dir <- bplogdir(object) 
-    if (length(dir) > 0L && !is(dir, "character"))
+    if (length(dir) > 1L || !is(dir, "character"))
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
-    if (length(dir) > 0L && !bplog(object))
-        msg <- c(msg, "'bplog(BPPARAM)' must be TRUE when 'logdir' is provided")
+    if (!is.na(dir) && !bplog(object))
+        msg <- c(msg, "'log' must be TRUE when 'logdir' is provided")
     msg
 }
 
