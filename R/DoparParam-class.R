@@ -13,6 +13,8 @@
     methods=list(
         show = function() {
             callSuper()
+            cat("  bpworkers:", bpworkers(.self),
+                   "; bpisup:", bpisup(.self), "\n", sep="")
         })
 )
 
