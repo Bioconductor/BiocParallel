@@ -179,11 +179,11 @@ bprunMPIslave <- function() {
 bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 {
     ## result output
-    if (length(resdir <- bpresultdir(BPPARAM)))
+    if (!is.na(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
     ## log connection
-    if (bplog(BPPARAM) && length(bplogdir(BPPARAM))) {
+    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
         con <- .bplogSetUp(bplogdir(BPPARAM))
         on.exit({ 
             sink(NULL, type = "message")
@@ -212,6 +212,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             if (bplog(BPPARAM))
                 .bpwriteLog(con, d)
             ## stop on error
+            ## FIXME: kill other workers
             if (bpstopOnError(BPPARAM) && !d$value$success) {
                 warning(paste0("error in task ", d$value$tag))
                 return(val)
@@ -219,12 +220,12 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             j <- i + min(n, p)
             if (j <= n) 
                 submit(d$node, j)
-            if (length(resdir))
+            if (!is.na(resdir))
                 save(value, file=paste0(resdir, "/TASK", d$value$tag, ".Rda"))
         }
     }
 
-    if (length(bpresultdir(BPPARAM)))
+    if (!is.na(resdir))
         NULL 
     else val 
 }
@@ -277,11 +278,11 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         stop("REDUCE must be provided when 'init' is given")
 
     ## result output
-    if (length(resdir <- bpresultdir(BPPARAM)))
+    if (!is.na(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
     ## log connection
-    if (bplog(BPPARAM) && length(bplogdir(BPPARAM))) {
+    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
         con <- .bplogSetUp(bplogdir(BPPARAM))
         on.exit({ 
             sink(NULL, type = "message")
@@ -350,7 +351,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
     }
 
     ## results
-    if (length(bpresultdir(BPPARAM))) {
+    if (!is.na(resdir)) {
         NULL 
     } else {
         if (missing(REDUCE))

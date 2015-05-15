@@ -31,7 +31,7 @@
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                catch.errors = TRUE, stop.on.error = FALSE,
                progressbar = FALSE, log = FALSE, threshold = "INFO", 
-               logdir = character(), resultdir = character(), ...)
+               logdir = NA_character_, resultdir = NA_character_, ...)
 
 ## detect workers 
 ## ------------------------------------
@@ -59,8 +59,8 @@ multicoreWorkers()
       \code{MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                            catch.errors = TRUE, stop.on.error = FALSE,
                            tasks = 0L, progressbar = FALSE, log = FALSE, 
-                           threshold = "INFO", logdir = character(), 
-                           resultdir = character(), ...)}:
+                           threshold = "INFO", logdir = NA_character_, 
+                           resultdir = NA_character_, ...)}:
 
         Return an object representing a FORK cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
