@@ -279,43 +279,38 @@ Read in the log file from \Rcode{logdir}:
 
 \begin{verbatim}
   > readLines(paste0(bplogdir(param), "/BPLOG.out"))
-   [1] "############### LOG OUTPUT ###############"      
-   [2] "Task: 1"                                         
-   [3] "Node: 1"                                         
-   [4] "Timestamp: 2015-05-13 13:56:44"                  
-   [5] "Success: TRUE"                                   
-   [6] "Task duration: "                                 
-   [7] "   user  system elapsed "                        
-   [8] "  0.005   0.000   0.006 "                        
-   [9] "Memory use (gc): "                               
-  [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
-  [11] "Ncells 325527 17.4     592000 31.7   341634 18.3"
-  [12] "Vcells 435180  3.4    1023718  7.9   517994  4.0"
-  [13] "Log messages:"                                   
-  [14] "DEBUG [2015-05-13 13:56:44] value of 'i': 1"     
-  [15] ""                                                
-  [16] ""                                                
-  [17] "############### LOG OUTPUT ###############"      
-  [18] "Task: 2"                                         
-  [19] "Node: 2"                                         
-  [20] "Timestamp: 2015-05-13 13:56:44"                  
-  [21] "Success: TRUE"                                   
-  [22] "Task duration: "                                 
-  [23] "   user  system elapsed "                        
-  [24] "  0.010   0.001   0.010 "                        
-  [25] "Memory use (gc): "                               
-  [26] "         used (Mb) gc trigger (Mb) max used (Mb)"
-  [27] "Ncells 325562 17.4     592000 31.7   382180 20.5"
-  [28] "Vcells 435229  3.4    1023718  7.9   526791  4.1"
-  [29] "Log messages:"                                   
-  [30] "DEBUG [2015-05-13 13:56:44] value of 'i': 2"     
-  [31] ""                                                
-  [32] "WARN [2015-05-13 13:56:44] coercing to numeric"  
-  [33] "DEBUG [2015-05-13 13:56:44] value of 'i': "      
-  [34] ""                                                
-  [35] "WARN [2015-05-13 13:56:44] 'i' is missing"       
-  [36] ""                                                
-  > 
+   [1] ############### LOG OUTPUT ###############      
+   [2] Task: 2                                         
+   [3] Node: 2                                         
+   [4] Timestamp: 2015-05-15 07:29:11                  
+   [5] Success: TRUE                                   
+   [6] Task duration:                                  
+   [7]    user  system elapsed                         
+   [8]   0.011   0.000   0.011                         
+   [9] Memory use (gc):                                
+  [10]          used (Mb) gc trigger (Mb) max used (Mb)
+  [11] Ncells 325582 17.4     592000 31.7   382191 20.5
+  [12] Vcells 435234  3.4    1023718  7.9   526789  4.1
+  [13] Log messages:                                   
+  [14] DEBUG [2015-05-15 07:29:11] value of 'i': 2     
+  [15] WARN [2015-05-15 07:29:11] coercing to numeric  
+  [16] DEBUG [2015-05-15 07:29:11] value of 'i':       
+  [17] WARN [2015-05-15 07:29:11] 'i' is missing       
+  [18]                                                 
+  [19] ############### LOG OUTPUT ###############      
+  [20] Task: 1                                         
+  [21] Node: 1                                         
+  [22] Timestamp: 2015-05-15 07:29:11                  
+  [23] Success: TRUE                                   
+  [24] Task duration:                                  
+  [25]    user  system elapsed                         
+  [26]   0.006   0.000   0.005                         
+  [27] Memory use (gc):                                
+  [28]          used (Mb) gc trigger (Mb) max used (Mb)
+  [29] Ncells 325547 17.4     592000 31.7   341650 18.3
+  [30] Vcells 435185  3.4    1023718  7.9   517996  4.0
+  [31] Log messages:                                   
+  [32] DEBUG [2015-05-15 07:29:11] value of 'i': 1     
 \end{verbatim}
 
 
@@ -367,7 +362,7 @@ The traceback is an attribute of the \Rcode{condition} and can be accessed with
 the \Rcode{attr} function. 
 
 <<debug_traceback>>=
-tail(attr(res[[3]], "traceback"))
+noquote(tail(attr(res[[3]], "traceback")))
 @
 
 \subsection{Adding debug messages}
@@ -417,8 +412,8 @@ res <- bplapply(list(c(1,3), numeric(), 6), fun2, BPPARAM = param)
 res
 @
 
-``fun2'' can be fixed by using \Rcode{seq\_along(v)} to create the index instead
-of \Rcode{1:length(v)}.
+``fun2'' can be fixed by using \Rcode{seq\_along(v)} to create the index
+instead of \Rcode{1:length(v)}.
 
 \subsection{\Rcode{SerialParam}}
 
