@@ -20,10 +20,6 @@ test_SnowParam_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
         return()
-    if (!(suppressWarnings(require(snow)) ||
-          suppressWarnings(require(Rmpi))))
-        ## quietly succeed if 'snow', 'Rmpi' not available
-        return()
     param <- SnowParam(2, "MPI", tasks=2)
     checkIdentical(FALSE, bpisup(param))
 
