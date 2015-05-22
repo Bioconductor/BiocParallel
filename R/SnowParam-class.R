@@ -88,7 +88,7 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
                     progressbar=progressbar, log=log, 
                     threshold=.THRESHOLD(threshold), logdir=logdir, 
-                    resultdir=resultdir, ...)
+                    resultdir=resultdir)
     validObject(x)
     x
 }
