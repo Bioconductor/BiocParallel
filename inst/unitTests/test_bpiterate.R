@@ -35,6 +35,7 @@ test_bpiterate_Params <- function()
     }
 
     closeAllConnections()
+    tryCatch(mpi.close.Rslaves(), error = function(e) {})
     TRUE
 }
 
@@ -92,5 +93,6 @@ test_bpiterate_REDUCE <- function() {
     }
 
     closeAllConnections()
+    tryCatch(mpi.close.Rslaves(), error = function(e) {})
     TRUE
 }
