@@ -32,7 +32,7 @@ test_SnowParam_coerce_from_SOCK <- function()
 {
     if (!suppressWarnings(require(snow)))
         ## quietly succeed if 'snow' not available
-        return()
+        return(TRUE)
 
     cl <- parallel::makeCluster(2L, "SOCK")
     p <- as(cl, "SnowParam")
