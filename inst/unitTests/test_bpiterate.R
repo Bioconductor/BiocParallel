@@ -20,8 +20,7 @@ test_bpiterate_Params <- function()
 
     params <- list(serial=SerialParam(),
                    multi=MulticoreParam(2),
-                   snow1=SnowParam(2, "SOCK"),
-                   snow2=SnowParam(2, "MPI"))
+                   snow=SnowParam(2))
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
