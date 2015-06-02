@@ -16,11 +16,12 @@
 }
 
 \usage{
-bpvectorize(FUN, ..., BPPARAM=bpparam())
+bpvectorize(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 
-\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPPARAM=bpparam())
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 
-\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPPARAM=bpparam())
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPREDO=list(), 
+    BPPARAM=bpparam())
 
 }
 
@@ -30,12 +31,17 @@ bpvectorize(FUN, ..., BPPARAM=bpparam())
     be subset \code{[}, and whose evaluation would benefit by splitting
     the argument into subsets, each one of which is independently
     transformed by \code{FUN}. The return value of \code{FUN} must
-    support concatenation with \code{c}.}
-
-  \item{...}{Additional arguments to parallization, unused.}
-
+    support concatenation with \code{c}.
+  }
+  \item{...}{Additional arguments to parallization, unused.
+  }
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evaluation.}
+    determining the parallel back-end to be used during evaluation.
+  }
+  \item{BPREDO}{A \code{list} of output from \code{bpvectorize}. When given,
+    \code{bpok} is called on \code{BPREDO} to identify errors. Failed
+    tasks are recomputed and inserted into the original results.
+  }
 
 }
 

@@ -127,7 +127,6 @@ setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Helpers
 ###
 
@@ -137,8 +136,13 @@ setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
 }
 
 bpok <- function(x) {
-    if (!is(x, "list"))
+    if (is.null(x))
+        x
+    else if (!is.list(x))
         stop("'x' must be a list")
-
-    lapply(x, function(elt) !is(elt, "condition"))
+    else
+        sapply(x, function(elt) !is(elt, "condition"))
 }
+
+
+
