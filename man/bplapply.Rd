@@ -21,11 +21,13 @@
 
 \usage{
 
-bplapply(X, FUN, ..., BPPARAM=bpparam())
+bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., BPPARAM=bpparam())
+\S4method{bplapply}{ANY,missing}(X, FUN, ..., 
+    BPREDO = list(), BPPARAM=bpparam())
 
-\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ..., BPPARAM=bpparam())
+\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ...,
+    BPREDO = list(), BPPARAM=bpparam())
 
 }
 
@@ -40,19 +42,16 @@ bplapply(X, FUN, ..., BPPARAM=bpparam())
   }
   \item{\dots}{
     Additional arguments for \code{FUN}, as in \code{\link{lapply}}.
-    \itemize{
-      \item{BPRESUME}{
-        Flag to determine if a previous partially successful run
-        should be resumed.  See \code{\link{bpresume}} for details.
-        Supported for \code{BatchJobsParam} only.
-      }
-    }
   }
   \item{BPPARAM}{
     An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bplapply}.
+  }
+  \item{BPREDO}{A \code{list} of output from \code{bplapply}. When given,
+    \code{bpok} is called on \code{BPREDO} to identify errors. Failed
+    tasks are recomputed and inserted into the original results.
   }
 
 }
