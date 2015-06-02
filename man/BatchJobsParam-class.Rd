@@ -125,6 +125,14 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 p <- BatchJobsParam(progressbar=FALSE)
 bplapply(1:10, sqrt, BPPARAM=p)
 
+
+## Fix and error and resubmit job:
+
+bplapply(list(1, "2", 3), sqrt, BPPARAM=p)
+
+
+
+
 \dontrun{
 ## see vignette for additional explanation
 funs <- makeClusterFunctionsSLURM("~/slurm.tmpl")

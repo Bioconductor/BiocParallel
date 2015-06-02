@@ -1,6 +1,10 @@
 ## Test 'stop.on.error', 'catch.errors'. See test_logging.R
 ## for tests with 'log' and 'progressbar'.
 
+# FIXME we need the windows workaround
+library(doParallel)
+registerDoParallel()
+
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 {
     x <- try(eval(expr), silent=TRUE)
@@ -10,23 +14,17 @@ checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 
 test_catch.errors <- function()
 {
-    # FIXME we need the windows workaround
-    library(doParallel)
-    registerDoParallel()
-
     x <- 1:10
     y <- rev(x)
     f <- function(x, y) if (x > y) stop("whooops") else x + y
 
     ## catch.errors = FALSE
     params <- list(
-        batchjobs=BatchJobsParam(catch.errors=FALSE, progressbar=FALSE),
-        dopar=DoparParam(catch.errors=FALSE),
+        serial=SerialParam(catch.errors=FALSE),
         snow=SnowParam(catch.errors=FALSE),
-        serial=SerialParam(catch.errors=FALSE))
-
-    if (.Platform$OS.type != "windows")
-        params <- c(params, multi=MulticoreParam(catch.errors=FALSE))
+        mc=MulticoreParam(catch.errors=FALSE),
+        dopar=DoparParam(catch.errors=FALSE),
+        batchjobs=BatchJobsParam(catch.errors=FALSE, progressbar=FALSE))
 
     for (param in params) {
         checkExceptionText(bpmapply(f, x, y, BPPARAM=param),
@@ -35,12 +33,12 @@ test_catch.errors <- function()
 
     ## catch.errors = TRUE 
     params <- list(
-        dopar=DoparParam(),
+        serial=SerialParam(),
         snow=SnowParam(),
-        serial=SerialParam())
+        mc=MulticoreParam(),
+        dopar=DoparParam(),
+        batchjobs=BatchJobsParam(progressbar=FALSE))
 
-    if (.Platform$OS.type != "windows")
-        params <- c(params, multi=MulticoreParam())
 
     for (param in params) {
         res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
@@ -53,26 +51,30 @@ test_catch.errors <- function()
     TRUE
 }
 
-test_bpresume <- function()
+test_BPREDO <- function()
 {
-    ## BatchJobs only
-    x <- 1:10
-    y <- rev(x)
-    f <- function(x, y) if (x > y) stop("whooops") else x + y
-    f.fix <- function(x, y) 0
+    f = sqrt
+    x = list(1, "2", 3) 
+    x.fix = list(1, 2, 3) 
 
-   params <- list(
-        batchjobs=BatchJobsParam(catch.errors=TRUE, progressbar=FALSE))
+    params <- list(
+        serial=SerialParam(),
+        snow=SnowParam(),
+        mc=MulticoreParam(),
+        dopar=DoparParam(),
+        batchjobs=BatchJobsParam(progressbar=FALSE))
 
     for (param in params) {
-        ok <- try(bpmapply(f, x, y, BPPARAM=param), silent=TRUE)
-        checkTrue(inherits(ok, "try-error"))
+        res <- bpmapply(f, x, BPPARAM=param, SIMPLIFY=TRUE)
+        checkTrue(inherits(res[[2]], "condition"))
 
-        ok <- try(bpresume(bpmapply(f, x, y, BPPARAM=param)), silent=TRUE)
-        checkTrue(inherits(ok, "try-error"))
+        ## data not fixed
+        res2 <- bpmapply(f, x, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
+        checkTrue(inherits(res2[[2]], "condition"))
 
-        res <- bpresume(bpmapply(f.fix, x, y, BPPARAM=param))
-        checkIdentical(as.integer(res), c(rep(11L, 5), rep(0L, 5)))
+        ## data fixed
+        res3 <- bpmapply(f, x.fix, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
+        checkIdentical(res3, sqrt(1:3))
     }
 
     closeAllConnections()

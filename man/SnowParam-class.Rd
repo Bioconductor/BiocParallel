@@ -43,7 +43,6 @@
 % Other functions
 \alias{bpslaveLoop}
 \alias{bprunMPIslave}
-\alias{bpok}
 
 \title{Enable simple network of workstations (SNOW)-style parallel evaluation}
 
@@ -324,12 +323,6 @@ snowWorkers()
     \item{}{
       \code{show(x)}:
       Displays the \code{SnowParam} object. 
-    }
-    \item{}{
-      \code{bpok(x)}:
-      Returns a \code{logical()} vector: FALSE for any jobs that resulted in
-      an error. \code{x} is the result list output by a \code{BiocParallel}
-      function such as \code{bplapply} or \code{bpmapply}. 
     }
   }
 

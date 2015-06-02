@@ -7,15 +7,15 @@
 ## where errors and logging are handled.
 
 setMethod(bpvec, c("ANY", "missing"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
-    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=BPPARAM)
+    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
 setMethod(bpvec, c("ANY", "BiocParallelParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
@@ -26,7 +26,7 @@ setMethod(bpvec, c("ANY", "BiocParallelParam"),
     si <- .splitX(seq_along(X), bpworkers(BPPARAM), bptasks(BPPARAM))
     ans <- bplapply(si, function(.i, .X, .FUN, ...) {
         .FUN(.X[.i], ...)
-    }, .X=X, .FUN=FUN, ..., BPPARAM=BPPARAM)
+    }, .X=X, .FUN=FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
     do.call(AGGREGATE, ans)
 })
 

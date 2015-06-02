@@ -8,21 +8,24 @@
 
 
 setMethod("bpaggregate", c("ANY", "missing"),
-    function(x, ..., BPPARAM=bpparam())
+    function(x, ..., BPREDO=list(), BPPARAM=bpparam())
 {
-    bpaggregate(x, ..., BPPARAM=BPPARAM)
+    bpaggregate(x, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
 setMethod("bpaggregate", c("matrix", "BiocParallelParam"),
-    function(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
+    function(x, by, FUN, ..., simplify=TRUE, 
+             BPREDO=list(), BPPARAM=bpparam())
 {
     if (!is.data.frame(x))
         x <- as.data.frame(x)
-    bpaggregate(x, by, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
+    bpaggregate(x, by, FUN, ..., simplify=simplify, 
+                BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
 setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
-    function(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
+    function(x, by, FUN, ..., simplify=TRUE, 
+             BPREDO=list(),  BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     if (!is.data.frame(x))
@@ -39,7 +42,7 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
     grp <- rep(seq_along(ind), sapply(ind, length))
     grp <- grp[match(seq_len(nrow(x)), unlist(ind))]
     res <- bplapply(ind, wrapper, .x=x, .AGGRFUN=FUN, .simplify=simplify,
-        BPPARAM=BPPARAM)
+                    BPREDO=BPREDO, BPPARAM=BPPARAM)
     res <- do.call(rbind, lapply(res, rbind))
 
     if (is.null(names(by)) && length(by)) {
@@ -59,7 +62,7 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
 })
 
 setMethod("bpaggregate", c("formula", "BiocParallelParam"),
-    function (x, data, FUN, ..., BPPARAM=bpparam())
+    function (x, data, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     if (length(x) != 3L) 
         stop("Formula 'x' must have both left and right hand sides")
@@ -81,7 +84,9 @@ setMethod("bpaggregate", c("formula", "BiocParallelParam"),
 
     if (is.matrix(mf[[1L]])) {
         lhs <- as.data.frame(mf[[1L]])
-        bpaggregate(lhs, mf[-1L], FUN=FUN, ..., BPPARAM=BPPARAM)
+        bpaggregate(lhs, mf[-1L], FUN=FUN, ..., 
+                    BPREDO=BPREDO, BPPARAM=BPPARAM)
     }
-    else bpaggregate(mf[1L], mf[-1L], FUN=FUN, ..., BPPARAM=BPPARAM)
+    else bpaggregate(mf[1L], mf[-1L], FUN=FUN, ..., 
+                     BPREDO=BPREDO, BPPARAM=BPPARAM)
 })

@@ -5,14 +5,14 @@
 ## All params have dedicated bplapply methods.
 
 setMethod(bplapply, c("ANY", "missing"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    bplapply(X, FUN, ..., BPPARAM=BPPARAM)
+    bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
 setMethod(bplapply, c("ANY", "list"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
 
@@ -25,5 +25,5 @@ setMethod(bplapply, c("ANY", "list"),
         if (length(BPPARAM) > 1L)
             function(...) FUN(..., BPPARAM=BPPARAM[-1L])
         else FUN
-    bplapply(X, myFUN, ..., BPPARAM=BPPARAM[[1L]])
+    bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1L]])
 })

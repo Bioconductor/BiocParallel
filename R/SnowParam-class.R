@@ -262,9 +262,17 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 ###
 
 setMethod(bplapply, c("ANY", "SnowParam"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+    if (length(BPREDO)) {
+        if (all(idx <- !bpok(BPREDO)))
+            stop("no error detected in 'BPREDO'")
+        if (length(BPREDO) != length(X))
+            stop("length(BPREDO) must equal length(X)")
+        message("Resuming previous calculation ... ")
+        X <- X[idx]
+    }
     nms <- names(X)
 
     if (!length(X))
@@ -303,7 +311,10 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         names(res) <- nms
     }
 
-    res
+    if (length(BPREDO)) {
+        BPREDO[idx] <- res
+        BPREDO 
+    } else res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),

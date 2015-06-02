@@ -67,9 +67,18 @@ setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
 ###
 
 setMethod(bplapply, c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+    if (length(BPREDO)) {
+        if (all(idx <- !bpok(BPREDO)))
+            stop("no error detected in 'BPREDO'")
+        if (length(BPREDO) != length(X))
+            stop("length(BPREDO) must equal length(X)")
+        message("Resuming previous calculation ... ")
+        X <- X[idx]
+    }
+    nms <- names(X)
 
     if (!bpisup(BPPARAM))
         return(bplapply(X, FUN=FUN, ..., BPPARAM=SerialParam()))
@@ -77,11 +86,17 @@ setMethod(bplapply, c("ANY", "DoparParam"),
         FUN <- .composeTry(FUN)
 
     i <- NULL
-    if (bpcatchErrors(BPPARAM))
-        handle <- "pass"
-    else
-        handle <- "stop"
-    foreach(i=seq_along(X), .errorhandling=handle) %dopar% { FUN(X[[i]], ...) }
+    handle <- ifelse(bpcatchErrors(BPPARAM), "pass", "stop")
+    res <- foreach(i=seq_along(X), .errorhandling=handle) %dopar% 
+        { FUN(X[[i]], ...) }
+
+    if (!is.null(res)) {
+        names(res) <- nms
+    }
+    if (length(BPREDO)) {
+        BPREDO[idx] <- res
+        BPREDO 
+    } else res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),

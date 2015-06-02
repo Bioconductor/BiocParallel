@@ -2,21 +2,11 @@
 ### bpmapply methods 
 ### -------------------------------------------------------------------------
 
-## BatchJobsParam has a dedicated bpmapply() method. All others dispatch
-## to bplapply() where errors and logging are handled.
-
-
-setMethod(bpmapply, c("ANY", "missing"),
-    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
-             USE.NAMES=TRUE, BPPARAM=bpparam())
-{
-    FUN <- match.fun(FUN)
-    bpmapply(FUN, ..., BPPARAM=BPPARAM)
-})
+## bpmapply() dispatches to bplapply() where errors and logging are handled.
 
 setMethod(bpmapply, c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
-             USE.NAMES=TRUE, BPPARAM=bpparam())
+             USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {
     ## re-package for lapply
     ddd <- .getDotsForMapply(...)
@@ -29,14 +19,22 @@ setMethod(bpmapply, c("ANY", "BiocParallelParam"),
         .mapply(.FUN, dots, .MoreArgs)[[1L]]
     }
 
-    res <- bplapply(X=seq_along(ddd[[1L]]), wrap, BPPARAM=BPPARAM, 
-                    .FUN=FUN, .ddd=ddd, .MoreArgs=MoreArgs)
+    res <- bplapply(X=seq_along(ddd[[1L]]), wrap, .FUN=FUN, .ddd=ddd, 
+                    .MoreArgs=MoreArgs, BPREDO=BPREDO, BPPARAM=BPPARAM)
     .simplify(.rename(res, ddd, USE.NAMES=USE.NAMES), SIMPLIFY)
+})
+
+setMethod(bpmapply, c("ANY", "missing"),
+    function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
+             USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
+{
+    FUN <- match.fun(FUN)
+    bpmapply(FUN, ..., BPPARAM=BPPARAM)
 })
 
 setMethod(bpmapply, c("ANY", "list"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
-             USE.NAMES=TRUE, BPPARAM=bpparam())
+             USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
 
@@ -49,6 +47,5 @@ setMethod(bpmapply, c("ANY", "list"),
         if (length(BPPARAM) > 1L)
             function(...) FUN(..., BPPARAM=BPPARAM[-1L])
         else FUN
-    bpmapply(myFUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
-             USE.NAMES=TRUE, BPPARAM=BPPARAM[[1L]])
+    bpmapply(myFUN, ..., BPPARAM=BPPARAM[[1L]])
 })
