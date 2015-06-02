@@ -80,18 +80,30 @@ setReplaceMethod("bpthreshold", c("SerialParam", "character"),
 ###
 
 setMethod(bplapply, c("ANY", "SerialParam"),
-    function(X, FUN, ..., BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
-    FUN <- match.fun(FUN)
-
     if (!length(X))
         return(list())
+    FUN <- match.fun(FUN)
+    if (length(BPREDO)) {
+        if (all(idx <- !bpok(BPREDO)))
+            stop("no error detected in 'BPREDO'")
+        if (length(BPREDO) != length(X))
+            stop("length(BPREDO) must equal length(X)")
+        message("Resuming previous calculation ... ")
+        X <- X[idx]
+    }
+
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
     else if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN, FALSE)
 
-    lapply(X, FUN, ...)
+    res <- lapply(X, FUN, ...)
+    if (length(BPREDO)) {
+        BPREDO[idx] <- res
+        BPREDO 
+    } else res
 })
 
 .bpiterate_serial <- function(ITER, FUN, ..., REDUCE, init)

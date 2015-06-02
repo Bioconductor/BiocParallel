@@ -29,7 +29,8 @@ MulticoreParam <- function(workers=multicoreWorkers(),
         resultdir=NA_character_, ...)
 {
     if (.Platform$OS.type == "windows")
-        warning("MulticoreParam not supported on Windows. Using SerialParam().")
+        warning(paste0("MulticoreParam not supported on Windows. ",
+                       "Using serial evaluation."))
 
     .MulticoreParam(workers=as.integer(workers), 
         tasks=as.integer(tasks), catch.errors=catch.errors, 
@@ -88,7 +89,7 @@ setMethod(bpschedule, "MulticoreParam",
 ###
 
 setMethod(bpvec, c("ANY", "MulticoreParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
@@ -96,11 +97,23 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
     if (!length(X))
         return(list())
     if (!bpschedule(BPPARAM))
-        return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPPARAM=SerialParam()))
+        return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
+               BPPARAM=SerialParam()))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
     else if (bpcatchErrors(BPPARAM))
         FUN <- .composeTry(FUN, FALSE)
 
+    if (length(BPREDO)) {
+        if (all(idx <- !bpok(BPREDO)))
+            stop("no error detected in 'BPREDO'")
+        if (length(BPREDO) != length(X))
+            stop("length(BPREDO) must equal length(X)")
+        message("Resuming previous calculation ... ")
+        res <- pvec(X[idx], FUN, ..., AGGREGATE=AGGREGATE, 
+                   mc.cores=bpworkers(BPPARAM))
+        BPREDO[id] <- res
+        BPREDO
+    }
     pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
 })

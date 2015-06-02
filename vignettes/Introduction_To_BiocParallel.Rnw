@@ -552,7 +552,7 @@ $ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
 
 The \R{} script might do the following, using MPI for parallel evaluation. Start
 by loading necessary packages and defining \Rcode{FUN} work to be done
-<<cluster-MPI-work>>=
+<<cluster-MPI-work, eval=FALSE>>=
 library(BiocParallel)
 library(Rmpi)
 FUN <- function(i) system("hostname", intern=TRUE)

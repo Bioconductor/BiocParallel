@@ -9,6 +9,7 @@ test_BatchJobsParam <-
 
     backend <- BatchJobsParam(progressbar=FALSE, catch.errors=TRUE)
     register(backend)
-    checkException(bplapply(0:3, f))
+    res <- bplapply(0:3, f)
+    checkTrue(inherits(res[[1]], "condition"))
     checkEquals(bplapply(0:3, identity), as.list(0:3))
 }

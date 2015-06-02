@@ -16,36 +16,43 @@
 
 \usage{
 
-\S4method{bpaggregate}{formula,BiocParallelParam}(x, data, FUN, ..., BPPARAM=bpparam())
+\S4method{bpaggregate}{formula,BiocParallelParam}(x, data, FUN, ..., 
+    BPREDO=list(), BPPARAM=bpparam())
 
-\S4method{bpaggregate}{data.frame,BiocParallelParam}(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
+\S4method{bpaggregate}{data.frame,BiocParallelParam}(x, by, FUN, ..., 
+    simplify=TRUE, BPREDO=list(), BPPARAM=bpparam())
 
-\S4method{bpaggregate}{matrix,BiocParallelParam}(x, by, FUN, ..., simplify=TRUE, BPPARAM=bpparam())
+\S4method{bpaggregate}{matrix,BiocParallelParam}(x, by, FUN, ..., 
+    simplify=TRUE, BPREDO=list(), BPPARAM=bpparam())
 
-\S4method{bpaggregate}{ANY,missing}(x, ..., BPPARAM=bpparam())
+\S4method{bpaggregate}{ANY,missing}(x, ..., BPREDO=list(), BPPARAM=bpparam())
 
 }
 
 \arguments{
   
-  \item{x}{A \code{data.frame}, \code{matrix} or a formula.}
-
+  \item{x}{A \code{data.frame}, \code{matrix} or a formula.
+  }
   \item{by}{A list of factors by which \code{x} is split;
-    applicable when \code{x} is \code{data.frame} or \code{matrix}.}
-
+    applicable when \code{x} is \code{data.frame} or \code{matrix}.
+  }
   \item{data}{A \code{data.frame}; applicable when \code{x} is a
-    \code{formula}.}
-
-  \item{FUN}{Function to apply.}
-
-  \item{...}{Additional arguments for \code{FUN}.}
-
+    \code{formula}.
+  }
+  \item{FUN}{Function to apply.
+  }
+  \item{...}{Additional arguments for \code{FUN}.
+  }
   \item{simplify}{If set to \code{TRUE}, the return values of \code{FUN}
-    will be simplified using \code{\link[base]{simplify2array}}.}
-
+    will be simplified using \code{\link[base]{simplify2array}}.
+  }
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evaluation.}
-
+    determining the parallel back-end to be used during evaluation.
+  }
+  \item{BPREDO}{A \code{list} of output from \code{bpaggregate}. When given,
+    \code{bpok} is called on \code{BPREDO} to identify errors. Failed
+    tasks are recomputed and inserted into the original results.
+  }
 }
 
 \details{
