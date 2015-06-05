@@ -49,9 +49,10 @@
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.
   }
-  \item{BPREDO}{A \code{list} of output from \code{bpaggregate}. When given,
-    \code{bpok} is called on \code{BPREDO} to identify errors. Failed
-    tasks are recomputed and inserted into the original results.
+  \item{BPREDO}{A \code{list} of output from \code{bpaggregate} with one
+    or more failed elements. When a list is given in \code{BPREDO},
+    \code{bpok} is used to identify errors, tasks are rerun and inserted
+    into the original results.
   }
 }
 

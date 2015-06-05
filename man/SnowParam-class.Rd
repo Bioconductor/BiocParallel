@@ -26,6 +26,10 @@
 \alias{bpthreshold<-}
 \alias{bpthreshold,SnowParam-method}
 \alias{bpthreshold<-,SnowParam,character-method}
+\alias{bpRNGseed}
+\alias{bpRNGseed<-}
+\alias{bpRNGseed,SnowParam-method}
+\alias{bpRNGseed<-,SnowParam-method}
 \alias{bplogdir}
 \alias{bplogdir<-}
 \alias{bplogdir,SnowParam-method}
@@ -63,8 +67,9 @@
 
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
-          progressbar = FALSE, log = FALSE, threshold = "INFO", 
-          logdir = NA_character_, resultdir = NA_character_, ...)
+          progressbar = FALSE, RNGseed = NULL, log = FALSE, 
+          threshold = "INFO", logdir = NA_character_, 
+          resultdir = NA_character_, ...)
 
 ## coercion 
 ## ------------------------------------
@@ -88,10 +93,13 @@ snowWorkers()
 
   \describe{
     \item{error handling:}{
-      Two flags control error handling: \code{catch.errors} and 
-      \code{stop.on.error}.
+      The \code{catch.errors} field has been deprecated.
+
+      By default all computations are attempted and partial results
+      are returned with any error messages.
       \itemize{
-        \item \code{catch.errors} determines whether errors are caught and
+        \item \code{catch.errors} (DEPRECATED)
+              determines whether errors are caught and
               returned with other results. When \code{TRUE}, all computations 
               are attempted and output contains both errors and successfully 
               completed results. When \code{FALSE}, the job is terminated as 
@@ -99,25 +107,27 @@ snowWorkers()
               returned (no results); this is the default behavior of the 
               parent packages, e.g., \code{parallel}, \code{snow}, 
               \code{foreach}.
-
+ 
         \item \code{stop.on.error} controls whether the job stops after an 
               error is thrown. When \code{TRUE}, the output contains all 
               successfully completed results up to and including the error. 
-              Unlike \code{catch.errors == TRUE}, when 
-              \code{stop.on.error == TRUE} all computations stop once the 
-              error is hit. When \code{FALSE}, the job runs to completion 
+              When \code{FALSE}, all computations are attempted and
               and successful results are returned along with any error messages.
+
+        \item The \code{bpok(x)} function returns a \code{logical()} vector 
+              that is FALSE for any jobs that threw an error. The input 
+              \code{x} is a list output from a bp*apply function such as
+              \code{bplapply} or \code{bpmapply}. 
       }
-    \code{catch.errors} and \code{stop.on.error} cannot both be \code{TRUE}.
     }
     \item{logging:}{
       Logging is implemented on the workers with the \code{futile.logger}
       package. The argument to the constructor is \code{log} and the value is
-      accessed with \code{bplog(BPPARAM)}. When \code{log == TRUE}, cluster
-      workers use a script in the \code{BiocParallel} package instead of
-      \code{snow}. This modified script captures warning and error messages and
-      collects additional task statistics such as gc output and node name. When
-      \code{log == TRUE} \code{catch.errors} must also be TRUE.
+      accessed with \code{bplog(BPPARAM)}. When \code{log == TRUE}, the
+      \code{futile.logger} package is loaded on the workers.
+      A modified script in the \code{BiocParallel} package is run on the
+      workers and captures warnings, errors, and additional statistics such 
+      as gc output and node name.
  
       Any \code{futile.logger} messages the user provides in their function will
       be captured by the logging mechanism. Messages are returned real-time
@@ -130,12 +140,26 @@ snowWorkers()
       \code{resultdir} fields in the constructor or with the accessors,
       \code{bplogdir} and \code{bpresultdir}. 
     }
+    \item{random number generation:}{
+      \code{MulticoreParam} and \code{SnowParam} use the random number
+      generation support from the parallel package. These params are 
+      snow-derived clusters so the arguments for multicore-derived functions 
+      such as \code{mc.set.seed} and \code{mc.reset.stream} do not apply.
+ 
+      Random number generation is controlled through the param argument,
+      \code{RNGseed} which is passed to parallel::clusterSetRNGStream.
+      \code{clusterSetRNGStream} uses the ‘"L'Ecuyer-CMRG"’ random number
+      generator and distributes streams to the members of a cluster. If
+      \code{RNGseed} is not NULL it serves as the seed to the streams,
+      otherwise the streams are set from the current seed of the master process
+      after selecting the L'Ecuyer generator. See ?\code{clusterSetRNGStream}
+      for more details.
+    }
+    NOTE: The \code{PSOCK} cluster from the \code{parallel} package does not 
+    support cluster options \code{scriptdir} and \code{useRscript}. \code{PSOCK}
+    is not supported because these options are needed to re-direct to an 
+    alternate worker script located in BiocParallel.
   }
-
-  NOTE: The \code{PSOCK} cluster from the \code{parallel} package does not 
-  support cluster options \code{scriptdir} and \code{useRscript}. Because
-  these options are needed to use an alternate worker script, \code{PSOCK} 
-  is not supported in \code{SnowParam}.
 
 }
 
@@ -145,8 +169,9 @@ snowWorkers()
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
-                      progressbar = FALSE, log = FALSE, threshold = "INFO", 
-                      logdir = NA_character_, resultdir = NA_character_, ...)}:
+                      progressbar = FALSE, RNGseed = NULL, log = FALSE, 
+                      threshold = "INFO", logdir = NA_character_, 
+                      resultdir = NA_character_, ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -186,6 +211,7 @@ snowWorkers()
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
   } 
   \item{catch.errors}{
+    DEPRECATED.
     \code{logical(1)} Enable the catching of errors and warnings.
   }
   \item{stop.on.error}{
@@ -193,6 +219,10 @@ snowWorkers()
   }
   \item{progressbar}{
     \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
+  }
+  \item{RNGseed}{
+    \code{integer(1)} Seed for random number generation. Value is passed 
+    to parallel::clusterSetRNGStream.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
@@ -231,6 +261,11 @@ snowWorkers()
       \code{bpprogressbar(x, ...)}, \code{bpprogressbar(x) <- value}: 
       Get or set the value to enable text progress bar. 
       \code{value} must be a \code{logical(1)}.
+    }
+    \item{}{
+      \code{bpRNGseed(x, ...)}, \code{bpRNGseed(x) <- value}: 
+      Get or set the seed for random number generaton. \code{value} must be a
+      \code{numeric(1)}.
     }
     \item{}{
       \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
@@ -323,6 +358,12 @@ snowWorkers()
     \item{}{
       \code{show(x)}:
       Displays the \code{SnowParam} object. 
+    }
+    \item{}{
+      \code{bpok(x)}:
+      Returns a \code{logical()} vector: FALSE for any jobs that resulted in
+      an error. \code{x} is the result list output by a \code{BiocParallel}
+      function such as \code{bplapply} or \code{bpmapply}. 
     }
   }
 
@@ -432,15 +473,20 @@ list.files(bpresultdir(bpparam))
 bpparam <- SnowParam(2, stop.on.error = TRUE)
 bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 
-## When 'stop.on.error' is FALSE, behavior is dictated by 'catch.errors'.
-## By default 'catch.errors' is TRUE and will try all computations,
-## successful or not.
+## When 'stop.on.error' is FALSE, all computations are attempted and
+## partial results are returned with any errors.
 bpparam <- SnowParam(2, stop.on.error = FALSE)
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 res
 
 ## Calling bpok() on the result list returns TRUE for elements with no error.
 bpok(res)
+
+## -----------------------------------------------------------------------
+## Random number generation:
+## -----------------------------------------------------------------------
+bpparam <- SnowParam(3, RNGseed = 7739465)
+bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
 
 }
 

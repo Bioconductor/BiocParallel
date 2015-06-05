@@ -34,6 +34,7 @@ setOldClass(c("NULLcluster", "cluster"))
         cluster="cluster",
         .clusterargs="list",
         .controlled="logical",
+        RNGseed="ANY",
         log="logical",
         threshold="ANY",
         logdir="character",
@@ -41,12 +42,13 @@ setOldClass(c("NULLcluster", "cluster"))
     methods=list(
         initialize = function(..., 
             .controlled=TRUE,
+            RNGseed=NULL,
             log=FALSE,
             threshold="INFO",
             logdir=NA_character_,
             resultdir=NA_character_)
         { 
-            initFields(.controlled=.controlled,
+            initFields(.controlled=.controlled, RNGseed=RNGseed,
                        log=log, threshold=threshold, 
                        logdir=logdir, resultdir=resultdir)
             callSuper(...)
@@ -55,13 +57,13 @@ setOldClass(c("NULLcluster", "cluster"))
             callSuper()
             cat("  bpworkers:", bpworkers(.self), 
                    "; bptasks:", bptasks(.self),
+                   "; bpRNGseed:", bpRNGseed(.self),
                    "; bpisup:", bpisup(.self), "\n", sep="")
             cat("  bplog:", bplog(.self),
                    "; bpthreshold:", names(bpthreshold(.self)),
-                   "; bplogdir:", bplogdir(.self),
+                   "; bplogdir:", bplogdir(.self))
+            cat("  bpstopOnError:", bpstopOnError(.self),
                    "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
-            cat("  bpcatchErrors:", bpcatchErrors(.self),
-                   "; bpstopOnError:", bpstopOnError(.self), "\n", sep="")
             cat("  bpresultdir:", bpresultdir(.self), "\n", sep="")
             cat("cluster type:", .clusterargs$type, "\n")
         })
@@ -69,10 +71,13 @@ setOldClass(c("NULLcluster", "cluster"))
 
 SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
                       tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
-                      progressbar=FALSE, log=FALSE, threshold="INFO", 
-                      logdir=NA_character_, resultdir=NA_character_, ...)
+                      progressbar=FALSE, RNGseed=NULL, log=FALSE, 
+                      threshold="INFO", logdir=NA_character_, 
+                      resultdir=NA_character_, ...)
 {
     type <- match.arg(type)
+    if (!catch.errors)
+        warning("'catch.errors' has been deprecated")
     if (!type %in% c("SOCK", "MPI", "FORK"))
         stop("type must be one of 'SOCK', 'MPI' or 'FORK'")
     if (any(type %in% c("MPI", "FORK")) && is(workers, "character"))
@@ -86,7 +91,7 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
     x <- .SnowParam(.clusterargs=.clusterargs, cluster=cluster, 
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
-                    progressbar=progressbar, log=log, 
+                    progressbar=progressbar, RNGseed=RNGseed, log=log, 
                     threshold=.THRESHOLD(threshold), logdir=logdir, 
                     resultdir=resultdir)
     validObject(x)
@@ -165,7 +170,7 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     value <- as.integer(value)
     if (value > snowWorkers())
         stop("'value' exceeds available workers detected by snowWorkers()")
-        
+ 
     x$tasks <- value 
     x 
 })
@@ -175,7 +180,7 @@ setReplaceMethod("bpworkers", c("SnowParam", "character"),
 {
     if (length(value) > snowWorkers())
         stop("'value' exceeds available workers detected by snowWorkers()")
-        
+ 
     x$tasks <- value 
     x 
 })
@@ -195,27 +200,21 @@ setMethod(bpstart, "SnowParam",
                 "SnowParam class objects require the 'parallel' package")
         })
     }
-
     if (lenX > 0)
         x$.clusterargs$spec <- min(bpworkers(x), lenX) 
     ## worker script in BiocParallel 
-    if (bplog(x) || bpstopOnError(x) || bpprogressbar(x)) { 
-        if (x$.clusterargs$type == "FORK") {
-            bpbackend(x) <- do.call(.bpmakeForkCluster, 
-                                    c(list(nnodes=x$.clusterargs$spec),
-                                      x$.clusterargs))
-        } else {
-            x$.clusterargs$useRscript <- FALSE
-            x$.clusterargs$scriptdir <- find.package("BiocParallel")
-            bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
-        }
-        if (bplog(x))
-            .initiateLogging(x)
-    ## worker script in snow/parallel: no log, no errors 
+    if (x$.clusterargs$type == "FORK") {
+        bpbackend(x) <- do.call(.bpmakeForkCluster, 
+                                c(list(nnodes=x$.clusterargs$spec),
+                                  x$.clusterargs))
     } else {
-        x$.clusterargs$useRscript <- TRUE 
+        x$.clusterargs$useRscript <- FALSE
+        x$.clusterargs$scriptdir <- find.package("BiocParallel")
         bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
     }
+    if (bplog(x))
+        .initiateLogging(x)
+    clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
     invisible(x)
 })
 
@@ -257,6 +256,21 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     x
 })
 
+setMethod(bpRNGseed, "SnowParam",
+    function(x, ...)
+{
+    x$RNGseed 
+})
+
+setReplaceMethod("bpRNGseed", c("SnowParam", "ANY"),
+    function(x, ..., value)
+{
+    if (!is.null(value))
+        value <- as.integer(value)
+    x$RNGseed <- value 
+    x
+})
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -282,7 +296,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else if (bpcatchErrors(BPPARAM))
+    else
         FUN <- .composeTry(FUN, FALSE)
 
     ## split into tasks 
@@ -327,7 +341,7 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else if (bpcatchErrors(BPPARAM))
+    else
         FUN <- .composeTry(FUN, FALSE)
 
     ## start cluster

@@ -50,9 +50,8 @@
             callSuper()
             cat("  bpworkers:", bpworkers(.self),
                    "; bpisup:", bpisup(.self), "\n", sep="")
-            cat("  bpcatchErrors:", bpcatchErrors(.self),
-                   "; bpstopOnError:", bpstopOnError(.self), "\n", sep="")
-            cat("  bpprogressbar:", bpprogressbar(.self), "\n", sep="")
+            cat("  bpstopOnError:", bpstopOnError(.self),
+                   "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
             cat("  cleanup:", .self$cleanup, "\n", sep="")
         })
 )
@@ -62,6 +61,8 @@ BatchJobsParam <-
         work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
         conffile=NULL, cluster.functions=NULL, progressbar=TRUE, ...)
 {
+    if (!catch.errors)
+        warning("'catch.errors' has been deprecated")
     if (!"package:BatchJobs" %in% search()) {
         tryCatch({
             attachNamespace("BatchJobs")
