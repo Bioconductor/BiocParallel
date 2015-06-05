@@ -14,6 +14,7 @@ quiet <- suppressWarnings
 
 test_bpiterate_Params <- function()
 {
+    ## chunks greater than no. workers
     x <- 1:5
     expected <- lapply(x, sqrt)
     FUN <- function(count, ...) sqrt(count)
@@ -27,6 +28,20 @@ test_bpiterate_Params <- function()
         checkIdentical(expected, res)
     }
 
+    ## chunks less than no. workers
+    x <- 1:2
+    expected <- lapply(x, sqrt)
+    FUN <- function(count, ...) sqrt(count)
+    params <- list(serial=SerialParam(),
+                   multi=MulticoreParam(4),
+                   snow=SnowParam(4))
+
+    for (p in params) {
+        ITER <- .lazyCount(length(x))
+        quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
+        checkIdentical(expected, res)
+    }
+
     params <- list(dopar=DoparParam(), batchjobs=BatchJobsParam())
     for (p in params) {
         ITER <- .lazyCount(length(x))
@@ -34,7 +49,6 @@ test_bpiterate_Params <- function()
     }
 
     closeAllConnections()
-    tryCatch(mpi.close.Rslaves(), error = function(e) {})
     TRUE
 }
 
@@ -92,6 +106,5 @@ test_bpiterate_REDUCE <- function() {
     }
 
     closeAllConnections()
-    tryCatch(mpi.close.Rslaves(), error = function(e) {})
     TRUE
 }

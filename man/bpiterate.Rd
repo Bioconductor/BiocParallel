@@ -32,7 +32,7 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
     A function with no arguments that returns an object to process,
     generally a chunk of data from a file. When no objects 
     are left (i.e., end of file) it should return NULL and continue to
-    return NULL reguardless of the number of times it is invoked after
+    return NULL regardless of the number of times it is invoked after
     reaching the end of file. This function is run on the master.
   }
   \item{FUN}{
@@ -126,7 +126,7 @@ if (all(require(Rsamtools) &&
   fl <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]]
   bf <- BamFile(fl, yieldSize = 300000) 
  
-  ## bamIterator() is initalized with a BAM file and returns a function.
+  ## bamIterator() is initialized with a BAM file and returns a function.
   ## The return function requires no arguments and iterates through the
   ## file returning data chunks the size of yieldSize.
   bamIterator <- function(bf) {
@@ -156,11 +156,13 @@ if (all(require(Rsamtools) &&
   ITER <- bamIterator(bf)
 
   ## The number of chunks returned by ITER() determines the result length.
-  bpparam <- MulticoreParam(workers = 2) 
+  bpparam <- MulticoreParam(workers = 3) 
   bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
 
-  ## Combine on the fly with REDUCE:
+  closeAllConnections() ## for R CMD check
+  ## Reinitialize the iterator and combine on the fly with REDUCE:
   ITER <- bamIterator(bf)
+  bpparam <- MulticoreParam(workers = 3) 
   bpiterate(ITER, counter, REDUCE = sum, roi = roi, BPPARAM = bpparam)
 
   ## ----------------------------------------------------------------------

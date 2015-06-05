@@ -30,8 +30,9 @@
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                catch.errors = TRUE, stop.on.error = FALSE,
-               progressbar = FALSE, log = FALSE, threshold = "INFO", 
-               logdir = NA_character_, resultdir = NA_character_, ...)
+               progressbar = FALSE, RNGseed = NULL, log = FALSE, 
+               threshold = "INFO", logdir = NA_character_, 
+               resultdir = NA_character_, ...)
 
 ## detect workers 
 ## ------------------------------------
@@ -43,13 +44,83 @@ multicoreWorkers()
 \details{
 
   \code{MulticoreParam} is used for shared memory computing. Under the hood
-  the cluster is created with \code{SnowParam(..., type="FORK")}. See
-  ?\code{SnowParam} for a description of error handling, logging
-  and returning results.
+  the cluster is created with \code{makeCluster(..., type ="FORK")} from 
+  the \code{parallel} package.
 
-  On Windows, \code{MulticoreParam} defaults to \code{SerialParam}.
-  The class object can be instantiated and used in the bp*apply functions
-  but computations are run in serial (i.e., equivalent to a single worker).
+  A FORK transport starts workers with the \code{mcfork} function and
+  communicates between master and workers using socket connections.
+  \code{mcfork} builds on fork() and thus a Linux cluster is not supported.
+  Because FORK clusters are Posix based they are not supported on
+  Windows. When \code{MulticoreParam} is created/used in Windows it
+  defaults to \code{SerialParam} which is the equivalent of using a
+  single worker.
+
+  \describe{
+    \item{error handling:}{
+      The \code{catch.errors} field has been deprecated.
+
+      By default all computations are attempted and partial results
+      are returned with any error messages.
+      \itemize{
+        \item \code{catch.errors} (DEPRECATED)
+              determines whether errors are caught and
+              returned with other results. When \code{TRUE}, all computations 
+              are attempted and output contains both errors and successfully 
+              completed results. When \code{FALSE}, the job is terminated as 
+              soon as the first error is hit and only the error message is 
+              returned (no results); this is the default behavior of the 
+              parent packages, e.g., \code{parallel}, \code{snow}, 
+              \code{foreach}.
+        
+        \item \code{stop.on.error} controls whether the job stops after an 
+              error is thrown. When \code{TRUE}, the output contains all 
+              successfully completed results up to and including the error. 
+              When \code{FALSE}, all computations are attempted and
+              and successful results are returned along with any error messages.
+
+        \item The \code{bpok(x)} function returns a \code{logical()} vector 
+              that is FALSE for any jobs that threw an error. The input 
+              \code{x} is a list output from a bp*apply function such as
+              \code{bplapply} or \code{bpmapply}. 
+      }
+    }
+    \item{logging:}{
+      Logging is implemented on the workers with the \code{futile.logger}
+      package. The argument to the constructor is \code{log} and the value is
+      accessed with \code{bplog(BPPARAM)}. When \code{log == TRUE}, the
+      \code{futile.logger} package is loaded on the workers.
+      A modified script in the \code{BiocParallel} package is run on the
+      workers and captures warnings, errors, and additional statistics such 
+      as gc output and node name.
+ 
+      Any \code{futile.logger} messages the user provides in their function will
+      be captured by the logging mechanism. Messages are returned real-time
+      (i.e., as each tasks completes) instead of after all jobs have finished.
+    }
+    \item{log and result files:}{
+      Results and logs can be written to a file instead of returned to
+      the workspace. Writing to files is done from the master as each task 
+      completes. Options can be set with the \code{logdir} and 
+      \code{resultdir} fields in the constructor or with the accessors,
+      \code{bplogdir} and \code{bpresultdir}. 
+    }
+    \item{random number generation:}{
+      \code{MulticoreParam} and \code{SnowParam} use the random number
+      generation support from the parallel package. These params are 
+      snow-derived clusters so the arguments for multicore-derived functions 
+      such as \code{mc.set.seed} and \code{mc.reset.stream} do not apply.
+      
+      Random number generation is controlled through the param argument,
+      \code{RNGseed} which is passed to parallel::clusterSetRNGStream.
+      \code{clusterSetRNGStream} uses the ‘"L'Ecuyer-CMRG"’ random number
+      generator and distributes streams to the members of a cluster. If
+      \code{RNGseed} is not NULL it serves as the seed to the streams,
+      otherwise the streams are set from the current seed of the master process
+      after selecting the L'Ecuyer generator. See ?\code{clusterSetRNGStream}
+      for more details.
+    }
+  }
+ 
 }
 
 \section{Constructor}{
@@ -58,9 +129,10 @@ multicoreWorkers()
     \item{}{
       \code{MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                            catch.errors = TRUE, stop.on.error = FALSE,
-                           tasks = 0L, progressbar = FALSE, log = FALSE, 
-                           threshold = "INFO", logdir = NA_character_, 
-                           resultdir = NA_character_, ...)}:
+                           tasks = 0L, progressbar = FALSE, RNGseed = NULL,
+                           log = FALSE, threshold = "INFO", 
+                           logdir = NA_character_, resultdir = NA_character_, 
+                           ...)}:
 
         Return an object representing a FORK cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -94,13 +166,17 @@ multicoreWorkers()
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
   } 
   \item{catch.errors}{
-    \code{logical(1)} Enable the catching of errors and warnings.
+    DEPRECATED. \code{logical(1)} Enable the catching of errors and warnings.
   }
   \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
   \item{progressbar}{
     \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
+  }
+  \item{RNGseed}{
+    \code{integer(1)} Seed for random number generation. Value is passed 
+    to parallel::clusterSetRNGStream.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
@@ -130,6 +206,11 @@ multicoreWorkers()
       \code{bpprogress(x, ...)}, \code{bpprogress(x) <- value}: 
       Get or set the value to enable text progress bar. 
       \code{value} must be a \code{logical(1)}.
+    }
+    \item{}{
+      \code{bpRNGseed(x, ...)}, \code{bpRNGseed(x) <- value}: 
+      Get or set the seed for random number generaton. \code{value} must be a
+      \code{numeric(1)}.
     }
     \item{}{
       \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
@@ -223,12 +304,6 @@ multicoreWorkers()
       \code{show(x)}:
       Displays the \code{MulticoreParam} object. 
     }
-    \item{}{
-      \code{bpok(x)}:
-      Returns a \code{logical()} vector: FALSE for any jobs that resulted in
-      an error. \code{x} is the result list output by a \code{BiocParallel}
-      function such as \code{bplapply} or \code{bpmapply}. 
-    }
   }
 
 }
@@ -253,14 +328,95 @@ multicoreWorkers()
 }
 
 \examples{
-multicoreWorkers()
-p <- MulticoreParam()
-bplapply(1:10, sqrt, BPPARAM=p)
-bpvec(1:10, sqrt, BPPARAM=p)
+## -----------------------------------------------------------------------
+## Job configuration:
+## -----------------------------------------------------------------------
 
-\dontrun{
-register(MulticoreParam(), default=TRUE)
+## MulticoreParam supports shared memory computing. The object fields
+## control the division of tasks, error handling, logging and 
+## result format.
+bpparam <- MulticoreParam()
+bpparam
+
+## By default the param is created with the maximum available workers
+## determined by multicoreWorkers().
+multicoreWorkers()
+
+## Fields are modified with accessors of the same name:
+bplog(bpparam) <- TRUE
+bpresultdir(bpparam) <- "/myResults/"
+bpparam
+
+## -----------------------------------------------------------------------
+## Logging:
+## -----------------------------------------------------------------------
+
+## When 'log == TRUE' the workers use a custom script (in BiocParallel) 
+## that enables logging and access to other job statistics. Log messages 
+## are returned as each job completes rather than waiting for all to finish.
+
+## In 'fun', a value of 'x = 1' will throw a warning, 'x = 2' is ok
+## and 'x = 3' throws an error. Because 'x = 1' sleeps, the warning
+## should return after the error.
+
+X <- 1:3 
+fun <- function(x) {
+    if (x == 1) {
+        Sys.sleep(2)
+        if (TRUE & c(TRUE, TRUE))  ## warning
+            x 
+    } else if (x == 2) { 
+        x                          ## ok
+    } else if (x == 3) { 
+        sqrt("FOO")                ## error
+    }
 }
+
+## By default logging is off. Turn it on with the bplog()<- setter
+## or by specifying 'log = TRUE' in the constructor.
+bpparam <- MulticoreParam(3, log = TRUE)
+bplapply(X, fun, BPPARAM=bpparam)
+
+## When a 'logdir' location is given the messages are redirected to a file:
+bplogdir(bpparam) <- tempdir()
+bplapply(X, fun, BPPARAM = bpparam)
+list.files(bplogdir(bpparam))
+
+## -----------------------------------------------------------------------
+## Managing results:
+## -----------------------------------------------------------------------
+
+## By default results are returned as a list. When 'resultdir' is given
+## files are saved in the directory specified by job, e.g., 'TASK1.Rda', 
+## 'TASK2.Rda', etc.
+bpparam <- MulticoreParam(2, resultdir = tempdir())
+bplapply(X, fun, BPPARAM = bpparam)
+list.files(bpresultdir(bpparam))
+
+## -----------------------------------------------------------------------
+## Error handling:
+## -----------------------------------------------------------------------
+
+## When 'stop.on.error' is TRUE, the process returns as soon as an error 
+## is thrown. 
+bpparam <- MulticoreParam(2, stop.on.error = TRUE)
+bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+
+## When 'stop.on.error' is FALSE, all computations are attempted and
+## partial results are returned with any errors.
+bpparam <- MulticoreParam(2, stop.on.error = FALSE)
+res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+res
+
+## Calling bpok() on the result list returns TRUE for elements with no error.
+bpok(res)
+
+## -----------------------------------------------------------------------
+## Random number generation:
+## -----------------------------------------------------------------------
+bpparam <- MulticoreParam(3, RNGseed = 7739465)
+bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
+
 }
 
 \keyword{classes}
