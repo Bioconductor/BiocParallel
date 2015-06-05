@@ -25,7 +25,8 @@ multicoreWorkers <- function() {
 
 MulticoreParam <- function(workers=multicoreWorkers(), 
         tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
-        progressbar=FALSE, log=FALSE, threshold="INFO", logdir=NA_character_,
+        progressbar=FALSE, RNGseed=NULL, log=FALSE, 
+        threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, ...)
 {
     if (.Platform$OS.type == "windows")
@@ -35,8 +36,8 @@ MulticoreParam <- function(workers=multicoreWorkers(),
     .MulticoreParam(workers=as.integer(workers), 
         tasks=as.integer(tasks), catch.errors=catch.errors, 
         stop.on.error=stop.on.error, progressbar=progressbar, 
-        log=log, threshold=.THRESHOLD(threshold), logdir=logdir, 
-        resultdir=resultdir,
+        RNGseed=RNGseed, log=log, threshold=.THRESHOLD(threshold), 
+        logdir=logdir, resultdir=resultdir,
         .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
 }
 
@@ -101,7 +102,7 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
                BPPARAM=SerialParam()))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else if (bpcatchErrors(BPPARAM))
+    else
         FUN <- .composeTry(FUN, FALSE)
 
     if (length(BPREDO)) {

@@ -324,6 +324,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         njob <- d$value$tag
         ss$rjobs[[njob]] <- d$value$value 
         ss$sjobs[njob] <- "done"
+
         ## stop on error
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             warning(paste0("error in task ", njob))

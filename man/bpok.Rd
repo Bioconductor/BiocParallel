@@ -9,7 +9,7 @@
 
 \description{
 
-  \code{bpok} identifies unsuccessful results returned from \code{bplapply},
+  Identifies unsuccessful results returned from \code{bplapply},
   \code{bpmapply}, \code{bpvec}, \code{bpaggregate} or \code{bpvectorize}.
 
   \code{bpresume} and \code{bplaterror} have been deprecated.

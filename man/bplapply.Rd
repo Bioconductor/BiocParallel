@@ -49,9 +49,10 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bplapply}.
   }
-  \item{BPREDO}{A \code{list} of output from \code{bplapply}. When given,
-    \code{bpok} is called on \code{BPREDO} to identify errors. Failed
-    tasks are recomputed and inserted into the original results.
+  \item{BPREDO}{A \code{list} of output from \code{bplapply} with one or
+    more failed elements. When a list is given in \code{BPREDO},
+    \code{bpok} is used to identify errors, tasks are rerun and inserted
+    into the original results.
   }
 
 }
