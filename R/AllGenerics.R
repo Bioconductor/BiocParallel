@@ -54,6 +54,12 @@ setGeneric("bpprogressbar",
 setGeneric("bpprogressbar<-",
     function(x, ..., value) standardGeneric("bpprogressbar<-"))
 
+setGeneric("bpRNGseed",
+    function(x, ...) standardGeneric("bpRNGseed"))
+
+setGeneric("bpRNGseed<-",
+    function(x, ..., value) standardGeneric("bpRNGseed<-"))
+
 setGeneric("bplog",
     function(x, ...) standardGeneric("bplog"))
 

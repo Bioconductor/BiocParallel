@@ -21,6 +21,8 @@
 DoparParam <-
     function(catch.errors=TRUE)
 {
+    if (!catch.errors)
+        warning("'catch.errors' has been deprecated")
     if (!"package:foreach" %in% search()) {
         tryCatch({
             attachNamespace("foreach")

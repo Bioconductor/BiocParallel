@@ -46,6 +46,19 @@ In this document the term ``job'' is used to describe a single call to a
 bp*apply function (e.g., the \Rcode{X} in \Rcode{bplapply}). A ``job'' consists
 of one or more ``tasks'', where each ``task'' is run separately on a worker. 
 
+The \Rpackage{BiocParallel} package is available at bioconductor.org
+and can be downloaded via \Rcode{biocLite}:
+
+<<biocLite, eval=FALSE>>=
+source("http://bioconductor.org/biocLite.R")
+biocLite("BiocParallel")
+@ 
+
+Load the package:
+
+<<load>>=
+library(BiocParallel)
+@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,129 +66,136 @@ of one or more ``tasks'', where each ``task'' is run separately on a worker.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The \Rpackage{BiocParallel} package is available at bioconductor.org
-and can be downloaded via \Rcode{biocLite}:
-<<biocLite, eval=FALSE>>=
-source("http://bioconductor.org/biocLite.R")
-biocLite("BiocParallel")
-@
+\subsection{Catching errors} 
 
-Load \BiocParallel{}.
-<<BiocParallel>>=
-library(BiocParallel)
-@ 
+By default, \BiocParallel{} attempts all computations and returns any warnings
+and errors along with successful results.  The \Rcode{stop.on.error} field
+controls if the job is terminated as soon as one task throws an error. This is
+useful when debugging or when running large jobs (many tasks) and you want to
+be notified of an error before all runs complete.
 
-\subsection{Parameters}
-
-Error handling is controlled by two fields in the \Rcode{BiocParallelParam}:
-\Rcode{catch.errors} and \Rcode{stop.on.error}. These values are set when the
-param is constructed and can be modified with the \Rcode{bpcatchErrors} and
-\Rcode{bpstopOnError} accessors.
-
-When \Rcode{catch.errors} is TRUE, all computations are attempted and
-successful results are returned along with error messages.  When
-\Rcode{stop.on.error} is TRUE, the process stops when an error is hit; output
-includes results up to and including the error.
-
-Summary of \Rcode{catch.errors} and \Rcode{stop.on.error} behavior:
-
-\begin{itemize}
-  \item{\Rcode{catch.errors = TRUE}}{
-
-    All computations are attempted. Results contain error
-    messages along with all successfully completed results.
-  }
-  \item{\Rcode{catch.errors = FALSE}}{
-
-    Computations stop once an error is hit. Only the error is returned,
-    no results. This is the default behavior
-    of cluster workers in the \CRANpkg{snow} and \CRANpkg{parallel}
-    packages.
-  }
-  \item{\Rcode{stop.on.error = TRUE}}{
-
-    Computations stop once error is hit. Results contain the
-    error message along with results computed up to the error.
-  }
-  \item{\Rcode{stop.on.error = FALSE}}{
-
-    Defaults to behavior specified by \Rcode{catch.errors}. 
-  }
-\end{itemize}
-
-\subsection{Catching errors}
-
-\Rcode{catch.errors} is TRUE by default.
+\Rcode{stop.on.error} is \Rcode{FALSE} by default.
 
 <<errors_constructor>>=
 param <- SnowParam()
 param
 @
 
-Error message(s) are returned along with successful results.
+The field can be set when constructing the param or modified with the 
+\Rcode{bpstopOnError} accessor.
 
-<<errors_catchErrors>>=
-res <- bplapply(list(1, 2, "3", 4), sqrt, BPPARAM = param)
+<<errors_stopOnError>>=
+param <- SnowParam(2, stop.on.error = TRUE)
+param
+bpstopOnError(param) <- FALSE
+@
+
+In this example \Rcode{X} is length 6. By default, the elements of \Rcode{X}
+are divided as evenly as possible over the number of workers and run in chunks.
+To more clearly demonstrate the affect of \Rcode{stop.on.error} the number of
+tasks is set equal to the length of \Rcode{X}. This forces each element of
+\Rcode{X} to be executed separately (6 tasks) vs chunked.
+
+<<errors_6tasksA_stopOnError>>=
+X <- list(1, 2, "3", 4, 5, 6)
+param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
+@
+
+The output list contains results for tasks 1 and 2 and an error for task 3.
+Tasks 4, 5, and 6 are not attempted.
+
+<<errors_6tasksB_stopOnError>>=
+bplapply(X, sqrt, BPPARAM = param)
+@
+
+Next we look at an example where the elements of \Rcode{X} are grouped instead
+of run separately. The default value for \Rcode{tasks} is 0 which means 'X' is
+split as evenly as possible across the number of workers. There are 3
+workers so the first task consists of list(1, 2), the second is list("3", 4) 
+and the third is list(5, 6). 
+
+<<errors_3tasksA_stopOnError>>=
+X <- list(1, 2, "3", 4, 5, 6)
+param <- SnowParam(3, stop.on.error = TRUE)
+@
+
+To simulate a longer running computation sleep time is added to 'FUN'. The
+sleep forces task 2 to finish before task 3.
+
+<<errors_3tasks_fun_stopOnError>>=
+FUN <- function(i) { Sys.sleep(i); sqrt(i) }
+@
+
+The output shows an error in task 2 (vs 3 in the previous example) and a result
+for '4' is included because it was part of the second task.
+
+<<errors_3tasksB_stopOnError>>=
+bplapply(X, FUN, BPPARAM = param)
+@
+
+Side Note: Results are collected from workers as they finish which is not
+necessarily the same order in which they were loaded.  Depending on how tasks
+are divided among workers it is possible that the task with an error completes
+after all others. In that situation the output will includes all results along
+with the error message and it may appear that \Rcode{stop.on.error} is not
+doing much good. This is simply a heads up that the usefulness of
+\Rcode{stop.on.error} may vary with run time and distribution of tasks over
+workers.
+
+\subsection{Identify failures with \Rcode{bpok}}
+
+The \Rcode{bpok()} function is a quick way to determine which (if any)
+tasks failed. In this example the second element fails.
+
+<<errors_bpok_bplapply>>=
+res <- bplapply(list(1, "2", 3), sqrt)
 res
 @
 
-\Rcode{bpok()} returns TRUE if the tasks was successful.
+\Rcode{bpok} returns TRUE if the task was successful.
 
 <<errors_bpok>>=
 bpok(res)
 @
 
-When \Rcode{catch.errors = FALSE} only the error message is returned. This
-is the default behavior of clusters created with the \CRANpkg{snow} and 
-\CRANpkg{parallel} packages.
+Once errors are identified with \Rcode{bpok} the traceback can be retrieved
+with the \Rcode{attr} function. This is possible because errors are returned
+as \Rcode{condition} objects with the traceback as an attribute.
 
-\begin{verbatim}
-  > bpcatchErrors(param) <- FALSE 
-  > bplapply(list(1, 2, "3", 4), sqrt, BPPARAM = param)
-  Error in checkForRemoteErrors(val) : 
-    one node produced an error: non-numeric argument to mathematical function
-\end{verbatim}
-
-\subsection{Stopping early}
-
-\Rcode{stop.on.error} forces the job to return when an error is hit. Output
-contains both the error message and results completed before the error was hit.
-
-In this example the \Rcode{tasks} field is set equal to the length of 'X'. This
-forces each element of 'X' to be executed separately (vs grouped) and more
-clearly demonstrates the behavior of \Rcode{stop.on.error}.  Results for task 1
-and 2 are returned along with the error message for task 3; tasks 4, 5 and 6
-are not executed.
-
-<<errors_4tasks_stopOnError>>=
-X <- list(1, 2, "3", 4, 5, 6)
-param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
-bplapply(X, sqrt, BPPARAM = param)
+<<errors_traceback>>=
+fail <- !bpok(res)
+tail(attr(res[[2]], "traceback"))
 @
 
-The default value for \Rcode{tasks} is 0 which means 'X' is split evenly as
-possible across the number of workers. In this example with 3 workers, the
-first task consists of list(1, 2), the second is list("3", 4) and the third is
-list(5, 6).  There are two things to note: the warning message reports an error
-in task 2 (not 3 as in previous example) and a result for '4' is included
-because it was part of the second task.
+\subsection{Rerun failed tasks with \Rcode{BPREDO}}
 
-<<errors_2tasks_stopOnError>>=
-X <- list(1, 2, "3", 4, 5, 6)
-FUN <- function(i) { Sys.sleep(i); sqrt(i) } ## sleep to enforce order
-param <- SnowParam(3, stop.on.error = TRUE)
-bplapply(X, FUN, BPPARAM = param)
+Tasks can fail due to hardware problems or bugs in the input data.  The
+\BiocParallel{} functions support a \Rcode{BPREDO} (re-do) argument for
+recomputing only the tasks that failed. A list of partial results and errors is
+supplied to \Rcode{BPREDO} in a second call to the function. The failed
+elements are identified, recomputed and inserted into the original results.
+
+The bug in this example is the second element of 'X' which is a character when
+it should be numeric.
+
+<<errors_BPREDO>>=
+X <- list(1, "2", 3)
+res <- bplapply(X, sqrt)
+res
 @
 
-Sleep time was added to 'FUN' to simulate a longer running computation and
-force task 2 to finish before task 3.  Results are collected from workers as
-they finish which is not necessarily the same order in which they were loaded.
-Depending on how tasks are divided among workers it is possible that the task
-with an error completes after all others. In that situation the output will
-includes all results along with the error message and it may appear that
-\Rcode{stop.on.error} is not doing much good. This is simply a heads up that
-the usefulness of \Rcode{stop.on.error} may vary with run time and 
-distribution of tasks over workers.
+First fix the input data.
+
+<<errors_BPREDO_input>>=
+X.redo <- list(1, 2, 3)
+@
+
+Repeat the call to \Rcode{bplapply} this time supplying the partial results
+as \Rcode{BPREDO}.
+
+<<errors_BPREDO_recall>>=
+bplapply(X.redo, sqrt, BPREDO = res)
+@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -184,14 +204,24 @@ distribution of tasks over workers.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+NOTE: Logging as described in this section is supported for SnowParam,
+MulticoreParam and SerialParam.
+
 \subsection{Parameters}
 
-Logging is controlled by three fields in the \Rcode{BiocParallelParam}:
-\Rcode{log}, \Rcode{threshold} and \Rcode{logdir}. When \Rcode{log = TRUE} the 
-\CRANpkg{futile.logger} package is loaded on each worker.
+Logging in \BiocParallel{} is controlled by 3 fields in the 
+\Rcode{BiocParallelParam}:
 
-Values are set when the param is constructed or modified with the 
-accessors \Rcode{bplog} and \Rcode{bpthreshold}.
+\begin{verbatim}
+  log:       TRUE or FALSE
+  logdir:    location to write log file
+  threshold: one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
+\end{verbatim}
+
+When \Rcode{log = TRUE} the \CRANpkg{futile.logger} package is loaded on 
+each worker. \BiocParallel{} uses a custom script on the workers to
+collect log messages as well as additional statistics such as gc, runtime 
+and node information.
 
 By default \Rcode{log} is FALSE and \Rcode{threshold} is {\it INFO}.
 
@@ -211,11 +241,10 @@ param
 \subsection{Setting a threshold}
 
 All thresholds defined in \CRANpkg{futile.logger} are all supported: {\it
-FATAL}, {\it ERROR}, {\it WARN}, {\it INFO}, {\it DEBUG} and {\it TRACE}.
-All messages greater than or equal to the severity of the threshold are 
-shown. For example, a threshold of {\it INFO} will
-print all messages tagged as {\it FATAL}, {\it ERROR}, {\it WARN} and {\it
-INFO}.
+FATAL}, {\it ERROR}, {\it WARN}, {\it INFO}, {\it DEBUG} and {\it TRACE}.  All
+messages greater than or equal to the severity of the threshold are shown. For
+example, a threshold of {\it INFO} will print all messages tagged as {\it
+FATAL}, {\it ERROR}, {\it WARN} and {\it INFO}.
 
 In this code chunk an {\it INFO}-level message is emitted when 
 \CRANpkg{futile.logger} is loaded on the workers and a {\it ERROR}-level
@@ -326,7 +355,7 @@ of error handling and logging techniques.  In general, when debugging
 by adding debug messages to the worker function. When trouble shooting
 unexpected behavior (i.e., not a formal error or warning) adding debug messages
 or switching to \Rcode{SerialParam} are good approaches. Below is an overview
-of these different strategies as applied in \BiocParallel{}. 
+of these different strategies. 
 
 \subsection{Accessing the traceback}
 
@@ -350,6 +379,12 @@ Calling ``fun1'' with a character throws an error:
 <<errors_bplapply>>=
 res <- bplapply(list(c(1,3), 5, "6"), fun1)
 res
+@
+
+Identify which elements failed with \Rcode{bpok}:
+
+<<errors_bpok_fun1>>=
+bpok(res)
 @
 
 The error (i.e., third element of ``res'') is a \Rcode{condition} object:
@@ -415,13 +450,58 @@ res
 ``fun2'' can be fixed by using \Rcode{seq\_along(v)} to create the index
 instead of \Rcode{1:length(v)}.
 
-\subsection{\Rcode{SerialParam}}
+\subsection{Local debugging with \Rcode{SerialParam}}
 
-Another option for troubleshooting parallel code is to use \Rcode{SerialParam}.
-This param removes the ``parallel'' component and is the same as running a
-straight \Rcode{*apply} function. The function is run in the workspace instead
-of on a worker which enables the interactive use of \Rcode{debug} and
-\Rcode{browser}.
+Errors that occur on parallel workers can be difficult to debug. Often the
+traceback sent back from the workers is too much to parse or not informative. 
+We are also limited in that our interactive strategies of
+\Rcode{browser} and \Rcode{trace} are not available.
+
+One option for further debugging is to run the code in serial with \Rcode{SerialParam}.
+This removes the ``parallel'' component and is the same as running a
+straight \Rcode{*apply} function. This approach may not help if the problem
+was hardware related but can be very useful when the bug is in the \R{} code.
+
+We use the now familiar square root example with a bug in the second element
+of \Rcode{X}.
+
+<<debug_sqrt>>=
+res <- bplapply(list(1, "2", 3), sqrt, BPPARAM = SnowParam(3))
+res
+@
+
+\Rcode{sqrt} is an internal function. The problem is likely with our data
+going into the function and not the \Rcode{sqrt} function itself. We can
+write a small wrapper around \Rcode{sqrt} so we can see the input.
+
+<<debug_sqrt_wrap>>=
+fun3 <- function(i) sqrt(i)
+@
+
+Debug the new function:
+
+<<debug_sqrt_debug>>=
+debug(fun3)
+@
+
+We want to recompute only elements that failed and for that we use
+\Rcode{BPREDO}. The BPPARAM has been changed to \Rcode{SerialParam} so
+the job is run locally (in the workspace) and in serial.
+
+\begin{verbatim}
+> bplapply(list(1, "2", 3), fun3, BPREDO = res, BPPARAM = SerialParam())
+Resuming previous calculation ... 
+debugging in: FUN(...)
+debug: sqrt(i)
+Browse[2]> objects()
+[1] "i"
+Browse[2]> i
+[1] "2"
+Browse[2]> 
+\end{verbatim}
+
+The local browsing allowed us to see the problematic input which was the
+character "2".
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -29,6 +29,8 @@
 SerialParam <- function(catch.errors=TRUE, stop.on.error=FALSE, 
                         log=FALSE, threshold="INFO")
 {
+    if (!catch.errors)
+        warning("'catch.errors' has been deprecated")
     x <- .SerialParam(workers=1L, 
                       catch.errors=catch.errors, stop.on.error=stop.on.error,
                       log=log, threshold=.THRESHOLD(threshold)) 
@@ -96,7 +98,7 @@ setMethod(bplapply, c("ANY", "SerialParam"),
 
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else if (bpcatchErrors(BPPARAM))
+    else
         FUN <- .composeTry(FUN, FALSE)
 
     res <- lapply(X, FUN, ...)
@@ -146,7 +148,7 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
     FUN <- match.fun(FUN)
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else if (bpcatchErrors(BPPARAM))
+    else
         FUN <- .composeTry(FUN, FALSE)
 
     .bpiterate_serial(ITER, FUN, ...)
