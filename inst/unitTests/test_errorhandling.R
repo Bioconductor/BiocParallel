@@ -1,7 +1,7 @@
-## Test 'stop.on.error' and catching errors. See test_logging.R
-## for tests with 'log' and 'progressbar'.
+## NOTE: On Windows, MulticoreParam() throws a warning and instantiates
+##       a single FORK worker using scripts from parallel. No logging or 
+##       error catching is implemented.
 
-# FIXME we need the windows workaround
 library(doParallel)
 registerDoParallel()
 
@@ -21,9 +21,10 @@ test_catching_errors <- function()
     params <- list(
         serial=SerialParam(),
         snow=SnowParam(),
-        mc=MulticoreParam(),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     for (param in params) {
         res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
@@ -45,9 +46,10 @@ test_BPREDO <- function()
     params <- list(
         serial=SerialParam(),
         snow=SnowParam(),
-        mc=MulticoreParam(),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     for (param in params) {
         res <- bpmapply(f, x, BPPARAM=param, SIMPLIFY=TRUE)
