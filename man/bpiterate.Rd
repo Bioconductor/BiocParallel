@@ -112,7 +112,7 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 }
 
 \examples{
-
+\dontrun{
 if (all(require(Rsamtools) && 
         require(RNAseqData.HNRNPC.bam.chr14) &&
         require(GenomicAlignments) &&
@@ -159,7 +159,6 @@ if (all(require(Rsamtools) &&
   bpparam <- MulticoreParam(workers = 3) 
   bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
 
-  closeAllConnections() ## for R CMD check
   ## Reinitialize the iterator and combine on the fly with REDUCE:
   ITER <- bamIterator(bf)
   bpparam <- MulticoreParam(workers = 3) 
@@ -212,6 +211,7 @@ if (all(require(Rsamtools) &&
   bpiterate(ITER, summary, REDUCE = merge, all = TRUE, BPPARAM = bpparam)
 
   }
+}
 }
 
 \keyword{manip}

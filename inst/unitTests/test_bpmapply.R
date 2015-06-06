@@ -1,11 +1,12 @@
 library(doParallel)  # FIXME: unload?
-registerDoParallel()
 quiet <- suppressWarnings
 
-test_bpmapply_Params <- function() {
+test_bpmapply_Params <- function() 
+{
+    registerDoParallel(2)
     params <- list(serial=SerialParam(),
-                   snow=SnowParam(),
-                   mc=MulticoreParam(),
+                   snow=SnowParam(2),
+                   mc=MulticoreParam(2),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam(progressbar=FALSE))
 
@@ -59,6 +60,7 @@ test_bpmapply_Params <- function() {
 
 test_bpmapply_symbols <- function()
 {
+    registerDoParallel(2)
     params <- list(serial=SerialParam(),
                   snow=SnowParam(2),
                   dopar=DoparParam())

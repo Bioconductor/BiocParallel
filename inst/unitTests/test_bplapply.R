@@ -1,12 +1,12 @@
 library(doParallel)  ## FIXME: unload?
-registerDoParallel()
 quiet <- suppressWarnings
 
 test_bplapply_Params <- function()
 {
+    registerDoParallel(2)
     params <- list(serial=SerialParam(),
-                   snow=SnowParam(),
-                   mc=MulticoreParam(),
+                   snow=SnowParam(2),
+                   mc=MulticoreParam(2),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam())
 
@@ -29,8 +29,9 @@ test_bplapply_Params <- function()
 
 test_bplapply_symbols <- function()
 {
+    registerDoParallel(2)
     params <- list(serial=SerialParam(),
-                   snow=SnowParam(),
+                   snow=SnowParam(2),
                    dopar=DoparParam())
                   # batchjobs=BatchJobsParam()) ## FIXME
     if (.Platform$OS.type != "windows")
