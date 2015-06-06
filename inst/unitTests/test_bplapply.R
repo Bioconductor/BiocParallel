@@ -30,10 +30,11 @@ test_bplapply_Params <- function()
 test_bplapply_symbols <- function()
 {
     params <- list(serial=SerialParam(),
-                   mc=MulticoreParam(),
                    snow=SnowParam(),
                    dopar=DoparParam())
                   # batchjobs=BatchJobsParam()) ## FIXME
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     x <- list(as.symbol(".XYZ"))
     expected <- lapply(x, as.character)
