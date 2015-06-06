@@ -61,8 +61,9 @@ test_bpmapply_symbols <- function()
 {
     params <- list(serial=SerialParam(),
                   snow=SnowParam(2),
-                  multi=MulticoreParam(2),
                   dopar=DoparParam())
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     x <- list(as.symbol(".XYZ"))
     expected <- mapply(as.character, x)
