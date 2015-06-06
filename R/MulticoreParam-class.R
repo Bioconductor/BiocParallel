@@ -29,9 +29,11 @@ MulticoreParam <- function(workers=multicoreWorkers(),
         threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, ...)
 {
-    if (.Platform$OS.type == "windows")
+    if (.Platform$OS.type == "windows") {
         warning(paste0("MulticoreParam not supported on Windows. ",
                        "Using serial evaluation."))
+        return(SerialParam())
+    }
 
     .MulticoreParam(workers=as.integer(workers), 
         tasks=as.integer(tasks), catch.errors=catch.errors, 
