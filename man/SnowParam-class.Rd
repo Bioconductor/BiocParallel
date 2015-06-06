@@ -241,15 +241,6 @@ snowWorkers()
   \item{\dots}{
     Additional arguments passed to \code{\link[snow]{makeCluster}}
   }
-  \item{from}{
-    A \code{SOCKcluster} or \code{spawnedMPIcluster} instance created
-    with \code{makeCluster} in the \code{parallel} or \code{snow} package.
-    Applicable to \code{coerce} methods only.
-  } 
-  \item{to}{
-    \code{character(1)} \dQuote{SnowParam}. Applicable to \code{coerce}
-    methods only.
-  }
 
 }
 
