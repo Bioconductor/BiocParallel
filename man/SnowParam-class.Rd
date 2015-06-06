@@ -74,8 +74,8 @@ SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
 ## coercion 
 ## ------------------------------------
 
-\S4method{coerce}{SOCKcluster,SnowParam}(from, to)
-\S4method{coerce}{spawnedMPIcluster,SnowParam}(from, to)
+## as(SOCKcluster, SnowParam)
+## as(spawnedMPIcluster,SnowParam)
 
 ## detect workers 
 ## ------------------------------------
