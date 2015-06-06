@@ -15,6 +15,7 @@ library(doParallel)                     # FIXME: unload?
 
 test_bpvec_Params <- function()
 {
+    registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    mc=MulticoreParam(2),
                    snow=SnowParam(2),
