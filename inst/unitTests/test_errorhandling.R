@@ -3,7 +3,6 @@
 ##       error catching is implemented.
 
 library(doParallel)
-registerDoParallel()
 
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 {
@@ -18,9 +17,10 @@ test_catching_errors <- function()
     y <- rev(x)
     f <- function(x, y) if (x > y) stop("whooops") else x + y
 
+    registerDoParallel(2)
     params <- list(
         serial=SerialParam(),
-        snow=SnowParam(),
+        snow=SnowParam(2),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))
     if (.Platform$OS.type != "windows")
@@ -43,9 +43,10 @@ test_BPREDO <- function()
     x = list(1, "2", 3) 
     x.fix = list(1, 2, 3) 
 
+    registerDoParallel(2)
     params <- list(
         serial=SerialParam(),
-        snow=SnowParam(),
+        snow=SnowParam(2),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))
     if (.Platform$OS.type != "windows")
