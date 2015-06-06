@@ -8,7 +8,7 @@ registerDoParallel()
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 {
     x <- try(eval(expr), silent=TRUE)
-    checkTrue(inherits(x, "try-error"), msg=msg)
+    checkTrue(inherits(x, "condition"), msg=msg)
     checkTrue(xor(negate, grepl(txt, as.character(x), fixed=TRUE)), msg=msg)
 }
 
