@@ -112,7 +112,7 @@ multicoreWorkers()
       
       Random number generation is controlled through the param argument,
       \code{RNGseed} which is passed to parallel::clusterSetRNGStream.
-      \code{clusterSetRNGStream} uses the ‘"L'Ecuyer-CMRG"’ random number
+      \code{clusterSetRNGStream} uses the L'Ecuyer-CMRG random number
       generator and distributes streams to the members of a cluster. If
       \code{RNGseed} is not NULL it serves as the seed to the streams,
       otherwise the streams are set from the current seed of the master process
