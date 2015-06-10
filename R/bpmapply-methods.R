@@ -44,8 +44,11 @@ setMethod(bpmapply, c("ANY", "list"),
         stop("'length(BPPARAM)' must be > 0")
 
     myFUN <- 
-        if (length(BPPARAM) > 1L)
-            function(...) FUN(..., BPPARAM=BPPARAM[-1L])
-        else FUN
+        if (length(BPPARAM) > 1L) {
+          if (length(param <- BPPARAM[-1]) == 1L)
+            function(...) FUN(..., BPPARAM=param[[1]])
+          else
+            function(...) FUN(..., BPPARAM=param)
+        } else FUN
     bpmapply(myFUN, ..., BPPARAM=BPPARAM[[1L]])
 })
