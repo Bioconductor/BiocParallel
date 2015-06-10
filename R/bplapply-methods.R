@@ -21,8 +21,7 @@ setMethod(bplapply, c("ANY", "list"),
     if (length(BPPARAM) == 0L)
         stop("'length(BPPARAM)' must be > 0")
 
-    myFUN <- 
-        if (length(BPPARAM) > 1L) {
+    myFUN <- if (length(BPPARAM) > 1L) {
           if (length(param <- BPPARAM[-1]) == 1L)
             function(...) FUN(..., BPPARAM=param[[1]])
           else
