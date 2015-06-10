@@ -414,6 +414,14 @@ bpok(res)
 ## -----------------------------------------------------------------------
 ## Random number generation:
 ## -----------------------------------------------------------------------
+
+## Random number generation is controlled with the 'RNGseed' field. 
+## This seed is passed to parallel::clusterSetRNGStream
+## which uses the L'Ecuyer-CMRG random number generator and distributes
+## streams to members of the cluster. If 'RNGseed' is not set (default NULL)
+## streams are set from the current seed of the master process after
+## selecting the L'Ecuyer-CMRG generator.
+
 bpparam <- MulticoreParam(3, RNGseed = 7739465)
 bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
 
