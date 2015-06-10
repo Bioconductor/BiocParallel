@@ -474,8 +474,37 @@ res
 bpok(res)
 
 ## -----------------------------------------------------------------------
+## Nested parallel evaluation:
+## -----------------------------------------------------------------------
+
+## Currently implemented for bplapply and bpmapply only.
+
+## Multiple levels of parallel evaluation can be invoked by using a
+## list of BPPARAMs. bplapply uses the param off the top of the list
+## and passes the remainder of the list to the next function call.
+
+## The function to be run on the fist level of workers should have
+## 'BPPARAM' as an argument.
+fun <- function(i, BPPARAM) {
+  library(BiocParallel)
+  sum(unlist(bplapply(1:5, I, BPPARAM=BPPARAM)))
+}
+
+## This bplapply is run on the SnowParam workers while the bplapply
+## inside 'fun' is run on MulticoreParam workers.
+bplapply(1:2, fun, BPPARAM = list(SnowParam(2), MulticoreParam(2)))
+
+## -----------------------------------------------------------------------
 ## Random number generation:
 ## -----------------------------------------------------------------------
+
+## Random number generation is controlled with the 'RNGseed' field. 
+## This seed is passed to parallel::clusterSetRNGStream
+## which uses the L'Ecuyer-CMRG random number generator and distributes
+## streams to members of the cluster. If 'RNGseed' is not set (default NULL)
+## streams are set from the current seed of the master process after
+## selecting the L'Ecuyer-CMRG generator.
+
 bpparam <- SnowParam(3, RNGseed = 7739465)
 bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
 
