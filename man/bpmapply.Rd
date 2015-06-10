@@ -86,12 +86,20 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 \examples{
 showMethods("bpmapply")
 
-## ten tasks (1:10) so ten calls to FUN default registered parallel
-## back-end. Compare with bpvec.
-result <- bpmapply(function(greet, who) {
+fun <- function(greet, who) {
     paste(Sys.getpid(), greet, who)
-}, c("morning", "night"), c("sun", "moon"))
+}
+greet <- c("morning", "night")
+who <- c("sun", "moon")
+
+result <- bpmapply(fun, greet, who, BPPARAM = MulticoreParam(2))
 cat(paste(result, collapse="\n"), "\n")
 }
 
 \keyword{manip}
+
+
+
+
+
+
