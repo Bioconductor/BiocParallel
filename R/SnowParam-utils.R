@@ -124,14 +124,20 @@ bprunMPIslave <- function() {
     flog.info("loading futile.logger on workers")
     cl <- bpbackend(BPPARAM)
     clusterExport(cl, c(buffer=NULL))  ## global assignment
-    parallel::clusterApply(cl, seq_along(cl), 
-        function(i, level) {
+
+    .bufferload <- function(i, level) {
+        tryCatch({
             attachNamespace("futile.logger")
             flog.threshold(level)
             fun <- function(line)
                 buffer <<- c(buffer, line)
             flog.appender(fun, 'ROOT')
-        }, level=level)
+        }, error = function(e) e
+        )
+    }
+    ok <- clusterApply(cl, seq_along(cl), .bufferload, level=level)
+    if (any(sapply(ok, function(j) !is.null(j))))
+        stop("problem loading futile.logger on workers")
 }
 
 .bpwriteLog <- function(con, d) {
@@ -156,6 +162,8 @@ bprunMPIslave <- function() {
         print(value$gc)
         message("Log messages:")
         message(value$log)
+        message("stderr:")
+        message("stdout:")
     }
 }
 
@@ -163,7 +171,6 @@ bprunMPIslave <- function() {
     BatchJobs:::checkDir(logdir)
     file(paste0(logdir, "/BPLOG.out"), open="w")
 }
-
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### bpdynamicClusterApply() and bpdynamicClusterIterate()
@@ -212,9 +219,9 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             if (bplog(BPPARAM))
                 .bpwriteLog(con, d)
             ## stop on error
-            ## FIXME: kill other workers
             if (bpstopOnError(BPPARAM) && !d$value$success) {
                 warning(paste0("error in task ", d$value$tag))
+                bpstop(cl)
                 return(val)
             }
             j <- i + min(n, p)
@@ -307,8 +314,8 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
             if (i == 1) {
                 warning("first invocation of 'ITER()' returned NULL")
                 return(list())
-            ## FIXME: close unused workers
             } else {
+                bpstop(cl)
                 break
             }
         } else {
@@ -328,6 +335,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         ## stop on error
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             warning(paste0("error in task ", njob))
+            bpstop(cl)
             return(ss$val)
         }
 
