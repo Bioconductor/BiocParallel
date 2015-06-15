@@ -224,7 +224,7 @@ setMethod(bpstop, "SnowParam",
     if (!.controlled(x))
         stop("'bpstop' not available; instance from outside BiocParallel?")
     if (!bpisup(x))
-        stop("cluster already stopped")
+        return(x)
 
     tryCatch(stopCluster(bpbackend(x)), 
         error=function(err) {
