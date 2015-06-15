@@ -397,13 +397,13 @@ list.files(bpresultdir(bpparam))
 ## Error handling:
 ## -----------------------------------------------------------------------
 
-## When 'stop.on.error' is TRUE, the process returns as soon as an error 
+## When 'stop.on.error' is TRUE the process returns as soon as an error 
 ## is thrown. 
 bpparam <- MulticoreParam(2, stop.on.error = TRUE)
 bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 
-## When 'stop.on.error' is FALSE, all computations are attempted and
-## partial results are returned with any errors.
+## When 'stop.on.error' is FALSE all computations are attempted. Partial
+## results are returned along with errors.
 bpparam <- MulticoreParam(2, stop.on.error = FALSE)
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 res
