@@ -14,7 +14,7 @@ bpslaveLoop <- function(master)
 {
     repeat
         tryCatch({
-            msg <- recvData(master)
+            msg <- parallel:::recvData(master)
             buffer <<- NULL  ## futile.logger buffer
             success <<- TRUE ## modified in .try() and .try_log() 
 
@@ -30,7 +30,7 @@ bpslaveLoop <- function(master)
                 value <- list(type = "VALUE", value = value, success = success,
                               time = t2 - t1, tag = msg$data$tag, log = buffer,
                               gc = gc(), node = node)
-                sendData(master, value)
+                parallel:::sendData(master, value)
             }
         }, interrupt = function(e) NULL)
 }
@@ -135,7 +135,7 @@ bprunMPIslave <- function() {
         }, error = function(e) e
         )
     }
-    ok <- clusterApply(cl, seq_along(cl), .bufferload, level=level)
+    ok <- parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
     if (any(sapply(ok, function(j) !is.null(j))))
         stop("problem loading futile.logger on workers")
 }
@@ -199,7 +199,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
         })
     } else con <- NULL
 
-    snow::checkCluster(cl)
+    parallel:::checkCluster(cl)
     p <- length(cl)
     val <- vector("list", n)
     if (n > 0 && p > 0) {
@@ -298,7 +298,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         })
     } else con <- NULL
 
-    snow::checkCluster(cl)
+    parallel:::checkCluster(cl)
     p <- length(cl)
 
     ## initialize
