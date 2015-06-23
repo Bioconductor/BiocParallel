@@ -183,27 +183,26 @@ snowWorkers()
 
 \arguments{
 
-  \item{workers}{
-    \code{integer(1)} Number of workers. Defaults to all cores available as
-    determined by \code{detectCores}. For a \code{SOCK} cluster \code{workers}
-    can be a \code{character()} vector of host names.
-  }
   \item{type}{
     \code{character(1)} Type of cluster to use. Possible values are
     \code{SOCK} (default) and \code{MPI}. Instead of \code{type=FORK} use
     \code{MulticoreParam}.
   }
+  \item{workers}{
+    \code{integer(1)} Number of workers. Defaults to all cores available as
+    determined by \code{detectCores}. For a \code{SOCK} cluster \code{workers}
+    can be a \code{character()} vector of host names.
+  }
   \item{tasks}{
     \code{integer(1)}. The number of tasks per job. \code{value} must be a 
     scalar integer >= 0L.
  
-    In this documentation a job is defined as a single call to a function,
-    \code{bplapply}, \code{bpmapply} etc. A task is the division of the \code{X}
-    argument into chunks. When \code{tasks == 0} (default), \code{X} is divided
-    by the number of workers. This approach distributes \code{X} in
-    (approximately) equal chunks.
- 
-    A \code{tasks} value of > 0 dictates the total number of tasks. Values
+    In this documentation a job is defined as a single call to a function, such
+    as \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+    \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
+    is divided as evenly as possible over the number of workers.
+    
+    A \code{tasks} value of > 0 specifies the exact number of tasks. Values
     can range from 1 (all of \code{X} to a single worker) to the length of 
     \code{X} (each element of \code{X} to a different worker). 
  
@@ -221,8 +220,9 @@ snowWorkers()
     \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
   }
   \item{RNGseed}{
-    \code{integer(1)} Seed for random number generation. Value is passed 
-    to parallel::clusterSetRNGStream.
+    \code{integer(1)} Seed for random number generation. When not \code{NULL},
+    this value is passed to parallel::clusterSetRNGStream to generate
+    random number streams on each worker.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
@@ -480,9 +480,7 @@ bpok(res)
 ## Random number generation is controlled with the 'RNGseed' field. 
 ## This seed is passed to parallel::clusterSetRNGStream
 ## which uses the L'Ecuyer-CMRG random number generator and distributes
-## streams to members of the cluster. If 'RNGseed' is not set (default NULL)
-## streams are set from the current seed of the master process after
-## selecting the L'Ecuyer-CMRG generator.
+## streams to members of the cluster.
 
 bpparam <- SnowParam(3, RNGseed = 7739465)
 bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)

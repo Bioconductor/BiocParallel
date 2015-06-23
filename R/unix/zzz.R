@@ -36,12 +36,12 @@ setLoadActions(.registerDefaultParams = function(nmspc) {
         ## these fail under complex conditions, e.g., loading a data
         ## set with a class defined in a package that imports
         ## BiocParallel
-        register(getOption("SerialParam", SerialParam()))
-        register(getOption("SnowParam", SnowParam()))
-        register(getOption("MulticoreParam", MulticoreParam()))
+        register(getOption("MulticoreParam", MulticoreParam()), TRUE)
+        register(getOption("SnowParam", SnowParam()), FALSE)
+        register(getOption("SerialParam", SerialParam()), FALSE)
     }, error=function(err) {
-        message("'BiocParallel' did not register default BiocParallelParams:\n  ",
-                conditionMessage(err))
+        message("'BiocParallel' did not register default ",
+                "BiocParallelParams:\n  ", conditionMessage(err))
         NULL
     })
 })
