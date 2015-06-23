@@ -3,10 +3,11 @@
 ### -------------------------------------------------------------------------
 
 multicoreWorkers <- function() {
-    cores <- if (.Platform$OS.type == "windows")
-        1
-    else
-        min(8L, parallel::detectCores())
+    cores <- 
+        if (.Platform$OS.type == "windows")
+            1
+        else
+            min(8L, parallel::detectCores())
     getOption("mc.cores", cores)
 }
 
@@ -32,13 +33,16 @@ MulticoreParam <- function(workers=multicoreWorkers(),
     if (.Platform$OS.type == "windows")
         warning(paste0("MulticoreParam not supported on Windows. ",
                        "Use SnowParam instead."))
+    if (!catch.errors)
+        warning("'catch.errors' has been deprecated")
 
-    .MulticoreParam(workers=as.integer(workers), 
+    args <- c(list(spec=workers, type="FORK"), list(...)) 
+    .MulticoreParam(.clusterargs=args, cluster=.NULLcluster(),
+        .controlled=TRUE, workers=as.integer(workers), 
         tasks=as.integer(tasks), catch.errors=catch.errors, 
         stop.on.error=stop.on.error, progressbar=progressbar, 
         RNGseed=RNGseed, log=log, threshold=.THRESHOLD(threshold), 
-        logdir=logdir, resultdir=resultdir,
-        .clusterargs=list(spec=as.integer(workers), type="FORK"), ...)
+        logdir=logdir, resultdir=resultdir)
 }
 
 setValidity("MulticoreParam",
@@ -70,9 +74,12 @@ setValidity("MulticoreParam",
 setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
     function(x, ..., value)
 {
+    value <- as.integer(value)
     if (value > multicoreWorkers())
         stop("'value' exceeds available workers detected by multicoreWorkers()")
-    x$tasks <- as.integer(value)
+ 
+    x$workers <- value 
+    x$.clusterargs$spec <- value 
     x 
 })
 
