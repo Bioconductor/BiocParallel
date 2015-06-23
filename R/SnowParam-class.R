@@ -40,7 +40,8 @@ setOldClass(c("NULLcluster", "cluster"))
         logdir="character",
         resultdir="character"),
     methods=list(
-        initialize = function(..., 
+        initialize = function(...,
+            .clusterargs=list(spec=0, type="SOCK"),
             .controlled=TRUE,
             RNGseed=NULL,
             log=FALSE,
@@ -48,7 +49,8 @@ setOldClass(c("NULLcluster", "cluster"))
             logdir=NA_character_,
             resultdir=NA_character_)
         { 
-            initFields(.controlled=.controlled, RNGseed=RNGseed,
+            initFields(.clusterargs=.clusterargs, .controlled=.controlled, 
+                       RNGseed=RNGseed,
                        log=log, threshold=threshold, 
                        logdir=logdir, resultdir=resultdir)
             callSuper(...)
@@ -84,11 +86,7 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
         stop("'workers' must be integer(1) when 'type' is MPI or FORK") 
 
     args <- c(list(spec=workers, type=type), list(...)) 
-    # FIXME I don't think this is required, lists always inflict a copy
-    .clusterargs <- lapply(args, force)
-    cluster <- .NULLcluster()
- 
-    x <- .SnowParam(.clusterargs=.clusterargs, cluster=cluster, 
+    x <- .SnowParam(.clusterargs=args, cluster=.NULLcluster(), 
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
                     progressbar=progressbar, RNGseed=RNGseed, log=log, 
@@ -104,6 +102,15 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
 
 .valid.SnowParam.log <- function(object) {
     msg <- NULL
+
+    threshold <- bpthreshold(object)
+    if (length(threshold) != 1L) 
+        msg <- c(msg, "'bpthreshold(BPPARAM)' must be character(1)")
+
+    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+    if (!names(threshold) %in% nms)
+        msg <- c(msg, "'bpthreshold(BPPARAM)' must be one of ", 
+                 paste(sQuote(nms), collapse=", "))
 
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
@@ -134,15 +141,9 @@ setValidity("SnowParam", function(object)
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
 
     if (.controlled(object)) {
-        threshold <- bpthreshold(object)
-        if (length(threshold) != 1L) 
-            return(c(msg, "'bpthreshold(BPPARAM)' must be character(1)"))
-
-        nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-        if (!names(threshold) %in% nms) {
-            return(c(msg, paste0("'bpthreshold(BPPARAM)' must be one of ", 
-                   paste(sQuote(nms), collapse=", "))))
-        }
+        if (bpworkers(object) != object$.clusterargs$spec)
+            msg <- c(msg, 
+                "'bpworkers(BPPARAM)' must equal BPPARAM$.clusterargs$spec")
         msg <- c(msg, 
                  .valid.SnowParam.log(object),
                  .valid.SnowParam.result(object))
@@ -155,15 +156,6 @@ setValidity("SnowParam", function(object)
 ### Methods - control
 ###
 
-setMethod(bpworkers, "SnowParam",
-    function(x, ...)
-{
-    if (bpisup(x))
-        length(bpbackend(x))
-    else
-        x$workers
-})
-
 setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     function(x, ..., value)
 {
@@ -171,17 +163,8 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     if (value > snowWorkers())
         stop("'value' exceeds available workers detected by snowWorkers()")
  
-    x$tasks <- value 
-    x 
-})
-
-setReplaceMethod("bpworkers", c("SnowParam", "character"),
-    function(x, ..., value)
-{
-    if (length(value) > snowWorkers())
-        stop("'value' exceeds available workers detected by snowWorkers()")
- 
-    x$tasks <- value 
+    x$workers <- value 
+    x$.clusterargs$spec <- value 
     x 
 })
 
@@ -200,21 +183,32 @@ setMethod(bpstart, "SnowParam",
                 "SnowParam class objects require the 'parallel' package")
         })
     }
-    if (lenX > 0)
-        x$.clusterargs$spec <- min(bpworkers(x), lenX) 
-    ## worker script in BiocParallel 
+    ## 'X' has been split into tasks
+    ## start the minimum no. of workers.
+    if (lenX > 0) {
+        cargs <- x$.clusterargs
+        cargs$spec <- min(bpworkers(x), lenX)
+    } else stop("cluster not started; no workers specified")
+
+    ## initialize worker script in BiocParallel
     if (x$.clusterargs$type == "FORK") {
         bpbackend(x) <- do.call(.bpmakeForkCluster, 
-                                c(list(nnodes=x$.clusterargs$spec),
-                                  x$.clusterargs))
+                          c(list(nnodes=cargs$spec), cargs))
     } else {
-        x$.clusterargs$useRscript <- FALSE
-        x$.clusterargs$scriptdir <- find.package("BiocParallel")
-        bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+        cargs$useRscript <- FALSE
+        cargs$scriptdir <- find.package("BiocParallel")
+        bpbackend(x) <- do.call(makeCluster, cargs)
     }
     if (bplog(x))
         .initiateLogging(x)
-    clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
+    if (!is.null(bpRNGseed(x))) {
+        tryCatch({
+            clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
+        }, error = function(err) {
+               bpstop(x)
+               stop(conditionMessage(err), ": problem setting RNG stream") 
+        })
+    }
     invisible(x)
 })
 
@@ -301,8 +295,6 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 
     ## split into tasks 
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
-    argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-
     ## start cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
@@ -314,6 +306,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     progress$init(length(X))
     on.exit(progress$term(), TRUE)
 
+    argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM) || bpprogressbar(BPPARAM))
         res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                      length(X), argfun, BPPARAM, progress)
@@ -321,7 +314,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                               length(X), argfun)
     if (!is.null(res)) {
-        res <- do.call(c, res, quote=TRUE)
+        res <- do.call(unlist, list(res, recursive=FALSE))
         names(res) <- nms
     }
 

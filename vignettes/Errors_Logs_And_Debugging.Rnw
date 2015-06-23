@@ -365,7 +365,7 @@ interactive debugging with functions such as \Rcode{trace} or \Rcode{debug}.
 The traceback provides a snapshot of the state of the worker at the time 
 the error was thrown.
 
-This function takes the absolute value of a vector followed by the square root.
+This function takes the square root of the absolute value of a vector.
 
 <<debug_sqrtabs>>=
 fun1 <- function(x) {
@@ -439,7 +439,7 @@ param <- SnowParam(3, log = TRUE, threshold = "DEBUG")
 The debug messages reveal the problem occurs when `x' is \Rcode{numeric()}.
 The index for \Rcode{sapply} is along `v' which in this case has length 0.
 This forces `i' to take values of `1' and `0' giving an output of length 2 for
-a single element (i.e., \Rcode{NA} and \Rcode{numeric(0)}).
+the second element (i.e., \Rcode{NA} and \Rcode{numeric(0)}).
 
 <<debug_DEBUG>>=
 param <- SnowParam(3, log = TRUE, threshold = "DEBUG")

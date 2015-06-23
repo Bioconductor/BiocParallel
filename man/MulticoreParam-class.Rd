@@ -152,13 +152,12 @@ multicoreWorkers()
     \code{integer(1)}. The number of tasks per job. \code{value} must be a 
     scalar integer >= 0L.
  
-    In this documentation a job is defined as a single call to a function,
-    \code{bplapply}, \code{bpmapply} etc. A task is the division of the \code{X}
-    argument into chunks. When \code{tasks == 0} (default), \code{X} is divided
-    by the number of workers. This approach distributes \code{X} in
-    (approximately) equal chunks.
- 
-    A \code{tasks} value of > 0 dictates the total number of tasks. Values
+    In this documentation a job is defined as a single call to a function, such
+    as \code{bplapply}, \code{bpmapply} etc. A task is the division of the
+    \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
+    is divided as evenly as possible over the number of workers.
+    
+    A \code{tasks} value of > 0 specifies the exact number of tasks. Values
     can range from 1 (all of \code{X} to a single worker) to the length of 
     \code{X} (each element of \code{X} to a different worker). 
  
@@ -175,8 +174,9 @@ multicoreWorkers()
     \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
   }
   \item{RNGseed}{
-    \code{integer(1)} Seed for random number generation. Value is passed 
-    to parallel::clusterSetRNGStream.
+    \code{integer(1)} Seed for random number generation. When not \code{NULL},
+    this value is passed to parallel::clusterSetRNGStream to generate
+    random number streams on each worker.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
@@ -398,13 +398,18 @@ list.files(bpresultdir(bpparam))
 ## -----------------------------------------------------------------------
 
 ## When 'stop.on.error' is TRUE the process returns as soon as an error 
-## is thrown. 
-bpparam <- MulticoreParam(2, stop.on.error = TRUE)
+## is thrown. When FALSE, all computations are attempted and partial
+## results are retured along with errors. To more clearly demonstrate
+## the difference in output, the number of 'tasks' is set to equal
+## the length of 'X'. so each element is run separately. (Default behavior
+## is to divide 'X' evenly over workers.)
+
+## Results prior to and including the error:
+bpparam <- MulticoreParam(2, tasks = 4, stop.on.error = TRUE)
 bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 
-## When 'stop.on.error' is FALSE all computations are attempted. Partial
-## results are returned along with errors.
-bpparam <- MulticoreParam(2, stop.on.error = FALSE)
+## All results along with error:
+bpparam <- MulticoreParam(2, tasks = 4, stop.on.error = FALSE)
 res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 res
 
@@ -418,9 +423,7 @@ bpok(res)
 ## Random number generation is controlled with the 'RNGseed' field. 
 ## This seed is passed to parallel::clusterSetRNGStream
 ## which uses the L'Ecuyer-CMRG random number generator and distributes
-## streams to members of the cluster. If 'RNGseed' is not set (default NULL)
-## streams are set from the current seed of the master process after
-## selecting the L'Ecuyer-CMRG generator.
+## streams to members of the cluster.
 
 bpparam <- MulticoreParam(3, RNGseed = 7739465)
 bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
