@@ -41,6 +41,10 @@
 \alias{bpprogressbar,BiocParallelParam-method}
 \alias{bpprogressbar<-}
 \alias{bpprogressbar<-,BiocParallelParam,logical-method}
+\alias{bpjobname}
+\alias{bpjobname,BiocParallelParam-method}
+\alias{bpjobname<-}
+\alias{bpjobname<-,BiocParallelParam,character-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -146,9 +150,14 @@
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
         be retrieved; see \code{showMethods("backend")}.
       }
-      \item{progressbar}{
-        \code{logical(1)} Enable progress bar. Applicable to
-        \code{BatchJobsParam}, \code{SnowParam} and \code{MulticoreParam} only.
+      \item{}{
+        \code{bpprogressbar(x, ...)}, \code{bpprogressbar(x) <- value}: 
+        Get or set the value to enable text progress bar. 
+        \code{value} must be a \code{logical(1)}.
+      }
+      \item{}{
+        \code{bpjobname(x, ...)}, \code{bpjobname(x) <- value}: 
+        Get or set the job name.
       }
     }
   }

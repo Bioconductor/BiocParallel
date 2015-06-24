@@ -15,21 +15,27 @@ bpslaveLoop <- function(master)
     repeat
         tryCatch({
             msg <- parallel:::recvData(master)
-            buffer <<- NULL  ## futile.logger buffer
-            success <<- TRUE ## modified in .try() and .try_log() 
+            buffer <<- NULL   ## futile.logger buffer
+            success <<- TRUE  ## modified in .try_log() 
 
             if (msg$type == "DONE") {
                 closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
+                file <- textConnection("sout", "w", local=TRUE)
+                sink(file, type="message")
+                sink(file, type="output")
                 gc(reset=TRUE)
                 t1 <- proc.time()
                 value <- do.call(msg$data$fun, msg$data$args)
                 t2 <- proc.time()
                 node <- Sys.info()["nodename"]
+                sink(NULL, type="message")
+                sink(NULL, type="output")
+                close(file)
                 value <- list(type = "VALUE", value = value, success = success,
                               time = t2 - t1, tag = msg$data$tag, log = buffer,
-                              gc = gc(), node = node)
+                              gc = gc(), node = node, sout = sout)
                 parallel:::sendData(master, value)
             }
         }, interrupt = function(e) NULL)
@@ -136,40 +142,37 @@ bprunMPIslave <- function() {
         )
     }
     ok <- parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
-    if (any(sapply(ok, function(j) !is.null(j))))
-        stop("problem loading futile.logger on workers")
-}
-
-.bpwriteLog <- function(con, d) {
-    node <- d$node
-    value <- d$value
-    jobid <- d$value$tag
-
-    if (is.null(con)) {
-        if (!is.null(value$log))
-            print(value$log)
-    } else {
-        sink(con, type = "message")
-        sink(con, type = "output")
-        message("############### LOG OUTPUT ###############")
-        message(sprintf("Task: %i", jobid))
-        message(sprintf("Node: %s", node))
-        message(sprintf("Timestamp: %s", Sys.time()))
-        message(sprintf("Success: %s", value$success))
-        message("Task duration: ")
-        print(value$time)
-        message("Memory use (gc): ")
-        print(value$gc)
-        message("Log messages:")
-        message(value$log)
-        message("stderr:")
-        message("stdout:")
+    if (any(sapply(ok, function(j) !is.null(j)))) {
+        bpstop(cl)
+        stop(conditionMessage(ok[[1]]), 
+             "problem loading futile.logger on workers")
     }
 }
 
-.bplogSetUp <- function(logdir) {
-    BatchJobs:::checkDir(logdir)
-    file(paste0(logdir, "/BPLOG.out"), open="w")
+.bpwriteLog <- function(con, d) {
+    .log_internal <- function() {
+        message("############### LOG OUTPUT ###############")
+        message(sprintf("Task: %i", d$value$tag))
+        message(sprintf("Node: %s", d$node))
+        message(sprintf("Timestamp: %s", Sys.time()))
+        message(sprintf("Success: %s", d$value$success))
+        message("Task duration: ")
+        print(d$value$time)
+        message("Memory use (gc): ")
+        print(d$value$gc)
+        message("Log messages:")
+        message(d$value$log)
+        message("stderr and stdout:")
+        print(noquote(d$value$sout))
+    }
+    if (!is.null(con)) {
+        sink(con, type = "message")
+        sink(con, type = "output")
+        .log_internal()    
+        sink(NULL, type = "message")
+        sink(NULL, type = "output")
+        close(con)
+    } else .log_internal()
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -189,15 +192,13 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
     if (!is.na(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
-    ## log connection
-    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
-        con <- .bplogSetUp(bplogdir(BPPARAM))
-        on.exit({ 
-            sink(NULL, type = "message")
-            sink(NULL, type = "output")
-            close(con)
-        })
-    } else con <- NULL
+    ## setup logging 
+    if (bplog(BPPARAM)) {
+        if (!is.na(logdir <- bplogdir(BPPARAM)))
+            BatchJobs:::checkDir(logdir)
+        else 
+            con <- NULL
+    }
 
     parallel:::checkCluster(cl)
     p <- length(cl)
@@ -209,29 +210,45 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
         for (i in 1:min(n, p)) 
             submit(i, i)
 
-        ## collect and re-load
         for (i in 1:n) {
+            ## collect
             d <- parallel:::recvOneData(cl)
             value <- d$value$value
             val[[d$value$tag]] <- value
             progress$step()
+
             ## logging
-            if (bplog(BPPARAM))
+            if (bplog(BPPARAM)) {
+                if (!is.na(logdir)) {
+                    lfile <- paste0(logdir, "/", bpjobname(BPPARAM), ".task", 
+                                    d$value$tag, ".log")
+                    con <- file(lfile, open="w")
+                }
                 .bpwriteLog(con, d)
+            }
+
             ## stop on error
             if (bpstopOnError(BPPARAM) && !d$value$success) {
                 warning(paste0("error in task ", d$value$tag))
                 bpstop(cl)
                 return(val)
             }
+
+            ## re-load 
             j <- i + min(n, p)
             if (j <= n) 
                 submit(d$node, j)
-            if (!is.na(resdir))
-                save(value, file=paste0(resdir, "/TASK", d$value$tag, ".Rda"))
+
+            ## write results 
+            if (!is.na(resdir)) {
+                rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", 
+                                d$value$tag, ".Rda")
+                save(value, file=rfile)
+            }
         }
     }
 
+    ## return results 
     if (!is.na(resdir))
         NULL 
     else val 
@@ -288,27 +305,23 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
     if (!is.na(resdir <- bpresultdir(BPPARAM)))
         BatchJobs:::checkDir(resdir)
 
-    ## log connection
-    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
-        con <- .bplogSetUp(bplogdir(BPPARAM))
-        on.exit({ 
-            sink(NULL, type = "message")
-            sink(NULL, type = "output")
-            close(con)
-        })
-    } else con <- NULL
+    ## setup logging
+    if (bplog(BPPARAM)) {
+        if (!is.na(logdir <- bplogdir(BPPARAM)))
+            BatchJobs:::checkDir(logdir)
+        else 
+            con <- NULL
+    }
 
     parallel:::checkCluster(cl)
     p <- length(cl)
-
-    ## initialize
     ss <- list(sjobs = character(), ## job status ('running', 'done')
                rjobs = list(),      ## non-reduced result
                rindex = 1,          ## reducer index
                val = if (missing(init)) list() else init) ## result
 
-    inextdata <- NULL
     ## initial load
+    inextdata <- NULL
     for (i in 1:p) {
         if (is.null(inextdata <- ITER())) {
             if (i == 1) {
@@ -332,6 +345,16 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         ss$rjobs[[njob]] <- d$value$value 
         ss$sjobs[njob] <- "done"
 
+        ## logging
+        if (bplog(BPPARAM)) {
+            if (!is.na(logdir)) {
+                lfile <- paste0(logdir, "/", bpjobname(BPPARAM), ".task", 
+                                d$value$tag, ".log")
+                con <- file(lfile, open="w")
+            }
+            .bpwriteLog(con, d)
+        }
+
         ## stop on error
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             warning(paste0("error in task ", njob))
@@ -339,13 +362,19 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
             return(ss$val)
         }
 
-        ## reduce 
+        ## reduce
         if (!missing(REDUCE))
             ss <- .reduce(ss, njob, REDUCE, reduce.in.order)
 
-        ## log
-        if (bplog(BPPARAM))
-            .bpwriteLog(con, ss$val)
+        ## write result
+        if (!is.na(resdir)) {
+            rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", 
+                            d$value$tag, ".Rda")
+            if (missing(REDUCE))
+                save(ss$rjobs, file=rfile)
+            else
+                save(ss$val, file=rfile)
+        }
 
         ## re-load
         if (!is.null(inextdata <- ITER())) {
@@ -359,7 +388,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         }
     }
 
-    ## results
+    ## return results
     if (!is.na(resdir)) {
         NULL 
     } else {

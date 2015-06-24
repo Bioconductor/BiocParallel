@@ -7,19 +7,22 @@
     fields=list(
         workers="ANY",
         tasks="integer",
-        catch.errors="logical",
+        jobname="character",
+        catch.errors="logical",  ## deprecated
         stop.on.error="logical",
         progressbar="logical"),
     methods=list(
         initialize = function(..., 
             workers=0, 
             tasks=0L, 
-            catch.errors=TRUE,
+            jobname="BPJOB",
+            catch.errors=TRUE,    ## deprecated
             stop.on.error=FALSE,
             progressbar=FALSE)
         {
-            initFields(workers=workers, tasks=tasks, catch.errors=catch.errors, 
-                       stop.on.error=stop.on.error, progressbar=progressbar)
+            initFields(workers=workers, tasks=tasks, jobname=jobname, 
+                       catch.errors=catch.errors, stop.on.error=stop.on.error, 
+                       progressbar=progressbar)
             callSuper(...)
         },
         show = function() {
@@ -85,6 +88,20 @@ setReplaceMethod("bptasks", c("BiocParallelParam", "numeric"),
     x$tasks <- as.integer(value)
     x 
 })
+
+setMethod(bpjobname, "BiocParallelParam",
+   function(x, ...)
+{
+    x$jobname
+})
+
+setReplaceMethod("bpjobname", c("BiocParallelParam", "character"),
+    function(x, ..., value)
+{
+    x$jobname <- value
+    x 
+})
+
 
 setMethod("bpstopOnError", "BiocParallelParam",
     function(x, ...)
