@@ -27,7 +27,7 @@
 BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, 
     work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
     resources = NULL, conffile = NULL, cluster.functions = NULL, 
-    progressbar = TRUE, ...) 
+    progressbar = TRUE, jobname = "BPJOB", ...) 
 }
 
 \arguments{
@@ -87,9 +87,12 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
         \code{NULL} where the default cluster functions defined in the
         configuration are used.
 
-    \item{progressbar}{logical(1)}
+    \item{progressbar}{\code{logical(1)}}
         Suppress the progress bar used in BatchJobs and be less verbose.
         Default is \code{FALSE}.
+
+   \item{jobname}{\code{character(1)}} Job name that is prepended
+        to the output log and result files. Default is "BPJOB".
 
     \item{\dots}{Addition arguments, currently not handled.}
 }
@@ -124,14 +127,6 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 \examples{
 p <- BatchJobsParam(progressbar=FALSE)
 bplapply(1:10, sqrt, BPPARAM=p)
-
-
-## Fix and error and resubmit job:
-
-bplapply(list(1, "2", 3), sqrt, BPPARAM=p)
-
-
-
 
 \dontrun{
 ## see vignette for additional explanation

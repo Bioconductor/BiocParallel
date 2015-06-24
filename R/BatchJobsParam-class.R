@@ -48,7 +48,8 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("  bpworkers:", bpworkers(.self),
+            cat("  bpjobname:", bpjobname(.self), 
+                   "; bpworkers:", bpworkers(.self), 
                    "; bpisup:", bpisup(.self), "\n", sep="")
             cat("  bpstopOnError:", bpstopOnError(.self),
                    "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
@@ -59,7 +60,8 @@
 BatchJobsParam <-
     function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
         work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
-        conffile=NULL, cluster.functions=NULL, progressbar=TRUE, ...)
+        conffile=NULL, cluster.functions=NULL,
+        progressbar=TRUE, jobname = "BPJOB", ...)
 {
     if (!catch.errors)
         warning("'catch.errors' has been deprecated")
@@ -81,7 +83,8 @@ BatchJobsParam <-
     .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
                     conf.pars=conf.pars, workers=workers, 
                     catch.errors=catch.errors, cleanup=cleanup, 
-                    stop.on.error=stop.on.error, progressbar=progressbar, ...)
+                    stop.on.error=stop.on.error, 
+                    progressbar=progressbar, jobname=jobname, ...)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -129,7 +132,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     ## create registry, handle cleanup
     file.dir <- file.path(BPPARAM$reg.pars$work.dir,
         tempfile("BiocParallel_tmp_", ""))
-    pars <- c(list(id="bpmapply", file.dir=file.dir, skip=FALSE),
+    pars <- c(list(id=bpjobname(BPPARAM), file.dir=file.dir, skip=FALSE),
         BPPARAM$reg.pars)
     reg <- suppressMessages(do.call("makeRegistry", pars))
     if (BPPARAM$cleanup)

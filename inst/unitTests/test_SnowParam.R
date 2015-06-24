@@ -1,6 +1,9 @@
-test_SnowParam_valid <- function() 
+test_SnowParam_construction <- function() 
 {
     checkException(SnowParam(logdir = tempdir())) 
+
+    p <- MulticoreParam(jobname = 'test')
+    checkIdentical(bpjobname(p), 'test')
 }
 
 test_SnowParam_SOCK <- function() 

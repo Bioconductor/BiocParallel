@@ -69,7 +69,7 @@ SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
           progressbar = FALSE, RNGseed = NULL, log = FALSE, 
           threshold = "INFO", logdir = NA_character_, 
-          resultdir = NA_character_, ...)
+          resultdir = NA_character_, jobname = "BPJOB", ...)
 
 ## coercion 
 ## ------------------------------------
@@ -171,7 +171,7 @@ snowWorkers()
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
                       progressbar = FALSE, RNGseed = NULL, log = FALSE, 
                       threshold = "INFO", logdir = NA_character_, 
-                      resultdir = NA_character_, ...)}:
+                      resultdir = NA_character_, jobname = "BPJOB", ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -183,15 +183,15 @@ snowWorkers()
 
 \arguments{
 
-  \item{type}{
-    \code{character(1)} Type of cluster to use. Possible values are
-    \code{SOCK} (default) and \code{MPI}. Instead of \code{type=FORK} use
-    \code{MulticoreParam}.
-  }
   \item{workers}{
     \code{integer(1)} Number of workers. Defaults to all cores available as
     determined by \code{detectCores}. For a \code{SOCK} cluster \code{workers}
     can be a \code{character()} vector of host names.
+  }
+  \item{type}{
+    \code{character(1)} Type of cluster to use. Possible values are
+    \code{SOCK} (default) and \code{MPI}. Instead of \code{type=FORK} use
+    \code{MulticoreParam}.
   }
   \item{tasks}{
     \code{integer(1)}. The number of tasks per job. \code{value} must be a 
@@ -238,6 +238,10 @@ snowWorkers()
     \code{character(1)} Job results directory. When not provided, results
     are returned as an \R{} object (list) to the workspace.
   }
+  \item{jobname}{
+    \code{character(1)} Job name that is prepended to log and result files.
+    Default is "BPJOB".
+  }
   \item{\dots}{
     Additional arguments passed to \code{\link[snow]{makeCluster}}
   }
@@ -252,6 +256,10 @@ snowWorkers()
       \code{bpprogressbar(x, ...)}, \code{bpprogressbar(x) <- value}: 
       Get or set the value to enable text progress bar. 
       \code{value} must be a \code{logical(1)}.
+    }
+    \item{}{
+      \code{bpjobname(x, ...)}, \code{bpjobname(x) <- value}: 
+      Get or set the job name.
     }
     \item{}{
       \code{bpRNGseed(x, ...)}, \code{bpRNGseed(x) <- value}: 

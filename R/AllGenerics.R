@@ -35,6 +35,12 @@ setGeneric("bptasks",
 setGeneric("bptasks<-",
     function(x, ..., value) standardGeneric("bptasks<-"))
 
+setGeneric("bpjobname",
+    function(x, ...) standardGeneric("bpjobname"))
+
+setGeneric("bpjobname<-",
+    function(x, ..., value) standardGeneric("bpjobname<-"))
+
 ## errors
 setGeneric("bpcatchErrors",
     function(x, ...) standardGeneric("bpcatchErrors"))
