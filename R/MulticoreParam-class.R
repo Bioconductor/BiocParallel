@@ -24,11 +24,11 @@ multicoreWorkers <- function() {
         })
 )
 
-MulticoreParam <- function(workers=multicoreWorkers(), 
-        tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
+MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
+        catch.errors=TRUE, stop.on.error=FALSE, 
         progressbar=FALSE, RNGseed=NULL, log=FALSE, 
         threshold="INFO", logdir=NA_character_,
-        resultdir=NA_character_, ...)
+        resultdir=NA_character_, jobname = "BPJOB", ...)
 {
     if (.Platform$OS.type == "windows")
         warning(paste0("MulticoreParam not supported on Windows. ",
@@ -39,10 +39,11 @@ MulticoreParam <- function(workers=multicoreWorkers(),
     args <- c(list(spec=workers, type="FORK"), list(...)) 
     .MulticoreParam(.clusterargs=args, cluster=.NULLcluster(),
         .controlled=TRUE, workers=as.integer(workers), 
-        tasks=as.integer(tasks), catch.errors=catch.errors, 
+        tasks=as.integer(tasks),
+        catch.errors=catch.errors, 
         stop.on.error=stop.on.error, progressbar=progressbar, 
         RNGseed=RNGseed, log=log, threshold=.THRESHOLD(threshold), 
-        logdir=logdir, resultdir=resultdir)
+        logdir=logdir, resultdir=resultdir, jobname=jobname)
 }
 
 setValidity("MulticoreParam",
