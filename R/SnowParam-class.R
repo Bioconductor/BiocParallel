@@ -57,13 +57,14 @@ setOldClass(c("NULLcluster", "cluster"))
         },
         show = function() {
             callSuper()
-            cat("  bpworkers:", bpworkers(.self), 
+            cat("  bpjobname:", bpjobname(.self), 
+                   "; bpworkers:", bpworkers(.self), 
                    "; bptasks:", bptasks(.self),
                    "; bpRNGseed:", bpRNGseed(.self),
                    "; bpisup:", bpisup(.self), "\n", sep="")
             cat("  bplog:", bplog(.self),
                    "; bpthreshold:", names(bpthreshold(.self)),
-                   "; bplogdir:", bplogdir(.self))
+                   "; bplogdir:", bplogdir(.self), "\n", sep="")
             cat("  bpstopOnError:", bpstopOnError(.self),
                    "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
             cat("  bpresultdir:", bpresultdir(.self), "\n", sep="")
@@ -71,11 +72,12 @@ setOldClass(c("NULLcluster", "cluster"))
         })
 )
 
-SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"), 
-                      tasks=0L, catch.errors=TRUE, stop.on.error=FALSE, 
+SnowParam <- function(workers=snowWorkers(), 
+                      type=c("SOCK", "MPI", "FORK"), tasks=0L, 
+                      catch.errors=TRUE, stop.on.error=FALSE, 
                       progressbar=FALSE, RNGseed=NULL, log=FALSE, 
                       threshold="INFO", logdir=NA_character_, 
-                      resultdir=NA_character_, ...)
+                      resultdir=NA_character_, jobname = "BPJOB", ...)
 {
     type <- match.arg(type)
     if (!catch.errors)
@@ -91,7 +93,7 @@ SnowParam <- function(workers=snowWorkers(), type=c("SOCK", "MPI", "FORK"),
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
                     progressbar=progressbar, RNGseed=RNGseed, log=log, 
                     threshold=.THRESHOLD(threshold), logdir=logdir, 
-                    resultdir=resultdir)
+                    resultdir=resultdir, jobname=jobname)
     validObject(x)
     x
 }
@@ -307,12 +309,16 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     on.exit(progress$term(), TRUE)
 
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM) || bpprogressbar(BPPARAM))
+    if (bplog(BPPARAM) || 
+        bpstopOnError(BPPARAM) || 
+        bpprogressbar(BPPARAM) || 
+        !is.na(bpresultdir(BPPARAM)))
         res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
-                                     length(X), argfun, BPPARAM, progress)
+                                     length(X), argfun, BPPARAM, 
+                                     progress)
     else
-        res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), lapply, 
-                                              length(X), argfun)
+        res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), 
+                                              lapply, length(X), argfun)
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
         names(res) <- nms

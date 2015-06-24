@@ -40,7 +40,8 @@ export(
     bplapply, bpvec, bpvectorize, bpmapply, bpaggregate, bpiterate,
 
     ## bp-controls
-    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", bptasks, "bptasks<-",
+    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", 
+    bptasks, "bptasks<-", bpjobname, "bpjobname<-",
     bpstart, bpstop, bpisup, 
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
@@ -56,7 +57,8 @@ exportMethods(
     bplapply, bpvec, bpvectorize, bpmapply, bpaggregate, bpiterate,
 
     ## bp-controls
-    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", bptasks, "bptasks<-",
+    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", 
+    bptasks, "bptasks<-", bpjobname, "bpjobname<-",
     bpstart, bpstop, bpisup, 
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",

@@ -32,7 +32,7 @@ MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
                catch.errors = TRUE, stop.on.error = FALSE,
                progressbar = FALSE, RNGseed = NULL, log = FALSE, 
                threshold = "INFO", logdir = NA_character_, 
-               resultdir = NA_character_, ...)
+               resultdir = NA_character_, jobname = "BPJOB", ...)
 
 ## detect workers 
 ## ------------------------------------
@@ -132,7 +132,7 @@ multicoreWorkers()
                            tasks = 0L, progressbar = FALSE, RNGseed = NULL,
                            log = FALSE, threshold = "INFO", 
                            logdir = NA_character_, resultdir = NA_character_, 
-                           ...)}:
+                           jobname = "BPJOB", ...)}:
 
         Return an object representing a FORK cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...} 
@@ -192,6 +192,10 @@ multicoreWorkers()
     \code{character(1)} Job results directory. When not provided, results
     are returned as an \R{} object (list) to the workspace.
   }
+  \item{jobname}{
+    \code{character(1)} Job name that is prepended to log and result files.
+    Default is "BPJOB".
+  }
   \item{\dots}{
     Additional arguments passed to \code{\link[snow]{makeCluster}}
   }
@@ -206,6 +210,10 @@ multicoreWorkers()
       \code{bpprogress(x, ...)}, \code{bpprogress(x) <- value}: 
       Get or set the value to enable text progress bar. 
       \code{value} must be a \code{logical(1)}.
+    }
+    \item{}{
+      \code{bpjobname(x, ...)}, \code{bpjobname(x) <- value}: 
+      Get or set the job name.
     }
     \item{}{
       \code{bpRNGseed(x, ...)}, \code{bpRNGseed(x) <- value}: 
