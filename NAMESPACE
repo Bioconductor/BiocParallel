@@ -45,7 +45,7 @@ export(
     bpstart, bpstop, bpisup, 
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
-    bplog, "bplog<-", bplogdir, "bplogdir<-",
+    bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
     ## schedule
@@ -62,7 +62,7 @@ exportMethods(
     bpstart, bpstop, bpisup, 
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
-    bplog, "bplog<-", bplogdir, "bplogdir<-",
+    bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
     ## schedule

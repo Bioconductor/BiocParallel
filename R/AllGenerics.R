@@ -66,6 +66,12 @@ setGeneric("bpRNGseed",
 setGeneric("bpRNGseed<-",
     function(x, ..., value) standardGeneric("bpRNGseed<-"))
 
+setGeneric("bptimeout",
+    function(x, ...) standardGeneric("bptimeout"))
+
+setGeneric("bptimeout<-",
+    function(x, ..., value) standardGeneric("bptimeout<-"))
+
 setGeneric("bplog",
     function(x, ...) standardGeneric("bplog"))
 
