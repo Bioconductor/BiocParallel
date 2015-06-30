@@ -7,7 +7,7 @@ multicoreWorkers <- function() {
         if (.Platform$OS.type == "windows")
             1
         else
-            min(8L, parallel::detectCores())
+            min(8L, parallel::detectCores() - 2)
     getOption("mc.cores", cores)
 }
 
@@ -26,8 +26,8 @@ multicoreWorkers <- function() {
 
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
         catch.errors=TRUE, stop.on.error=FALSE, 
-        progressbar=FALSE, RNGseed=NULL, log=FALSE, 
-        threshold="INFO", logdir=NA_character_,
+        progressbar=FALSE, RNGseed=NULL, timeout=Inf,
+        log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB", ...)
 {
     if (.Platform$OS.type == "windows")
@@ -40,9 +40,10 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     .MulticoreParam(.clusterargs=args, cluster=.NULLcluster(),
         .controlled=TRUE, workers=as.integer(workers), 
         tasks=as.integer(tasks),
-        catch.errors=catch.errors, 
-        stop.on.error=stop.on.error, progressbar=progressbar, 
-        RNGseed=RNGseed, log=log, threshold=.THRESHOLD(threshold), 
+        catch.errors=catch.errors, stop.on.error=stop.on.error, 
+        progressbar=progressbar, 
+        RNGseed=RNGseed, timeout=timeout,
+        log=log, threshold=.THRESHOLD(threshold), 
         logdir=logdir, resultdir=resultdir, jobname=jobname)
 }
 

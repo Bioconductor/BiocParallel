@@ -108,3 +108,4 @@ test_bpiterate_REDUCE <- function() {
     closeAllConnections()
     TRUE
 }
+
