@@ -71,3 +71,41 @@ test_BPREDO <- function()
     closeAllConnections()
     TRUE
 }
+
+test_bpiterate_errors <- function()
+{
+    quiet <- suppressMessages
+    .lazyCount <- function(count) {
+        count <- count
+        i <- 0L
+    
+        function() {
+            if (i >= count)
+                return(NULL)
+            else
+                i <<- i + 1L
+            
+            if (i == 2)
+                "2"
+            else
+                i
+        }
+    }
+
+    FUN <- function(count, ...) {
+        if (count == 2)
+            stop("hit error")
+        else count 
+    }
+    params <- list(multi=MulticoreParam(2, stop.on.error=TRUE),
+                   snow=SnowParam(2, stop.on.error=TRUE))
+    for (p in params) {
+        ITER <- .lazyCount(3)
+        quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
+        checkTrue(length(res) == 2L)
+        checkTrue(is(res[[2]], "condition"))
+    }
+
+    closeAllConnections()
+    TRUE
+}

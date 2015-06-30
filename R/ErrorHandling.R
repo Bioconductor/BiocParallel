@@ -24,7 +24,7 @@ bpresume <- function(expr) {
     }
     handler_abort <- function(e) e
 
-    withRestarts(withCallingHandlers(expr, 
+    withRestarts(withCallingHandlers(expr,
                                      warning=handler_warning,
                                      error=handler_error), 
                                      abort=handler_abort)
@@ -40,7 +40,7 @@ bpresume <- function(expr) {
         call <- sapply(sys.calls(), deparse)
         flog.debug(capture.output(traceback(call)))
         flog.error("%s", e)
-        e <- structure(e, class = c("remote-error", class(e)),
+        e <- structure(e, class = c("remote-error", "condition"),
                        traceback = capture.output(traceback(call))) 
         invokeRestart("abort", e)
     }
@@ -53,13 +53,25 @@ bpresume <- function(expr) {
 }
 
 .composeTry <-
-    function(FUN, log = FALSE)
+    function(FUN, log=FALSE, timeout=Inf)
 {
     FUN <- match.fun(FUN)
     if (log)
-        function(...) .try_log(FUN(...))
+        function(...) {
+            .try_log({ 
+                setTimeLimit(timeout, timeout, TRUE)
+                on.exit(setTimeLimit(Inf, Inf, FALSE))
+                FUN(...)
+            })
+        }
     else 
-        function(...) .try(FUN(...))
+        function(...) {
+            .try({ 
+                setTimeLimit(timeout, timeout, TRUE)
+                on.exit(setTimeLimit(Inf, Inf, FALSE))
+                FUN(...)
+            })
+        }
 }
 
 `print.remote-error` = function(x, ...) {

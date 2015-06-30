@@ -30,6 +30,19 @@
 DoparParam(catch.errors = TRUE)
 }
 
+\details{
+
+  \code{DoparParam} can be used for shared or non-shared memory computing
+  depending on what backend is loaded. The \code{doSNOW} package supports 
+  non-shared memory, \code{doParallel} supports both shared and non-shared. 
+  When not specified, the default number of workers in \code{DoparParam}
+  is determined by \code{getDoParWorkers()}. See the \code{foreach} package 
+  vignette for details using the different backends:
+
+  \url{http://cran.r-project.org/web/packages/foreach/vignettes/foreach.pdf}
+
+}
+
 \arguments{
 
     \item{catch.errors}{\code{logical(1)}} Flag to determine in

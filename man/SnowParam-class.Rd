@@ -38,6 +38,10 @@
 \alias{bpresultdir<-}
 \alias{bpresultdir,SnowParam-method}
 \alias{bpresultdir<-,SnowParam,character-method}
+\alias{bptimeout}
+\alias{bptimeout<-}
+\alias{bptimeout,SnowParam-method}
+\alias{bptimeout<-,SnowParam,integer-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}
@@ -67,8 +71,8 @@
 
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
-          progressbar = FALSE, RNGseed = NULL, log = FALSE, 
-          threshold = "INFO", logdir = NA_character_, 
+          progressbar = FALSE, RNGseed = NULL, timeout=Inf,
+          log = FALSE, threshold = "INFO", logdir = NA_character_, 
           resultdir = NA_character_, jobname = "BPJOB", ...)
 
 ## coercion 
@@ -89,7 +93,9 @@ snowWorkers()
   2 cluster types: \sQuote{SOCK} (default) and \sQuote{MPI}. The \code{SnowParam}
   builds on infrastructure in the \code{snow} and \code{parallel}
   packages and provides the additional features of error handling, logging
-  and writing out results.
+  and writing out results. If not specified, the default number of
+  workers is determined by \code{snowWorkers()} which is essentially
+  parallel::detectCores() - 2.
 
   \describe{
     \item{error handling:}{
@@ -169,8 +175,8 @@ snowWorkers()
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
-                      progressbar = FALSE, RNGseed = NULL, log = FALSE, 
-                      threshold = "INFO", logdir = NA_character_, 
+                      progressbar = FALSE, RNGseed = NULL, timeout = Inf,
+                      log = FALSE, threshold = "INFO", logdir = NA_character_, 
                       resultdir = NA_character_, jobname = "BPJOB", ...)}:
 
         Return an object representing a SNOW cluster. The cluster is not
@@ -223,6 +229,13 @@ snowWorkers()
     \code{integer(1)} Seed for random number generation. When not \code{NULL},
     this value is passed to parallel::clusterSetRNGStream to generate
     random number streams on each worker.
+  }
+  \item{timeout}{
+    \code{numeric(1)} Time (in seconds) allowed for worker to complete a task.
+    This value is passed to base::setTimeLimit() as both the \code{cpu} and
+    \code{elapsed} arguments. If the computation takes longer than
+    time limit'. Timeout limits are reset to \code{Inf} when the function
+    exits.
   }
   \item{log}{
     \code{logical(1)} Enable logging.

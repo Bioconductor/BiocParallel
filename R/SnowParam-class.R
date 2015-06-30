@@ -14,7 +14,7 @@ makeCluster <- parallel::makeCluster
 ###
 
 snowWorkers <- function() {
-    cores <- min(8L, parallel::detectCores())
+    cores <- min(8L, parallel::detectCores() - 2)
     getOption("mc.cores", cores)
 }
 
@@ -35,6 +35,7 @@ setOldClass(c("NULLcluster", "cluster"))
         .clusterargs="list",
         .controlled="logical",
         RNGseed="ANY",
+        timeout="numeric",
         log="logical",
         threshold="ANY",
         logdir="character",
@@ -44,13 +45,14 @@ setOldClass(c("NULLcluster", "cluster"))
             .clusterargs=list(spec=0, type="SOCK"),
             .controlled=TRUE,
             RNGseed=NULL,
+            timeout=Inf,
             log=FALSE,
             threshold="INFO",
             logdir=NA_character_,
             resultdir=NA_character_)
         { 
             initFields(.clusterargs=.clusterargs, .controlled=.controlled, 
-                       RNGseed=RNGseed,
+                       RNGseed=RNGseed, timeout=timeout,
                        log=log, threshold=threshold, 
                        logdir=logdir, resultdir=resultdir)
             callSuper(...)
@@ -60,6 +62,7 @@ setOldClass(c("NULLcluster", "cluster"))
             cat("  bpjobname:", bpjobname(.self), 
                    "; bpworkers:", bpworkers(.self), 
                    "; bptasks:", bptasks(.self),
+                   "; bptimeout:", bptimeout(.self), 
                    "; bpRNGseed:", bpRNGseed(.self),
                    "; bpisup:", bpisup(.self), "\n", sep="")
             cat("  bplog:", bplog(.self),
@@ -75,8 +78,8 @@ setOldClass(c("NULLcluster", "cluster"))
 SnowParam <- function(workers=snowWorkers(), 
                       type=c("SOCK", "MPI", "FORK"), tasks=0L, 
                       catch.errors=TRUE, stop.on.error=FALSE, 
-                      progressbar=FALSE, RNGseed=NULL, log=FALSE, 
-                      threshold="INFO", logdir=NA_character_, 
+                      progressbar=FALSE, RNGseed=NULL, timeout=Inf,
+                      log=FALSE, threshold="INFO", logdir=NA_character_, 
                       resultdir=NA_character_, jobname = "BPJOB", ...)
 {
     type <- match.arg(type)
@@ -91,8 +94,8 @@ SnowParam <- function(workers=snowWorkers(),
     x <- .SnowParam(.clusterargs=args, cluster=.NULLcluster(), 
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
-                    progressbar=progressbar, RNGseed=RNGseed, log=log, 
-                    threshold=.THRESHOLD(threshold), logdir=logdir, 
+                    progressbar=progressbar, RNGseed=RNGseed, timeout=timeout,
+                    log=log, threshold=.THRESHOLD(threshold), logdir=logdir, 
                     resultdir=resultdir, jobname=jobname)
     validObject(x)
     x
@@ -155,7 +158,7 @@ setValidity("SnowParam", function(object)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Methods - control
+### Getters / Setters
 ###
 
 setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
@@ -169,6 +172,41 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     x$.clusterargs$spec <- value 
     x 
 })
+
+setMethod(bpRNGseed, "SnowParam",
+    function(x, ...)
+{
+    x$RNGseed 
+})
+
+setReplaceMethod("bpRNGseed", c("SnowParam", "ANY"),
+    function(x, ..., value)
+{
+    if (!is.null(value))
+        value <- as.integer(value)
+    x$RNGseed <- value 
+    x
+})
+
+setMethod(bptimeout, "SnowParam",
+    function(x, ...)
+{
+    x$timeout
+})
+
+setReplaceMethod("bptimeout", c("SnowParam", "ANY"),
+    function(x, ..., value)
+{
+    if (!is.null(value))
+        value <- as.integer(value)
+    x$timeout <- value 
+    x
+})
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - control
+###
 
 setMethod(bpstart, "SnowParam",
     function(x, lenX = bpworkers(x), ...)
@@ -185,30 +223,41 @@ setMethod(bpstart, "SnowParam",
                 "SnowParam class objects require the 'parallel' package")
         })
     }
-    ## 'X' has been split into tasks
-    ## start the minimum no. of workers.
+    ## 'X' has been split into tasks - start minimum number of workers.
     if (lenX > 0) {
         cargs <- x$.clusterargs
         cargs$spec <- min(bpworkers(x), lenX)
     } else stop("cluster not started; no workers specified")
 
-    ## initialize worker script in BiocParallel
+    ## worker script
     if (x$.clusterargs$type == "FORK") {
-        bpbackend(x) <- do.call(.bpmakeForkCluster, 
-                          c(list(nnodes=cargs$spec), cargs))
+        bpbackend(x) <- 
+            do.call(.bpmakeForkCluster, c(list(nnodes=cargs$spec), cargs))
     } else {
         cargs$useRscript <- FALSE
         cargs$scriptdir <- find.package("BiocParallel")
         bpbackend(x) <- do.call(makeCluster, cargs)
     }
-    if (bplog(x))
+    ## logging
+    if (bplog(x)) {
         .initiateLogging(x)
+    }
+    ## random numbers 
     if (!is.null(bpRNGseed(x))) {
         tryCatch({
             clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
         }, error = function(err) {
                bpstop(x)
                stop(conditionMessage(err), ": problem setting RNG stream") 
+        })
+    }
+    ## timeout 
+    if (is.finite(timeout <- bptimeout(x))) {
+        tryCatch({
+            clusterExport(bpbackend(x), "timeout", env=environment())
+        }, error = function(err) {
+               bpstop(x)
+               stop(conditionMessage(err), ": problem setting worker timeout") 
         })
     }
     invisible(x)
@@ -220,7 +269,7 @@ setMethod(bpstop, "SnowParam",
     if (!.controlled(x))
         stop("'bpstop' not available; instance from outside BiocParallel?")
     if (!bpisup(x))
-        return(x)
+        return(invisible(x))
 
     tryCatch(stopCluster(bpbackend(x)), 
         error=function(err) {
@@ -252,21 +301,6 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
     x
 })
 
-setMethod(bpRNGseed, "SnowParam",
-    function(x, ...)
-{
-    x$RNGseed 
-})
-
-setReplaceMethod("bpRNGseed", c("SnowParam", "ANY"),
-    function(x, ..., value)
-{
-    if (!is.null(value))
-        value <- as.integer(value)
-    x$RNGseed <- value 
-    x
-})
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -291,13 +325,14 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
+        FUN <- .composeTry(FUN, TRUE, bptimeout(BPPARAM))
     else
-        FUN <- .composeTry(FUN, FALSE)
+        FUN <- .composeTry(FUN, FALSE, bptimeout(BPPARAM))
 
     ## split into tasks 
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
-    ## start cluster
+
+    ## start / stop cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM, length(X))
         on.exit(bpstop(BPPARAM), TRUE)
@@ -309,10 +344,10 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     on.exit(progress$term(), TRUE)
 
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-    if (bplog(BPPARAM) || 
-        bpstopOnError(BPPARAM) || 
-        bpprogressbar(BPPARAM) || 
-        !is.na(bpresultdir(BPPARAM)))
+    check <- (bplog(BPPARAM) || bpstopOnError(BPPARAM) || 
+              bpprogressbar(BPPARAM) || is.finite(bptimeout(BPPARAM))
+              || !is.na(bpresultdir(BPPARAM)))
+    if (check)
         res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                      length(X), argfun, BPPARAM, 
                                      progress)
@@ -339,11 +374,11 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     if (!bpschedule(BPPARAM))
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
+        FUN <- .composeTry(FUN, TRUE, bptimeout(BPPARAM))
     else
-        FUN <- .composeTry(FUN, FALSE)
+        FUN <- .composeTry(FUN, FALSE, bptimeout(BPPARAM))
 
-    ## start cluster
+    ## start / stop cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM), TRUE)
