@@ -41,7 +41,7 @@
 \alias{bptimeout}
 \alias{bptimeout<-}
 \alias{bptimeout,SnowParam-method}
-\alias{bptimeout<-,SnowParam,integer-method}
+\alias{bptimeout<-,SnowParam,numeric-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}
