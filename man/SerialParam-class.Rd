@@ -21,16 +21,14 @@
 }
 
 \usage{
-SerialParam(catch.errors = TRUE, stop.on.error = FALSE,
-            log = FALSE, threshold = "INFO") 
+SerialParam(catch.errors = TRUE, log = FALSE, threshold = "INFO") 
 }
 
 \section{Constructor}{
 
   \describe{
     \item{}{
-      \code{SerialParam(catch.errors = TRUE, stop.on.error = FALSE,
-                        log = FALSE, threshold = "INFO")}:
+      \code{SerialParam(catch.errors = TRUE, log = FALSE, threshold = "INFO")}:
 
        Return an object to be used for serial evaluation of otherwise
        parallel functions such as \code{\link{bplapply}},
@@ -44,9 +42,6 @@ SerialParam(catch.errors = TRUE, stop.on.error = FALSE,
 
   \item{catch.errors}{
     \code{logical(1)} Enable the catching of errors and warnings.
-  }
-  \item{stop.on.error}{
-    \code{logical(1)} Enable stop on error.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
