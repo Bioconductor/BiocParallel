@@ -142,7 +142,7 @@ doing much good. This is simply a heads up that the usefulness of
 \Rcode{stop.on.error} may vary with run time and distribution of tasks over
 workers.
 
-\subsection{Identify failures with \Rcode{bpok}}
+\subsection{Identify failures with \Rcode{bpok()}}
 
 The \Rcode{bpok()} function is a quick way to determine which (if any)
 tasks failed. In this example the second element fails.
@@ -221,7 +221,7 @@ Logging in \BiocParallel{} is controlled by 3 fields in the
 When \Rcode{log = TRUE} the \CRANpkg{futile.logger} package is loaded on 
 each worker. \BiocParallel{} uses a custom script on the workers to
 collect log messages as well as additional statistics such as gc, runtime 
-and node information.
+and node information. Output to stderr and stdout is also captured.
 
 By default \Rcode{log} is FALSE and \Rcode{threshold} is {\it INFO}.
 
@@ -240,7 +240,7 @@ param
 
 \subsection{Setting a threshold}
 
-All thresholds defined in \CRANpkg{futile.logger} are all supported: {\it
+All thresholds defined in \CRANpkg{futile.logger} are supported: {\it
 FATAL}, {\it ERROR}, {\it WARN}, {\it INFO}, {\it DEBUG} and {\it TRACE}.  All
 messages greater than or equal to the severity of the threshold are shown. For
 example, a threshold of {\it INFO} will print all messages tagged as {\it
@@ -267,7 +267,7 @@ FUN <- function(i) {
       flog.warn("'i' is missing")
       NA 
   } else if (!is(i, "numeric")) {
-      flog.warn("coercing to numeric")
+      flog.info("coercing to numeric")
       as.numeric(i)
   } else {
       i
@@ -292,55 +292,82 @@ bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
 
 \subsection{Log files}
 
-\CRANpkg{futile.logger} messages are written to the console by default.  When
-\Rcode{logdir} is given, these messages along with additional statistics of
-memory use, duration, node name etc. are written to a file called
-``BPLOG.out''.
+When \Rcode{log == TRUE}, log messages are written to the console by default. 
+If \Rcode{logdir} is given the output is written out to files, one per task.
+File names are prefixed with the name in \Rcode{bpjobname(BPPARAM)}; default
+is 'BPJOB'.
 
 \begin{verbatim}
   > param <- SnowParam(2, log = TRUE, threshold = "DEBUG", logdir = tempdir())
   > res <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+  INFO [2015-07-08 08:47:40] loading futile.logger on workers
   > list.files(bplogdir(param))
-  [1] "BPLOG.out"
+  [1] "BPJOB.task1.log" "BPJOB.task2.log"
 \end{verbatim}
 
-Read in the log file from \Rcode{logdir}:
+Read in BPJOB.task2.log:
 
 \begin{verbatim}
-  > readLines(paste0(bplogdir(param), "/BPLOG.out"))
-   [1] ############### LOG OUTPUT ###############      
-   [2] Task: 2                                         
-   [3] Node: 2                                         
-   [4] Timestamp: 2015-05-15 07:29:11                  
-   [5] Success: TRUE                                   
-   [6] Task duration:                                  
-   [7]    user  system elapsed                         
-   [8]   0.011   0.000   0.011                         
-   [9] Memory use (gc):                                
-  [10]          used (Mb) gc trigger (Mb) max used (Mb)
-  [11] Ncells 325582 17.4     592000 31.7   382191 20.5
-  [12] Vcells 435234  3.4    1023718  7.9   526789  4.1
-  [13] Log messages:                                   
-  [14] DEBUG [2015-05-15 07:29:11] value of 'i': 2     
-  [15] WARN [2015-05-15 07:29:11] coercing to numeric  
-  [16] DEBUG [2015-05-15 07:29:11] value of 'i':       
-  [17] WARN [2015-05-15 07:29:11] 'i' is missing       
-  [18]                                                 
-  [19] ############### LOG OUTPUT ###############      
-  [20] Task: 1                                         
-  [21] Node: 1                                         
-  [22] Timestamp: 2015-05-15 07:29:11                  
-  [23] Success: TRUE                                   
-  [24] Task duration:                                  
-  [25]    user  system elapsed                         
-  [26]   0.006   0.000   0.005                         
-  [27] Memory use (gc):                                
-  [28]          used (Mb) gc trigger (Mb) max used (Mb)
-  [29] Ncells 325547 17.4     592000 31.7   341650 18.3
-  [30] Vcells 435185  3.4    1023718  7.9   517996  4.0
-  [31] Log messages:                                   
-  [32] DEBUG [2015-05-15 07:29:11] value of 'i': 1     
+  > readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
+   [1] "############### LOG OUTPUT ###############"      
+   [2] "Task: 2"                                         
+   [3] "Node: 2"                                         
+   [4] "Timestamp: 2015-07-08 09:03:59"                  
+   [5] "Success: TRUE"                                   
+   [6] "Task duration: "                                 
+   [7] "   user  system elapsed "                        
+   [8] "  0.009   0.000   0.011 "                        
+   [9] "Memory use (gc): "                               
+  [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
+  [11] "Ncells 325664 17.4     592000 31.7   393522 21.1"
+  [12] "Vcells 436181  3.4    1023718  7.9   530425  4.1"
+  [13] "Log messages:"                                   
+  [14] "DEBUG [2015-07-08 09:03:59] value of 'i': 2"     
+  [15] "INFO [2015-07-08 09:03:59] coercing to numeric"  
+  [16] "DEBUG [2015-07-08 09:03:59] value of 'i': "      
+  [17] "WARN [2015-07-08 09:03:59] 'i' is missing"       
+  [18] ""                                                
+  [19] "stderr and stdout:"                              
+  [20] "character(0)"    
 \end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Worker timeout}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+NOTE: \Rcode{timeout} is  supported for SnowParam and MulticoreParam. 
+
+For long running jobs or untested code it can be useful to set a time limit.
+The \Rcode{timeout} field is the time, in seconds, allowed for each worker to
+complete a task; default is \Rcode{Inf}. If the task takes longer than
+\Rcode{timeout} a timeout error is returned.
+
+Time can be changed during param construction with the \Rcode{timeout} arg,
+
+<<timeout_constructor>>=
+param <- SnowParam(timeout = 20)
+param
+@
+
+or with the \Rcode{bptimeout} setter:
+
+<<timeout_setter>>=
+bptimeout(param) <- 2 
+param
+@
+
+
+A timeout error is returned if 
+
+<<timeout_bplapply>>=
+fun <- function(i) {
+  Sys.sleep(i)
+  i
+}
+bplapply(1:3, fun, BPPARAM = param) 
+@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

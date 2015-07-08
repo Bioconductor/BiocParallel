@@ -183,10 +183,8 @@ multicoreWorkers()
   \item{timeout}{
     \code{numeric(1)} Time (in seconds) allowed for worker to complete a task.
     This value is passed to base::setTimeLimit() as both the \code{cpu} and
-    \code{elapsed} arguments. If the computation takes longer than
-    \code{timeout} an error is thrown with the message 'reached elapsed
-    time limit'. Timeout limits are reset to \code{Inf} when the function
-    exits.
+    \code{elapsed} arguments. If the computation exceeds \code{timeout} an 
+    error is thrown with message 'reached elapsed time limit'.
   }
   \item{log}{
     \code{logical(1)} Enable logging.

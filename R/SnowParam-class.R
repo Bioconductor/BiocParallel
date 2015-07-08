@@ -468,6 +468,8 @@ setMethod("bplogdir", "SnowParam",
 setReplaceMethod("bplogdir", c("SnowParam", "character"),
     function(x, ..., value)
 {
+    if (!length(value))
+        value <- NA_character_
     x$logdir <- value 
     if (is.null(msg <- .valid.SnowParam.log(x))) 
         x
