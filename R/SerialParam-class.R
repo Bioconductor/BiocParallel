@@ -96,10 +96,27 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         X <- X[idx]
     }
 
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
-    else
-        FUN <- .composeTry(FUN, FALSE)
+    ## logging
+    if (bplog(BPPARAM)) {
+        if (!"package:futile.logger" %in% search()) {
+            tryCatch({
+                attachNamespace("futile.logger")
+            }, error=function(err) {
+                msg <- "logging requires the 'futile.logger' package"
+                stop(conditionMessage(err), msg) 
+            })
+        }
+        flog.info("loading futile.logger package")
+        flog.threshold(bpthreshold(BPPARAM))
+    } else FUN <- .composeTry(FUN, FALSE)
+
+    ## error handling
+    if (!bpstopOnError(BPPARAM)) {
+        if (bplog(BPPARAM))
+            FUN <- .composeTry(FUN, TRUE)
+        else
+            FUN <- .composeTry(FUN, FALSE)
+    }
 
     res <- lapply(X, FUN, ...)
     if (length(BPREDO)) {
