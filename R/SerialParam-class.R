@@ -21,6 +21,7 @@
         },
         show = function() {
             callSuper()
+            cat("  bpstopOnError:", bpstopOnError(.self), "\n", sep="")
             cat("  bplog:", bplog(.self),
                    "; bpthreshold:", names(bpthreshold(.self)), "\n", sep="")
         })
