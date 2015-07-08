@@ -71,7 +71,7 @@
 
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
-          progressbar = FALSE, RNGseed = NULL, timeout=Inf,
+          progressbar = FALSE, RNGseed = NULL, timeout = Inf,
           log = FALSE, threshold = "INFO", logdir = NA_character_, 
           resultdir = NA_character_, jobname = "BPJOB", ...)
 
@@ -233,9 +233,8 @@ snowWorkers()
   \item{timeout}{
     \code{numeric(1)} Time (in seconds) allowed for worker to complete a task.
     This value is passed to base::setTimeLimit() as both the \code{cpu} and
-    \code{elapsed} arguments. If the computation takes longer than
-    time limit'. Timeout limits are reset to \code{Inf} when the function
-    exits.
+    \code{elapsed} arguments. If the computation exceeds \code{timeout} an 
+    error is thrown with message 'reached elapsed time limit'.
   }
   \item{log}{
     \code{logical(1)} Enable logging.
