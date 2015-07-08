@@ -21,19 +21,17 @@
         },
         show = function() {
             callSuper()
-            cat("  bpstopOnError:", bpstopOnError(.self), "\n", sep="")
             cat("  bplog:", bplog(.self),
                    "; bpthreshold:", names(bpthreshold(.self)), "\n", sep="")
         })
 )
 
-SerialParam <- function(catch.errors=TRUE, stop.on.error=FALSE, 
-                        log=FALSE, threshold="INFO")
+SerialParam <- function(catch.errors=TRUE, log=FALSE, threshold="INFO")
 {
     if (!catch.errors)
         warning("'catch.errors' has been deprecated")
     x <- .SerialParam(workers=1L, 
-                      catch.errors=catch.errors, stop.on.error=stop.on.error,
+                      catch.errors=catch.errors,
                       log=log, threshold=.THRESHOLD(threshold)) 
     validObject(x)
     x
@@ -109,15 +107,8 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         }
         flog.info("loading futile.logger package")
         flog.threshold(bpthreshold(BPPARAM))
+        FUN <- .composeTry(FUN, TRUE)
     } else FUN <- .composeTry(FUN, FALSE)
-
-    ## error handling
-    if (!bpstopOnError(BPPARAM)) {
-        if (bplog(BPPARAM))
-            FUN <- .composeTry(FUN, TRUE)
-        else
-            FUN <- .composeTry(FUN, FALSE)
-    }
 
     res <- lapply(X, FUN, ...)
     if (length(BPREDO)) {
@@ -164,10 +155,19 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+    if (bplog(BPPARAM)) {
+        if (!"package:futile.logger" %in% search()) {
+            tryCatch({
+                attachNamespace("futile.logger")
+            }, error=function(err) {
+                msg <- "logging requires the 'futile.logger' package"
+                stop(conditionMessage(err), msg) 
+            })
+        }
+        flog.info("loading futile.logger package")
+        flog.threshold(bpthreshold(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    else
-        FUN <- .composeTry(FUN, FALSE)
+    } else FUN <- .composeTry(FUN, FALSE)
 
     .bpiterate_serial(ITER, FUN, ...)
 })
