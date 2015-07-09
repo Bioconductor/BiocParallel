@@ -125,7 +125,7 @@ SnowParam <- function(workers=snowWorkers(),
         msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
 
     if (!is.na(dir) && !bplog(object))
-        msg <- c(msg, "'log' must be TRUE when 'logdir' is provided")
+        msg <- c(msg, "'log' must be TRUE when 'logdir' is given")
     msg
 }
 
@@ -229,44 +229,35 @@ setMethod(bpstart, "SnowParam",
         cargs$spec <- min(bpworkers(x), lenX)
     } else stop("cluster not started; no workers specified")
 
-    check <- (bplog(x) || bpstopOnError(x) || bpprogressbar(x) || 
-              is.finite(bptimeout(x)) || !is.na(bpresultdir(x)))
-    ## script in BiocParallel
-    if (check) {
-        if (x$.clusterargs$type == "FORK") {
-            bpbackend(x) <- 
-                do.call(.bpmakeForkCluster, c(list(nnodes=cargs$spec), cargs))
-        } else {
-            cargs$useRscript <- FALSE
-            cargs$scriptdir <- find.package("BiocParallel")
-            bpbackend(x) <- do.call(makeCluster, cargs)
-        }
-        ## logging
-        if (bplog(x)) {
-            .initiateLogging(x)
-        }
-        ## random numbers 
-        if (!is.null(bpRNGseed(x))) {
-            tryCatch({
-                clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
-            }, error = function(err) {
-                   bpstop(x)
-                   stop(conditionMessage(err), ": problem setting RNG stream") 
-            })
-        }
-        ## timeout 
-        if (is.finite(timeout <- bptimeout(x))) {
-            tryCatch({
-                clusterExport(bpbackend(x), "timeout", env=environment())
-            }, error = function(err) {
-                   bpstop(x)
-                   stop(conditionMessage(err), ": problem setting worker timeout") 
-            })
-        }
+    if (x$.clusterargs$type == "FORK") {
+        bpbackend(x) <- 
+            do.call(.bpmakeForkCluster, c(list(nnodes=cargs$spec), cargs))
     } else {
-    ## script in parallel
-        x$.clusterargs$useRscript <- TRUE 
-        bpbackend(x) <- do.call(makeCluster, x$.clusterargs)
+        cargs$useRscript <- FALSE
+        cargs$scriptdir <- find.package("BiocParallel")
+        bpbackend(x) <- do.call(makeCluster, cargs)
+    }
+    ## logging
+    if (bplog(x)) {
+        .initiateLogging(x)
+    }
+    ## random numbers 
+    if (!is.null(bpRNGseed(x))) {
+        tryCatch({
+            clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
+        }, error = function(err) {
+               bpstop(x)
+               stop(conditionMessage(err), ": problem setting RNG stream") 
+        })
+    }
+    ## timeout 
+    if (is.finite(timeout <- bptimeout(x))) {
+        tryCatch({
+            clusterExport(bpbackend(x), "timeout", env=environment())
+        }, error = function(err) {
+               bpstop(x)
+               stop(conditionMessage(err), ": problem setting worker timeout") 
+        })
     }
     invisible(x)
 })
@@ -352,19 +343,10 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     on.exit(progress$term(), TRUE)
 
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-    check <- (bplog(BPPARAM) || bpstopOnError(BPPARAM) || 
-              bpprogressbar(BPPARAM) || is.finite(bptimeout(BPPARAM))
-              || !is.na(bpresultdir(BPPARAM)))
-    if (check) {
-        ## script in BiocParallel
-        res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
-                                     length(X), argfun, BPPARAM, 
-                                     progress)
-    } else {
-        ## script in parallel
-        res <- parallel:::dynamicClusterApply(bpbackend(BPPARAM), 
-                                              lapply, length(X), argfun)
-    }
+    ## worker script in BiocParallel
+    res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
+                                 length(X), argfun, BPPARAM, 
+                                 progress)
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
         names(res) <- nms
