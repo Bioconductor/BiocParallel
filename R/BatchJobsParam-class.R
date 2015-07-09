@@ -27,7 +27,6 @@
                 loadConfig(conf.pars$conffile)
             new.conf <- unclass(do.call(setConfig,
                 conf.pars[setdiff(names(conf.pars), "conffile")]))
-
             x_workers <- if (is.na(workers)) {
                 getNumberCPUs <- function(conf) {
                     x <- 

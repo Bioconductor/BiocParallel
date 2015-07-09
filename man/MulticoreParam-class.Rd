@@ -98,6 +98,14 @@ multicoreWorkers()
       Any \code{futile.logger} messages the user provides in their function will
       be captured by the logging mechanism. Messages are returned real-time
       (i.e., as each tasks completes) instead of after all jobs have finished.
+
+      Messages sent to \emph{stdout} and \emph{stderr} are returned to
+      the workspace by default. When \code{log = TRUE} the messages
+      are diverted to the log output. Those familiar with the \code{outfile}
+      argument to \code{makeCluster} can think of \code{log = FALSE} as
+      equivalent to \code{outfile = NULL}; providing a \code{logdir} is the
+      same as providing a name for \code{outfile} except that BiocParallel
+      writes a log file for each task.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
