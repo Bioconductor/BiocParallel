@@ -135,9 +135,17 @@ snowWorkers()
       workers and captures warnings, errors, and additional statistics such 
       as gc output and node name.
  
-      Any \code{futile.logger} messages the user provides in their function will
-      be captured by the logging mechanism. Messages are returned real-time
+      User-provided \code{futile.logger} messages in the code are captured 
+      by the logging mechanism. Messages are returned real-time
       (i.e., as each tasks completes) instead of after all jobs have finished.
+
+      Messages sent to \emph{stdout} and \emph{stderr} are returned to
+      the workspace by default. When \code{log = TRUE} the messages
+      are diverted to the log output. Those familiar with the \code{outfile}
+      argument to \code{makeCluster} can think of \code{log = FALSE} as
+      equivalent to \code{outfile = NULL}; providing a \code{logdir} is the
+      same as providing a name for \code{outfile} except that BiocParallel
+      writes a log file for each task.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
@@ -145,6 +153,7 @@ snowWorkers()
       completes. Options can be set with the \code{logdir} and 
       \code{resultdir} fields in the constructor or with the accessors,
       \code{bplogdir} and \code{bpresultdir}. 
+
     }
     \item{random number generation:}{
       \code{MulticoreParam} and \code{SnowParam} use the random number

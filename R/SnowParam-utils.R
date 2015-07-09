@@ -239,7 +239,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
                     con <- file(lfile, open="w")
                 }
                 .bpwriteLog(con, d)
-            }
+            } else cat(paste(d$value$sout, collapse="\n"), "\n")
 
             ## write results 
             if (!is.na(resdir)) {
@@ -371,7 +371,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
                 con <- file(lfile, open="w")
             }
             .bpwriteLog(con, d)
-        }
+        } else cat(paste(d$value$sout, collapse="\n"), "\n")
 
         ## reduce
         ## FIXME: if any worker has an error - can't reduce
