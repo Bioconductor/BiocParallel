@@ -40,7 +40,7 @@ when an error is thrown (vs just the error) and to establish logging on the
 workers. In cases where error handling existed, such as \CRANpkg{BatchJobs} and
 \CRANpkg{foreach}, those behaviors were preserved.  Clusters created with
 \CRANpkg{snow} and \CRANpkg{parallel} now have flexible error handling and
-logging available through \Rcode{SnowParma} and \Rcode{MulticoreParam} objects.
+logging available through \Rcode{SnowParam} and \Rcode{MulticoreParam} objects.
 
 In this document the term ``job'' is used to describe a single call to a
 bp*apply function (e.g., the \Rcode{X} in \Rcode{bplapply}). A ``job'' consists

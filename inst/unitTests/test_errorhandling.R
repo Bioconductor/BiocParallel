@@ -78,13 +78,13 @@ test_bpiterate_errors <- function()
     .lazyCount <- function(count) {
         count <- count
         i <- 0L
-    
+ 
         function() {
             if (i >= count)
                 return(NULL)
             else
                 i <<- i + 1L
-            
+ 
             if (i == 2)
                 "2"
             else
@@ -97,8 +97,10 @@ test_bpiterate_errors <- function()
             stop("hit error")
         else count 
     }
-    params <- list(multi=MulticoreParam(2, stop.on.error=TRUE),
-                   snow=SnowParam(2, stop.on.error=TRUE))
+    params <- list(snow=SnowParam(2, stop.on.error=TRUE))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2, stop.on.error=TRUE)
+
     for (p in params) {
         ITER <- .lazyCount(3)
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
