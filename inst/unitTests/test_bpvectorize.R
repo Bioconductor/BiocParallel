@@ -17,10 +17,11 @@ test_bpvectorize_Params <- function()
 {
     registerDoParallel(2)
     params <- list(serial=SerialParam(),
-                   mc=MulticoreParam(2),
-                   snow1=SnowParam(2, "SOCK"),
+                   snow=SnowParam(2),
                    batchjobs=BatchJobsParam(workers=2),
                    dopar=DoparParam())
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
     dop <- registerDoParallel(cores=2)
 
     x <- 1:10

@@ -20,8 +20,9 @@ test_bpiterate_Params <- function()
     FUN <- function(count, ...) sqrt(count)
 
     params <- list(serial=SerialParam(),
-                   multi=MulticoreParam(2),
                    snow=SnowParam(2))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
@@ -33,8 +34,9 @@ test_bpiterate_Params <- function()
     expected <- lapply(x, sqrt)
     FUN <- function(count, ...) sqrt(count)
     params <- list(serial=SerialParam(),
-                   multi=MulticoreParam(4),
                    snow=SnowParam(4))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(4)
 
     for (p in params) {
         ITER <- .lazyCount(length(x))
