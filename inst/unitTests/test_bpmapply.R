@@ -6,9 +6,10 @@ test_bpmapply_Params <- function()
     registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
-                   mc=MulticoreParam(2),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam(progressbar=FALSE))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     x <- 1:10
     y <- rev(x)
