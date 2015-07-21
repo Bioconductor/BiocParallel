@@ -6,9 +6,10 @@ test_bplapply_Params <- function()
     registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
-                   mc=MulticoreParam(2),
                    dopar=DoparParam(),
                    batchjobs=BatchJobsParam())
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2)
 
     x <- 1:10
     expected <- lapply(x, sqrt)
