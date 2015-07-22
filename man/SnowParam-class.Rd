@@ -127,25 +127,23 @@ snowWorkers()
       }
     }
     \item{logging:}{
-      Logging is implemented on the workers with the \code{futile.logger}
-      package. The argument to the constructor is \code{log} and the value is
-      accessed with \code{bplog(BPPARAM)}. When \code{log == TRUE}, the
-      \code{futile.logger} package is loaded on the workers.
-      A modified script in the \code{BiocParallel} package is run on the
-      workers and captures warnings, errors, and additional statistics such 
-      as gc output and node name.
- 
-      User-provided \code{futile.logger} messages in the code are captured 
-      by the logging mechanism. Messages are returned real-time
-      (i.e., as each tasks completes) instead of after all jobs have finished.
+      When \code{log = TRUE} the \code{futile.logger} package is loaded on
+      the workers. All log messages written in the \code{futile.logger} format
+      are captured by the logging mechanism and returned real-time 
+      (i.e., as each task completes) instead of after all jobs have finished.
 
       Messages sent to \emph{stdout} and \emph{stderr} are returned to
-      the workspace by default. When \code{log = TRUE} the messages
+      the workspace by default. When \code{log = TRUE} these 
       are diverted to the log output. Those familiar with the \code{outfile}
       argument to \code{makeCluster} can think of \code{log = FALSE} as
       equivalent to \code{outfile = NULL}; providing a \code{logdir} is the
       same as providing a name for \code{outfile} except that BiocParallel
       writes a log file for each task.
+
+      The log output includes additional statistics such as memory use
+      and task runtime. Memory use is reported as the difference in max
+      memory used (columns 5 and 6 from gc()). \code{gc(reset=TRUE)} is 
+      called before evaluation and subtracted from \code{gc()} called after.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
