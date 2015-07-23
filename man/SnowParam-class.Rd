@@ -142,8 +142,9 @@ snowWorkers()
 
       The log output includes additional statistics such as memory use
       and task runtime. Memory use is reported as the difference in max
-      memory used (columns 5 and 6 from gc()). \code{gc(reset=TRUE)} is 
-      called before evaluation and subtracted from \code{gc()} called after.
+      memory used: \code{gc(reset=TRUE)} is called before evaluation and 
+      subtracted from \code{gc()}. Only columns 5 and 6 from the
+      gc() output are reported.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
