@@ -134,7 +134,7 @@ bprunMPIslave <- function() {
 
     .bufferload <- function(i, level) {
         tryCatch({
-            attachNamespace("futile.logger")
+            loadNamespace("futile.logger")
             flog.threshold(level)
             fun <- function(line)
                 buffer <<- c(buffer, line)
@@ -159,7 +159,7 @@ bprunMPIslave <- function() {
         message(sprintf("Success: %s", d$value$success))
         message("Task duration: ")
         print(d$value$time)
-        message("Max Memory Used: ")
+        message("Change in max memory used: ")
         print(d$value$gc)
         message("Log messages:")
         message(d$value$log)
@@ -240,7 +240,9 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
                     con <- file(lfile, open="w")
                 }
                 .bpwriteLog(con, d)
-            } else cat(paste(d$value$sout, collapse="\n"), "\n")
+            } else if (length(msg <- d$value$sout)) {
+                    cat(paste(msg, collapse="\n"), "\n")
+            }
 
             ## write results 
             if (!is.na(resdir)) {
@@ -265,7 +267,6 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             }
         }
     }
-
     ## return results 
     if (!is.na(resdir))
         NULL 
@@ -372,7 +373,9 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
                 con <- file(lfile, open="w")
             }
             .bpwriteLog(con, d)
-        } else cat(paste(d$value$sout, collapse="\n"), "\n")
+        } else if (length(msg <- d$value$sout)) {
+                cat(paste(msg, collapse="\n"), "\n")
+        }
 
         ## reduce
         ## FIXME: if any worker has an error - can't reduce
