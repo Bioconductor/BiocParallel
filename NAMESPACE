@@ -76,3 +76,9 @@ exportMethods(
 exportMethods(
     show
 )
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export S3 methods 
+###
+
+export(`print.remote-error`)

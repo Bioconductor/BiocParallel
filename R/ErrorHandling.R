@@ -18,11 +18,12 @@ bpresume <- function(expr) {
     handler_error <- function(e) {
         success <<- FALSE
         call <- sapply(sys.calls(), deparse)
-        e <- structure(e, class = c("remote-error", "condition"),
+        e <- structure(e, 
+                       class = c("remote-error", "condition"),
                        traceback = capture.output(traceback(call))) 
         invokeRestart("abort", e)
     }
-    handler_abort <- function(e) e
+    handler_abort <- function(e) e 
 
     withRestarts(withCallingHandlers(expr,
                                      warning=handler_warning,
@@ -40,7 +41,8 @@ bpresume <- function(expr) {
         call <- sapply(sys.calls(), deparse)
         flog.debug(capture.output(traceback(call)))
         flog.error("%s", e)
-        e <- structure(e, class = c("remote-error", "condition"),
+        e <- structure(e, 
+                       class = c("remote-error", "condition"),
                        traceback = capture.output(traceback(call))) 
         invokeRestart("abort", e)
     }
@@ -75,6 +77,6 @@ bpresume <- function(expr) {
 }
 
 `print.remote-error` = function(x, ...) {
-    print(x[[1]])
+    print(noquote(x[[1]]))
     cat("traceback() available as 'attr(x, \"traceback\")'\n")
 }

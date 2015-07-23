@@ -48,6 +48,7 @@
 
 % Other methods
 \alias{show,BiocParallel-method}
+\alias{print.remote-error}
 
 
 \title{BiocParallelParam objects}
