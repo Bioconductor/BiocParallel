@@ -101,9 +101,12 @@ multicoreWorkers()
       writes a log file for each task.
 
       The log output includes additional statistics such as memory use
-      and task runtime. Memory use is reported as the difference in memory
-      used (columns 1 and 2 of gc() output): gc() called before evaluation
-      is subtracted from gc() called after.
+      and task runtime. Memory use is computed by calling gc(reset=TRUE) 
+      before code evaluation and gc() (no reseet) after. The output of the
+      second gc() call is sent to the log file. There are many ways to 
+      track memory use - this particular approach was taken because it is 
+      consistent with how the BatchJobs package reports memory on the
+      workers.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
