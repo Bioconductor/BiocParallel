@@ -25,18 +25,17 @@ bpslaveLoop <- function(master)
                 file <- textConnection("sout", "w", local=TRUE)
                 sink(file, type="message")
                 sink(file, type="output")
-                gc1 <- gc()
+                gc(reset=TRUE)
                 t1 <- proc.time()
                 value <- do.call(msg$data$fun, msg$data$args)
                 t2 <- proc.time()
-                gc2 <- gc()
                 node <- Sys.info()["nodename"]
                 sink(NULL, type="message")
                 sink(NULL, type="output")
                 close(file)
                 value <- list(type = "VALUE", value = value, success = success,
                               time = t2 - t1, tag = msg$data$tag, log = buffer,
-                              gc = (gc2 - gc1)[,1:2], node = node, sout = sout)
+                              gc = gc(), node = node, sout = sout)
                 parallel:::sendData(master, value)
             }
         }, interrupt = function(e) NULL)
