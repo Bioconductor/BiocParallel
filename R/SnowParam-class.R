@@ -220,27 +220,35 @@ setMethod(bpstart, "SnowParam",
             attachNamespace("parallel")
         }, error=function(err) {
             stop(conditionMessage(err), 
-                "SnowParam class objects require the 'parallel' package")
+                "SnowParam objects require the 'parallel' package")
         })
     }
+
     ## 'X' has been split into tasks - start minimum number of workers.
     if (lenX > 0) {
         cargs <- x$.clusterargs
         cargs$spec <- min(bpworkers(x), lenX)
     } else stop("cluster not started; no workers specified")
 
+    ## FORK (useRscript not relevant)
     if (x$.clusterargs$type == "FORK") {
         bpbackend(x) <- 
             do.call(.bpmakeForkCluster, c(list(nnodes=cargs$spec), cargs))
+    ## SOCK, MPI
     } else {
-        cargs$useRscript <- FALSE
-        cargs$scriptdir <- find.package("BiocParallel")
+        cargs$snowlib <- find.package("BiocParallel")
+        if (!is.null(cargs$useRscript)) {
+            if (!cargs$useRscript)
+                cargs$scriptdir <- find.package("BiocParallel")
+        }
         bpbackend(x) <- do.call(makeCluster, cargs)
     }
+
     ## logging
     if (bplog(x)) {
         .initiateLogging(x)
     }
+
     ## random numbers 
     if (!is.null(bpRNGseed(x))) {
         tryCatch({
@@ -250,6 +258,7 @@ setMethod(bpstart, "SnowParam",
                stop(conditionMessage(err), ": problem setting RNG stream") 
         })
     }
+
     ## timeout 
     if (is.finite(timeout <- bptimeout(x))) {
         tryCatch({
@@ -343,7 +352,6 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     on.exit(progress$term(), TRUE)
 
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-    ## worker script in BiocParallel
     res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                  length(X), argfun, BPPARAM, 
                                  progress)
