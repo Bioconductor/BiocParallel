@@ -93,9 +93,12 @@ snowWorkers()
   2 cluster types: \sQuote{SOCK} (default) and \sQuote{MPI}. The \code{SnowParam}
   builds on infrastructure in the \code{snow} and \code{parallel}
   packages and provides the additional features of error handling, logging
-  and writing out results. If not specified, the default number of
-  workers is determined by \code{snowWorkers()} which is essentially
-  parallel::detectCores() - 2.
+  and writing out results. When not specified, the default number of
+  workers is determined by \code{snowWorkers()} which is 
+  parallel::detectCores() - 2. Machines with 3 or less cores are assigned
+  a single worker; a warning is thrown advising the explicit setting of 
+  \code{workers} e.g., \code{BiocParallelParam(workers = 2)}, to increase
+  the number of workers.
 
   \describe{
     \item{error handling:}{
