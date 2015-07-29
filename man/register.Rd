@@ -48,11 +48,11 @@ bpparam(bpparamClass)
   used by \code{BiocParallel} functions when no \code{BPPARAM} argument 
   is supplied.
 
-  At load time the registry is populated with default backends. Defaults
-  are \code{SnowParam} and \code{SerialParam} on Windows and 
-  \code{MulticoreParam}, \code{SnowParam} and \code{SerialParam} on
-  non-Windows. Additional backends can be added to the registry and
-  existing entries can be modified.
+  At load time the registry is populated with default backends. On Windows
+  these are \code{SnowParam} and \code{SerialParam} and on non-Windows 
+  \code{MulticoreParam}, \code{SnowParam} and \code{SerialParam}.
+  When \code{snowWorkers()} or \code{multicoreWorkers} returns a single
+  core, only \code{SerialParm} is registered.
 
   The \code{\link{BiocParallelParam}} objects are constructed from global
   options of the corresponding name, or from the default constructor (e.g.,

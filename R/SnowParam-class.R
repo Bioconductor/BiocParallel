@@ -14,12 +14,7 @@ makeCluster <- parallel::makeCluster
 ###
 
 snowWorkers <- function() {
-    cores <- min(8L, parallel::detectCores() - 2L)
-    if (cores <= 1L) {
-        cores <- 1L
-        warning(paste0("using a single core; to increase cores specify ",
-                       "'workers' e.g., SnowParam(workers = 2) "))
-    }
+    cores <- max(1L, parallel::detectCores() - 2L)
     getOption("mc.cores", cores)
 }
 
