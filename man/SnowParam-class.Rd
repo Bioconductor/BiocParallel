@@ -96,9 +96,7 @@ snowWorkers()
   and writing out results. When not specified, the default number of
   workers is determined by \code{snowWorkers()} which is 
   parallel::detectCores() - 2. Machines with 3 or less cores are assigned
-  a single worker; a warning is thrown advising the explicit setting of 
-  \code{workers} e.g., \code{BiocParallelParam(workers = 2)}, to increase
-  the number of workers.
+  a single worker.
 
   \describe{
     \item{error handling:}{
