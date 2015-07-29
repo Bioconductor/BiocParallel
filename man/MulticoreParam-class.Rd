@@ -46,11 +46,9 @@ multicoreWorkers()
   \code{MulticoreParam} is used for shared memory computing. Under the hood
   the cluster is created with \code{makeCluster(..., type ="FORK")} from 
   the \code{parallel} package. If not specified, the default number of
-  workers is determined by \code{multicoreWorkers()}, which is 
+  workers is determined by \code{multicoreWorkers()}, which is
   parallel::detectCores() - 2. Machines with 3 or less cores are assigned
-  a single worker; a warning is thrown advising the explicit setting of 
-  \code{workers} e.g., \code{BiocParallelParam(workers = 2)}, to increase
-  the number of workers.
+  a single worker.
 
   A FORK transport starts workers with the \code{mcfork} function and
   communicates between master and workers using socket connections.
