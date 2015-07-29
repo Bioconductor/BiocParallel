@@ -24,6 +24,11 @@ test_bplapply_Params <- function()
         checkIdentical(list(), current)
     }
 
+    # unnamed args for BatchJobs -> dispatches to batchMap
+    f <- function(...) {}
+    current <- bplapply(1:2, f, "foo0", "foo1"=10, BPPARAM=BatchJobsParam())
+    checkIdentical(list(NULL, NULL), current)
+
     closeAllConnections()
     TRUE
 }

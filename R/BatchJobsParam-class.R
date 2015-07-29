@@ -149,10 +149,17 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
             indent=4, exdent=4)
         warning(paste(txt, collapse="\n"))
     }
-    ## define jobs and submit
+
+    MoreArgs <- list(...)
+    if (is.null(names(MoreArgs)))
+        names(MoreArgs) <- MoreArgs
+    else if (any(noname <- nchar(names(MoreArgs)) == 0L))
+        names(MoreArgs)[noname] <- MoreArgs[noname]
     if (BPPARAM$catch.errors)
         FUN <- .composeTry(FUN)
-    ids <- suppressMessages(batchMap(reg, fun=FUN, X, more.args=list(...)))
+
+    ## define jobs and submit
+    ids <- suppressMessages(batchMap(reg, fun=FUN, X, more.args=MoreArgs))
 
     ## submit, possibly chunked
     pars <- c(list(reg=reg), BPPARAM$submit.pars)
