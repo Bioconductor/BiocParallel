@@ -20,14 +20,14 @@ bpresume <- function(expr) {
         call <- sapply(sys.calls(), deparse)
         e <- structure(e, 
                        class = c("remote-error", "condition"),
-                       traceback = capture.output(traceback(call))) 
+                       traceback = capture.output(traceback(call)))
         invokeRestart("abort", e)
     }
     handler_abort <- function(e) e 
 
     withRestarts(withCallingHandlers(expr,
                                      warning=handler_warning,
-                                     error=handler_error), 
+                                     error=handler_error),
                                      abort=handler_abort)
 }
 
@@ -77,6 +77,6 @@ bpresume <- function(expr) {
 }
 
 `print.remote-error` = function(x, ...) {
-    print(noquote(x[[1]]))
+    NextMethod(x)
     cat("traceback() available as 'attr(x, \"traceback\")'\n")
 }
