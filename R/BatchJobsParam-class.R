@@ -142,7 +142,9 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     on.exit(setConfig(conf=prev.config), add=TRUE)
     setConfig(conf=BPPARAM$conf.pars)
 
-    ## quick sanity check
+    ## error handling; sanity check
+    if (BPPARAM$catch.errors)
+        FUN <- .composeTry(FUN)
     if (BPPARAM$stop.on.error && BPPARAM$catch.errors) {
         txt <- strwrap("options 'stop.on.error' and 'catch.errors' are
             both set, but are mutually exclusive; disabling 'stop.on.error'",
@@ -150,18 +152,13 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
         warning(paste(txt, collapse="\n"))
     }
 
-    MoreArgs <- list(...)
-    if (is.null(names(MoreArgs)))
-        names(MoreArgs) <- MoreArgs
-    else if (any(noname <- nchar(names(MoreArgs)) == 0L))
-        names(MoreArgs)[noname] <- MoreArgs[noname]
-    if (BPPARAM$catch.errors)
-        FUN <- .composeTry(FUN)
-
-    ## define jobs and submit
-    ids <- suppressMessages(batchMap(reg, fun=FUN, X, more.args=MoreArgs))
-
-    ## submit, possibly chunked
+    ## package args for batchMap
+    wrap <- function(.x, .FUN, .MoreArgs) {
+        do.call(.FUN, c(list(.x), .MoreArgs))
+    }
+    ## define jobs and submit, possibly chunked
+    ids <- suppressMessages(batchMap(reg, fun=wrap, X, 
+                            more.args=list(.FUN=FUN, .MoreArgs=list(...))))
     pars <- c(list(reg=reg), BPPARAM$submit.pars)
     if (is.na(BPPARAM$workers))
         pars$ids <- ids
