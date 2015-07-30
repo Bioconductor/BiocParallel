@@ -1,18 +1,5 @@
 library(doParallel)                     # FIXME: unload?
 
-.fork_not_windows <- function(expected, expr)
-{
-    err <- NULL
-    obs <- tryCatch(expr, error=function(e) {
-        if (!all(grepl("fork clusters are not supported on Windows",
-                       conditionMessage(e))))
-            err <<- conditionMessage(e)
-        expected
-    })
-    checkTrue(is.null(err))
-    checkIdentical(expected, obs)
-}
-
 test_bpvec_Params <- function()
 {
     registerDoParallel(2)
@@ -29,8 +16,8 @@ test_bpvec_Params <- function()
     x <- 1:10
     expected <- sqrt(x)
     for (ptype in names(params)) {
-        .fork_not_windows(expected,
-                          bpvec(x, sqrt, BPPARAM=params[[ptype]]))
+        current <- bpvec(x, sqrt, BPPARAM=params[[ptype]])
+        checkIdentical(current, expected)
     }
 
     closeAllConnections()
@@ -44,4 +31,6 @@ test_bpvec_MulticoreParam_short_jobs <- function() {
     obs <- bpvec(exp, c, AGGREGATE=list, BPPARAM=MulticoreParam(workers=4L))
     checkIdentical(2L, length(obs))
     checkIdentical(exp, unlist(obs))
+
+    closeAllConnections()
 }
