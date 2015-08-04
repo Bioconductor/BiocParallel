@@ -104,7 +104,6 @@ test_bpiterate_errors <- function()
     for (p in params) {
         ITER <- .lazyCount(3)
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkTrue(length(res) == 2L)
         checkTrue(is(res[[2]], "condition"))
     }
 
