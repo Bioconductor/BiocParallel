@@ -7,11 +7,13 @@ test_bpaggregate <-
     FUN <- mean
 
     x1 <- aggregate(x, by=by, FUN=FUN)
-    x2 <- bpaggregate(x, by=by, FUN=FUN, simplify=simplify)
+    param <- bpparam()
+    bpworkers(param) <- 2
+    x2 <- bpaggregate(x, by=by, FUN=FUN, BPPARAM=param, simplify=simplify)
     checkEquals(x1, x2)
 
     by[[2]] <- c(rep("c", 8), rep("d", 2))
     x1 <- aggregate(x, by=by, FUN=FUN)
-    x2 <- bpaggregate(x, by=by, FUN=FUN, simplify=simplify)
+    x2 <- bpaggregate(x, by=by, FUN=FUN, BPPARAM=param, simplify=simplify)
     checkEquals(x1, x2)
 }

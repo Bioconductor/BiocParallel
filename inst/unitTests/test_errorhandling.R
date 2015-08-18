@@ -31,8 +31,12 @@ test_catching_errors <- function()
         checkTrue(length(res) == 3L)
         msg <- "non-numeric argument to mathematical function"
         checkIdentical(conditionMessage(res[[2]]), msg)
+        closeAllConnections()
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
@@ -55,19 +59,25 @@ test_BPREDO <- function()
     for (param in params) {
         res <- bpmapply(f, x, BPPARAM=param, SIMPLIFY=TRUE)
         checkTrue(inherits(res[[2]], "condition"))
+        closeAllConnections()
         Sys.sleep(0.25)
 
         ## data not fixed
         res2 <- bpmapply(f, x, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
         checkTrue(inherits(res2[[2]], "condition"))
+        closeAllConnections()
         Sys.sleep(0.25)
 
         ## data fixed
         res3 <- bpmapply(f, x.fix, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
         checkIdentical(res3, sqrt(1:3))
+        closeAllConnections()
         Sys.sleep(0.25)
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
@@ -105,8 +115,10 @@ test_bpiterate_errors <- function()
         ITER <- .lazyCount(3)
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
         checkTrue(is(res[[2]], "condition"))
+        closeAllConnections()
     }
 
+    ## clean up
     closeAllConnections()
     TRUE
 }

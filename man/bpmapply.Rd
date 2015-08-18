@@ -92,7 +92,9 @@ fun <- function(greet, who) {
 greet <- c("morning", "night")
 who <- c("sun", "moon")
 
-result <- bpmapply(fun, greet, who, BPPARAM = MulticoreParam(2))
+param <- bpparam()
+bpworkers(param) <- 2
+result <- bpmapply(fun, greet, who, BPPARAM = param)
 cat(paste(result, collapse="\n"), "\n")
 }
 
