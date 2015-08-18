@@ -1,3 +1,4 @@
+library(doParallel)
 quiet <- suppressWarnings
 .lazyCount <- function(count) {
     count <- count
@@ -14,7 +15,7 @@ quiet <- suppressWarnings
 
 test_bpiterate_Params <- function()
 {
-    ## chunks greater than no. workers
+    ## chunks greater than number of workers
     x <- 1:5
     expected <- lapply(x, sqrt)
     FUN <- function(count, ...) sqrt(count)
@@ -29,14 +30,14 @@ test_bpiterate_Params <- function()
         checkIdentical(expected, res)
     }
 
-    ## chunks less than no. workers
+    ## chunks less than number of workers
     x <- 1:2
     expected <- lapply(x, sqrt)
     FUN <- function(count, ...) sqrt(count)
     params <- list(serial=SerialParam(),
-                   snow=SnowParam(4))
+                   snow=SnowParam(3))
     if (.Platform$OS.type != "windows")
-        params$mc <- MulticoreParam(4)
+        params$mc <- MulticoreParam(3)
 
     for (p in params) {
         ITER <- .lazyCount(length(x))
@@ -44,12 +45,16 @@ test_bpiterate_Params <- function()
         checkIdentical(expected, res)
     }
 
+    registerDoParallel(2)
     params <- list(dopar=DoparParam(), batchjobs=BatchJobsParam())
     for (p in params) {
         ITER <- .lazyCount(length(x))
         checkException(bpiterate(ITER, FUN, BPPARAM=p), silent=TRUE)
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
@@ -107,6 +112,7 @@ test_bpiterate_REDUCE <- function() {
         checkIdentical(unlist(res, use.names=FALSE), "0123")
     }
 
+    ## clean up
     closeAllConnections()
     TRUE
 }

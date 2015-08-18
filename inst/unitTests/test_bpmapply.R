@@ -1,4 +1,4 @@
-library(doParallel)  # FIXME: unload?
+library(doParallel)
 quiet <- suppressWarnings
 
 test_bpmapply_Params <- function() 
@@ -55,6 +55,9 @@ test_bpmapply_Params <- function()
         checkIdentical(list(), current)
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
@@ -63,8 +66,8 @@ test_bpmapply_symbols <- function()
 {
     registerDoParallel(2)
     params <- list(serial=SerialParam(),
-                  snow=SnowParam(2),
-                  dopar=DoparParam())
+                   snow=SnowParam(2),
+                   dopar=DoparParam())
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
@@ -75,6 +78,9 @@ test_bpmapply_symbols <- function()
         checkIdentical(expected, current)
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }

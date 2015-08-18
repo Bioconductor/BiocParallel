@@ -1,4 +1,4 @@
-library(doParallel)  ## FIXME: unload?
+library(doParallel)
 quiet <- suppressWarnings
 
 test_bplapply_Params <- function()
@@ -30,6 +30,9 @@ test_bplapply_Params <- function()
     checkTrue(all.equal(current[[1]], list(c("A", "B"), 2, 10))) 
     checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10))) 
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
@@ -51,6 +54,9 @@ test_bplapply_symbols <- function()
         checkIdentical(expected, current)
     }
 
+    ## clean up
+    env <- foreach:::.foreachGlobals
+    rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
 }
