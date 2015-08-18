@@ -404,9 +404,11 @@ bpparam <- MulticoreParam(3, log = TRUE)
 bplapply(X, fun, BPPARAM=bpparam)
 
 ## When a 'logdir' location is given the messages are redirected to a file:
+\dontrun{
 bplogdir(bpparam) <- tempdir()
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bplogdir(bpparam))
+}
 
 ## -----------------------------------------------------------------------
 ## Managing results:
@@ -415,9 +417,11 @@ list.files(bplogdir(bpparam))
 ## By default results are returned as a list. When 'resultdir' is given
 ## files are saved in the directory specified by job, e.g., 'TASK1.Rda', 
 ## 'TASK2.Rda', etc.
+\dontrun{
 bpparam <- MulticoreParam(2, resultdir = tempdir())
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))
+}
 
 ## -----------------------------------------------------------------------
 ## Error handling:
