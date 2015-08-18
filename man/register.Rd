@@ -121,9 +121,9 @@ bpparam("SnowParam")
 ## Specifying a back-end for evaluation
 ## ----------------------------------------------------------------------
 
-## The back-end of choice is specified in the BPPARAM argument to
+## The back-end of choice is given as the BPPARAM argument to
 ## the BiocParallel functions. None, one, or multiple back-ends can be
-## provided.
+## used.
 
 bplapply(1:6, sqrt, BPPARAM = MulticoreParam(3))
 

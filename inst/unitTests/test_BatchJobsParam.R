@@ -1,15 +1,12 @@
 test_BatchJobsParam <- 
     function() 
 {
-    backend <- BatchJobsParam(progressbar=FALSE, cleanup=TRUE)
-    register(backend)
-
+    param <- BatchJobsParam(progressbar=FALSE, cleanup=TRUE)
     f <- function(x) if (x == 0) stop(x) else x
-    checkEquals(bplapply(1:3, f), as.list(1:3))
+    checkEquals(bplapply(1:3, f, BPPARAM=param), as.list(1:3))
 
-    backend <- BatchJobsParam(progressbar=FALSE, catch.errors=TRUE)
-    register(backend)
-    res <- bplapply(0:3, f)
+    param <- BatchJobsParam(progressbar=FALSE, catch.errors=TRUE)
+    res <- bplapply(0:3, f, BPPARAM=param)
     checkTrue(inherits(res[[1]], "condition"))
-    checkEquals(bplapply(0:3, identity), as.list(0:3))
+    checkEquals(bplapply(0:3, identity, BPPARAM=param), as.list(0:3))
 }

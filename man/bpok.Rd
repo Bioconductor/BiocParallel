@@ -95,7 +95,7 @@ X <- list(1, "two", 3)
 res <- bplapply(X, sqrt, BPPARAM = param)
 res
 
-## Check if the results contain any errors:
+## Check for errors:
 fail <- !bpok(res)
 fail
 

@@ -182,14 +182,21 @@ bprunMPIslave <- function() {
 ## These functions are used by all cluster types (SOCK, MPI, FORK) 
 ## and run on the master. Both enable logging, writing logs/results
 ## to files and 'stop on error'. The 'cl' argument is an active cluster;
-## starting and stopping of 'cl' is done outside these functions.
+## starting and stopping of 'cl' is done outside these functions, eg,
+## bplapply, bpmapply etc..
 
 .clear_cluster <- function(cl, sjobs) 
 {
-    while (any(sjobs == "running")) {
-        d <- parallel:::recvOneData(cl)
-        sjobs[d$value$tag] <- "done"
-    }
+    tryCatch({
+        setTimeLimit(30, 30, TRUE)
+        on.exit(setTimeLimit(Inf, Inf, FALSE))
+        while (any(sjobs == "running")) {
+            d <- parallel:::recvOneData(cl)
+            sjobs[d$value$tag] <- "done"
+        }
+    }, error=function(e) {
+        stop("failed to stop cluster workers: ", conditionmessage(e))
+    })
 }
 
 ## bpdynamicClusterApply():

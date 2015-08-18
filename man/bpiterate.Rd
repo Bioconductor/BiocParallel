@@ -159,7 +159,7 @@ if (all(require(Rsamtools) &&
   bpparam <- MulticoreParam(workers = 3) 
   bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
 
-  ## Reinitialize the iterator and combine on the fly with REDUCE:
+  ## Re-initialize the iterator and combine on the fly with REDUCE:
   ITER <- bamIterator(bf)
   bpparam <- MulticoreParam(workers = 3) 
   bpiterate(ITER, counter, REDUCE = sum, roi = roi, BPPARAM = bpparam)
