@@ -18,6 +18,7 @@ test_bpmapply_Params <- function()
     for (param in params) {
       current <- quiet(bpmapply(f, x, y, BPPARAM=param))
       checkIdentical(expected, current)
+      closeAllConnections()
     }
 
     # test names and simplify
@@ -35,6 +36,7 @@ test_bpmapply_Params <- function()
                                             SIMPLIFY=SIMPLIFY, 
                                             BPPARAM=param))
                   checkIdentical(expected, current)
+                  closeAllConnections()
                 }
             }
         }
@@ -47,12 +49,14 @@ test_bpmapply_Params <- function()
     for (param in params) {
         current <- quiet(bpmapply(f, x, MoreArgs=list(m=1), BPPARAM=param))
         checkIdentical(expected, current)
+        closeAllConnections()
     }
 
     # test empty input
     for (param in params) {
         current <- quiet(bpmapply(identity, BPPARAM=param))
         checkIdentical(list(), current)
+        closeAllConnections()
     }
 
     ## clean up
