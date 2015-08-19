@@ -89,17 +89,15 @@ DoparParam(catch.errors = TRUE)
 
 \examples{
 
+\dontrun{
 # First register a parallel backend with foreach
 library(doParallel)
-cl <- makeCluster(2)
-registerDoParallel(cl)
+registerDoParallel(2)
 
 p <- DoparParam()
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
 
-stopCluster(cl)
-\dontrun{
 register(DoparParam(), default=TRUE)
 }
 }
