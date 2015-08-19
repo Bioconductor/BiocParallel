@@ -163,8 +163,7 @@ with the \Rcode{attr} function. This is possible because errors are returned
 as \Rcode{condition} objects with the traceback as an attribute.
 
 <<errors_traceback>>=
-fail <- !bpok(res)
-tail(attr(res[[2]], "traceback"))
+tail(attr(res[[which(!bpok(res))]], "traceback"))
 @
 
 \subsection{Rerun failed tasks with \Rcode{BPREDO}}
@@ -246,12 +245,10 @@ messages greater than or equal to the severity of the threshold are shown. For
 example, a threshold of {\it INFO} will print all messages tagged as {\it
 FATAL}, {\it ERROR}, {\it WARN} and {\it INFO}.
 
-In this code chunk an {\it INFO}-level message is emitted when 
-\CRANpkg{futile.logger} is loaded on the workers and a {\it ERROR}-level
-message when attempting the square root of a character ("2"). 
+Because the default threshold is {\it INFO} it catches the {\it ERROR}-level 
+message thrown when attempting the square root of a character ("2"). 
 
 <<logs_bplapply>>=
-bpthreshold(param) <- "INFO"
 bplapply(list(1, "2", 3), sqrt, BPPARAM = param)
 @
 
@@ -267,7 +264,7 @@ FUN <- function(i) {
       flog.warn("'i' is missing")
       NA 
   } else if (!is(i, "numeric")) {
-      flog.info("coercing to numeric")
+      flog.debug("coercing to numeric")
       as.numeric(i)
   } else {
       i
@@ -282,8 +279,8 @@ param <- SnowParam(2, log = TRUE, threshold = "WARN")
 bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
 @
 
-Changing the threshold to {\it DEBUG} catches all {\it WARN}, {\it INFO} 
-and {\it DEBUG} messages.
+Changing the threshold to {\it DEBUG} catches both {\it WARN} and 
+{\it DEBUG} messages.
 
 <<logs_ERROR>>=
 param <- SnowParam(2, log = TRUE, threshold = "DEBUG")
@@ -298,17 +295,17 @@ File names are prefixed with the name in \Rcode{bpjobname(BPPARAM)}; default
 is 'BPJOB'.
 
 \begin{verbatim}
-  > param <- SnowParam(2, log = TRUE, threshold = "DEBUG", logdir = tempdir())
-  > res <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
-  INFO [2015-07-08 08:47:40] loading futile.logger on workers
-  > list.files(bplogdir(param))
-  [1] "BPJOB.task1.log" "BPJOB.task2.log"
+param <- SnowParam(2, log = TRUE, threshold = "DEBUG", logdir = tempdir())
+res <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+## loading futile.logger on workers
+list.files(bplogdir(param))
+## [1] "BPJOB.task1.log" "BPJOB.task2.log"
 \end{verbatim}
 
 Read in BPJOB.task2.log:
 
 \begin{verbatim}
-  > readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
+   readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
    [1] "############### LOG OUTPUT ###############"      
    [2] "Task: 2"                                         
    [3] "Node: 2"                                         
@@ -359,15 +356,27 @@ param
 @
 
 
-A timeout error is returned if 
-
-<<timeout_bplapply>>=
+\begin{verbatim}
 fun <- function(i) {
   Sys.sleep(i)
   i
 }
 bplapply(1:3, fun, BPPARAM = param) 
-@
+
+## starting worker for localhost:11747 
+## starting worker for localhost:11747 
+## starting worker for localhost:11747 
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## <remote-error in Sys.sleep(i): reached elapsed time limit>
+## traceback() available as 'attr(x, "traceback")'
+## 
+## [[3]]
+## <remote-error in Sys.sleep(i): reached elapsed time limit>
+## traceback() available as 'attr(x, "traceback")'
+\end{verbatim}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -403,43 +412,79 @@ fun1 <- function(x) {
 
 Calling ``fun1'' with a character throws an error:
 
-<<errors_bplapply>>=
+\begin{verbatim}
 res <- bplapply(list(c(1,3), 5, "6"), fun1)
 res
-@
+
+## [[1]]
+## [1] 1.000000 1.732051
+## 
+## [[2]]
+## [1] 2.236068
+## 
+## [[3]]
+## <remote-error in abs(x): non-numeric argument to mathematical function>
+## traceback() available as 'attr(x, "traceback")'
+\end{vebatim}
 
 Identify which elements failed with \Rcode{bpok}:
 
-<<errors_bpok_fun1>>=
+\begin{verbatim}
 bpok(res)
-@
+
+## [1]  TRUE  TRUE FALSE
+\end{verbatim}
 
 The error (i.e., third element of ``res'') is a \Rcode{condition} object:
 
-<<debug_condition>>=
+\begin{verbatim}
 is(res[[3]], "condition")
-@
+
+## [1] TRUE
+\end{verbatim}
+
 
 The traceback is an attribute of the \Rcode{condition} and can be accessed with 
 the \Rcode{attr} function. 
 
-<<debug_traceback>>=
+\begin{verbatim}
 noquote(tail(attr(res[[3]], "traceback")))
-@
+
+## [1]        call <- sapply(sys.calls(), deparse)                          
+## [2]        e <- structure(e, class = c("remote-error", "condition"),     
+## [3]            traceback = capture.output(traceback(call)))              
+## [4]        invokeRestart("abort", e)                                     
+## [5]    }, "non-numeric argument to mathematical function", quote(abs(x)))
+## [6] 1: h(simpleError(msg, call))
+\end{verbatim}
 
 \subsection{Adding debug messages}
 
 When a \Rcode{numeric()} is passed to ``fun1'' no formal error is thrown
 but the length of the second list element is 2 when it should be 1.
 
-<<debug_fun1>>=
+\begin{verbatim}
 bplapply(list(c(1,3), numeric(), 6), fun1)
-@
 
-Without a formal error we have no traceback so we'll try adding a few debug
-messages to ``fun1''. The \CRANpkg{futile.logger} syntax tags messages with
+## [[1]]
+## [1] 1.000000 1.732051
+## 
+## [[2]]
+## [[2]][[1]]
+## [1] NA
+## 
+## [[2]][[2]]
+## numeric(0)
+## 
+## [[3]]
+## [1] 2.44949
+\end{verbatim}
+
+Without a formal error we have no traceback so we'll add a few debug
+messages. The \CRANpkg{futile.logger} syntax tags messages with
 different levels of severity. A message created with \Rcode{flog.debug} will
-only print if the threshold is {\it DEBUG} or lower.
+only print if the threshold is {\it DEBUG} or lower. So in this case it will
+catch both INFO and DEBUG messages.
 
 ``fun2'' has debug statements that show the value of `x', length of `v' and 
 the index `i'.
@@ -451,7 +496,7 @@ fun2 <- function(x) {
       paste0("'x' = ", paste(x, collapse=","), ": length(v) = ", length(v))
     )
     sapply(1:length(v), function(i) {
-      flog.debug(paste0("'i': ", i))
+      flog.info(paste0("'i': ", i))
       sqrt(v[i])
     })
 }
@@ -469,7 +514,6 @@ This forces `i' to take values of `1' and `0' giving an output of length 2 for
 the second element (i.e., \Rcode{NA} and \Rcode{numeric(0)}).
 
 <<debug_DEBUG>>=
-param <- SnowParam(3, log = TRUE, threshold = "DEBUG")
 res <- bplapply(list(c(1,3), numeric(), 6), fun2, BPPARAM = param)
 res
 @
@@ -507,9 +551,9 @@ fun3 <- function(i) sqrt(i)
 
 Debug the new function:
 
-<<debug_sqrt_debug>>=
+\begin{verbatim}
 debug(fun3)
-@
+\end{verbatim}
 
 We want to recompute only elements that failed and for that we use
 \Rcode{BPREDO}. The BPPARAM has been changed to \Rcode{SerialParam} so
