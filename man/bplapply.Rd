@@ -87,12 +87,11 @@ showMethods("bplapply")
 
 ## ten tasks (1:10) so ten calls to FUN default registered parallel
 ## back-end. Compare with bpvec.
-system.time(result <- bplapply(1:10, function(v) {
+fun <- function(v) {
     message("working") ## 10 tasks
     sqrt(v)
-}))
-result
-
+}
+bplapply(1:10, fun) 
 }
 
 \keyword{manip}
