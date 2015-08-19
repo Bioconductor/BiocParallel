@@ -32,6 +32,7 @@ bpresume <- function(expr) {
 }
 
 .try_log <- function(expr) {
+    library("futile.logger")
     handler_warning = function(w) {
         flog.warn("%s", w)
         invokeRestart("muffleWarning")
@@ -46,33 +47,27 @@ bpresume <- function(expr) {
         invokeRestart("abort", e)
     }
     handler_abort = function(e) e 
-    loadNamespace("futile.logger")
     withRestarts(withCallingHandlers(expr, 
                                      warning=handler_warning, 
                                      error=handler_error), 
                                      abort=handler_abort)
 }
 
-.composeTry <-
-    function(FUN, log=FALSE, timeout=Inf)
+
+
+.composeTry <- function(FUN, log=FALSE, timeout=Inf)
 {
     FUN <- match.fun(FUN)
     if (log)
-        function(...) {
-            .try_log({ 
-                setTimeLimit(timeout, timeout, TRUE)
-                on.exit(setTimeLimit(Inf, Inf, FALSE))
-                FUN(...)
-            })
-        }
-    else 
-        function(...) {
-            .try({ 
-                setTimeLimit(timeout, timeout, TRUE)
-                on.exit(setTimeLimit(Inf, Inf, FALSE))
-                FUN(...)
-            })
-        }
+        logFUN <- .try_log
+    else
+        logFUN <- .try
+
+    function(...) {
+        setTimeLimit(timeout, timeout, TRUE)
+        on.exit(setTimeLimit(Inf, Inf, FALSE))
+        logFUN(FUN(...))
+    }
 }
 
 `print.remote-error` = function(x, ...) {

@@ -258,13 +258,13 @@ a couple of {\it WARN} and {\it DEBUG}-level messages.
 
 <<logs_FUN>>=
 FUN <- function(i) {
-  flog.debug(paste0("value of 'i': ", i))
+  flog.debug(paste0("value of 'i' = ", i))
 
   if (!length(i)) {
       flog.warn("'i' is missing")
       NA 
   } else if (!is(i, "numeric")) {
-      flog.debug("coercing to numeric")
+      flog.debug("coercing 'i' to numeric")
       as.numeric(i)
   } else {
       i
@@ -496,7 +496,7 @@ fun2 <- function(x) {
       paste0("'x' = ", paste(x, collapse=","), ": length(v) = ", length(v))
     )
     sapply(1:length(v), function(i) {
-      flog.info(paste0("'i': ", i))
+      flog.info(paste0("'i' = ", i))
       sqrt(v[i])
     })
 }
@@ -556,8 +556,8 @@ debug(fun3)
 \end{verbatim}
 
 We want to recompute only elements that failed and for that we use
-\Rcode{BPREDO}. The BPPARAM has been changed to \Rcode{SerialParam} so
-the job is run locally (in the workspace) and in serial.
+the \Rcode{BPREDO} argument. The BPPARAM has been changed to 
+\Rcode{SerialParam} so the job is run in the local workspace in serial.
 
 \begin{verbatim}
 > bplapply(list(1, "2", 3), fun3, BPREDO = res, BPPARAM = SerialParam())
@@ -571,7 +571,7 @@ Browse[2]> i
 Browse[2]> 
 \end{verbatim}
 
-The local browsing allowed us to see the problematic input which was the
+The local browsing allowed us to see the problem input was the
 character "2".
 
 

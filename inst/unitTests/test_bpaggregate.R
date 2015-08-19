@@ -16,4 +16,7 @@ test_bpaggregate <-
     x1 <- aggregate(x, by=by, FUN=FUN)
     x2 <- bpaggregate(x, by=by, FUN=FUN, BPPARAM=param, simplify=simplify)
     checkEquals(x1, x2)
+
+    closeAllConnections()
+    TRUE
 }
