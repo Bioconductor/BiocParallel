@@ -22,12 +22,19 @@ bpslaveLoop <- function(master)
                 closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
+                ## need local handler for worker read/send errors
+                handler <- function(e) {
+                    success <<- FALSE
+                    structure(conditionMessage(e), 
+                              class=c("remote-error", "try-error"))
+                }
                 file <- textConnection("sout", "w", local=TRUE)
                 sink(file, type="message")
                 sink(file, type="output")
                 gc(reset=TRUE)
                 t1 <- proc.time()
-                value <- do.call(msg$data$fun, msg$data$args)
+                value <- tryCatch(do.call(msg$data$fun, msg$data$args),
+                                   error=handler)
                 t2 <- proc.time()
                 node <- Sys.info()["nodename"]
                 sink(NULL, type="message")
@@ -126,8 +133,7 @@ bprunMPIslave <- function() {
 
 .initiateLogging <- function(BPPARAM) {
     level <- bpthreshold(BPPARAM)
-    flog.threshold(level)
-    flog.info("loading futile.logger on workers")
+    cat("loading futile.logger on workers\n")
     cl <- bpbackend(BPPARAM)
     clusterExport(cl, c(buffer=NULL))
 

@@ -39,7 +39,6 @@ bpresume <- function(expr) {
     handler_error = function(e) {
         success <<- FALSE
         call <- sapply(sys.calls(), deparse)
-        flog.debug(capture.output(traceback(call)))
         flog.error("%s", e)
         e <- structure(e, 
                        class = c("remote-error", "condition"),
@@ -47,7 +46,7 @@ bpresume <- function(expr) {
         invokeRestart("abort", e)
     }
     handler_abort = function(e) e 
-
+    loadNamespace("futile.logger")
     withRestarts(withCallingHandlers(expr, 
                                      warning=handler_warning, 
                                      error=handler_error), 
