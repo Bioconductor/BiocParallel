@@ -94,8 +94,10 @@ who <- c("sun", "moon")
 
 param <- bpparam()
 bpworkers(param) <- 2
+\dontrun{
 result <- bpmapply(fun, greet, who, BPPARAM = param)
 cat(paste(result, collapse="\n"), "\n")
+}
 }
 
 \keyword{manip}
