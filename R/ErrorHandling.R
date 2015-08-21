@@ -32,7 +32,6 @@ bpresume <- function(expr) {
 }
 
 .try_log <- function(expr) {
-    library("futile.logger")
     handler_warning = function(w) {
         flog.warn("%s", w)
         invokeRestart("muffleWarning")

@@ -139,7 +139,7 @@ bprunMPIslave <- function() {
 
     .bufferload <- function(i, level) {
         tryCatch({
-            loadNamespace("futile.logger")
+            attachNamespace("futile.logger")
             flog.threshold(level)
             fun <- function(line)
                 buffer <<- c(buffer, line)

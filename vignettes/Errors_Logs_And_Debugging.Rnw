@@ -104,9 +104,25 @@ param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
 The output list contains results for tasks 1 and 2 and an error for task 3.
 Tasks 4, 5, and 6 are not attempted.
 
-<<errors_6tasksB_stopOnError>>=
+
+\begin{verbatim}
 bplapply(X, sqrt, BPPARAM = param)
-@
+
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## ERROR [2015-08-21 14:08:52] non-numeric argument to mathematical function 
+## error in task  3
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 1.414214
+## 
+## [[3]]
+## <remote-error in FUN(...): non-numeric argument to mathematical function>
+## traceback() available as 'attr(x, "traceback")'
+\end{verbatim}
 
 Next we look at an example where the elements of \Rcode{X} are grouped instead
 of run separately. The default value for \Rcode{tasks} is 0 which means 'X' is
@@ -129,9 +145,27 @@ FUN <- function(i) { Sys.sleep(i); sqrt(i) }
 The output shows an error in task 2 (vs 3 in the previous example) and a result
 for '4' is included because it was part of the second task.
 
-<<errors_3tasksB_stopOnError>>=
+\begin{verbatim}
 bplapply(X, FUN, BPPARAM = param)
-@
+
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## ERROR [2015-08-21 14:10:28] non-numeric argument to mathematical function 
+## error in task  2
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 1.414214
+## 
+## [[3]]
+## <remote-error in sqrt(i): non-numeric argument to mathematical function>
+## traceback() available as 'attr(x, "traceback")'
+## 
+## [[4]]
+## [1] 2
+\end{verbatim}
 
 Side Note: Results are collected from workers as they finish which is not
 necessarily the same order in which they were loaded.  Depending on how tasks
@@ -177,11 +211,21 @@ elements are identified, recomputed and inserted into the original results.
 The bug in this example is the second element of 'X' which is a character when
 it should be numeric.
 
-<<errors_BPREDO>>=
-X <- list(1, "2", 3)
-res <- bplapply(X, sqrt)
-res
-@
+\begin{verbatim}
+## X <- list(1, "2", 3)
+## res <- bplapply(X, sqrt)
+## res
+## 
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## <remote-error in FUN(...): non-numeric argument to mathematical function>
+## traceback() available as 'attr(x, "traceback")'
+## 
+## [[3]]
+## [1] 1.732051
+\end{verbatim}
 
 First fix the input data.
 
@@ -192,10 +236,19 @@ X.redo <- list(1, 2, 3)
 Repeat the call to \Rcode{bplapply} this time supplying the partial results
 as \Rcode{BPREDO}.
 
-<<errors_BPREDO_recall>>=
-bplapply(X.redo, sqrt, BPREDO = res)
-@
-
+\begin{verbatim}
+## bplapply(X.redo, sqrt, BPREDO = res)
+## 
+## Resuming previous calculation ... 
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 1.414214
+## 
+## [[3]]
+## [1] 1.732051
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -274,18 +327,112 @@ FUN <- function(i) {
 
 Turn logging on and set the threshold to {\it WARN}.
 
-<<logs_WARN>>=
+\begin{verbatim}
 param <- SnowParam(2, log = TRUE, threshold = "WARN")
 bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
-@
+
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## loading futile.logger on workers
+## ############### LOG OUTPUT ###############
+## Task: 1
+## Node: 1
+## Timestamp: 2015-08-21 14:20:41
+## Success: TRUE
+## Task duration: 
+##    user  system elapsed 
+##   0.002   0.001   0.004 
+## Memory used: 
+##          used (Mb) gc trigger (Mb) max used (Mb)
+## Ncells 324081 17.4     592000 31.7   341266 18.3
+## Vcells 431677  3.3    1023718  7.9   497048  3.8
+## Log messages:
+## 
+## stderr and stdout:
+## character(0)
+## ############### LOG OUTPUT ###############
+## Task: 2
+## Node: 2
+## Timestamp: 2015-08-21 14:20:41
+## Success: TRUE
+## Task duration: 
+##    user  system elapsed 
+##   0.007   0.000   0.007 
+## Memory used: 
+##          used (Mb) gc trigger (Mb) max used (Mb)
+## Ncells 325664 17.4     592000 31.7   367737 19.7
+## Vcells 434331  3.4    1023718  7.9   519642  4.0
+## Log messages:
+## WARN [2015-08-21 14:20:41] 'i' is missing
+## 
+## stderr and stdout:
+## character(0)
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 2
+## 
+## [[3]]
+## [1] NA
+\end{verbatim}
 
 Changing the threshold to {\it DEBUG} catches both {\it WARN} and 
 {\it DEBUG} messages.
 
-<<logs_ERROR>>=
+\begin{verbatim}
 param <- SnowParam(2, log = TRUE, threshold = "DEBUG")
 bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
-@
+
+## starting worker for localhost:11441 
+## starting worker for localhost:11441 
+## loading futile.logger on workers
+## ############### LOG OUTPUT ###############
+## Task: 1
+## Node: 1
+## Timestamp: 2015-08-21 14:21:40
+## Success: TRUE
+## Task duration: 
+##    user  system elapsed 
+##   0.005   0.000   0.005 
+## Memory used: 
+##          used (Mb) gc trigger (Mb) max used (Mb)
+## Ncells 325633 17.4     592000 31.7   352929 18.9
+## Vcells 434309  3.4    1023718  7.9   515223  4.0
+## Log messages:
+## DEBUG [2015-08-21 14:21:40] value of 'i' = 1
+## 
+## stderr and stdout:
+## character(0)
+## ############### LOG OUTPUT ###############
+## Task: 2
+## Node: 2
+## Timestamp: 2015-08-21 14:21:40
+## Success: TRUE
+## Task duration: 
+##    user  system elapsed 
+##    0.01    0.00    0.01 
+## Memory used: 
+##          used (Mb) gc trigger (Mb) max used (Mb)
+## Ncells 325668 17.4     592000 31.7   394333 21.1
+## Vcells 434358  3.4    1023718  7.9   524369  4.1
+## Log messages:
+## DEBUG [2015-08-21 14:21:40] value of 'i' = 2
+## DEBUG [2015-08-21 14:21:40] coercing 'i' to numeric
+## DEBUG [2015-08-21 14:21:40] value of 'i' = 
+## WARN [2015-08-21 14:21:40] 'i' is missing
+## 
+## stderr and stdout:
+## character(0)
+## [[1]]
+## [1] 1
+## 
+## [[2]]
+## [1] 2
+## 
+## [[3]]
+## [1] NA
+\end{verbatim}
 
 \subsection{Log files}
 
@@ -305,27 +452,28 @@ list.files(bplogdir(param))
 Read in BPJOB.task2.log:
 
 \begin{verbatim}
-   readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
-   [1] "############### LOG OUTPUT ###############"      
-   [2] "Task: 2"                                         
-   [3] "Node: 2"                                         
-   [4] "Timestamp: 2015-07-08 09:03:59"                  
-   [5] "Success: TRUE"                                   
-   [6] "Task duration: "                                 
-   [7] "   user  system elapsed "                        
-   [8] "  0.009   0.000   0.011 "                        
-   [9] "Memory use (gc): "                               
-  [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
-  [11] "Ncells 325664 17.4     592000 31.7   393522 21.1"
-  [12] "Vcells 436181  3.4    1023718  7.9   530425  4.1"
-  [13] "Log messages:"                                   
-  [14] "DEBUG [2015-07-08 09:03:59] value of 'i': 2"     
-  [15] "INFO [2015-07-08 09:03:59] coercing to numeric"  
-  [16] "DEBUG [2015-07-08 09:03:59] value of 'i': "      
-  [17] "WARN [2015-07-08 09:03:59] 'i' is missing"       
-  [18] ""                                                
-  [19] "stderr and stdout:"                              
-  [20] "character(0)"    
+readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
+
+##  [1] "############### LOG OUTPUT ###############"      
+##  [2] "Task: 2"                                         
+##  [3] "Node: 2"                                         
+##  [4] "Timestamp: 2015-07-08 09:03:59"                  
+##  [5] "Success: TRUE"                                   
+##  [6] "Task duration: "                                 
+##  [7] "   user  system elapsed "                        
+##  [8] "  0.009   0.000   0.011 "                        
+##  [9] "Memory use (gc): "                               
+## [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
+## [11] "Ncells 325664 17.4     592000 31.7   393522 21.1"
+## [12] "Vcells 436181  3.4    1023718  7.9   530425  4.1"
+## [13] "Log messages:"                                   
+## [14] "DEBUG [2015-07-08 09:03:59] value of 'i': 2"     
+## [15] "INFO [2015-07-08 09:03:59] coercing to numeric"  
+## [16] "DEBUG [2015-07-08 09:03:59] value of 'i': "      
+## [17] "WARN [2015-07-08 09:03:59] 'i' is missing"       
+## [18] ""                                                
+## [19] "stderr and stdout:"                              
+## [20] "character(0)"    
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -354,7 +502,6 @@ or with the \Rcode{bptimeout} setter:
 bptimeout(param) <- 2 
 param
 @
-
 
 \begin{verbatim}
 fun <- function(i) {
