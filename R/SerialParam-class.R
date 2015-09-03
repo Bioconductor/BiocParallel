@@ -23,13 +23,12 @@
             callSuper()
             cat("  bplog:", bplog(.self),
                    "; bpthreshold:", names(bpthreshold(.self)), "\n", sep="")
+            cat("  bpcatchErrors:", bpcatchErrors(.self), "\n", sep="")
         })
 )
 
-SerialParam <- function(catch.errors=TRUE, log=FALSE, threshold="INFO")
+SerialParam <- function(catch.errors=FALSE, log=FALSE, threshold="INFO")
 {
-    if (!catch.errors)
-        warning("'catch.errors' has been deprecated")
     x <- .SerialParam(workers=1L, 
                       catch.errors=catch.errors,
                       log=log, threshold=.THRESHOLD(threshold)) 
@@ -108,7 +107,9 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         flog.info("loading futile.logger package")
         flog.threshold(bpthreshold(BPPARAM))
         FUN <- .composeTry(FUN, TRUE)
-    } else FUN <- .composeTry(FUN, FALSE)
+    } else if (bpcatchErrors(BPPARAM)) {
+        FUN <- .composeTry(FUN, FALSE)
+    }
 
     res <- lapply(X, FUN, ...)
     if (length(BPREDO)) {
