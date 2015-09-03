@@ -21,14 +21,14 @@
 }
 
 \usage{
-SerialParam(catch.errors = TRUE, log = FALSE, threshold = "INFO") 
+SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO") 
 }
 
 \section{Constructor}{
 
   \describe{
     \item{}{
-      \code{SerialParam(catch.errors = TRUE, log = FALSE, threshold = "INFO")}:
+      \code{SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO")}:
 
        Return an object to be used for serial evaluation of otherwise
        parallel functions such as \code{\link{bplapply}},

@@ -316,7 +316,16 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 setMethod(bplapply, c("ANY", "SnowParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
+
+    if (!length(X))
+        return(list())
     FUN <- match.fun(FUN)
+    if (!bpschedule(BPPARAM) || length(X) == 1L) {
+        param <- SerialParam(catch.errors=bpcatchErrors(BPPARAM),
+                             log=bplog(BPPARAM),
+                             threshold=bpthreshold(BPPARAM))
+        return(bplapply(X, FUN, ..., BPPARAM=param))
+    }
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
             stop("no error detected in 'BPREDO'")
@@ -326,11 +335,6 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         X <- X[idx]
     }
     nms <- names(X)
-
-    if (!length(X))
-        return(list())
-    if (!bpschedule(BPPARAM)) 
-        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
         FUN <- .composeTry(FUN, TRUE, bptimeout(BPPARAM))

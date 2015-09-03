@@ -19,7 +19,7 @@ test_catching_errors <- function()
 
     registerDoParallel(2)
     params <- list(
-        serial=SerialParam(),
+        serial=SerialParam(catch.errors=TRUE),
         snow=SnowParam(2),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))
@@ -49,7 +49,7 @@ test_BPREDO <- function()
 
     registerDoParallel(2)
     params <- list(
-        serial=SerialParam(),
+        serial=SerialParam(catch.errors=TRUE),
         snow=SnowParam(2),
         dopar=DoparParam(),
         batchjobs=BatchJobsParam(progressbar=FALSE))

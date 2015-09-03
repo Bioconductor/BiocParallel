@@ -13,7 +13,7 @@ bpresume <- function(expr) {
 ## .try() functions
 .try <- function(expr) {
     handler_warning <- function(w) {
-        invokeRestart("muffleWarning")
+        w 
     }
     handler_error <- function(e) {
         success <<- FALSE
@@ -34,7 +34,6 @@ bpresume <- function(expr) {
 .try_log <- function(expr) {
     handler_warning = function(w) {
         flog.warn("%s", w)
-        invokeRestart("muffleWarning")
     }
     handler_error = function(e) {
         success <<- FALSE
