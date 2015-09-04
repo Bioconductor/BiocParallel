@@ -10,7 +10,7 @@ test_bpvec_Params <- function()
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
-    x <- 1:10
+    x <- rev(1:10) 
     expected <- sqrt(x)
     for (param in names(params)) {
         current <- bpvec(x, sqrt, BPPARAM=params[[param]])
