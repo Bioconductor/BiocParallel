@@ -19,7 +19,7 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 ### Derived from multicore version 0.1-6 by Simon Urbanek
 
-.pvec <- function(v, FUN, ..., AGGREGATE=c,
+pvec <- function(v, FUN, ..., AGGREGATE=c,
                  mc.set.seed = TRUE, mc.silent = FALSE,
                  mc.cores = getOption("mc.cores", 2L), mc.cleanup = TRUE,
                  mc.preschedule=FALSE, num.chunks, chunk.size)
@@ -42,19 +42,11 @@
     }
     si <- .splitIndices(n, num.chunks)
     si <- si[sapply(si, length) != 0]
-    if (is(v, "vector") || !is(v, "List"))
-        res0 <- mclapply(si, function(i) FUN(v[i], ...),
-                         mc.set.seed=mc.set.seed,
-                         mc.silent=mc.silent,
-                         mc.cores=mc.cores,
-                         mc.cleanup=mc.cleanup,
-                         mc.preschedule=mc.preschedule)
-    else 
-        res0 <- mclapply(si, function(i) FUN(v[[i]], ...),
-                         mc.set.seed=mc.set.seed,
-                         mc.silent=mc.silent,
-                         mc.cores=mc.cores,
-                         mc.cleanup=mc.cleanup,
-                         mc.preschedule=mc.preschedule)
+    res0 <- mclapply(si, function(i) FUN(v[i], ...),
+                     mc.set.seed=mc.set.seed,
+                     mc.silent=mc.silent,
+                     mc.cores=mc.cores,
+                     mc.cleanup=mc.cleanup,
+                     mc.preschedule=mc.preschedule)
     do.call(AGGREGATE, res0)
 }
