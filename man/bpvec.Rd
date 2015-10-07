@@ -53,26 +53,16 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 
 \details{
 
-  When \code{BPPARAM} is a \code{MulticoreParam} this method dispatches to the
-  \code{pvec} function from the parallel package.
+  \code{bpvec} divides the elements of \code{X} as evenly as possible over the
+  number of workers. The assumption is that \code{FUN} is vectorized and can be
+  applied to a group of \code{X} elements, e.g.,
+  \code{c(FUN(x[1]), FUN(x[2]))} is equivalent to \code{FUN(x[1:2])}.
+
+  The default behavior of \code{bplapply} also divides \code{X} evenly over the
+  workers, however, there is no assumption that \code{FUN} is vectorized; when 
+  a group of elements of \code{X} are passed to a worker, FUN is applied to
+  each element individually.
   
-  For all other \code{BiocParallelParam}s, this method creates a vector of
-  indices for \code{X} that divide the elements as evenly as possible given the
-  number of workers. Indices and data are passed to \code{bplapply} for parallel
-  evaluation. \code{SnowParam} and \code{MulticoreParam} offer further control 
-  over the division of \code{X} through the \code{tasks} argument.
-  See ?\code{bptasks}.
-
-  The distinction between \code{bpvec} and \code{bplapply} is that
-  \code{bplapply} applies \code{FUN} to each element of \code{X} separately
-  whereas \code{bpvec} assumes the function is vectorized, e.g.,
-  \code{c(FUN(x[1]), FUN(x[2]))} is equivalent to \code{FUN(x[1:2])}. This
-  approach can be more efficient than \code{bplapply} but requires the
-  assumption that \code{FUN} takes a vector input and creates a vector output of
-  the same length as the input which does not depend on partitioning of the
-  vector. This behavior is consistent with \code{parallel:::pvec} and
-  the ?\code{pvec} man page should be consulted for further details.
-
 }
 
 \value{
