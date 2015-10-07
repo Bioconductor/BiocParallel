@@ -126,5 +126,5 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
         BPREDO[id] <- res
         BPREDO
     }
-    .pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
+    pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
 })

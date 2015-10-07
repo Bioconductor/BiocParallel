@@ -10,20 +10,11 @@ test_bpvec_Params <- function()
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
-    ## 'vector'
     x <- rev(1:10) 
     expected <- sqrt(x)
     for (param in names(params)) {
         current <- bpvec(x, sqrt, BPPARAM=params[[param]])
         checkIdentical(current, expected)
-    }
-
-    ## S4
-    library(GenomicRanges)
-    x <- GRanges("chr1", IRanges(1:5, width=1)) 
-    for (param in names(params)) {
-        current <- bpvec(x, class, BPPARAM=params[[param]])
-        checkTrue(all(current == "GRanges"))
     }
 
     ## clean up
