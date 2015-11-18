@@ -58,7 +58,7 @@
 
 BatchJobsParam <-
     function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
-        work.dir=getwd(), stop.on.error=FALSE, seed=NULL, resources=NULL,
+        work.dir=getwd(), stop.on.error=TRUE, seed=NULL, resources=NULL,
         conffile=NULL, cluster.functions=NULL,
         progressbar=TRUE, jobname = "BPJOB", ...)
 {
@@ -142,15 +142,8 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     on.exit(setConfig(conf=prev.config), add=TRUE)
     setConfig(conf=BPPARAM$conf.pars)
 
-    ## error handling; sanity check
     if (BPPARAM$catch.errors)
         FUN <- .composeTry(FUN)
-    if (BPPARAM$stop.on.error && BPPARAM$catch.errors) {
-        txt <- strwrap("options 'stop.on.error' and 'catch.errors' are
-            both set, but are mutually exclusive; disabling 'stop.on.error'",
-            indent=4, exdent=4)
-        warning(paste(txt, collapse="\n"))
-    }
 
     ## package args for batchMap
     wrap <- function(.x, .FUN, .MoreArgs) {
@@ -172,6 +165,9 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
 
     ## FIXME: pass USE.NAMES?
     res <- loadResults(reg, ids, use.names="none")
+    if (bpstopOnError(BPPARAM) && length(errors <- which(!bpok(res))))
+        stop(paste0("error in bplapply(): ", res[errors[1]]))
+
     if (!is.null(res)) {
         names(res) <- nms
     }

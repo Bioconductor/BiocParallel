@@ -25,7 +25,7 @@
 
 \usage{
 BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, 
-    work.dir = getwd(), stop.on.error = FALSE, seed = NULL,
+    work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
     resources = NULL, conffile = NULL, cluster.functions = NULL, 
     progressbar = TRUE, jobname = "BPJOB", ...) 
 }
@@ -65,7 +65,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 
     \item{stop.on.error}{\code{logical(1)}} Stop all jobs as soon as one
         jobs fails (\code{stop.on.error == TRUE}) or wait for all jobs
-        to terminate.  Default is \code{FALSE}.
+        to terminate.  Default is \code{TRUE}.
 
     \item{seed}{\code{integer(1L)}} Set an initial seed for the RNG. See
         \code{\link[BatchJobs]{makeRegistry}} for more information.

@@ -29,7 +29,7 @@
 ## ------------------------------------
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
-               catch.errors = TRUE, stop.on.error = FALSE,
+               catch.errors = TRUE, stop.on.error = TRUE,
                progressbar = FALSE, RNGseed = NULL, timeout = Inf,
                log = FALSE, threshold = "INFO", logdir = NA_character_, 
                resultdir = NA_character_, jobname = "BPJOB", ...)
@@ -74,12 +74,11 @@ multicoreWorkers()
               returned (no results); this is the default behavior of the 
               parent packages, e.g., \code{parallel}, \code{snow}, 
               \code{foreach}.
-        
-        \item \code{stop.on.error} controls whether the job stops after an 
-              error is thrown. When \code{TRUE}, the output contains all 
-              successfully completed results up to and including the error. 
-              When \code{FALSE}, all computations are attempted and
-              and successful results are returned along with any error messages.
+ 
+        \item \code{stop.on.error} A \code{logical}. Stops all jobs as soon
+              as one job fails or wait for all jobs to terminate. When 
+              \code{FALSE}, the return value is a list of successful results 
+              along with error messages as 'conditions'.
 
         \item The \code{bpok(x)} function returns a \code{logical()} vector 
               that is FALSE for any jobs that threw an error. The input 
@@ -121,7 +120,7 @@ multicoreWorkers()
       generation support from the parallel package. These params are 
       snow-derived clusters so the arguments for multicore-derived functions 
       such as \code{mc.set.seed} and \code{mc.reset.stream} do not apply.
-      
+ 
       Random number generation is controlled through the param argument,
       \code{RNGseed} which is passed to parallel::clusterSetRNGStream.
       \code{clusterSetRNGStream} uses the L'Ecuyer-CMRG random number
@@ -168,7 +167,7 @@ multicoreWorkers()
     as \code{bplapply}, \code{bpmapply} etc. A task is the division of the
     \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
     is divided as evenly as possible over the number of workers.
-    
+
     A \code{tasks} value of > 0 specifies the exact number of tasks. Values
     can range from 1 (all of \code{X} to a single worker) to the length of 
     \code{X} (each element of \code{X} to a different worker). 
@@ -400,7 +399,7 @@ fun <- function(x) {
 
 ## By default logging is off. Turn it on with the bplog()<- setter
 ## or by specifying 'log = TRUE' in the constructor.
-bpparam <- MulticoreParam(3, log = TRUE)
+bpparam <- MulticoreParam(3, log = TRUE, stop.on.error = FALSE)
 bplapply(X, fun, BPPARAM=bpparam)
 
 ## When a 'logdir' location is given the messages are redirected to a file:
@@ -418,7 +417,7 @@ list.files(bplogdir(bpparam))
 ## files are saved in the directory specified by job, e.g., 'TASK1.Rda', 
 ## 'TASK2.Rda', etc.
 \dontrun{
-bpparam <- MulticoreParam(2, resultdir = tempdir())
+bpparam <- MulticoreParam(2, resultdir = tempdir(), stop.on.error = FALSE)
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))
 }
@@ -427,16 +426,11 @@ list.files(bpresultdir(bpparam))
 ## Error handling:
 ## -----------------------------------------------------------------------
 
-## When 'stop.on.error' is TRUE the process returns as soon as an error 
-## is thrown. When FALSE, all computations are attempted and partial
-## results are retured along with errors. To more clearly demonstrate
-## the difference in output, the number of 'tasks' is set to equal
-## the length of 'X'. so each element is run separately. (Default behavior
-## is to divide 'X' evenly over workers.)
-
-## Results prior to and including the error:
-bpparam <- MulticoreParam(2, tasks = 4, stop.on.error = TRUE)
-bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+## When 'stop.on.error' is TRUE the job is terminated as soon as an 
+## error is hit. When FALSE, all computations are attempted and partial
+## results are returned along with errors. In this example the number of
+## 'tasks' is set to equal the length of 'X' so each element is run 
+## separately. (Default behavior is to divide 'X' evenly over workers.)
 
 ## All results along with error:
 bpparam <- MulticoreParam(2, tasks = 4, stop.on.error = FALSE)

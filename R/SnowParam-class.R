@@ -77,7 +77,7 @@ setOldClass(c("NULLcluster", "cluster"))
 
 SnowParam <- function(workers=snowWorkers(), 
                       type=c("SOCK", "MPI", "FORK"), tasks=0L, 
-                      catch.errors=TRUE, stop.on.error=FALSE, 
+                      catch.errors=TRUE, stop.on.error=TRUE, 
                       progressbar=FALSE, RNGseed=NULL, timeout=Inf,
                       log=FALSE, threshold="INFO", logdir=NA_character_, 
                       resultdir=NA_character_, jobname = "BPJOB", ...)
@@ -354,13 +354,14 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     progress <- .progress(active=bpprogressbar(BPPARAM))
     progress$init(length(X))
     on.exit(progress$term(), TRUE)
-
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
     res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                  length(X), argfun, BPPARAM, 
                                  progress)
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
+        if (bpstopOnError(BPPARAM) && length(errors <- which(!bpok(res))))
+            stop(paste0("error in bplapply(): ", res[errors[1]]))
         names(res) <- nms
     }
 
