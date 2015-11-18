@@ -50,7 +50,9 @@ DoparParam(catch.errors = TRUE)
         to quit with an error as soon as one application fails or
         encapsulation of function calls in \code{\link[base]{try}}
         blocks which triggers a resume mechanism (see
-        \link{bpresume}). Defaults to \code{TRUE}.  }
+        \link{bpresume}). Defaults to \code{TRUE}.  
+        
+}
 
 \section{DoparParam constructor}{
 

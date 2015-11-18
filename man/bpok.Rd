@@ -81,7 +81,7 @@ SnowParam(workers = 2)
 
 ## If 'catch.errors' is FALSE an ill-fated bplapply() simply stops
 ## displaying the error message.
-param <- SnowParam(workers = 2, catch.errors = FALSE)
+param <- SnowParam(workers = 2, catch.errors = FALSE, stop.on.error = FALSE)
 \dontrun{
 > res <- bplapply(list(1, "two", 3), sqrt, BPPARAM = param)
 Error in checkForRemoteErrors(val) : 
@@ -90,7 +90,7 @@ Error in checkForRemoteErrors(val) :
 
 ## When 'catch.errors' is TRUE partial results are returned with 
 ## the error.
-param <- SnowParam(workers = 2)
+param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
 res <- bplapply(X, sqrt, BPPARAM = param)
 res
@@ -111,7 +111,7 @@ tail(attr(res[[2]], "traceback"), 5)
 ## with previous results.
 
 ## A call of sqrt() on the character "2" returns an error.
-param <- SnowParam(workers = 2)
+param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
 res <- bplapply(X, sqrt, BPPARAM = param)
 res

@@ -17,7 +17,7 @@
             tasks=0L, 
             jobname="BPJOB",
             catch.errors=TRUE,    ## deprecated
-            stop.on.error=FALSE,
+            stop.on.error=TRUE,
             progressbar=FALSE)
         {
             initFields(workers=workers, tasks=tasks, jobname=jobname, 

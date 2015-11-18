@@ -70,7 +70,7 @@
 ## ------------------------------------
 
 SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
-          tasks = 0L, catch.errors=TRUE, stop.on.error = FALSE, 
+          tasks = 0L, catch.errors=TRUE, stop.on.error = TRUE, 
           progressbar = FALSE, RNGseed = NULL, timeout = Inf,
           log = FALSE, threshold = "INFO", logdir = NA_character_, 
           resultdir = NA_character_, jobname = "BPJOB", ...)
@@ -115,11 +115,10 @@ snowWorkers()
               parent packages, e.g., \code{parallel}, \code{snow}, 
               \code{foreach}.
  
-        \item \code{stop.on.error} controls whether the job stops after an 
-              error is thrown. When \code{TRUE}, the output contains all 
-              successfully completed results up to and including the error. 
-              When \code{FALSE}, all computations are attempted and
-              and successful results are returned along with any error messages.
+        \item \code{stop.on.error} A \code{logical}. Stops all jobs as soon
+              as one job fails or wait for all jobs to terminate. When 
+              \code{FALSE}, the return value is a list of successful results 
+              along with error messages as 'conditions'.
 
         \item The \code{bpok(x)} function returns a \code{logical()} vector 
               that is FALSE for any jobs that threw an error. The input 
@@ -467,7 +466,7 @@ fun <- function(x) {
 
 ## By default logging is off. Turn it on with the bplog()<- setter
 ## or by specifying 'log = TRUE' in the constructor.
-bpparam <- SnowParam(3, log = TRUE)
+bpparam <- SnowParam(3, log = TRUE, stop.on.error = FALSE)
 bplapply(X, fun, BPPARAM = bpparam)
 
 ## When a 'logdir' location is given the messages are redirected to a file:
@@ -496,8 +495,6 @@ list.files(bpresultdir(bpparam))
 
 ## When 'stop.on.error' is TRUE the process returns as soon as an error 
 ## is thrown. 
-bpparam <- SnowParam(2, stop.on.error = TRUE)
-bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
 
 ## When 'stop.on.error' is FALSE all computations are attempted. Partial
 ## results are returned along with errors.

@@ -5,11 +5,11 @@ test_log <- function()
 {
     ## SnowParam, MulticoreParam only
     params <- list(
-        snow=SnowParam(2, log=FALSE),
-        snowLog=SnowParam(2, log=TRUE))
+        snow=SnowParam(2, log=FALSE, stop.on.error=FALSE),
+        snowLog=SnowParam(2, log=TRUE, stop.on.error=FALSE))
     if (.Platform$OS.type != "windows") {
-        params$multi=MulticoreParam(3, log=FALSE)
-        params$multiLog=MulticoreParam(3, log=TRUE)
+        params$multi=MulticoreParam(3, log=FALSE, stop.on.error=FALSE)
+        params$multiLog=MulticoreParam(3, log=TRUE, stop.on.error=FALSE)
     }
 
     for (param in params) {
