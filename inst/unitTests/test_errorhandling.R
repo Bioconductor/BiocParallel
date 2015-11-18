@@ -20,11 +20,10 @@ test_catching_errors <- function()
 
         registerDoParallel(2)
         params <- list(
-            serial=SerialParam(catch.errors=TRUE),
-            snow=SnowParam(2),
+            snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE),
-            mc <- MulticoreParam(2))
+            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE),
+            mc <- MulticoreParam(2, stop.on.error=FALSE))
 
         for (param in params) {
             res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
@@ -51,11 +50,10 @@ test_BPREDO <- function()
 
         registerDoParallel(2)
         params <- list(
-            serial=SerialParam(catch.errors=TRUE),
-            snow=SnowParam(2),
+            snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE),
-            mc <- MulticoreParam(2))
+            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE),
+            mc <- MulticoreParam(2, stop.on.error=FALSE))
 
         for (param in params) {
             res <- bpmapply(f, x, BPPARAM=param, SIMPLIFY=TRUE)
@@ -109,9 +107,9 @@ test_bpiterate_errors <- function()
             stop("hit error")
         else count 
     }
-    params <- list(snow=SnowParam(2, stop.on.error=TRUE))
+    params <- list(snow=SnowParam(2, stop.on.error=FALSE))
     if (.Platform$OS.type != "windows")
-        params$mc <- MulticoreParam(2, stop.on.error=TRUE)
+        params$mc <- MulticoreParam(2, stop.on.error=FALSE)
 
     for (p in params) {
         ITER <- .lazyCount(3)
