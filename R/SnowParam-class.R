@@ -320,7 +320,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     if (!length(X))
         return(list())
     FUN <- match.fun(FUN)
-    if (!bpschedule(BPPARAM) || length(X) == 1L) {
+    if (!bpschedule(BPPARAM) || length(X) == 1L || bpworkers(BPPARAM) == 1L) {
         param <- SerialParam(catch.errors=bpcatchErrors(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM))
