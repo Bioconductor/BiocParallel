@@ -216,26 +216,27 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 
     ## setup logging 
     if (bplog(BPPARAM)) {
-        if (!is.na(logdir <- bplogdir(BPPARAM)))
+        logdir <- bplogdir(BPPARAM)
+        if (!is.na(logdir))
             BatchJobs:::checkDir(logdir)
         else 
             con <- NULL
     }
 
     parallel:::checkCluster(cl)
-    p <- length(cl)
+    workers <- length(cl)
     val <- vector("list", n)
     sjobs <- character()
-    if (n > 0 && p > 0) {
+    if (n > 0 && workers > 0) {
         ## initial load
         submit <- function(node, job) 
             parallel:::sendCall(cl[[node]], fun, argfun(job), tag = job)
-        for (i in 1:min(n, p)) {
+        for (i in seq_len(min(n, workers))) {
             submit(i, i)
             sjobs[i] <- "running"
         }
 
-        for (i in 1:n) {
+        for (i in seq_len(n)) {
             ## collect
             d <- parallel:::recvOneData(cl)
             value <- d$value$value
@@ -252,8 +253,8 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
                     con <- file(lfile, open="w")
                 }
                 .bpwriteLog(con, d)
-            } else if (length(msg <- d$value$sout)) {
-                    cat(paste(msg, collapse="\n"), "\n")
+            } else if (length(d$value$sout)) {
+                cat(paste(d$value$sout, collapse="\n"), "\n")
             }
 
             ## write results 
@@ -271,7 +272,7 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
                 break
             } else {
                 ## re-load 
-                j <- i + min(n, p)
+                j <- i + min(n, workers)
                 if (j <= n) { 
                     submit(d$node, j)
                     sjobs[j] <- "running"
@@ -355,7 +356,7 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
 
     ## initial load
     inextdata <- NULL
-    for (i in 1:p) {
+    for (i in seq_len(p)) {
         if (is.null(inextdata <- ITER())) {
             if (i == 1) {
                 warning("first invocation of 'ITER()' returned NULL")
@@ -385,8 +386,8 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
                 con <- file(lfile, open="w")
             }
             .bpwriteLog(con, d)
-        } else if (length(msg <- d$value$sout)) {
-                cat(paste(msg, collapse="\n"), "\n")
+        } else if (length(d$value$sout)) {
+            cat(paste(d$value$sout, collapse="\n"), "\n")
         }
 
         ## reduce
