@@ -5,15 +5,17 @@
     result[setdiff(names(result), names(.BiocParallelParam$fields()))]
 }
 
-.splitIndices <- function (nx, ncl)
+.splitIndices <- function (nx, tasks)
 {
     ## derived from parallel
     i <- seq_len(nx)
-    if (ncl <= 1L || nx <= 1L)  # allow nx, nc == 0
-        i
+    if (nx == 0L)
+        list()
+    else if (tasks <= 1L || nx == 1L)  # allow nx, nc == 0
+        list(i)
     else {
-        fuzz <- min((nx - 1L)/1000, 0.4 * nx/ncl)
-        breaks <- seq(1 - fuzz, nx + fuzz, length = ncl + 1L)
+        fuzz <- min((nx - 1L)/1000, 0.4 * nx / tasks)
+        breaks <- seq(1 - fuzz, nx + fuzz, length = tasks + 1L)
         si <- structure(split(i, cut(i, breaks)), names = NULL)
         si[sapply(si, length) != 0]
     }
@@ -21,12 +23,9 @@
 
 .splitX <- function(X, workers, tasks) 
 {
-    if (tasks == 1 || length(X) == 1L)
-        return(list(X))
-    else if (tasks == 0)
-        idx <- .splitIndices(length(X), workers)
-    else
-        idx <- .splitIndices(length(X), min(tasks, length(X)))
+    if (tasks == 0L)
+        tasks <- workers
+    idx <- .splitIndices(length(X), tasks)
     relist(X, idx)
 }
 

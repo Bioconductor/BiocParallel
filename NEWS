@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.5.0
+------------------------
+
+BUG FIXES
+
+    o workers=1, tasks=0 assigns all elements of X in one chunk
+
 CHANGES IN VERSION 1.2.0
 ------------------------
 
