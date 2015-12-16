@@ -19,10 +19,7 @@ multicoreWorkers <- function() {
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="SnowParam",
     fields=list(),
-    methods=list(
-        show = function() {
-            callSuper()
-        })
+    methods=list()
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
@@ -32,10 +29,10 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         resultdir=NA_character_, jobname = "BPJOB", ...)
 {
     if (.Platform$OS.type == "windows")
-        warning(paste0("MulticoreParam not supported on Windows. ",
-                       "Use SnowParam instead."))
-    if (!catch.errors)
-        warning("'catch.errors' has been deprecated")
+        warning("MulticoreParam() not supported on Windows, use SnowParam()")
+
+    if (!missing(catch.errors))
+        warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
     args <- c(list(spec=workers, type="FORK"), list(...)) 
     .MulticoreParam(.clusterargs=args, cluster=.NULLcluster(),

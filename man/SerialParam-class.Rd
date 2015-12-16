@@ -21,7 +21,8 @@
 }
 
 \usage{
-SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO") 
+SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
+    threshold = "INFO") 
 }
 
 \section{Constructor}{
@@ -30,9 +31,9 @@ SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO")
     \item{}{
       \code{SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO")}:
 
-       Return an object to be used for serial evaluation of otherwise
-       parallel functions such as \code{\link{bplapply}},
-       \code{\link{bpvec}}.
+      Return an object to be used for serial evaluation of otherwise
+      parallel functions such as \code{\link{bplapply}},
+      \code{\link{bpvec}}.
     }
   }
 
@@ -40,14 +41,17 @@ SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO")
 
 \arguments{
 
-  \item{catch.errors}{
-    \code{logical(1)} Enable the catching of errors and warnings.
-  }
+  \item{catch.errors}{DEPRECATED; see \code{\link{SnowParam}}.}
+
+  \item{stop.on.error}{A \code{logical} determining behavior on error;
+    see \code{\link{SnowParam}}.}
+
   \item{log}{
-    \code{logical(1)} Enable logging.
+    \code{logical(1)} Enable logging; see \code{\link{SnowParam}}.
   }
+
   \item{threshold}{
-    \code{character(1)} Logging threshold as defined in \code{futile.logger}.
+    \code{character(1)} Logging threshold; see \code{\link{SnowParam}}.
   }
 
 }

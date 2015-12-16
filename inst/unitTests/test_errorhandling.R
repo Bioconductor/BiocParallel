@@ -41,6 +41,18 @@ test_catching_errors <- function()
     } else TRUE
 }
 
+test_stopOnError <- function() {
+    checkException(bplapply("2", sqrt), silent=TRUE)
+    checkException(bplapply(c(1, "2"), sqrt), silent=TRUE)
+    checkException(bplapply(c(1, "2", 3), sqrt), silent=TRUE)
+
+    result <- bplapply("2", sqrt, BPPARAM=SerialParam(stop.on.error=FALSE))
+    checkIdentical(length(result), 1L)
+    checkTrue(is(result[[1]], "remote-error"))
+    cls <- tryCatch(bplapply(c(1, "2", 3), sqrt), error=class)
+    checkIdentical(c("remote-error-list", "error", "condition"), cls)
+}
+
 test_BPREDO <- function()
 {
     if (.Platform$OS.type != "windows") {

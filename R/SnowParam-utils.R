@@ -201,7 +201,7 @@ bprunMPIslave <- function() {
             sjobs[d$value$tag] <- "done"
         }
     }, error=function(e) {
-        stop("failed to stop cluster workers: ", conditionmessage(e))
+        stop("failed to stop cluster workers: ", conditionMessage(e))
     })
 }
 
@@ -268,7 +268,6 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             ## let running jobs finish, do not re-load
             if (bpstopOnError(BPPARAM) && !d$value$success) {
                 .clear_cluster(cl, sjobs)
-                message(paste("error in task ", d$value$tag))
                 break
             } else {
                 ## re-load 
@@ -410,7 +409,6 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
         ## let running jobs finish, do not re-load
         if (bpstopOnError(BPPARAM) && !success) {
             .clear_cluster(cl, ss$sjobs)
-            message(paste("error in task ", d$value$tag))
             break
         } else {
             ## re-load

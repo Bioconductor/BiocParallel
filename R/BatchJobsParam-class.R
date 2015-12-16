@@ -47,12 +47,15 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("  bpjobname:", bpjobname(.self), 
-                   "; bpworkers:", bpworkers(.self), 
-                   "; bpisup:", bpisup(.self), "\n", sep="")
-            cat("  bpstopOnError:", bpstopOnError(.self),
-                   "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
-            cat("  cleanup:", .self$cleanup, "\n", sep="")
+            cat("  bpjobname: ", bpjobname(.self), 
+                "; bpworkers: ", bpworkers(.self), 
+                "; bpisup: ", bpisup(.self),
+                "\n",
+                "  bpstopOnError: ", bpstopOnError(.self),
+                "; bpprogressbar: ", bpprogressbar(.self),
+                "\n",
+                "  cleanup: ", .self$cleanup,
+                "\n", sep="")
         })
 )
 
@@ -62,14 +65,15 @@ BatchJobsParam <-
         conffile=NULL, cluster.functions=NULL,
         progressbar=TRUE, jobname = "BPJOB", ...)
 {
-    if (!catch.errors)
-        warning("'catch.errors' has been deprecated")
+    if (!missing(catch.errors))
+        warning("'catch.errors' is deprecated, use 'stop.on.error'")
+
     if (!"package:BatchJobs" %in% search()) {
         tryCatch({
             attachNamespace("BatchJobs")
         }, error=function(err) {
-            stop(conditionMessage(err), 
-                ": BatchJobsParam class objects require the 'BatchJobs' package")
+            stop(conditionMessage(err), "\n",
+                 "  BatchJobsParam() requires the 'BatchJobs' package")
         })
     }
 
@@ -165,12 +169,15 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
 
     ## FIXME: pass USE.NAMES?
     res <- loadResults(reg, ids, use.names="none")
-    if (bpstopOnError(BPPARAM) && length(errors <- which(!bpok(res))))
-        stop(paste0("error in bplapply(): ", res[errors[1]]))
 
     if (!is.null(res)) {
+        if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
+            err <- .remoteErrorList(res)
+            stop(err)
+        }
         names(res) <- nms
     }
+
     if (length(BPREDO)) {
         BPREDO[idx] <- res
         BPREDO 
