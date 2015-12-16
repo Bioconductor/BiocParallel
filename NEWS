@@ -1,9 +1,15 @@
 CHANGES IN VERSION 1.5.0
 ------------------------
 
+NEW FEATURES
+
+    o stop.on.error returns catchable `remote-error-list`
+
 BUG FIXES
 
     o workers=1, tasks=0 assigns all elements of X in one chunk
+
+    o SerialParam() respects stop.on.error
 
 CHANGES IN VERSION 1.2.0
 ------------------------

@@ -59,19 +59,25 @@ setOldClass(c("NULLcluster", "cluster"))
         },
         show = function() {
             callSuper()
-            cat("  bpjobname:", bpjobname(.self), 
-                   "; bpworkers:", bpworkers(.self), 
-                   "; bptasks:", bptasks(.self),
-                   "; bptimeout:", bptimeout(.self), 
-                   "; bpRNGseed:", bpRNGseed(.self),
-                   "; bpisup:", bpisup(.self), "\n", sep="")
-            cat("  bplog:", bplog(.self),
-                   "; bpthreshold:", names(bpthreshold(.self)),
-                   "; bplogdir:", bplogdir(.self), "\n", sep="")
-            cat("  bpstopOnError:", bpstopOnError(.self),
-                   "; bpprogressbar:", bpprogressbar(.self), "\n", sep="")
-            cat("  bpresultdir:", bpresultdir(.self), "\n", sep="")
-            cat("cluster type:", .clusterargs$type, "\n")
+            cat("cluster type: ", .clusterargs$type,
+                "\n",
+                "  bpjobname: ", bpjobname(.self), 
+                "; bpworkers: ", bpworkers(.self), 
+                "; bptasks: ", bptasks(.self),
+                "; bptimeout: ", bptimeout(.self), 
+                "; bpisup: ", bpisup(.self),
+                "\n",
+                "  bpRNGseed: ", bpRNGseed(.self),
+                "\n",
+                "  bplog: ", bplog(.self),
+                "; bpthreshold: ", names(bpthreshold(.self)),
+                "; bplogdir: ", bplogdir(.self),
+                "\n",
+                "  bpstopOnError: ", bpstopOnError(.self),
+                "; bpprogressbar: ", bpprogressbar(.self),
+                "\n",
+                "  bpresultdir: ", bpresultdir(.self),
+                "\n", sep="")
         })
 )
 
@@ -82,12 +88,15 @@ SnowParam <- function(workers=snowWorkers(),
                       log=FALSE, threshold="INFO", logdir=NA_character_, 
                       resultdir=NA_character_, jobname = "BPJOB", ...)
 {
-    type <- match.arg(type)
-    if (!catch.errors)
-        warning("'catch.errors' has been deprecated")
-    if (!type %in% c("SOCK", "MPI", "FORK"))
-        stop("type must be one of 'SOCK', 'MPI' or 'FORK'")
-    if (any(type %in% c("MPI", "FORK")) && is(workers, "character"))
+    if (!missing(catch.errors))
+        warning("'catch.errors' is deprecated, use 'stop.on.error'")
+
+    type <- tryCatch(match.arg(type), error=function(...) {
+        stop("'type' must be one of ",
+             paste(sQuote(formals("SnowParam")$type), collapse=", "))
+    })
+
+    if (type %in% c("MPI", "FORK") && is(workers, "character"))
         stop("'workers' must be integer(1) when 'type' is MPI or FORK") 
 
     args <- c(list(spec=workers, type=type), list(...)) 
@@ -321,7 +330,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
         return(list())
     FUN <- match.fun(FUN)
     if (!bpschedule(BPPARAM) || length(X) == 1L || bpworkers(BPPARAM) == 1L) {
-        param <- SerialParam(catch.errors=bpcatchErrors(BPPARAM),
+        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=param))
@@ -358,10 +367,13 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                  length(X), argfun, BPPARAM, 
                                  progress)
+
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
-        if (bpstopOnError(BPPARAM) && length(errors <- which(!bpok(res))))
-            stop(paste0("error in bplapply(): ", res[errors[1]]))
+        if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
+            err <- .remoteErrorList(res)
+            stop(err)
+        }
         names(res) <- nms
     }
 

@@ -68,7 +68,24 @@ bpresume <- function(expr) {
     }
 }
 
-`print.remote-error` = function(x, ...) {
+`print.remote-error` <- function(x, ...) {
     NextMethod(x)
     cat("traceback() available as 'attr(x, \"traceback\")'\n")
+}
+
+.remoteErrorList <- function(result) {
+    idx <- which(!bpok(result))
+    err <- structure(list(
+        message=sprintf(
+            "remote errors\n  elements: %s%s\n  first error: %s",
+            paste(head(idx), collapse=", "),
+            if (sum(idx) > 6) ", ..." else "",
+            conditionMessage(result[[idx[1]]]))),
+        errors=result[idx],
+        class = c("remote-error-list", "error", "condition"))
+}
+
+`print.remote-error-list` <- function(x, ...) {
+    NextMethod(x)
+    cat("errors available as 'attr(x, \"errors\")'\n")
 }
