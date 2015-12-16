@@ -13,22 +13,24 @@
     methods=list(
         show = function() {
             callSuper()
-            cat("  bpworkers:", bpworkers(.self),
-                   "; bpisup:", bpisup(.self), "\n", sep="")
+            cat("  bpworkers: ", bpworkers(.self),
+                "; bpisup: ", bpisup(.self),
+                "\n", sep="")
         })
 )
 
 DoparParam <-
     function(catch.errors=TRUE)
 {
-    if (!catch.errors)
-        warning("'catch.errors' has been deprecated")
+    if (!missing(catch.errors))
+        warning("'catch.errors' is deprecated, use 'stop.on.error'")
+
     if (!"package:foreach" %in% search()) {
         tryCatch({
             attachNamespace("foreach")
         }, error=function(err) {
-            stop(conditionMessage(err), 
-                ": DoparParam class objects require the 'foreach' package")
+            stop(conditionMessage(err), "\n",
+                 "  DoparParam() requires the 'foreach' package")
         })
     }
     .DoparParam(catch.errors=catch.errors)

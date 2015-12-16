@@ -21,6 +21,6 @@ local({
     library(snow)
 
     #sinkWorkerOutput(outfile)
-    cat("starting MPI worker\n")
+    message("starting MPI worker\n")
     BiocParallel::bprunMPIslave()
 })

@@ -21,16 +21,23 @@
         },
         show = function() {
             callSuper()
-            cat("  bplog:", bplog(.self),
-                   "; bpthreshold:", names(bpthreshold(.self)), "\n", sep="")
-            cat("  bpcatchErrors:", bpcatchErrors(.self), "\n", sep="")
+            cat("  bplog: ", bplog(.self),
+                "; bpthreshold: ", names(bpthreshold(.self)),
+                "\n",
+                "  bpstopOnError:", bpstopOnError(.self),
+                "\n", sep="")
         })
 )
 
-SerialParam <- function(catch.errors=FALSE, log=FALSE, threshold="INFO")
+SerialParam <-
+    function(catch.errors=TRUE, stop.on.error = TRUE,
+             log=FALSE, threshold="INFO")
 {
-    x <- .SerialParam(workers=1L, 
-                      catch.errors=catch.errors,
+    if (!missing(catch.errors))
+        warning("'catch.errors' is deprecated, use 'stop.on.error'")
+
+    x <- .SerialParam(workers=1L, catch.errors=catch.errors,
+                      stop.on.error=stop.on.error,
                       log=log, threshold=.THRESHOLD(threshold)) 
     validObject(x)
     x
@@ -94,7 +101,6 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         X <- X[idx]
     }
 
-    ## logging
     if (bplog(BPPARAM)) {
         if (!"package:futile.logger" %in% search()) {
             tryCatch({
@@ -106,12 +112,21 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         }
         flog.info("loading futile.logger package")
         flog.threshold(bpthreshold(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
-    } else if (bpcatchErrors(BPPARAM)) {
-        FUN <- .composeTry(FUN, FALSE)
     }
 
+    ## logging
+    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
+        FUN <- .composeTry(FUN, TRUE)
+    else
+        FUN <- .composeTry(FUN, FALSE)
+
     res <- lapply(X, FUN, ...)
+
+    if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
+        err <- .remoteErrorList(res)
+        stop(err)
+    }
+
     if (length(BPREDO)) {
         BPREDO[idx] <- res
         BPREDO 
