@@ -4,7 +4,7 @@
 
 ## All params have dedicated bpiterate() methods.
 
-setMethod(bpiterate, c("ANY", "ANY", "missing"),
+setMethod("bpiterate", c("ANY", "ANY", "missing"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)
@@ -12,7 +12,7 @@ setMethod(bpiterate, c("ANY", "ANY", "missing"),
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
 
-setMethod(bpiterate, c("ANY", "ANY", "BiocParallelParam"),
+setMethod("bpiterate", c("ANY", "ANY", "BiocParallelParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)

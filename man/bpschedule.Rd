@@ -14,7 +14,7 @@
 }
 
 \usage{
-bpschedule(x, ...)
+bpschedule(x)
 }
 
 \arguments{

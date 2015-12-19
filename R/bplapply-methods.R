@@ -4,14 +4,14 @@
 
 ## All params have dedicated bplapply methods.
 
-setMethod(bplapply, c("ANY", "missing"),
+setMethod("bplapply", c("ANY", "missing"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
     bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
-setMethod(bplapply, c("ANY", "list"),
+setMethod("bplapply", c("ANY", "list"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)

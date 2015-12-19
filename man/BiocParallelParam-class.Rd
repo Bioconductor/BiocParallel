@@ -37,6 +37,16 @@
 \alias{bpstopOnError<-}
 \alias{bpstopOnError<-,BiocParallelParam,logical-method}
 \alias{bpstopOnError<-,DoparParam,logical-method}
+\alias{bplog}
+\alias{bplog<-}
+\alias{bplog,BiocParallelParam-method}
+\alias{bpthreshold}
+\alias{bpthreshold<-}
+\alias{bpthreshold,BiocParallelParam-method}
+\alias{bptimeout}
+\alias{bptimeout<-}
+\alias{bptimeout,BiocParallelParam-method}
+\alias{bptimeout<-,BiocParallelParam,numeric-method}
 \alias{bpprogressbar}
 \alias{bpprogressbar,BiocParallelParam-method}
 \alias{bpprogressbar<-}
@@ -103,13 +113,13 @@
 
     \describe{
       \item{}{
-        \code{bpworkers(x, ...)}, \code{bpworkers(x, ...)}:
+        \code{bpworkers(x)}, \code{bpworkers(x, ...)}:
         \code{integer(1)} or \code{character()}. Gets the number or names of 
         the back-end workers. The setter is supported for SnowParam and 
         MulticoreParam only.
       }
       \item{}{
-        \code{bptasks(x, ...)}, \code{bptasks(x) <- value}:
+        \code{bptasks(x)}, \code{bptasks(x) <- value}:
         \code{integer(1)}. Get or set the number of tasks for a job. \code{value}
         must be a scalar integer >= 0L. This argument applies
         to \code{SnowParam} and \code{MulticoreParam} only; \code{DoparParam}
@@ -133,31 +143,52 @@
         of data chunks returned by the \code{ITER} function. 
       }
       \item{}{
-        \code{bpstart(x, ...)}:
+        \code{bpstart(x)}:
         \code{logical(1)}. Starts the back-end, if necessary.
       }
       \item{}{
-        \code{bpstop(x, ...)}:
+        \code{bpstop(x)}:
         \code{logical(1)}. Stops the back-end, if necessary and possible.
       }
       \item{}{
-        \code{bpisup(x, ...)}:
-        \code{logical(1)}. Tests whether the back-end is available for processing,
-        returning a scalar logical value. \code{bp*} functions such as
-        \code{bplapply} automatically start the back-end if necessary.
+        \code{bpisup(x)}:
+        \code{logical(1)}. Tests whether the back-end is available for
+        processing, returning a scalar logical value. \code{bp*}
+        functions such as \code{bplapply} automatically start the
+        back-end if necessary.
       }
       \item{}{
-        \code{bpbackend(x, ...)}, \code{bpbackend(x) <- value}: 
+        \code{bpbackend(x)}, \code{bpbackend(x) <- value}: 
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
         be retrieved; see \code{showMethods("backend")}.
       }
       \item{}{
-        \code{bpprogressbar(x, ...)}, \code{bpprogressbar(x) <- value}: 
+        \code{bplog(x)}, \code{bplog(x) <- value}:
+        Get or enable logging, if available.  \code{value} must be a
+        \code{logical(1)}.
+      }
+      \item{}{
+        \code{bpthreshold(x)}, \code{bpthreshold(x) <- value}: Get or
+        set the logging threshold. \code{value} must be a
+        \code{character(1)} string of one of the levels defined in the
+        \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
+        \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
+      }
+      \item{}{
+        \code{bptimeout(x)}, \code{bptimeout(x) <- value}:
+        \code{numeric(1)} Time (in seconds) allowed for worker to
+        complete a task.  This value is passed to base::setTimeLimit()
+        as both the \code{cpu} and \code{elapsed} arguments. If the
+        computation exceeds \code{timeout} an error is thrown with
+        message 'reached elapsed time limit'.
+      }
+      \item{}{
+        \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}: 
         Get or set the value to enable text progress bar. 
         \code{value} must be a \code{logical(1)}.
       }
       \item{}{
-        \code{bpjobname(x, ...)}, \code{bpjobname(x) <- value}: 
+        \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 
         Get or set the job name.
       }
     }
@@ -168,7 +199,7 @@
 
     \describe{
       \item{}{
-        \code{bpcatchErrors(x, ...)}, \code{bpCatchErrors(x) <- value}:
+        \code{bpcatchErrors(x)}, \code{bpCatchErrors(x) <- value}:
         \code{logical()}. DEPRECATED Controls if errors are caught and
         returned with completed results.
 
@@ -182,7 +213,7 @@
         \code{foreach}.
       }
       \item{}{
-        \code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}:
+        \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:
         \code{logical()}. Controls if the job stops when an error is hit.
 
         \code{stop.on.error} controls whether the job stops after an 
