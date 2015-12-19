@@ -76,31 +76,32 @@
 ## Catch errors: 
 ## -----------------------------------------------------------------------
 
-## By default 'catch.errors' is TRUE in BiocParallelParam objects.
+## By default 'stop.on.error' is TRUE in BiocParallelParam objects.
 SnowParam(workers = 2)
 
-## If 'catch.errors' is FALSE an ill-fated bplapply() simply stops
+## If 'stop.on.error' is TRUE an ill-fated bplapply() simply stops,
 ## displaying the error message.
-param <- SnowParam(workers = 2, catch.errors = FALSE, stop.on.error = FALSE)
-\dontrun{
-> res <- bplapply(list(1, "two", 3), sqrt, BPPARAM = param)
-Error in checkForRemoteErrors(val) : 
-  one node produced an error: non-numeric argument to mathematical function
-}
+param <- SnowParam(workers = 2, stop.on.error = TRUE)
+tryCatch({
+    bplapply(list(1, "two", 3), sqrt, BPPARAM = param)
+}, error=identity)
 
-## When 'catch.errors' is TRUE partial results are returned with 
-## the error.
+## If 'stop.on.error' is FALSE then the computation continues. Errors
+## are signalled but the full evaluation can be retrieved
 param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
-res <- bplapply(X, sqrt, BPPARAM = param)
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM = param)
+}, error=identity)
 res
+result <- attr(res, "result")
 
 ## Check for errors:
-fail <- !bpok(res)
+fail <- !bpok(result)
 fail
 
 ## Access the traceback with attr():
-tail(attr(res[[2]], "traceback"), 5)
+tail(attr(result[[2]], "traceback"), 5)
 
 ## -----------------------------------------------------------------------
 ## Resume calculations: 
@@ -113,17 +114,14 @@ tail(attr(res[[2]], "traceback"), 5)
 ## A call of sqrt() on the character "2" returns an error.
 param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
-res <- bplapply(X, sqrt, BPPARAM = param)
-res
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM = param)
+}, error=identity)
+result <- attr(res, "result")
 
 ## Fix the input data by changing the character "2" to a numeric 2:
 X_mod <- list(1, 2, 3)
 
 ## Repeat the original call to bplapply() with the partial results as 'BPREDO':
-bplapply(X_mod, sqrt, BPPARAM = param , BPREDO = res)
+bplapply(X_mod, sqrt, BPPARAM = param , BPREDO = result)
 }
-
-
-
-
-

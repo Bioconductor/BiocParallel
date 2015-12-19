@@ -8,44 +8,45 @@
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK when log=TRUE.
-### Error handling is done in .composeTry_log.
+### Error handling is done in .composeTry.
 
 bpslaveLoop <- function(master)
 {
-    repeat
+    repeat {
         tryCatch({
             msg <- parallel:::recvData(master)
             buffer <<- NULL   ## futile.logger buffer
-            success <<- TRUE  ## modified by .try_log()
 
             if (msg$type == "DONE") {
                 closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
-                handler <- function(e) {
-                    success <<- FALSE
-                    structure(conditionMessage(e), 
-                              class=c("remote-error", "try-error"))
-                }
                 file <- textConnection("sout", "w", local=TRUE)
                 sink(file, type="message")
                 sink(file, type="output")
                 gc(reset=TRUE)
                 t1 <- proc.time()
-                value <- tryCatch(do.call(msg$data$fun, msg$data$args),
-                                   error=handler)
+                value <- tryCatch({
+                    do.call(msg$data$fun, msg$data$args)
+                }, error=function(e) {
+                    ## capture and return error, without throwing
+                    .error_worker_comm(e, "worker evaluation failed")
+                })
                 t2 <- proc.time()
                 node <- Sys.info()["nodename"]
                 sink(NULL, type="message")
                 sink(NULL, type="output")
                 close(file)
-                value <- list(type = "VALUE", value = value, success = success,
+                success <- !any(vapply(value, is, logical(1), "error"))
+                value <- list(type = "VALUE", value = value,
+                              success = success,
                               time = t2 - t1, tag = msg$data$tag, log = buffer,
                               gc = gc(), node = node, sout = sout)
                 parallel:::sendData(master, value)
             }
         }, interrupt = function(e) NULL)
+    }
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -133,7 +134,7 @@ bprunMPIslave <- function() {
 
 .initiateLogging <- function(BPPARAM) {
     level <- bpthreshold(BPPARAM)
-    cat("loading futile.logger on workers\n")
+    message("loading futile.logger on workers")
     cl <- bpbackend(BPPARAM)
     clusterExport(cl, c(buffer=NULL))
 
@@ -147,8 +148,12 @@ bprunMPIslave <- function() {
         }, error = function(e) e
         )
     }
-    ok <- parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
-    if (any(sapply(ok, function(j) !is.null(j)))) {
+    ok <- tryCatch({
+        parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
+    }, error=function(e) {
+        stop(.error_worker_comm(e, "'initiateLogging()' failed"))
+    })
+    if (!all(vapply(ok, is.null, logical(1)))) {
         bpstop(cl)
         stop(conditionMessage(ok[[1]]), 
              "problem loading futile.logger on workers")
@@ -191,18 +196,21 @@ bprunMPIslave <- function() {
 ## starting and stopping of 'cl' is done outside these functions, eg,
 ## bplapply, bpmapply etc..
 
-.clear_cluster <- function(cl, sjobs) 
+.clear_cluster <- function(cl, sjobs, val=NULL) 
 {
     tryCatch({
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
         while (any(sjobs == "running")) {
             d <- parallel:::recvOneData(cl)
+            if (!is.null(val))
+                val[[d$value$tag]] <- d$value$value
             sjobs[d$value$tag] <- "done"
         }
     }, error=function(e) {
-        stop("failed to stop cluster workers: ", conditionMessage(e))
+        stop(.error_worker_comm(e, "stop worker failed"))
     })
+    val
 }
 
 ## bpdynamicClusterApply():
@@ -238,7 +246,11 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
 
         for (i in seq_len(n)) {
             ## collect
-            d <- parallel:::recvOneData(cl)
+            tryCatch({
+                d <- parallel:::recvOneData(cl)
+            }, error=function(e) {
+                stop(.error_worker_comm(e, "bplapply receive data failed"))
+            })
             value <- d$value$value
             njob <- d$value$tag
             val[[njob]] <- value
@@ -249,25 +261,25 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             if (bplog(BPPARAM)) {
                 if (!is.na(logdir)) {
                     lfile <- paste0(logdir, "/", bpjobname(BPPARAM), ".task", 
-                                    d$value$tag, ".log")
+                                    njob, ".log")
                     con <- file(lfile, open="w")
                 }
                 .bpwriteLog(con, d)
             } else if (length(d$value$sout)) {
-                cat(paste(d$value$sout, collapse="\n"), "\n")
+                message(paste(d$value$sout, collapse="\n"))
             }
 
             ## write results 
             if (!is.na(resdir)) {
-                rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", 
-                                d$value$tag, ".Rda")
+                rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", njob,
+                                ".Rda")
                 save(value, file=rfile)
             }
 
-            ## stop on error
-            ## let running jobs finish, do not re-load
             if (bpstopOnError(BPPARAM) && !d$value$success) {
-                .clear_cluster(cl, sjobs)
+                ## stop on error; let running jobs finish, do not
+                ## re-load
+                val <- .clear_cluster(cl, sjobs, val)
                 break
             } else {
                 ## re-load 
@@ -372,21 +384,26 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
  
     repeat {
         ## collect
-        d <- parallel:::recvOneData(cl)
+        d <- tryCatch({
+            parallel:::recvOneData(cl)
+        }, error=function(e) {
+            stop(.error_worker_comm(e, "bpiterate receive data failed"))
+        })
+        value <- d$value$value
         njob <- d$value$tag
-        ss$rjobs[[njob]] <- d$value$value 
+        ss$rjobs[[njob]] <- value 
         ss$sjobs[njob] <- "done"
 
         ## logging
         if (bplog(BPPARAM)) {
             if (!is.na(logdir)) {
                 lfile <- paste0(logdir, "/", bpjobname(BPPARAM), ".task", 
-                                d$value$tag, ".log")
+                                njob, ".log")
                 con <- file(lfile, open="w")
             }
             .bpwriteLog(con, d)
         } else if (length(d$value$sout)) {
-            cat(paste(d$value$sout, collapse="\n"), "\n")
+            message(paste(d$value$sout, collapse="\n"))
         }
 
         ## reduce
@@ -397,22 +414,24 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
 
         ## write result
         if (!is.na(resdir)) {
-            rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", 
-                            d$value$tag, ".Rda")
+            rfile <- paste0(resdir, "/", bpjobname(BPPARAM), ".task", njob,
+                            ".Rda")
             if (missing(REDUCE))
                 save(ss$rjobs, file=rfile)
             else
                 save(ss$val, file=rfile)
         }
 
-        ## stop on error
-        ## let running jobs finish, do not re-load
         if (bpstopOnError(BPPARAM) && !success) {
+            ## stop on error; let running jobs finish, do not
+            ## re-load
+            ## FIXME: harvest assigned jobs
             .clear_cluster(cl, ss$sjobs)
             break
         } else {
             ## re-load
-            if (!is.null(inextdata <- ITER())) {
+            inextdata <- ITER()
+            if (!is.null(inextdata)) {
                 i <- i + 1
                 ss$sjobs[i] <- "running"
                 arglist <- c(list(inextdata), list(...))
