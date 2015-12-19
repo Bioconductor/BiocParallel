@@ -1,9 +1,15 @@
-CHANGES IN VERSION 1.5.0
-------------------------
+CHANGES IN VERSION 1.5
+----------------------
 
 NEW FEATURES
 
-    o stop.on.error returns catchable `remote-error-list`
+    o stop.on.error returns catchable 'remote-error'
+
+    o bplapply() signals a 'bplist-error' when any element is an error.
+
+    o 'bplist-error' includes an attribute 'result' containing
+       computed results; when stop.on.error = FALSE, the result vector
+       is parallel to (has the same geometry as) the input vector.
 
 BUG FIXES
 

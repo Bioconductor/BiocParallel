@@ -26,6 +26,6 @@ local({
     if (port == "") port <- getClusterOption("port")
 
     #sinkWorkerOutput(outfile)  ## use 'logdir' instead
-    message("starting SOCK worker ", master, ":", port, "\n")
+    message("starting worker ", master, ":", port)
     BiocParallel::bpslaveLoop(makeSOCKmaster(master, port))
 })

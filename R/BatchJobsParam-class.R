@@ -102,6 +102,23 @@ setMethod(bpschedule, "BatchJobsParam",
 
 setMethod(bpisup, "BatchJobsParam", function(x, ...) TRUE)
 
+## never enable logging or timeout
+setMethod(bplog, "BatchJobsParam", function(x, ...) FALSE)
+
+setReplaceMethod("bplog", c("BatchJobsParam", "logical"), 
+    function(x, ..., value)
+{
+    stop("'bplog(x) <- value' not supported for BatchJobsParam")
+})
+
+setMethod(bptimeout, "BatchJobsParam", function(x, ...) Inf)
+
+setReplaceMethod("bptimeout", c("BatchJobsParam", "numeric"),
+    function(x, ..., value)
+{
+    stop("'bptimeout(x) <- value' not supported for BatchJobsParam")
+})
+
 setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -114,7 +131,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     FUN <- match.fun(FUN)
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
-            stop("no error detected in 'BPREDO'")
+            stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("Cannot resume: length mismatch in arguments")
         message("Resuming previous calculation ... ")
@@ -146,14 +163,13 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     on.exit(setConfig(conf=prev.config), add=TRUE)
     setConfig(conf=BPPARAM$conf.pars)
 
-    if (BPPARAM$catch.errors)
-        FUN <- .composeTry(FUN)
-
     ## package args for batchMap
     wrap <- function(.x, .FUN, .MoreArgs) {
         do.call(.FUN, c(list(.x), .MoreArgs))
     }
     ## define jobs and submit, possibly chunked
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       as.error=FALSE, timeout=bptimeout(BPPARAM))
     ids <- suppressMessages(batchMap(reg, fun=wrap, X, 
                             more.args=list(.FUN=FUN, .MoreArgs=list(...))))
     pars <- c(list(reg=reg), BPPARAM$submit.pars)
@@ -164,24 +180,30 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     suppressMessages(do.call(submitJobs, pars))
 
     # wait for the jobs to terminate
-    waitForJobs(reg, ids, timeout=Inf,
-        stop.on.error=(BPPARAM$stop.on.error && !BPPARAM$catch.errors))
+    waitForJobs(reg, ids, timeout=Inf, stop.on.error=BPPARAM$stop.on.error)
 
     ## FIXME: pass USE.NAMES?
     res <- loadResults(reg, ids, use.names="none")
 
-    if (!is.null(res)) {
-        if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
-            err <- .remoteErrorList(res)
-            stop(err)
-        }
+    if (!is.null(res))
         names(res) <- nms
-    }
 
     if (length(BPREDO)) {
         BPREDO[idx] <- res
-        BPREDO 
-    } else res
+        res <- BPREDO 
+    }
+
+    ok <- bpok(res)
+    if (!all(ok)) {
+        ## HACK: promote conditions to errors
+        res[!ok] <- lapply(res[!ok], function(x) {
+            class(x) <- c(class(x)[-length(class(x))], c("error", "condition"))
+            x
+        })
+        stop(.error_bplist(res))
+    }
+
+    res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),

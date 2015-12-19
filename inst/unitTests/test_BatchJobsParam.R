@@ -2,11 +2,13 @@ test_BatchJobsParam <-
     function() 
 {
     param <- BatchJobsParam(progressbar=FALSE, cleanup=TRUE)
-    f <- function(x) if (x == 0) stop(x) else x
-    checkEquals(bplapply(1:3, f, BPPARAM=param), as.list(1:3))
+    checkEquals(as.list(sqrt(1:3)), bplapply(1:3, sqrt, BPPARAM=param))
 
+    X <- list(1, "2", 3)
     param <- BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE)
-    res <- bplapply(0:3, f, BPPARAM=param)
-    checkTrue(inherits(res[[1]], "condition"))
-    checkEquals(bplapply(0:3, identity, BPPARAM=param), as.list(0:3))
+    res <- tryCatch({
+        bplapply(X, sqrt, BPPARAM=param)
+    }, error=identity)
+    checkTrue(is(res, "bplist-error"))
+    checkTrue(is(attr(res, "result")[[2]], "remote-error"))
 }

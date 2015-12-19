@@ -11,6 +11,72 @@ checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
     checkTrue(xor(negate, grepl(txt, as.character(x), fixed=TRUE)), msg=msg)
 }
 
+test_composeTry <- function() {
+    .composeTry <- BiocParallel:::.composeTry
+    X <- as.list(1:6); X[[2]] <- "2"; X[[6]] <- -1
+
+    ## fail hard, e.g., SerialParam()
+    tsqrt <- .composeTry(sqrt, FALSE, TRUE, TRUE)
+    current <- tryCatch(lapply(X, tsqrt), error=identity)
+    target <- tryCatch(lapply(X, sqrt), error=identity)
+    checkIdentical(conditionMessage(target), conditionMessage(current))
+
+    ## fail soft, e.g., SerialParam(stop.on.error=FALSE)
+    tsqrt <- .composeTry(sqrt, FALSE, FALSE, FALSE)
+    current <- tryCatch(suppressWarnings(lapply(X, tsqrt)), error=identity)
+    target <- list(length(X))
+    for (i in seq_along(X))
+        target[[i]] <- tryCatch(suppressWarnings(sqrt(X[[i]])), error=identity)
+    tok <- !vapply(target, is, logical(1), "error")
+    checkIdentical(tok, bpok(current))
+    checkIdentical(conditionMessage(target[[which(!tok)]]),
+                   conditionMessage(current[[which(!bpok(current))]]))
+    checkIdentical(target[tok], current[bpok(current)])
+
+    ## fail soft on an individual worker; entire vector returned with
+    ## 'unevaluated' components. e.g., SnowParam(stop.on.error=TRUE)
+    tsqrt <- .composeTry(sqrt, FALSE, TRUE, FALSE)
+    current <- lapply(X, tsqrt)
+    checkTrue(is(current[[2]], "remote-error"))
+    checkTrue(all(vapply(current[-(1:2)], is, logical(1), "unevaluated-error")))
+
+    ## illogical
+    checkException(.composeTry(sqrt, FALSE, FALSE, TRUE), silent=TRUE)
+}
+
+test_SerialParam_stop.on.error <- function()
+{
+    X <- list(1, "2", 3)
+
+    ## stop.on.error=TRUE; lapply-like
+    p <- SerialParam()
+    checkIdentical(TRUE, bpstopOnError(p))
+    checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
+    current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
+    checkTrue(is(current, "remote-error"))
+    target <- tryCatch(lapply(X, sqrt), error=identity)
+    checkIdentical(conditionMessage(target), conditionMessage(current))
+
+    ## stop.on.error=FALSE
+    p <- SerialParam(stop.on.error=FALSE) #
+    checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
+    current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
+    checkTrue(is(current, "bplist-error"))
+    result <- attr(current, "result")
+    checkIdentical(c(TRUE, FALSE, TRUE), bpok(result))
+    checkTrue(is(result[[2]], "remote-error"))
+    checkIdentical(list(sqrt(1), sqrt(3)), result[bpok(result)])
+}
+
+test_stop.on.error <- function() {
+    checkException(bplapply("2", sqrt), silent=TRUE)
+    checkException(bplapply(c(1, "2"), sqrt), silent=TRUE)
+    checkException(bplapply(c(1, "2", 3), sqrt), silent=TRUE)
+
+    cls <- tryCatch(bplapply(c(1, "2", 3), sqrt), error=class)
+    checkIdentical(c("bplist-error", "bperror", "error", "condition"), cls)
+}
+
 test_catching_errors <- function()
 {
     if (.Platform$OS.type != "windows") {
@@ -20,16 +86,20 @@ test_catching_errors <- function()
 
         registerDoParallel(2)
         params <- list(
+            mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE),
-            mc <- MulticoreParam(2, stop.on.error=FALSE))
+            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {
-            res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-            checkTrue(length(res) == 3L)
+            res <- tryCatch({
+                bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
+            }, error=identity)
+            checkTrue(is(res, "bplist-error"))
+            result <- attr(res, "result")
+            checkTrue(length(result) == 3L)
             msg <- "non-numeric argument to mathematical function"
-            checkIdentical(conditionMessage(res[[2]]), msg)
+            checkIdentical(conditionMessage(result[[2]]), msg)
             closeAllConnections()
         }
 
@@ -41,18 +111,6 @@ test_catching_errors <- function()
     } else TRUE
 }
 
-test_stopOnError <- function() {
-    checkException(bplapply("2", sqrt), silent=TRUE)
-    checkException(bplapply(c(1, "2"), sqrt), silent=TRUE)
-    checkException(bplapply(c(1, "2", 3), sqrt), silent=TRUE)
-
-    result <- bplapply("2", sqrt, BPPARAM=SerialParam(stop.on.error=FALSE))
-    checkIdentical(length(result), 1L)
-    checkTrue(is(result[[1]], "remote-error"))
-    cls <- tryCatch(bplapply(c(1, "2", 3), sqrt), error=class)
-    checkIdentical(c("remote-error-list", "error", "condition"), cls)
-}
-
 test_BPREDO <- function()
 {
     if (.Platform$OS.type != "windows") {
@@ -62,26 +120,37 @@ test_BPREDO <- function()
 
         registerDoParallel(2)
         params <- list(
+            mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE),
-            mc <- MulticoreParam(2, stop.on.error=FALSE))
+            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {
-            res <- bpmapply(f, x, BPPARAM=param, SIMPLIFY=TRUE)
-            checkTrue(inherits(res[[2]], "condition"))
+            res <- tryCatch({
+                bplapply(x, f, BPPARAM=param)
+            }, error=identity)
+            checkTrue(is(res, "bplist-error"))
+            result <- attr(res, "result")
+            checkIdentical(3L, length(result))
+            checkTrue(inherits(result[[2]], "condition"))
             closeAllConnections()
             Sys.sleep(0.25)
 
             ## data not fixed
-            res2 <- bpmapply(f, x, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
-            checkTrue(inherits(res2[[2]], "condition"))
+            res2 <- tryCatch({
+                bplapply(x, f, BPPARAM=param, BPREDO=result)
+            }, error=identity)
+            checkTrue(is(res2, "bplist-error"))
+            result <- attr(res2, "result")
+            checkIdentical(3L, length(result))
+            checkTrue(is(result[[2]], "remote-error"))
+            checkIdentical(as.list(sqrt(c(1, 3))), result[c(1, 3)])
             closeAllConnections()
             Sys.sleep(0.25)
 
             ## data fixed
-            res3 <- bpmapply(f, x.fix, BPPARAM=param, BPREDO=res, SIMPLIFY=TRUE)
-            checkIdentical(res3, sqrt(1:3))
+            res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=result)
+            checkIdentical(as.list(sqrt(1:3)), res3)
             closeAllConnections()
             Sys.sleep(0.25)
         }

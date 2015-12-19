@@ -9,20 +9,28 @@
 .SerialParam <- setRefClass("SerialParam",
     contains="BiocParallelParam",
     fields=list(
+        timeout="numeric",
         log="logical",
-        threshold="ANY"),
+        threshold="ANY",
+        logdir="character"),
     methods=list(
-        initialize = function(..., 
+        initialize = function(...,
+            timeout=Inf,
             log=FALSE,
-            threshold="INFO")
+            threshold="INFO",
+            logdir=NA_character_)
         { 
-            initFields(log=log, threshold=threshold)
+            initFields(timeout=timeout, log=log, threshold=threshold,
+                       logdir=logdir)
             callSuper(...)
         },
         show = function() {
             callSuper()
-            cat("  bplog: ", bplog(.self),
+            cat("  bptimeout: ", bptimeout(.self),
+                "\n",
+                "  bplog: ", bplog(.self),
                 "; bpthreshold: ", names(bpthreshold(.self)),
+                "; bplogdir: ", bplogdir(.self),
                 "\n",
                 "  bpstopOnError:", bpstopOnError(.self),
                 "\n", sep="")
@@ -31,14 +39,15 @@
 
 SerialParam <-
     function(catch.errors=TRUE, stop.on.error = TRUE,
-             log=FALSE, threshold="INFO")
+             log=FALSE, threshold="INFO", logdir=NA_character_)
 {
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
     x <- .SerialParam(workers=1L, catch.errors=catch.errors,
                       stop.on.error=stop.on.error,
-                      log=log, threshold=.THRESHOLD(threshold)) 
+                      log=log, threshold=.THRESHOLD(threshold),
+                      logdir=logdir) 
     validObject(x)
     x
 }
@@ -82,6 +91,39 @@ setReplaceMethod("bpthreshold", c("SerialParam", "character"),
     x
 })
 
+setMethod("bplogdir", "SerialParam",
+    function(x, ...)
+{
+    x$logdir
+})
+
+setReplaceMethod("bplogdir", c("SerialParam", "character"),
+    function(x, ..., value)
+{
+    if (!length(value))
+        value <- NA_character_
+    x$logdir <- value 
+    if (is.null(msg <- .valid.SnowParam.log(x))) 
+        x
+    else 
+        stop(msg)
+})
+
+setMethod(bptimeout, "SerialParam",
+    function(x, ...)
+{
+    x$timeout
+})
+
+setReplaceMethod("bptimeout", c("SerialParam", "numeric"),
+    function(x, ..., value)
+{
+    if (!is.null(value))
+        value <- as.integer(value)
+    x$timeout <- value
+    x
+})
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
@@ -94,7 +136,7 @@ setMethod(bplapply, c("ANY", "SerialParam"),
     FUN <- match.fun(FUN)
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
-            stop("no error detected in 'BPREDO'")
+            stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
         message("Resuming previous calculation ... ")
@@ -114,23 +156,21 @@ setMethod(bplapply, c("ANY", "SerialParam"),
         flog.threshold(bpthreshold(BPPARAM))
     }
 
-    ## logging
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
-    else
-        FUN <- .composeTry(FUN, FALSE)
-
+    ## logging & stopping
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       stop.immediate=bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
     res <- lapply(X, FUN, ...)
-
-    if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
-        err <- .remoteErrorList(res)
-        stop(err)
-    }
 
     if (length(BPREDO)) {
         BPREDO[idx] <- res
-        BPREDO 
-    } else res
+        res <- BPREDO 
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
 })
 
 .bpiterate_serial <- function(ITER, FUN, ..., REDUCE, init)
@@ -182,8 +222,9 @@ setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
         }
         flog.info("loading futile.logger package")
         flog.threshold(bpthreshold(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
-    } else FUN <- .composeTry(FUN, FALSE)
+    }
 
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
     .bpiterate_serial(ITER, FUN, ...)
 })
