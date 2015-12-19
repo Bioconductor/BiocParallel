@@ -23,6 +23,9 @@ test_SnowParam_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
         return()
+
+    DEACTIVATED("MPI tests not run")
+
     param <- SnowParam(2, "MPI", tasks=2)
     checkIdentical(FALSE, bpisup(param))
 
@@ -60,6 +63,9 @@ test_SnowParam_coerce_from_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
         return()
+    
+    DEACTIVATED("MPI tests not run")
+
     if (!(suppressWarnings(require(snow)) ||
           suppressWarnings(require(Rmpi))))
         ## quietly succeed if 'snow', 'Rmpi' not available

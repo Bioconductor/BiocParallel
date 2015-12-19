@@ -12,6 +12,12 @@
 \alias{bpstop,BatchJobsParam-method}
 \alias{bpworkers,BatchJobsParam-method}
 \alias{bpschedule,BatchJobsParam-method}
+
+\alias{bplog,BatchJobsParam-method}
+\alias{bplog<-,BatchJobsParam,logical-method}
+\alias{bptimeout,BatchJobsParam-method}
+\alias{bptimeout<-,BatchJobsParam,numeric-method}
+
 \alias{show,BatchJobsParam-method}
 
 \title{Enable parallelization on batch systems}
@@ -41,7 +47,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
         \code{n.chunks} in \code{\link[BBmisc]{chunk}} and
         \code{\link[BatchJobs]{submitJobs}} for more information.
 
-    \item{catch.errors}{\code{logical(1)}} Flag to determine in
+    \item{catch.errors}{DEPRECATED. \code{logical(1)}} Flag to determine in
         apply-like functions (see e.g. \code{\link{bplapply}}) whether
         to quit with an error as soon as one application fails or
         encapsulation of function calls in \code{\link[base]{try}}

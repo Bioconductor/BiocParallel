@@ -169,8 +169,8 @@
     \describe{
       \item{}{
         \code{bpcatchErrors(x, ...)}, \code{bpCatchErrors(x) <- value}:
-        \code{logical()}. Controls if errors are caught and returned with
-        completed results.
+        \code{logical()}. DEPRECATED Controls if errors are caught and
+        returned with completed results.
 
         \code{catch.errors} determines whether errors are caught and
         returned with other results. When \code{TRUE}, all computations 
@@ -188,8 +188,7 @@
         \code{stop.on.error} controls whether the job stops after an 
         error is thrown. When \code{TRUE}, the output contains all 
         successfully completed results up to and including the error. 
-        Unlike \code{catch.errors == TRUE}, when 
-        \code{stop.on.error == TRUE} all computations stop once the 
+        When \code{stop.on.error == TRUE} all computations stop once the 
         error is hit. When \code{FALSE}, the job runs to completion 
         and successful results are returned along with any error messages.
       }

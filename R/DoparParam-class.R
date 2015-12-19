@@ -59,6 +59,23 @@ setMethod(bpisup, "DoparParam",
     }
 })
 
+## never enable logging or timeout
+setMethod(bplog, "DoparParam", function(x, ...) FALSE)
+
+setReplaceMethod("bplog", c("DoparParam", "logical"), 
+    function(x, ..., value)
+{
+    stop("'bplog(x) <- value' not supported for DoparParam")
+})
+
+setMethod(bptimeout, "DoparParam", function(x, ...) Inf)
+
+setReplaceMethod("bptimeout", c("DoparParam", "numeric"),
+    function(x, ..., value)
+{
+    stop("'bptimeout(x) <- value' not supported for DoparParam")
+})
+
 setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
     function(x, ..., value)
 {
@@ -76,7 +93,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
     FUN <- match.fun(FUN)
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
-            stop("no error detected in 'BPREDO'")
+            stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
         message("Resuming previous calculation ... ")
@@ -86,21 +103,27 @@ setMethod(bplapply, c("ANY", "DoparParam"),
 
     if (!bpisup(BPPARAM))
         return(bplapply(X, FUN=FUN, ..., BPPARAM=SerialParam()))
-    if (bpcatchErrors(BPPARAM))
-        FUN <- .composeTry(FUN)
+
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
 
     i <- NULL
     handle <- ifelse(bpcatchErrors(BPPARAM), "pass", "stop")
     res <- foreach(i=seq_along(X), .errorhandling=handle) %dopar% 
         { FUN(X[[i]], ...) }
 
-    if (!is.null(res)) {
+    if (!is.null(res))
         names(res) <- nms
-    }
+
     if (length(BPREDO)) {
         BPREDO[idx] <- res
-        BPREDO 
-    } else res
+        res <- BPREDO 
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),

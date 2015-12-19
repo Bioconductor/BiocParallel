@@ -151,15 +151,3 @@ setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
 .isTRUEorFALSE <- function (x) {
     is.logical(x) && length(x) == 1L && !is.na(x)
 }
-
-bpok <- function(x) {
-    if (is.null(x))
-        x
-    else if (!is.list(x))
-        stop("'x' must be a list")
-    else
-        sapply(x, function(elt) !is(elt, "condition"))
-}
-
-
-

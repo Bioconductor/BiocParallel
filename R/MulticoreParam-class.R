@@ -107,14 +107,13 @@ setMethod(bpvec, c("ANY", "MulticoreParam"),
     if (!bpschedule(BPPARAM))
         return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
                BPPARAM=SerialParam()))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE)
-    else
-        FUN <- .composeTry(FUN, FALSE)
+
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
 
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
-            stop("no error detected in 'BPREDO'")
+            stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
         message("Resuming previous calculation ... ")

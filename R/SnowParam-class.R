@@ -337,18 +337,13 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     }
     if (length(BPREDO)) {
         if (all(idx <- !bpok(BPREDO)))
-            stop("no error detected in 'BPREDO'")
+            stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
         message("Resuming previous calculation ... ")
         X <- X[idx]
     }
     nms <- names(X)
-
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE, bptimeout(BPPARAM))
-    else
-        FUN <- .composeTry(FUN, FALSE, bptimeout(BPPARAM))
 
     ## split into tasks 
     X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
@@ -363,6 +358,9 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     progress <- .progress(active=bpprogressbar(BPPARAM))
     progress$init(length(X))
     on.exit(progress$term(), TRUE)
+
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
     argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
     res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply, 
                                  length(X), argfun, BPPARAM, 
@@ -370,17 +368,18 @@ setMethod(bplapply, c("ANY", "SnowParam"),
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
-        if (bpstopOnError(BPPARAM) && !all(bpok(res))) {
-            err <- .remoteErrorList(res)
-            stop(err)
-        }
         names(res) <- nms
     }
 
     if (length(BPREDO)) {
         BPREDO[idx] <- res
-        BPREDO 
-    } else res
+        res <- BPREDO 
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
 })
 
 setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
@@ -391,10 +390,9 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
 
     if (!bpschedule(BPPARAM))
         return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
-    if (bplog(BPPARAM) || bpstopOnError(BPPARAM))
-        FUN <- .composeTry(FUN, TRUE, bptimeout(BPPARAM))
-    else
-        FUN <- .composeTry(FUN, FALSE, bptimeout(BPPARAM))
+
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
 
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {
