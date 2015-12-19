@@ -4,7 +4,7 @@
 
 ## bpmapply() dispatches to bplapply() where errors and logging are handled.
 
-setMethod(bpmapply, c("ANY", "BiocParallelParam"),
+setMethod("bpmapply", c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
              USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {
@@ -24,7 +24,7 @@ setMethod(bpmapply, c("ANY", "BiocParallelParam"),
     .simplify(.rename(res, ddd, USE.NAMES=USE.NAMES), SIMPLIFY)
 })
 
-setMethod(bpmapply, c("ANY", "missing"),
+setMethod("bpmapply", c("ANY", "missing"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
              USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {
@@ -32,7 +32,7 @@ setMethod(bpmapply, c("ANY", "missing"),
     bpmapply(FUN, ..., BPPARAM=BPPARAM)
 })
 
-setMethod(bpmapply, c("ANY", "list"),
+setMethod("bpmapply", c("ANY", "list"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
              USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {

@@ -9,11 +9,6 @@
 \alias{bpbackend,DoparParam-method}
 \alias{bpbackend<-,DoparParam,SOCKcluster-method}
 
-\alias{bplog,DoparParam-method}
-\alias{bplog<-,DoparParam,logical-method}
-\alias{bptimeout,DoparParam-method}
-\alias{bptimeout<-,DoparParam,numeric-method}
-
 \alias{bpisup,DoparParam-method}
 \alias{bpstart,DoparParam-method}
 \alias{bpstop,DoparParam-method}

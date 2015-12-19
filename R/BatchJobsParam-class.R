@@ -47,15 +47,7 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("  bpjobname: ", bpjobname(.self), 
-                "; bpworkers: ", bpworkers(.self), 
-                "; bpisup: ", bpisup(.self),
-                "\n",
-                "  bpstopOnError: ", bpstopOnError(.self),
-                "; bpprogressbar: ", bpprogressbar(.self),
-                "\n",
-                "  cleanup: ", .self$cleanup,
-                "\n", sep="")
+            cat("\n  cleanup: ", .self$cleanup, "\n", sep="")
         })
 )
 
@@ -94,38 +86,21 @@ BatchJobsParam <-
 ### Methods - control
 ###
 
-setMethod(bpschedule, "BatchJobsParam",
-    function(x, ...)
+setMethod("bpschedule", "BatchJobsParam",
+    function(x)
 {
     !getOption("BatchJobs.on.slave", FALSE)
 })
 
-setMethod(bpisup, "BatchJobsParam", function(x, ...) TRUE)
+setMethod("bpisup", "BatchJobsParam", function(x) TRUE)
 
-## never enable logging or timeout
-setMethod(bplog, "BatchJobsParam", function(x, ...) FALSE)
-
-setReplaceMethod("bplog", c("BatchJobsParam", "logical"), 
-    function(x, ..., value)
-{
-    stop("'bplog(x) <- value' not supported for BatchJobsParam")
-})
-
-setMethod(bptimeout, "BatchJobsParam", function(x, ...) Inf)
-
-setReplaceMethod("bptimeout", c("BatchJobsParam", "numeric"),
-    function(x, ..., value)
-{
-    stop("'bptimeout(x) <- value' not supported for BatchJobsParam")
-})
-
-setMethod(bpbackend, "BatchJobsParam", function(x, ...) getConfig())
+setMethod("bpbackend", "BatchJobsParam", function(x) getConfig())
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
 
-setMethod(bplapply, c("ANY", "BatchJobsParam"),
+setMethod("bplapply", c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
@@ -206,7 +181,7 @@ setMethod(bplapply, c("ANY", "BatchJobsParam"),
     res
 })
 
-setMethod(bpiterate, c("ANY", "ANY", "BatchJobsParam"),
+setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     stop(paste0("bpiterate not supported for BatchJobsParam"))

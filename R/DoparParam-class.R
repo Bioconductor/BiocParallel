@@ -10,13 +10,7 @@
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
     fields=list(),
-    methods=list(
-        show = function() {
-            callSuper()
-            cat("  bpworkers: ", bpworkers(.self),
-                "; bpisup: ", bpisup(.self),
-                "\n", sep="")
-        })
+    methods=list()
 )
 
 DoparParam <-
@@ -40,16 +34,16 @@ DoparParam <-
 ### Methods - control
 ###
 
-setMethod(bpworkers, "DoparParam",
-    function(x, ...)
+setMethod("bpworkers", "DoparParam",
+    function(x)
 {
     if (bpisup(x))
         getDoParWorkers()
     else 0L
 })
 
-setMethod(bpisup, "DoparParam",
-    function(x, ...)
+setMethod("bpisup", "DoparParam",
+    function(x)
 {
     if ("package:foreach" %in% search() && getDoParRegistered() && 
         (getDoParName() != "doSEQ") && getDoParWorkers() > 1L) {
@@ -59,25 +53,8 @@ setMethod(bpisup, "DoparParam",
     }
 })
 
-## never enable logging or timeout
-setMethod(bplog, "DoparParam", function(x, ...) FALSE)
-
-setReplaceMethod("bplog", c("DoparParam", "logical"), 
-    function(x, ..., value)
-{
-    stop("'bplog(x) <- value' not supported for DoparParam")
-})
-
-setMethod(bptimeout, "DoparParam", function(x, ...) Inf)
-
-setReplaceMethod("bptimeout", c("DoparParam", "numeric"),
-    function(x, ..., value)
-{
-    stop("'bptimeout(x) <- value' not supported for DoparParam")
-})
-
 setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     if (value)
         stop("'stop.on.error == TRUE' not implemented for DoparParam")
@@ -87,7 +64,7 @@ setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
 ### Methods - evaluation
 ###
 
-setMethod(bplapply, c("ANY", "DoparParam"),
+setMethod("bplapply", c("ANY", "DoparParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
@@ -126,7 +103,7 @@ setMethod(bplapply, c("ANY", "DoparParam"),
     res
 })
 
-setMethod(bpiterate, c("ANY", "ANY", "DoparParam"),
+setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     stop(paste0("bpiterate not supported for DoparParam"))

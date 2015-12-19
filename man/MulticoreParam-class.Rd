@@ -224,40 +224,40 @@ multicoreWorkers()
   In the following code, \code{x} is a \code{MulticoreParam} object.
   \describe{
     \item{}{
-      \code{bpprogress(x, ...)}, \code{bpprogress(x) <- value}: 
+      \code{bpprogress(x)}, \code{bpprogress(x) <- value}: 
       Get or set the value to enable text progress bar. 
       \code{value} must be a \code{logical(1)}.
     }
     \item{}{
-      \code{bpjobname(x, ...)}, \code{bpjobname(x) <- value}: 
+      \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 
       Get or set the job name.
     }
     \item{}{
-      \code{bpRNGseed(x, ...)}, \code{bpRNGseed(x) <- value}: 
+      \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}: 
       Get or set the seed for random number generaton. \code{value} must be a
       \code{numeric(1)}.
     }
     \item{}{
-      \code{bplog(x, ...)}, \code{bplog(x) <- value}: 
+      \code{bplog(x)}, \code{bplog(x) <- value}: 
       Get or set the value to enable logging. \code{value} must be a
       \code{logical(1)}.
     }
     \item{}{
-      \code{bpthreshold(x, ...)}, \code{bpthreshold(x) <- value}: 
+      \code{bpthreshold(x)}, \code{bpthreshold(x) <- value}: 
       Get or set the logging threshold. \code{value} must be a
       \code{character(1)} string of one of the levels defined in the
       \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
       \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
     }
     \item{}{
-      \code{bplogdir(x, ...)}, \code{bplogdir(x) <- value}: 
+      \code{bplogdir(x)}, \code{bplogdir(x) <- value}: 
       Get or set the directory for the log file. \code{value} must be a
       \code{character(1)} path, not a file name. The file is written out as
       LOGFILE.out. If no \code{logdir} is provided and \code{bplog=TRUE} log
       messages are sent to stdout.
     }
     \item{}{
-      \code{bpresultdir(x, ...)}, \code{bpresultdir(x) <- value}: 
+      \code{bpresultdir(x)}, \code{bpresultdir(x) <- value}: 
       Get or set the directory for the result files. \code{value} must be a
       \code{character(1)} path, not a file name. Separate files are written for
       each job with the prefix JOB (e.g., JOB1, JOB2, etc.).  When no
@@ -273,12 +273,12 @@ multicoreWorkers()
   In the code below \code{x} is a \code{MulticoreParam} object.  See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpworkers(x, ...)}}
-    \item{}{\code{bptasks(x, ...)}, \code{bptasks(x) <- value}}
-    \item{}{\code{bpstart(x, ...)}}
-    \item{}{\code{bpstop(x, ...)}}
-    \item{}{\code{bpisup(x, ...)}}
-    \item{}{\code{bpbackend(x, ...)}, \code{bpbackend(x) <- value}}
+    \item{}{\code{bpworkers(x)}}
+    \item{}{\code{bptasks(x)}, \code{bptasks(x) <- value}}
+    \item{}{\code{bpstart(x)}}
+    \item{}{\code{bpstop(x)}}
+    \item{}{\code{bpisup(x)}}
+    \item{}{\code{bpbackend(x)}, \code{bpbackend(x) <- value}}
   }
 
 } 
@@ -288,8 +288,8 @@ multicoreWorkers()
   In the code below \code{x} is a \code{MulticoreParam} object. See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpcatchErrors(x, ...)}, \code{bpcatchErrors(x) <- value}}
-    \item{}{\code{bpstopOnError(x, ...)}, \code{bpstopOnError(x) <- value}}
+    \item{}{\code{bpcatchErrors(x)}, \code{bpcatchErrors(x) <- value}}
+    \item{}{\code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}}
   }
 
 }

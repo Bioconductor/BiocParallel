@@ -1,15 +1,15 @@
-setMethod(bpbackend, "missing",
-    function(x, ...)
+setMethod("bpbackend", "missing",
+    function(x)
 {
     x <- registered()[[1]]
-    bpbackend(x, ...)
+    bpbackend(x)
 })
 
 setReplaceMethod("bpbackend", c("missing", "ANY"),
-    function(x, ..., value)
+    function(x, value)
 {
     x <- registered()[[1]]
-    bpbackend(x, ...) <- value
+    bpbackend(x) <- value
     x
 })
 
