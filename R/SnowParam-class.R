@@ -35,9 +35,6 @@ setOldClass(c("NULLcluster", "cluster"))
         .clusterargs="list",
         .controlled="logical",
         RNGseed="ANY",
-        timeout="numeric",
-        log="logical",
-        threshold="ANY",
         logdir="character",
         resultdir="character"),
     methods=list(
@@ -45,38 +42,23 @@ setOldClass(c("NULLcluster", "cluster"))
             .clusterargs=list(spec=0, type="SOCK"),
             .controlled=TRUE,
             RNGseed=NULL,
-            timeout=Inf,
-            log=FALSE,
-            threshold="INFO",
             logdir=NA_character_,
             resultdir=NA_character_)
         { 
-            initFields(.clusterargs=.clusterargs, .controlled=.controlled, 
-                       RNGseed=RNGseed, timeout=timeout,
-                       log=log, threshold=threshold, 
-                       logdir=logdir, resultdir=resultdir)
             callSuper(...)
+            initFields(.clusterargs=.clusterargs, .controlled=.controlled,
+                       RNGseed=RNGseed, logdir=logdir, resultdir=resultdir)
         },
         show = function() {
             callSuper()
-            cat("cluster type: ", .clusterargs$type,
-                "\n",
-                "  bpjobname: ", bpjobname(.self), 
-                "; bpworkers: ", bpworkers(.self), 
-                "; bptasks: ", bptasks(.self),
-                "; bptimeout: ", bptimeout(.self), 
-                "; bpisup: ", bpisup(.self),
-                "\n",
+            cat("\n",
                 "  bpRNGseed: ", bpRNGseed(.self),
                 "\n",
-                "  bplog: ", bplog(.self),
-                "; bpthreshold: ", names(bpthreshold(.self)),
-                "; bplogdir: ", bplogdir(.self),
-                "\n",
-                "  bpstopOnError: ", bpstopOnError(.self),
-                "; bpprogressbar: ", bpprogressbar(.self),
+                "  bplogdir: ", bplogdir(.self),
                 "\n",
                 "  bpresultdir: ", bpresultdir(.self),
+                "\n",
+                "  cluster type: ", .clusterargs$type,
                 "\n", sep="")
         })
 )
@@ -104,7 +86,7 @@ SnowParam <- function(workers=snowWorkers(),
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks), 
                     catch.errors=catch.errors, stop.on.error=stop.on.error, 
                     progressbar=progressbar, RNGseed=RNGseed, timeout=timeout,
-                    log=log, threshold=.THRESHOLD(threshold), logdir=logdir, 
+                    log=log, threshold=threshold, logdir=logdir, 
                     resultdir=resultdir, jobname=jobname)
     validObject(x)
     x
@@ -114,20 +96,9 @@ SnowParam <- function(workers=snowWorkers(),
 ### Validity
 ###
 
-.valid.SnowParam.log <- function(object) {
+.valid.SnowParam.log <- function(object)
+{
     msg <- NULL
-
-    threshold <- bpthreshold(object)
-    if (length(threshold) != 1L) 
-        msg <- c(msg, "'bpthreshold(BPPARAM)' must be character(1)")
-
-    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-    if (!names(threshold) %in% nms)
-        msg <- c(msg, "'bpthreshold(BPPARAM)' must be one of ", 
-                 paste(sQuote(nms), collapse=", "))
-
-    if (!.isTRUEorFALSE(bplog(object)))
-        msg <- c(msg, "'bplog(BPPARAM)' must be logical(1)")
 
     dir <- bplogdir(object) 
     if (length(dir) > 1L || !is(dir, "character"))
@@ -171,7 +142,7 @@ setValidity("SnowParam", function(object)
 ###
 
 setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
-    function(x, ..., value)
+    function(x, value)
 {
     value <- as.integer(value)
     if (value > snowWorkers())
@@ -182,43 +153,25 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     x 
 })
 
-setMethod(bpRNGseed, "SnowParam",
-    function(x, ...)
+setMethod("bpRNGseed", "SnowParam",
+    function(x)
 {
     x$RNGseed 
 })
 
-setReplaceMethod("bpRNGseed", c("SnowParam", "ANY"),
-    function(x, ..., value)
+setReplaceMethod("bpRNGseed", c("SnowParam", "numeric"),
+    function(x, value)
 {
-    if (!is.null(value))
-        value <- as.integer(value)
-    x$RNGseed <- value 
+    x$RNGseed <- as.integer(value)
     x
 })
-
-setMethod(bptimeout, "SnowParam",
-    function(x, ...)
-{
-    x$timeout
-})
-
-setReplaceMethod("bptimeout", c("SnowParam", "numeric"),
-    function(x, ..., value)
-{
-    if (!is.null(value))
-        value <- as.integer(value)
-    x$timeout <- value 
-    x
-})
-
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
 ###
 
-setMethod(bpstart, "SnowParam",
-    function(x, lenX = bpworkers(x), ...)
+setMethod("bpstart", "SnowParam",
+    function(x, lenX = bpworkers(x))
 {
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
@@ -280,8 +233,8 @@ setMethod(bpstart, "SnowParam",
     invisible(x)
 })
 
-setMethod(bpstop, "SnowParam",
-    function(x, ...)
+setMethod("bpstop", "SnowParam",
+    function(x)
 {
     if (!.controlled(x))
         stop("'bpstop' not available; instance from outside BiocParallel?")
@@ -299,20 +252,20 @@ setMethod(bpstop, "SnowParam",
     invisible(x)
 })
 
-setMethod(bpisup, "SnowParam",
-    function(x, ...)
+setMethod("bpisup", "SnowParam",
+    function(x)
 {
     length(bpbackend(x)) != 0L
 })
 
-setMethod(bpbackend, "SnowParam",
-    function(x, ...)
+setMethod("bpbackend", "SnowParam",
+    function(x)
 {
     x$cluster
 })
 
 setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$cluster <- value
     x
@@ -322,7 +275,7 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 ### Methods - evaluation
 ###
 
-setMethod(bplapply, c("ANY", "SnowParam"),
+setMethod("bplapply", c("ANY", "SnowParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
 
@@ -382,7 +335,7 @@ setMethod(bplapply, c("ANY", "SnowParam"),
     res
 })
 
-setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
+setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)
@@ -413,14 +366,8 @@ setMethod(bpiterate, c("ANY", "ANY", "SnowParam"),
     x$.controlled
 }
 
-setMethod("bplog", "SnowParam",
-    function(x, ...)
-{
-    x$log
-})
-
 setReplaceMethod("bplog", c("SnowParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     if (x$.controlled) {
         x$log <- value 
@@ -434,44 +381,21 @@ setReplaceMethod("bplog", c("SnowParam", "logical"),
     }
 })
 
-.THRESHOLD <- function(xx) {
-    if (!is.null(names(xx)))
-        xx <- names(xx)
-    switch(xx,
-           "FATAL"=futile.logger::FATAL,
-           "ERROR"=futile.logger::ERROR,
-           "WARN"=futile.logger::WARN,
-           "INFO"=futile.logger::INFO,
-           "DEBUG"=futile.logger::DEBUG,
-           "TRACE"=futile.logger::TRACE,
-           xx)
-}
-
-setMethod("bpthreshold", "SnowParam",
-    function(x, ...)
-{
-    x$threshold
-})
-
 setReplaceMethod("bpthreshold", c("SnowParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
-    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-    if (!value %in% nms)
-        stop(paste0("'value' must be one of ",
-             paste(sQuote(nms), collapse=", ")))
-    x$threshold <- .THRESHOLD(value) 
+    x$threshold <- value
     x
 })
 
 setMethod("bplogdir", "SnowParam",
-    function(x, ...)
+    function(x)
 {
     x$logdir
 })
 
 setReplaceMethod("bplogdir", c("SnowParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
     if (!length(value))
         value <- NA_character_
@@ -483,13 +407,13 @@ setReplaceMethod("bplogdir", c("SnowParam", "character"),
 })
 
 setMethod("bpresultdir", "SnowParam",
-    function(x, ...)
+    function(x)
 {
     x$resultdir
 })
 
 setReplaceMethod("bpresultdir", c("SnowParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$resultdir <- value 
     if (is.null(msg <- .valid.SnowParam.result(x))) 

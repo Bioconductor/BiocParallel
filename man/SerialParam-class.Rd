@@ -7,13 +7,10 @@
 \alias{bpisup,SerialParam-method}
 \alias{bpworkers,SerialParam-method}
 \alias{bplog,SerialParam-method}
-\alias{bpthreshold,SerialParam-method}
 \alias{bplogdir,SerialParam-method}
 \alias{bplog<-,SerialParam,logical-method}
 \alias{bpthreshold<-,SerialParam,character-method}
 \alias{bplogdir<-,SerialParam,character-method}
-\alias{bptimeout,SerialParam-method}
-\alias{bptimeout<-,SerialParam,numeric-method}
 
 \title{Enable serial evaluation}
 

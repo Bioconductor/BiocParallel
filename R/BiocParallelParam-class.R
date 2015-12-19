@@ -8,25 +8,48 @@
         workers="ANY",
         tasks="integer",
         jobname="character",
-        catch.errors="logical",  ## deprecated
+        progressbar="logical",
+        ## required for composeTry
+        log="logical",
+        threshold="character",
         stop.on.error="logical",
-        progressbar="logical"),
+        timeout="numeric",
+        ## deprecated
+        catch.errors="logical"
+    ),
     methods=list(
         initialize = function(..., 
             workers=0, 
             tasks=0L, 
             jobname="BPJOB",
             catch.errors=TRUE,    ## deprecated
+            log=FALSE,
+            threshold="INFO",
             stop.on.error=TRUE,
+            timeout=Inf,
             progressbar=FALSE)
         {
-            initFields(workers=workers, tasks=tasks, jobname=jobname, 
-                       catch.errors=catch.errors, stop.on.error=stop.on.error, 
-                       progressbar=progressbar)
             callSuper(...)
+            initFields(workers=workers, tasks=tasks, jobname=jobname, 
+                       catch.errors=catch.errors, log=log, threshold=threshold,
+                       stop.on.error=stop.on.error, timeout=timeout,
+                       progressbar=progressbar)
         },
         show = function() {
-            cat("class:", class(.self), "\n")
+            cat("class: ", class(.self),
+                "\n",
+                "  bpisup: ", bpisup(.self),
+                "; bpworkers: ", bpworkers(.self),
+                "; bptasks: ", bptasks(.self),
+                "; bpjobname: ", bpjobname(.self),
+                "\n",
+                "  bplog: ", bplog(.self),
+                "; bpthreshold: ", bpthreshold(.self),
+                "; bpstopOnError: ", bpstopOnError(.self),
+                "\n",
+                "  bptimeout: ", bptimeout(.self),
+                "; bpprogressbar: ", bpprogressbar(.self),
+                sep="")
         })
 )
 
@@ -60,6 +83,20 @@ setValidity("BiocParallelParam", function(object)
     ## error handling
     if (!.isTRUEorFALSE(bpcatchErrors(object)))
         msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
+
+    if (!.isTRUEorFALSE(bplog(object)))
+        msg <- c(msg, "'bplog' must be logical(1)")
+
+    levels <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+    threshold <- bpthreshold(object)
+    if (length(threshold) > 1L) {
+        msg <- c(msg, "'bpthreshold' must be character(0) or character(1)")
+    } else if ((length(threshold) == 1L) && (!threshold %in% levels)) {
+        txt <- sprintf("'bpthreshold' must be one of %s",
+                       paste(sQuote(levels), collapse=", "))
+        msg <- c(msg, paste(strwrap(txt, indent=2, exdent=2), collapse="\n"))
+    }
+
     if (!.isTRUEorFALSE(bpstopOnError(object)))
         msg <- c(msg, "'bpstopOnError(BPPARAM)' must be logical(1)")
 
@@ -70,47 +107,71 @@ setValidity("BiocParallelParam", function(object)
 ### Getters / Setters
 ###
 
-setMethod(bpworkers, "BiocParallelParam",
-   function(x, ...)
+setMethod("bpworkers", "BiocParallelParam",
+   function(x)
 {
     x$workers
 })
 
-setMethod(bptasks, "BiocParallelParam",
-   function(x, ...)
+setMethod("bptasks", "BiocParallelParam",
+   function(x)
 {
     x$tasks
 })
 
 setReplaceMethod("bptasks", c("BiocParallelParam", "numeric"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$tasks <- as.integer(value)
     x 
 })
 
-setMethod(bpjobname, "BiocParallelParam",
-   function(x, ...)
+setMethod("bpjobname", "BiocParallelParam",
+   function(x)
 {
     x$jobname
 })
 
 setReplaceMethod("bpjobname", c("BiocParallelParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$jobname <- value
     x 
 })
 
+setMethod("bplog", "BiocParallelParam",
+    function(x)
+{
+    x$log
+})
+
+setMethod("bpthreshold", "BiocParallelParam",
+    function(x)
+{
+    x$threshold
+})
+
+setMethod("bptimeout", "BiocParallelParam",
+    function(x)
+{
+    x$timeout
+})
+
+setReplaceMethod("bptimeout", c("BiocParallelParam", "numeric"),
+    function(x, value)
+{
+    x$timeout <- as.numeric(value)
+    x
+})
 
 setMethod("bpstopOnError", "BiocParallelParam",
-    function(x, ...)
+    function(x)
 {
     x$stop.on.error
 })
 
 setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$stop.on.error <- value 
     validObject(x)
@@ -118,26 +179,26 @@ setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
 })
 
 setMethod("bpcatchErrors", "BiocParallelParam",
-    function(x, ...)
+    function(x)
 {
     x$catch.errors
 })
 
 setReplaceMethod("bpcatchErrors", c("BiocParallelParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$catch.errors <- value 
     x 
 })
 
 setMethod("bpprogressbar", "BiocParallelParam",
-    function(x, ...)
+    function(x)
 {
     x$progressbar
 })
 
 setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$progressbar <- value 
     x

@@ -13,11 +13,6 @@
 \alias{bpworkers,BatchJobsParam-method}
 \alias{bpschedule,BatchJobsParam-method}
 
-\alias{bplog,BatchJobsParam-method}
-\alias{bplog<-,BatchJobsParam,logical-method}
-\alias{bptimeout,BatchJobsParam-method}
-\alias{bptimeout<-,BatchJobsParam,numeric-method}
-
 \alias{show,BatchJobsParam-method}
 
 \title{Enable parallelization on batch systems}

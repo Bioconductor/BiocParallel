@@ -1,4 +1,4 @@
-setMethod(bpvectorize, c("ANY", "ANY"),
+setMethod("bpvectorize", c("ANY", "ANY"),
     function(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
@@ -6,7 +6,7 @@ setMethod(bpvectorize, c("ANY", "ANY"),
         bpvec(FUN=FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
-setMethod(bpvectorize, c("ANY", "missing"),
+setMethod("bpvectorize", c("ANY", "missing"),
     function(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
