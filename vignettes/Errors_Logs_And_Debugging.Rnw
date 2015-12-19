@@ -14,7 +14,7 @@ BiocStyle::latex()
 
 \title{Errors, Logs and Debugging in \BiocParallel} 
 \author{Valerie Obenchain and Martin Morgan}
-\date{Edited: May 13, 2015; Compiled: \today}
+\date{Edited: December 16, 2015; Compiled: \today}
 
 \begin{document}
 
@@ -93,35 +93,38 @@ bpstopOnError(param) <- FALSE
 In this example \Rcode{X} is length 6. By default, the elements of \Rcode{X}
 are divided as evenly as possible over the number of workers and run in chunks.
 The number of tasks is set equal to the length of \Rcode{X} which forces
-each element of \Rcode{X} to be executed separately (6 tasks) vs chunked.
+each element of \Rcode{X} to be executed separately (6 tasks).
 
 <<errors_6tasksA_stopOnError>>=
-X <- list(1, 2, "3", 4, 5, 6)
-param <- SnowParam(3, tasks = length(X), stop.on.error = FALSE)
+X <- list(1, "2", 3, 4, 5, 6)
+param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
 @
 
-The output list contains results for tasks 1 and 2 and an error for task 3.
-Tasks 4, 5, and 6 are not attempted.
+Tasks 1, 2, and 3 are assigned to the three workers, and are
+evaluated. Task 2 fails, stopping further computation. All
+successfully completed tasks are returned as the `result'
+attribute. Usually, this means that the results of tasks 1, 2, and 3
+will be returned.
 
+<<errors_6tasksA_stopOnError_output>>=
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM = param)
+}, error=function(e) e)
+res
+attr(res, "result")
+@ 
 
-\begin{verbatim}
-bplapply(X, sqrt, BPPARAM = param)
+Using \Rcode{stop.on.error=FALSE}, all tasks are evaluated.
 
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## ERROR [2015-08-21 14:08:52] non-numeric argument to mathematical function 
-## error in task  3
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 1.414214
-## 
-## [[3]]
-## <remote-error in FUN(...): non-numeric argument to mathematical function>
-## traceback() available as 'attr(x, "traceback")'
-\end{verbatim}
+<<errors_6tasks_nonstopOnError>>=
+X <- list("1", 2, 3, 4, 5, 6)
+param <- SnowParam(3, tasks = length(X), stop.on.error = FALSE)
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM = param)
+}, error=function(e) e)
+res
+attr(res, "result")
+@ 
 
 In the next example the elements of \Rcode{X} are grouped instead
 of run separately. The default value for \Rcode{tasks} is 0 which means 'X' is
@@ -131,40 +134,21 @@ and the third is list(5, 6).
 
 <<errors_3tasksA_stopOnError>>=
 X <- list(1, 2, "3", 4, 5, 6)
-param <- SnowParam(3, stop.on.error = FALSE)
+param <- SnowParam(3, stop.on.error = TRUE)
 @
 
-To simulate a longer running computation sleep time is added to 'FUN'. The
-sleep forces task 2 to finish before task 3.
+The output shows an error in when evaluating the third element, but
+also that the fourth element, in the same chunk as 3, was not
+evaluated. All elements are evaluated because they were assigned to
+workers before the first error occurred.
 
-<<errors_3tasks_fun_stopOnError>>=
-FUN <- function(i) { Sys.sleep(i); sqrt(i) }
-@
-
-The output shows an error in task 2 (vs 3 in the previous example) and a result
-for '4' is included because it was part of the second task.
-
-\begin{verbatim}
-bplapply(X, FUN, BPPARAM = param)
-
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## ERROR [2015-08-21 14:10:28] non-numeric argument to mathematical function 
-## error in task  2
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 1.414214
-## 
-## [[3]]
-## <remote-error in sqrt(i): non-numeric argument to mathematical function>
-## traceback() available as 'attr(x, "traceback")'
-## 
-## [[4]]
-## [1] 2
-\end{verbatim}
+<<errors_3tasksA_stopOnError_output>>=
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM = param)
+}, error=function(e) e)
+res
+attr(res, "result")
+@ 
 
 Side Note: Results are collected from workers as they finish which is not
 necessarily the same order in which they were loaded.  Depending on how tasks
@@ -178,18 +162,29 @@ vary with run time and distribution of tasks over workers.
 \subsection{Identify failures with \Rcode{bpok()}}
 
 The \Rcode{bpok()} function is a quick way to determine which (if any)
-tasks failed. In this example the second element fails.
+tasks failed. In this example we use \Rcode{tryCatch()} to report the
+error with failing, to the second element fails.
 
 <<errors_bpok_bplapply>>=
 param <- SnowParam(2, stop.on.error=FALSE)
-res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
+res <- tryCatch({
+    bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
+}, error=function(x) x)
 res
 @
+
+The partially evaluate results are available by retrieving the
+\Rcode{result} attribute
+
+<<<errors_attr>>=
+result <- attr(res, "result")
+result
+@ 
 
 \Rcode{bpok} returns TRUE if the task was successful.
 
 <<errors_bpok>>=
-bpok(res)
+bpok(result)
 @
 
 Once errors are identified with \Rcode{bpok} the traceback can be retrieved
@@ -197,7 +192,7 @@ with the \Rcode{attr} function. This is possible because errors are returned
 as \Rcode{condition} objects with the traceback as an attribute.
 
 <<errors_traceback>>=
-tail(attr(res[[which(!bpok(res))]], "traceback"))
+tail(attr(result[[which(!bpok(result))]], "traceback"))
 @
 
 \subsection{Rerun failed tasks with \Rcode{BPREDO}}
@@ -211,21 +206,16 @@ elements are identified, recomputed and inserted into the original results.
 The bug in this example is the second element of 'X' which is a character when
 it should be numeric.
 
-\begin{verbatim}
-## X <- list(1, "2", 3)
-## res <- bplapply(X, sqrt, BPPARAM = param)
-## res
-## 
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## <remote-error in FUN(...): non-numeric argument to mathematical function>
-## traceback() available as 'attr(x, "traceback")'
-## 
-## [[3]]
-## [1] 1.732051
-\end{verbatim}
+<<redo_error>>=
+X <- list(1, "2", 3)
+param <- SnowParam(2, stop.on.error=FALSE)
+res <- tryCatch({
+    bplapply(X, sqrt, BPPARAM=param)
+}, error=function(e) e)
+result <- attr(res, "result")
+result
+@ 
+
 
 First fix the input data.
 
@@ -233,22 +223,13 @@ First fix the input data.
 X.redo <- list(1, 2, 3)
 @
 
-Repeat the call to \Rcode{bplapply} this time supplying the partial results
-as \Rcode{BPREDO}.
+Repeat the call to \Rcode{bplapply} this time supplying the partial
+results as \Rcode{BPREDO}. Only the failed calculations are computed,
+in the present case requiring only one worker.
 
-\begin{verbatim}
-## bplapply(X.redo, sqrt, BPREDO = res, param=param)
-## 
-## Resuming previous calculation ... 
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 1.414214
-## 
-## [[3]]
-## [1] 1.732051
-\end{verbatim}
+<<redo_run>>=
+bplapply(X.redo, sqrt, BPREDO=result, BPPARAM=param)
+@ 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,7 +283,9 @@ Because the default threshold is {\it INFO} it catches the {\it ERROR}-level
 message thrown when attempting the square root of a character ("2"). 
 
 <<logs_bplapply>>=
-bplapply(list(1, "2", 3), sqrt, BPPARAM = param)
+tryCatch({
+    bplapply(list(1, "2", 3), sqrt, BPPARAM = param)
+}, error=function(e) invisible(e))
 @
 
 All user-supplied messages written in the \CRANpkg{futile.logger} syntax
@@ -311,10 +294,10 @@ a couple of {\it WARN} and {\it DEBUG}-level messages.
 
 <<logs_FUN>>=
 FUN <- function(i) {
-  flog.debug(paste0("value of 'i' = ", i))
+  flog.debug(paste("value of 'i':", i))
 
   if (!length(i)) {
-      flog.warn("'i' is missing")
+      flog.warn("'i' has length 0")
       NA 
   } else if (!is(i, "numeric")) {
       flog.debug("coercing 'i' to numeric")
@@ -327,112 +310,20 @@ FUN <- function(i) {
 
 Turn logging on and set the threshold to {\it WARN}.
 
-\begin{verbatim}
-param <- SnowParam(2, log = TRUE, threshold = "WARN")
-bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
-
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## loading futile.logger on workers
-## ############### LOG OUTPUT ###############
-## Task: 1
-## Node: 1
-## Timestamp: 2015-08-21 14:20:41
-## Success: TRUE
-## Task duration: 
-##    user  system elapsed 
-##   0.002   0.001   0.004 
-## Memory used: 
-##          used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells 324081 17.4     592000 31.7   341266 18.3
-## Vcells 431677  3.3    1023718  7.9   497048  3.8
-## Log messages:
-## 
-## stderr and stdout:
-## character(0)
-## ############### LOG OUTPUT ###############
-## Task: 2
-## Node: 2
-## Timestamp: 2015-08-21 14:20:41
-## Success: TRUE
-## Task duration: 
-##    user  system elapsed 
-##   0.007   0.000   0.007 
-## Memory used: 
-##          used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells 325664 17.4     592000 31.7   367737 19.7
-## Vcells 434331  3.4    1023718  7.9   519642  4.0
-## Log messages:
-## WARN [2015-08-21 14:20:41] 'i' is missing
-## 
-## stderr and stdout:
-## character(0)
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 2
-## 
-## [[3]]
-## [1] NA
-\end{verbatim}
+<<logs_FUN_WARN>>=
+param <- SnowParam(2, log = TRUE, threshold = "WARN", stop.on.error=FALSE)
+result <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+simplify2array(result)
+@ 
 
 Changing the threshold to {\it DEBUG} catches both {\it WARN} and 
 {\it DEBUG} messages.
 
-\begin{verbatim}
-param <- SnowParam(2, log = TRUE, threshold = "DEBUG")
-bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
-
-## starting worker for localhost:11441 
-## starting worker for localhost:11441 
-## loading futile.logger on workers
-## ############### LOG OUTPUT ###############
-## Task: 1
-## Node: 1
-## Timestamp: 2015-08-21 14:21:40
-## Success: TRUE
-## Task duration: 
-##    user  system elapsed 
-##   0.005   0.000   0.005 
-## Memory used: 
-##          used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells 325633 17.4     592000 31.7   352929 18.9
-## Vcells 434309  3.4    1023718  7.9   515223  4.0
-## Log messages:
-## DEBUG [2015-08-21 14:21:40] value of 'i' = 1
-## 
-## stderr and stdout:
-## character(0)
-## ############### LOG OUTPUT ###############
-## Task: 2
-## Node: 2
-## Timestamp: 2015-08-21 14:21:40
-## Success: TRUE
-## Task duration: 
-##    user  system elapsed 
-##    0.01    0.00    0.01 
-## Memory used: 
-##          used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells 325668 17.4     592000 31.7   394333 21.1
-## Vcells 434358  3.4    1023718  7.9   524369  4.1
-## Log messages:
-## DEBUG [2015-08-21 14:21:40] value of 'i' = 2
-## DEBUG [2015-08-21 14:21:40] coercing 'i' to numeric
-## DEBUG [2015-08-21 14:21:40] value of 'i' = 
-## WARN [2015-08-21 14:21:40] 'i' is missing
-## 
-## stderr and stdout:
-## character(0)
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 2
-## 
-## [[3]]
-## [1] NA
-\end{verbatim}
+<<logs_FUN_DEBUG>>=
+param <- SnowParam(2, log = TRUE, threshold = "DEBUG", stop.on.error=FALSE)
+result <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
+simplify2array(result)
+@ 
 
 \subsection{Log files}
 
@@ -482,7 +373,7 @@ readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-NOTE: \Rcode{timeout} is  supported for SnowParam and MulticoreParam. 
+NOTE: \Rcode{timeout} is supported for SnowParam and MulticoreParam.
 
 For long running jobs or untested code it can be useful to set a time limit.
 The \Rcode{timeout} field is the time, in seconds, allowed for each worker to
@@ -492,39 +383,24 @@ complete a task; default is \Rcode{Inf}. If the task takes longer than
 Time can be changed during param construction with the \Rcode{timeout} arg,
 
 <<timeout_constructor>>=
-param <- SnowParam(timeout = 20)
+param <- SnowParam(timeout = 20, stop.on.error=FALSE)
 param
 @
 
 or with the \Rcode{bptimeout} setter:
 
 <<timeout_setter>>=
-bptimeout(param) <- 2 
-param
-@
-
-\begin{verbatim}
+param <- SnowParam(timeout = 2, stop.on.error=FALSE)
 fun <- function(i) {
   Sys.sleep(i)
   i
 }
-bplapply(1:3, fun, BPPARAM = param) 
-
-## starting worker for localhost:11747 
-## starting worker for localhost:11747 
-## starting worker for localhost:11747 
-## [[1]]
-## [1] 1
-## 
-## [[2]]
-## <remote-error in Sys.sleep(i): reached elapsed time limit>
-## traceback() available as 'attr(x, "traceback")'
-## 
-## [[3]]
-## <remote-error in Sys.sleep(i): reached elapsed time limit>
-## traceback() available as 'attr(x, "traceback")'
-\end{verbatim}
-
+res <- tryCatch({
+    bplapply(1:3, fun, BPPARAM = param) 
+}, error=identity)
+res
+attr(res, "result")
+@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -561,8 +437,11 @@ Calling ``fun1'' with a character throws an error:
 
 \begin{verbatim}
 param <- SnowParam(stop.on.error=FALSE)
-res <- bplapply(list(c(1,3), 5, "6"), fun1, BPPARAM = param)
-res
+res <- tryCatch({
+    bplapply(list(c(1,3), 5, "6"), fun1, BPPARAM = param)
+}, error=identity)
+result <- attr(res, "result")
+result
 
 ## [[1]]
 ## [1] 1.000000 1.732051
@@ -573,12 +452,12 @@ res
 ## [[3]]
 ## <remote-error in abs(x): non-numeric argument to mathematical function>
 ## traceback() available as 'attr(x, "traceback")'
-\end{vebatim}
+\end{verbatim}
 
 Identify which elements failed with \Rcode{bpok}:
 
 \begin{verbatim}
-bpok(res)
+bpok(result)
 
 ## [1]  TRUE  TRUE FALSE
 \end{verbatim}
@@ -586,7 +465,7 @@ bpok(res)
 The error (i.e., third element of ``res'') is a \Rcode{condition} object:
 
 \begin{verbatim}
-is(res[[3]], "condition")
+is(result[[3]], "condition")
 
 ## [1] TRUE
 \end{verbatim}
@@ -596,7 +475,7 @@ The traceback is an attribute of the \Rcode{condition} and can be accessed with
 the \Rcode{attr} function. 
 
 \begin{verbatim}
-noquote(tail(attr(res[[3]], "traceback")))
+noquote(tail(attr(result[[3]], "traceback")))
 
 ## [1]        call <- sapply(sys.calls(), deparse)                          
 ## [2]        e <- structure(e, class = c("remote-error", "condition"),     
@@ -685,9 +564,13 @@ We use the now familiar square root example with a bug in the second element
 of \Rcode{X}.
 
 <<debug_sqrt>>=
-res <- bplapply(list(1, "2", 3), sqrt, 
-                BPPARAM = SnowParam(3, stop.on.error=FALSE))
+res <- tryCatch({
+    bplapply(list(1, "2", 3), sqrt, 
+             BPPARAM = SnowParam(3, stop.on.error=FALSE))
+}, error=function(e) e)
 res
+result <- attr(res, "result")
+result
 @
 
 \Rcode{sqrt} is an internal function. The problem is likely with our data
@@ -709,7 +592,7 @@ the \Rcode{BPREDO} argument. The BPPARAM has been changed to
 \Rcode{SerialParam} so the job is run in the local workspace in serial.
 
 \begin{verbatim}
-> bplapply(list(1, "2", 3), fun3, BPREDO = res, BPPARAM = SerialParam())
+> bplapply(list(1, "2", 3), fun3, BPREDO = result, BPPARAM = SerialParam())
 Resuming previous calculation ... 
 debugging in: FUN(...)
 debug: sqrt(i)
@@ -730,7 +613,7 @@ character "2".
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-<<sessionInfo>>=
+<<sessionInfo, results="asis">>=
 toLatex(sessionInfo())
 @
 

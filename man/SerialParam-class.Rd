@@ -8,8 +8,12 @@
 \alias{bpworkers,SerialParam-method}
 \alias{bplog,SerialParam-method}
 \alias{bpthreshold,SerialParam-method}
+\alias{bplogdir,SerialParam-method}
 \alias{bplog<-,SerialParam,logical-method}
 \alias{bpthreshold<-,SerialParam,character-method}
+\alias{bplogdir<-,SerialParam,character-method}
+\alias{bptimeout,SerialParam-method}
+\alias{bptimeout<-,SerialParam,numeric-method}
 
 \title{Enable serial evaluation}
 
@@ -22,7 +26,7 @@
 
 \usage{
 SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
-    threshold = "INFO") 
+    threshold = "INFO", logdir= NA_character_)
 }
 
 \section{Constructor}{
@@ -54,6 +58,10 @@ SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
     \code{character(1)} Logging threshold; see \code{\link{SnowParam}}.
   }
 
+  \item{logdir}{
+    \code{character(1)} Log files directory. When not provided, log
+    messages are returned to stdout.
+  }
 }
 
 \section{Methods}{

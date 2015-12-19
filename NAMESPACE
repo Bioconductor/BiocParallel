@@ -81,4 +81,5 @@ exportMethods(
 ### Export S3 methods 
 ###
 
-export(`print.remote-error`)
+S3method(print, "remote-error")
+S3method(print, "bplist-error")

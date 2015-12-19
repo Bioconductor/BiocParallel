@@ -10,62 +10,97 @@ bpresume <- function(expr) {
     .Deprecated(msg = "bpresume has been deprecated")
 }
 
-## .try() functions
-.try <- function(expr) {
-    handler_warning <- function(w) {
-        w 
-    }
-    handler_error <- function(e) {
-        success <<- FALSE
-        call <- sapply(sys.calls(), deparse)
-        e <- structure(e, 
-                       class = c("remote-error", "condition"),
-                       traceback = capture.output(traceback(call)))
-        invokeRestart("abort", e)
-    }
-    handler_abort <- function(e) e 
-
-    withRestarts(withCallingHandlers(expr,
-                                     warning=handler_warning,
-                                     error=handler_error),
-                                     abort=handler_abort)
+bpok <- function(x) {
+    vapply(x, function(elt) !is(elt, "bperror"), logical(1))
 }
 
-.try_log <- function(expr) {
-    handler_warning = function(w) {
-        flog.warn("%s", w)
-    }
-    handler_error = function(e) {
-        success <<- FALSE
-        call <- sapply(sys.calls(), deparse)
-        flog.error("%s", e)
-        e <- structure(e, 
-                       class = c("remote-error", "condition"),
-                       traceback = capture.output(traceback(call))) 
-        invokeRestart("abort", e)
-    }
-    handler_abort = function(e) e 
-    withRestarts(withCallingHandlers(expr, 
-                                     warning=handler_warning, 
-                                     error=handler_error), 
-                                     abort=handler_abort)
-}
-
-
-
-.composeTry <- function(FUN, log=FALSE, timeout=Inf)
+.composeTry <- function(FUN, log, stop.on.error,
+                        stop.immediate = FALSE, # TRUE for SerialParam lapply
+                        as.error = TRUE,        # FALSE for BatchJobs compatible
+                        timeout=Inf)
 {
+    if (!stop.on.error && stop.immediate)
+        stop("[internal] 'stop.on.error == FALSE' && 'stop.immediate == TRUE'")
+
     FUN <- match.fun(FUN)
-    if (log)
-        logFUN <- .try_log
-    else
-        logFUN <- .try
+    force(log)
+    force(stop.on.error)
+    force(timeout)
+    force(stop.immediate)
+
+    ERROR_OCCURRED <- FALSE
+    UNEVALUATED <- .error_unevaluated() # singleton
+
+    handle_warning <- function(w) {
+        if (log)
+            flog.warn("%s", w)
+        w
+    }
+
+    handle_error <- function(e) {
+        ERROR_OCCURRED <<- TRUE
+        if (log)
+            flog.error("%s", e)
+        call <- sapply(sys.calls(), deparse)
+        e <- if (as.error) {
+            .error_remote(e, call)
+        } else .condition_remote(e, call)
+        invokeRestart("abort", e)
+    }
+
+    handle_abort <- if (!stop.immediate) force else stop
+
+    .try <- function(expr) {
+        if (stop.on.error && ERROR_OCCURRED) {
+            UNEVALUATED
+        } else {
+            withRestarts({
+                withCallingHandlers(expr, warning=handle_warning, 
+                                    error=handle_error)
+            }, abort=handle_abort)
+        }
+    }
 
     function(...) {
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
-        logFUN(FUN(...))
+        .try(FUN(...))
     }
+}
+
+.condition_remote <- function(x, call) {
+    ## BatchJobs does not return errors
+    structure(x, class = c("remote-error", "bperror", "condition"),
+              traceback = capture.output(traceback(call))) 
+}
+
+.error_remote <- function(x, call) {
+    structure(x, class = c("remote-error", "bperror", "error", "condition"),
+              traceback = capture.output(traceback(call))) 
+}
+
+.error_unevaluated <- function()
+{
+    structure(list(message="not evaluated due to previous error"),
+              class=c("unevaluated-error", "bperror", "error", "condition"))
+}
+
+.error_worker_comm <- function(error, msg) {
+    msg <- sprintf("%s:\n  %s", msg, conditionMessage(error))
+    structure(list(message=msg, original_error_class=class(error)),
+              class=c("worker-comm-error", "bperror", "error", "condition"))
+}
+
+.error_bplist <- function(result) {
+    idx <- which(!bpok(result))
+    err <- structure(list(
+        message=sprintf(
+            "BiocParallel errors\n  element index: %s%s\n  first error: %s",
+            paste(head(idx), collapse=", "),
+            if (length(idx) > 6) ", ..." else "",
+            conditionMessage(result[[idx[1]]]))),
+        result=result,
+        class = c("bplist-error", "bperror", "error", "condition"))
 }
 
 `print.remote-error` <- function(x, ...) {
@@ -73,19 +108,7 @@ bpresume <- function(expr) {
     cat("traceback() available as 'attr(x, \"traceback\")'\n")
 }
 
-.remoteErrorList <- function(result) {
-    idx <- which(!bpok(result))
-    err <- structure(list(
-        message=sprintf(
-            "remote errors\n  elements: %s%s\n  first error: %s",
-            paste(head(idx), collapse=", "),
-            if (sum(idx) > 6) ", ..." else "",
-            conditionMessage(result[[idx[1]]]))),
-        errors=result[idx],
-        class = c("remote-error-list", "error", "condition"))
-}
-
-`print.remote-error-list` <- function(x, ...) {
+`print.bplist-error` <- function(x, ...) {
     NextMethod(x)
-    cat("errors available as 'attr(x, \"errors\")'\n")
+    cat("results and errors available as 'attr(x, \"result\")'\n")
 }

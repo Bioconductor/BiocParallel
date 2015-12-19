@@ -467,7 +467,9 @@ fun <- function(x) {
 ## By default logging is off. Turn it on with the bplog()<- setter
 ## or by specifying 'log = TRUE' in the constructor.
 bpparam <- SnowParam(3, log = TRUE, stop.on.error = FALSE)
-bplapply(X, fun, BPPARAM = bpparam)
+tryCatch({
+    bplapply(X, fun, BPPARAM = bpparam)
+}, error=identity)
 
 ## When a 'logdir' location is given the messages are redirected to a file:
 \dontrun{
@@ -499,8 +501,11 @@ list.files(bpresultdir(bpparam))
 ## When 'stop.on.error' is FALSE all computations are attempted. Partial
 ## results are returned along with errors.
 bpparam <- SnowParam(2, stop.on.error = FALSE)
-res <- bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+res <- tryCatch({
+   bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
+}, error=identity)
 res
+attr(res, "result")
 
 ## Calling bpok() on the result list returns TRUE for elements with no error.
 bpok(res)

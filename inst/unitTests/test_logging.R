@@ -13,11 +13,15 @@ test_log <- function()
     }
 
     for (param in params) {
-        res <- bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-        checkTrue(length(res) == 3L)
+        res <- tryCatch({
+            bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
+        }, error=identity)
+        checkTrue(is(res, "bplist-error"))
+        result <- attr(res, "result")
+        checkTrue(length(result) == 3L)
         msg <- "non-numeric argument to mathematical function"
-        checkIdentical(conditionMessage(res[[2]]), msg)
-        checkTrue(length(attr(res[[2]], "traceback")) > 0L)
+        checkIdentical(conditionMessage(result[[2]]), msg)
+        checkTrue(length(attr(result[[2]], "traceback")) > 0L)
         closeAllConnections()
     }
 
