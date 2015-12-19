@@ -23,97 +23,104 @@ setGeneric("bpaggregate", signature=c("x", "BPPARAM"),
     function(x, ..., BPREDO=list(), BPPARAM=bpparam())
     standardGeneric("bpaggregate"))
 
+## 
+## accessors
+## 
+
 setGeneric("bpworkers",
-    function(x, ...) standardGeneric("bpworkers"))
+    function(x) standardGeneric("bpworkers"))
 
 setGeneric("bpworkers<-",
-    function(x, ..., value) standardGeneric("bpworkers<-"))
+    function(x, value) standardGeneric("bpworkers<-"))
 
 setGeneric("bptasks",
-    function(x, ...) standardGeneric("bptasks"))
+    function(x) standardGeneric("bptasks"))
 
 setGeneric("bptasks<-",
-    function(x, ..., value) standardGeneric("bptasks<-"))
+    function(x, value) standardGeneric("bptasks<-"))
 
 setGeneric("bpjobname",
-    function(x, ...) standardGeneric("bpjobname"))
+    function(x) standardGeneric("bpjobname"))
 
 setGeneric("bpjobname<-",
-    function(x, ..., value) standardGeneric("bpjobname<-"))
-
-## errors
-setGeneric("bpcatchErrors",
-    function(x, ...) standardGeneric("bpcatchErrors"))
-
-setGeneric("bpcatchErrors<-",
-    function(x, ..., value) standardGeneric("bpcatchErrors<-"))
-
-setGeneric("bpstopOnError",
-    function(x, ...) standardGeneric("bpstopOnError"))
-
-setGeneric("bpstopOnError<-",
-    function(x, ..., value) standardGeneric("bpstopOnError<-"))
-
-setGeneric("bpprogressbar",
-    function(x, ...) standardGeneric("bpprogressbar"))
-
-setGeneric("bpprogressbar<-",
-    function(x, ..., value) standardGeneric("bpprogressbar<-"))
+    function(x, value) standardGeneric("bpjobname<-"))
 
 setGeneric("bpRNGseed",
-    function(x, ...) standardGeneric("bpRNGseed"))
+    function(x) standardGeneric("bpRNGseed"))
 
 setGeneric("bpRNGseed<-",
-    function(x, ..., value) standardGeneric("bpRNGseed<-"))
+    function(x, value) standardGeneric("bpRNGseed<-"))
+
+## errors
+
+setGeneric("bpcatchErrors",
+    function(x) standardGeneric("bpcatchErrors"))
+
+setGeneric("bpcatchErrors<-",
+    function(x, value) standardGeneric("bpcatchErrors<-"))
+
+setGeneric("bpstopOnError",
+    function(x) standardGeneric("bpstopOnError"))
+
+setGeneric("bpstopOnError<-",
+    function(x, value) standardGeneric("bpstopOnError<-"))
+
+## logging / progress
+
+setGeneric("bpprogressbar",
+    function(x) standardGeneric("bpprogressbar"))
+
+setGeneric("bpprogressbar<-",
+    function(x, value) standardGeneric("bpprogressbar<-"))
 
 setGeneric("bptimeout",
-    function(x, ...) standardGeneric("bptimeout"))
+    function(x) standardGeneric("bptimeout"))
 
 setGeneric("bptimeout<-",
-    function(x, ..., value) standardGeneric("bptimeout<-"))
+    function(x, value) standardGeneric("bptimeout<-"))
 
 setGeneric("bplog",
-    function(x, ...) standardGeneric("bplog"))
+    function(x) standardGeneric("bplog"))
 
 setGeneric("bplog<-",
-    function(x, ..., value) standardGeneric("bplog<-"))
+    function(x, value) standardGeneric("bplog<-"))
 
 setGeneric("bplogdir",
-    function(x, ...) standardGeneric("bplogdir"))
+    function(x) standardGeneric("bplogdir"))
 
 setGeneric("bplogdir<-",
-    function(x, ..., value) standardGeneric("bplogdir<-"))
+    function(x, value) standardGeneric("bplogdir<-"))
 
 setGeneric("bpthreshold",
-    function(x, ...) standardGeneric("bpthreshold"))
+    function(x) standardGeneric("bpthreshold"))
 
 setGeneric("bpthreshold<-",
-    function(x, ..., value) standardGeneric("bpthreshold<-"))
+    function(x, value) standardGeneric("bpthreshold<-"))
 
-## results
 setGeneric("bpresultdir",
-    function(x, ...) standardGeneric("bpresultdir"))
+    function(x) standardGeneric("bpresultdir"))
 
 setGeneric("bpresultdir<-",
-    function(x, ..., value) standardGeneric("bpresultdir<-"))
+    function(x, value) standardGeneric("bpresultdir<-"))
 
 ## control
+
 setGeneric("bpstart",
     function(x, ...) standardGeneric("bpstart"))
 
 setGeneric("bpstop",
-    function(x, ...) standardGeneric("bpstop"))
+    function(x) standardGeneric("bpstop"))
 
 setGeneric("bpisup",
-    function(x, ...) standardGeneric("bpisup"))
+    function(x) standardGeneric("bpisup"))
 
 setGeneric("bpbackend",
-    function(x, ...) standardGeneric("bpbackend"))
+    function(x) standardGeneric("bpbackend"))
 
 setGeneric("bpbackend<-",
-    function(x, ..., value) standardGeneric("bpbackend<-"))
+    function(x, value) standardGeneric("bpbackend<-"))
 
 ## scheduling
 
 setGeneric("bpschedule",
-    function(x, ...) standardGeneric("bpschedule"))
+    function(x) standardGeneric("bpschedule"))

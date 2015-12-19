@@ -6,7 +6,7 @@
 ## bpvec,ANY,BiocParallelParam. bpvec() dispatches to bplapply()
 ## where errors and logging are handled.
 
-setMethod(bpvec, c("ANY", "missing"),
+setMethod("bpvec", c("ANY", "missing"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
@@ -14,7 +14,7 @@ setMethod(bpvec, c("ANY", "missing"),
     bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
-setMethod(bpvec, c("ANY", "BiocParallelParam"),
+setMethod("bpvec", c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)

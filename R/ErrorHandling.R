@@ -25,8 +25,9 @@ bpok <- function(x) {
     FUN <- match.fun(FUN)
     force(log)
     force(stop.on.error)
-    force(timeout)
     force(stop.immediate)
+    force(as.error)
+    force(timeout)
 
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton

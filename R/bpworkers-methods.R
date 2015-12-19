@@ -1,6 +1,6 @@
-setMethod(bpworkers, "missing",
-    function(x, ...)
+setMethod("bpworkers", "missing",
+    function(x)
 {
     x <- registered()[[1]]
-    bpworkers(x, ...)
+    bpworkers(x)
 })

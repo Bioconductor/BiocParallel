@@ -9,31 +9,18 @@
 .SerialParam <- setRefClass("SerialParam",
     contains="BiocParallelParam",
     fields=list(
-        timeout="numeric",
-        log="logical",
-        threshold="ANY",
         logdir="character"),
     methods=list(
         initialize = function(...,
-            timeout=Inf,
-            log=FALSE,
             threshold="INFO",
             logdir=NA_character_)
         { 
-            initFields(timeout=timeout, log=log, threshold=threshold,
-                       logdir=logdir)
             callSuper(...)
+            initFields(threshold=threshold, logdir=logdir)
         },
         show = function() {
             callSuper()
-            cat("  bptimeout: ", bptimeout(.self),
-                "\n",
-                "  bplog: ", bplog(.self),
-                "; bpthreshold: ", names(bpthreshold(.self)),
-                "; bplogdir: ", bplogdir(.self),
-                "\n",
-                "  bpstopOnError:", bpstopOnError(.self),
-                "\n", sep="")
+            cat("\n  bplogdir: ", bplogdir(.self), "\n", sep="")
         })
 )
 
@@ -46,8 +33,7 @@ SerialParam <-
 
     x <- .SerialParam(workers=1L, catch.errors=catch.errors,
                       stop.on.error=stop.on.error,
-                      log=log, threshold=.THRESHOLD(threshold),
-                      logdir=logdir) 
+                      log=log, threshold=threshold, logdir=logdir) 
     validObject(x)
     x
 }
@@ -56,49 +42,33 @@ SerialParam <-
 ### Methods - control
 ###
 
-setMethod(bpworkers, "SerialParam", function(x, ...) 1L)
+setMethod("bpworkers", "SerialParam", function(x) 1L)
 
-setMethod(bpisup, "SerialParam", function(x, ...) TRUE)
-
-setMethod("bplog", "SerialParam",
-    function(x, ...)
-{
-    x$log
-})
+setMethod("bpisup", "SerialParam", function(x) TRUE)
 
 setReplaceMethod("bplog", c("SerialParam", "logical"),
-    function(x, ..., value)
+    function(x, value)
 {
     x$log <- value 
     validObject(x)
     x
 })
 
-setMethod("bpthreshold", "SerialParam",
-    function(x, ...)
-{
-    x$threshold
-})
-
 setReplaceMethod("bpthreshold", c("SerialParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
-    nms <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-    if (!value %in% nms)
-        stop(paste0("'value' must be one of ",
-             paste(sQuote(nms), collapse=", ")))
-    x$threshold <- .THRESHOLD(value) 
+    x$threshold <- value
     x
 })
 
 setMethod("bplogdir", "SerialParam",
-    function(x, ...)
+    function(x)
 {
     x$logdir
 })
 
 setReplaceMethod("bplogdir", c("SerialParam", "character"),
-    function(x, ..., value)
+    function(x, value)
 {
     if (!length(value))
         value <- NA_character_
@@ -109,26 +79,11 @@ setReplaceMethod("bplogdir", c("SerialParam", "character"),
         stop(msg)
 })
 
-setMethod(bptimeout, "SerialParam",
-    function(x, ...)
-{
-    x$timeout
-})
-
-setReplaceMethod("bptimeout", c("SerialParam", "numeric"),
-    function(x, ..., value)
-{
-    if (!is.null(value))
-        value <- as.integer(value)
-    x$timeout <- value
-    x
-})
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###
 
-setMethod(bplapply, c("ANY", "SerialParam"),
+setMethod("bplapply", c("ANY", "SerialParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     if (!length(X))
@@ -206,7 +161,7 @@ setMethod(bplapply, c("ANY", "SerialParam"),
     result
 }
 
-setMethod(bpiterate, c("ANY", "ANY", "SerialParam"),
+setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)

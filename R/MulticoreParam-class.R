@@ -41,8 +41,8 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         catch.errors=catch.errors, stop.on.error=stop.on.error, 
         progressbar=progressbar, 
         RNGseed=RNGseed, timeout=timeout,
-        log=log, threshold=.THRESHOLD(threshold), 
-        logdir=logdir, resultdir=resultdir, jobname=jobname)
+        log=log, threshold=threshold, logdir=logdir,
+        resultdir=resultdir, jobname=jobname)
 }
 
 setValidity("MulticoreParam",
@@ -72,7 +72,7 @@ setValidity("MulticoreParam",
 ###
 
 setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
-    function(x, ..., value)
+    function(x, value)
 {
     value <- as.integer(value)
     if (value > multicoreWorkers())
@@ -83,8 +83,8 @@ setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
     x 
 })
 
-setMethod(bpschedule, "MulticoreParam",
-    function(x, ...)
+setMethod("bpschedule", "MulticoreParam",
+    function(x)
 {
     if (.Platform$OS.type == "windows") 
         FALSE
@@ -96,7 +96,7 @@ setMethod(bpschedule, "MulticoreParam",
 ### Methods - evaluation
 ###
 
-setMethod(bpvec, c("ANY", "MulticoreParam"),
+setMethod("bpvec", c("ANY", "MulticoreParam"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
