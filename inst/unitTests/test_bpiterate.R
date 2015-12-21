@@ -60,7 +60,7 @@ test_bpiterate_Params <- function()
     }
 
     ## clean up
-    messsage("  cleanup")
+    message("  cleanup")
     env <- foreach:::.foreachGlobals
     rm(list=ls(name=env), pos=env)
     closeAllConnections()
