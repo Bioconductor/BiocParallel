@@ -1,4 +1,3 @@
-library(doParallel)
 quiet <- suppressWarnings
 .lazyCount <- function(count) {
     count <- count
@@ -45,8 +44,9 @@ test_bpiterate_Params <- function()
         checkIdentical(expected, res)
     }
 
-    registerDoParallel(2)
-    params <- list(dopar=DoparParam(), batchjobs=BatchJobsParam())
+    doParallel::registerDoParallel(2)
+    params <- list(dopar=DoparParam(),
+                   batchjobs=BatchJobsParam(2, progressbar=FALSE))
     for (p in params) {
         ITER <- .lazyCount(length(x))
         checkException(bpiterate(ITER, FUN, BPPARAM=p), silent=TRUE)
