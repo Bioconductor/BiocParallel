@@ -1,14 +1,13 @@
-library(doParallel)
 quiet <- suppressWarnings
 
 test_bpmapply_Params <- function() 
 {
     if (.Platform$OS.type != "windows") {
-        registerDoParallel(2)
+        doParallel::registerDoParallel(2)
         params <- list(serial=SerialParam(),
                        snow=SnowParam(2),
                        dopar=DoparParam(),
-                       batchjobs=BatchJobsParam(progressbar=FALSE),
+                       batchjobs=BatchJobsParam(2, progressbar=FALSE),
                        mc <- MulticoreParam(2))
 
         x <- 1:10
@@ -69,7 +68,7 @@ test_bpmapply_Params <- function()
 
 test_bpmapply_symbols <- function()
 {
-    registerDoParallel(2)
+    doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
                    dopar=DoparParam())
