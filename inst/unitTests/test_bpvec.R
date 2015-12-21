@@ -1,11 +1,9 @@
-library(doParallel)
-
 test_bpvec_Params <- function()
 {
-    registerDoParallel(2)
+    doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
-                   batchjobs=BatchJobsParam(workers=2),
+                   batchjobs=BatchJobsParam(2, progressbar=FALSE),
                    dopar=DoparParam())
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)

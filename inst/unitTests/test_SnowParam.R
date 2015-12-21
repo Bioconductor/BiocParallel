@@ -8,9 +8,9 @@ test_SnowParam_construction <- function()
 
 test_SnowParam_SOCK <- function() 
 {
-    if (!suppressWarnings(require(snow)))
-        ## quietly succeed if 'snow' not available
-        return()
+    if (!requireNamespace("snow", quietly=TRUE))
+        DEACTIVATED("'snow' package did not load")
+
     param <- SnowParam(2, "SOCK", tasks=2)
     checkIdentical(FALSE, bpisup(param))
 
@@ -22,7 +22,7 @@ test_SnowParam_SOCK <- function()
 test_SnowParam_MPI <- function() 
 {
     if (.Platform$OS.type == "windows")
-        return()
+        DEACTIVATED("MPI tests not run on Windows")
 
     DEACTIVATED("MPI tests not run")
 
@@ -36,9 +36,8 @@ test_SnowParam_MPI <- function()
 
 test_SnowParam_coerce_from_SOCK <- function()
 {
-    if (!suppressWarnings(require(snow)))
-        ## quietly succeed if 'snow' not available
-        return(TRUE)
+    if (!requireNamespace("snow", quietly=TRUE))
+        DEACTIVATED("'snow' package did not load")
 
     cl <- parallel::makeCluster(2L, "SOCK")
     p <- as(cl, "SnowParam")
@@ -62,14 +61,13 @@ test_SnowParam_coerce_from_SOCK <- function()
 test_SnowParam_coerce_from_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
-        return()
+        DEACTIVATED("MPI tests not run on Windows")
     
-    DEACTIVATED("MPI tests not run")
+    if (!requireNamespace("snow", quietly=TRUE) ||
+         !requireNamespace("Rmpi", quietly=TRUE))
+        DEACTIVATED("'snow' and/or 'Rmpi' package did not load")
 
-    if (!(suppressWarnings(require(snow)) ||
-          suppressWarnings(require(Rmpi))))
-        ## quietly succeed if 'snow', 'Rmpi' not available
-        return()
+    DEACTIVATED("MPI tests not run")
 
     cl <- parallel::makeCluster(2L, "MPI")
     p <- as(cl, "SnowParam")
@@ -94,10 +92,10 @@ test_SnowParam_workers <- function()
 {
     if (.Platform$OS.type == "windows")
         return()
-    if (!(suppressWarnings(require(snow)) ||
-          suppressWarnings(require(Rmpi))))
-        ## quietly succeed if 'snow', 'Rmpi' not available
-        return()
+
+    if (!requireNamespace("snow", quietly=TRUE) ||
+         !requireNamespace("Rmpi", quietly=TRUE))
+        DEACTIVATED("'snow' and/or 'Rmpi' package did not load")
 
     checkException(SnowParam("host", "MPI"), silent=TRUE)
     checkException(SnowParam("host", "FORK"), silent=TRUE)
