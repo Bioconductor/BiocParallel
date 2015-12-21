@@ -2,8 +2,6 @@
 ##       a single FORK worker using scripts from parallel. No logging or 
 ##       error catching is implemented.
 
-library(doParallel)
-
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 {
     x <- try(eval(expr), silent=TRUE)
@@ -84,12 +82,12 @@ test_catching_errors <- function()
         y <- rev(x)
         f <- function(x, y) if (x > y) stop("whooops") else x + y
 
-        registerDoParallel(2)
+        doParallel::registerDoParallel(2)
         params <- list(
             mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE))
+            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {
             res <- tryCatch({
@@ -118,12 +116,12 @@ test_BPREDO <- function()
         x = list(1, "2", 3) 
         x.fix = list(1, 2, 3) 
 
-        registerDoParallel(2)
+        doParallel::registerDoParallel(2)
         params <- list(
             mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
             dopar=DoparParam(),
-            batchjobs=BatchJobsParam(progressbar=FALSE, stop.on.error=FALSE))
+            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {
             res <- tryCatch({

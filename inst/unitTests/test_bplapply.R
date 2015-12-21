@@ -1,13 +1,12 @@
-library(doParallel)
 quiet <- suppressWarnings
 
 test_bplapply_Params <- function()
 {
-    registerDoParallel(2)
+    doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
                    dopar=DoparParam(),
-                   batchjobs=BatchJobsParam())
+                   batchjobs=BatchJobsParam(2, progressbar=FALSE))
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
@@ -26,7 +25,8 @@ test_bplapply_Params <- function()
 
     # unnamed args for BatchJobs -> dispatches to batchMap
     f <- function(i, x, y, ...) { list(y, i, x) }
-    current <- bplapply(2:1, f, c("A", "B"), x=10, BPPARAM=BatchJobsParam())
+    current <- bplapply(2:1, f, c("A", "B"), x=10,
+                        BPPARAM=BatchJobsParam(2, progressbar=FALSE))
     checkTrue(all.equal(current[[1]], list(c("A", "B"), 2, 10))) 
     checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10))) 
 
@@ -39,18 +39,19 @@ test_bplapply_Params <- function()
 
 test_bplapply_symbols <- function()
 {
-    registerDoParallel(2)
+    doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
-                   dopar=DoparParam())
-                  # batchjobs=BatchJobsParam()) ## FIXME
+                   dopar=DoparParam()
+                   ## FIXME, batchjobs=BatchJobsParam(2, progressbar=FALSE))
+                   )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
     x <- list(as.symbol(".XYZ"))
     expected <- lapply(x, as.character)
-    for (param in names(params)) {
-        current <- quiet(bplapply(x, as.character, BPPARAM=params[[param]]))
+    for (param in params) {
+        current <- quiet(bplapply(x, as.character, BPPARAM=param))
         checkIdentical(expected, current)
     }
 

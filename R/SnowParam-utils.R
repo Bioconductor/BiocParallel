@@ -167,14 +167,13 @@ bprunMPIslave <- function() {
         message(sprintf("Node: %s", d$node))
         message(sprintf("Timestamp: %s", Sys.time()))
         message(sprintf("Success: %s", d$value$success))
-        message("Task duration: ")
-        print(d$value$time)
-        message("Memory used: ")
-        print(d$value$gc)
+        message("Task duration:\n",
+                paste(capture.output(d$value$time), collapse="\n"))
+        message("Memory used:\n", paste(capture.output(gc()), collapse="\n"))
         message("Log messages:")
         message(d$value$log)
-        message("stderr and stdout:")
-        print(noquote(d$value$sout))
+        message("stderr and stdout:\n",
+                paste(capture.output(noquote(d$value$sout)), collapse="\n"))
     }
     if (!is.null(con)) {
         sink(con, type = "message")

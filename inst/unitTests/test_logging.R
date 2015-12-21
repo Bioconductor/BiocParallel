@@ -13,9 +13,9 @@ test_log <- function()
     }
 
     for (param in params) {
-        res <- tryCatch({
+        res <- suppressMessages(tryCatch({
             bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-        }, error=identity)
+        }, error=identity))
         checkTrue(is(res, "bplist-error"))
         result <- attr(res, "result")
         checkTrue(length(result) == 3L)
