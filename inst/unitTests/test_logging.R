@@ -16,7 +16,7 @@ test_log <- function()
         res <- suppressMessages(tryCatch({
             bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
         }, error=identity))
-        checkTrue(is(res, "bplist-error"))
+        checkTrue(is(res, "bplist_error"))
         result <- attr(res, "result")
         checkTrue(length(result) == 3L)
         msg <- "non-numeric argument to mathematical function"

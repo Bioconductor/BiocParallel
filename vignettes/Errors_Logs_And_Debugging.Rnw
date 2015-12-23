@@ -450,7 +450,7 @@ result
 ## [1] 2.236068
 ## 
 ## [[3]]
-## <remote-error in abs(x): non-numeric argument to mathematical function>
+## <remote_error in abs(x): non-numeric argument to mathematical function>
 ## traceback() available as 'attr(x, "traceback")'
 \end{verbatim}
 
@@ -478,7 +478,7 @@ the \Rcode{attr} function.
 noquote(tail(attr(result[[3]], "traceback")))
 
 ## [1]        call <- sapply(sys.calls(), deparse)                          
-## [2]        e <- structure(e, class = c("remote-error", "condition"),     
+## [2]        e <- structure(e, class = c("remote_error", "condition"),
 ## [3]            traceback = capture.output(traceback(call)))              
 ## [4]        invokeRestart("abort", e)                                     
 ## [5]    }, "non-numeric argument to mathematical function", quote(abs(x)))

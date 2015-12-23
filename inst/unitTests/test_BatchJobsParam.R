@@ -9,6 +9,6 @@ test_BatchJobsParam <-
     res <- tryCatch({
         bplapply(X, sqrt, BPPARAM=param)
     }, error=identity)
-    checkTrue(is(res, "bplist-error"))
-    checkTrue(is(attr(res, "result")[[2]], "remote-error"))
+    checkTrue(is(res, "bplist_error"))
+    checkTrue(is(attr(res, "result")[[2]], "remote_error"))
 }
