@@ -109,7 +109,7 @@ will be returned.
 <<errors_6tasksA_stopOnError_output>>=
 res <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
-}, error=function(e) e)
+}, error=identity)
 res
 attr(res, "result")
 @ 
@@ -121,10 +121,20 @@ X <- list("1", 2, 3, 4, 5, 6)
 param <- SnowParam(3, tasks = length(X), stop.on.error = FALSE)
 res <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
-}, error=function(e) e)
+}, error=identity)
 res
 attr(res, "result")
 @ 
+
+\Rcode{bptry()} is a convenient way of trying to evaluate a
+\Rcode{bpapply}-like expression, returning the evaluated results
+without signalling an error.
+
+<<error_bptry>>=
+bptry({
+    bplapply(X, sqrt, BPPARAM=param)
+})
+@
 
 In the next example the elements of \Rcode{X} are grouped instead
 of run separately. The default value for \Rcode{tasks} is 0 which means 'X' is
@@ -143,11 +153,7 @@ evaluated. All elements are evaluated because they were assigned to
 workers before the first error occurred.
 
 <<errors_3tasksA_stopOnError_output>>=
-res <- tryCatch({
-    bplapply(X, sqrt, BPPARAM = param)
-}, error=function(e) e)
-res
-attr(res, "result")
+bptry(bplapply(X, sqrt, BPPARAM = param))
 @ 
 
 Side Note: Results are collected from workers as they finish which is not
@@ -162,24 +168,13 @@ vary with run time and distribution of tasks over workers.
 \subsection{Identify failures with \Rcode{bpok()}}
 
 The \Rcode{bpok()} function is a quick way to determine which (if any)
-tasks failed. In this example we use \Rcode{tryCatch()} to report the
-error with failing, to the second element fails.
+tasks failed. In this example we use \Rcode{bptry()} to retrieve the
+partially evaluated expression, including the failed elements.
 
 <<errors_bpok_bplapply>>=
 param <- SnowParam(2, stop.on.error=FALSE)
-res <- tryCatch({
-    bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-}, error=function(x) x)
-res
+result <- bptry(bplapply(list(1, "2", 3), sqrt, BPPARAM=param))
 @
-
-The partially evaluate results are available by retrieving the
-\Rcode{result} attribute
-
-<<<errors_attr>>=
-result <- attr(res, "result")
-result
-@ 
 
 \Rcode{bpok} returns TRUE if the task was successful.
 
@@ -209,10 +204,7 @@ it should be numeric.
 <<redo_error>>=
 X <- list(1, "2", 3)
 param <- SnowParam(2, stop.on.error=FALSE)
-res <- tryCatch({
-    bplapply(X, sqrt, BPPARAM=param)
-}, error=function(e) e)
-result <- attr(res, "result")
+result <- bptry(bplapply(X, sqrt, BPPARAM=param))
 result
 @ 
 
@@ -395,11 +387,7 @@ fun <- function(i) {
   Sys.sleep(i)
   i
 }
-res <- tryCatch({
-    bplapply(1:3, fun, BPPARAM = param) 
-}, error=identity)
-res
-attr(res, "result")
+bptry(bplapply(1:3, fun, BPPARAM = param))
 @
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -437,10 +425,9 @@ Calling ``fun1'' with a character throws an error:
 
 \begin{verbatim}
 param <- SnowParam(stop.on.error=FALSE)
-res <- tryCatch({
+result <- bptry({
     bplapply(list(c(1,3), 5, "6"), fun1, BPPARAM = param)
 }, error=identity)
-result <- attr(res, "result")
 result
 
 ## [[1]]
@@ -564,12 +551,10 @@ We use the now familiar square root example with a bug in the second element
 of \Rcode{X}.
 
 <<debug_sqrt>>=
-res <- tryCatch({
+res <- bptry({
     bplapply(list(1, "2", 3), sqrt, 
              BPPARAM = SnowParam(3, stop.on.error=FALSE))
-}, error=function(e) e)
-res
-result <- attr(res, "result")
+})
 result
 @
 

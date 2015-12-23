@@ -145,8 +145,7 @@ bprunMPIslave <- function() {
             fun <- function(line)
                 buffer <<- c(buffer, line)
             flog.appender(fun, 'ROOT')
-        }, error = function(e) e
-        )
+        }, error = identity)
     }
     ok <- tryCatch({
         parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
