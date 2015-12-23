@@ -35,8 +35,8 @@ test_composeTry <- function() {
     ## 'unevaluated' components. e.g., SnowParam(stop.on.error=TRUE)
     tsqrt <- .composeTry(sqrt, FALSE, TRUE, FALSE)
     current <- lapply(X, tsqrt)
-    checkTrue(is(current[[2]], "remote-error"))
-    checkTrue(all(vapply(current[-(1:2)], is, logical(1), "unevaluated-error")))
+    checkTrue(is(current[[2]], "remote_error"))
+    checkTrue(all(vapply(current[-(1:2)], is, logical(1), "unevaluated_error")))
 
     ## illogical
     checkException(.composeTry(sqrt, FALSE, FALSE, TRUE), silent=TRUE)
@@ -51,7 +51,7 @@ test_SerialParam_stop.on.error <- function()
     checkIdentical(TRUE, bpstopOnError(p))
     checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
     current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
-    checkTrue(is(current, "remote-error"))
+    checkTrue(is(current, "remote_error"))
     target <- tryCatch(lapply(X, sqrt), error=identity)
     checkIdentical(conditionMessage(target), conditionMessage(current))
 
@@ -59,10 +59,10 @@ test_SerialParam_stop.on.error <- function()
     p <- SerialParam(stop.on.error=FALSE) #
     checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
     current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
-    checkTrue(is(current, "bplist-error"))
+    checkTrue(is(current, "bplist_error"))
     result <- attr(current, "result")
     checkIdentical(c(TRUE, FALSE, TRUE), bpok(result))
-    checkTrue(is(result[[2]], "remote-error"))
+    checkTrue(is(result[[2]], "remote_error"))
     checkIdentical(list(sqrt(1), sqrt(3)), result[bpok(result)])
 }
 
@@ -72,7 +72,7 @@ test_stop.on.error <- function() {
     checkException(bplapply(c(1, "2", 3), sqrt), silent=TRUE)
 
     cls <- tryCatch(bplapply(c(1, "2", 3), sqrt), error=class)
-    checkIdentical(c("bplist-error", "bperror", "error", "condition"), cls)
+    checkIdentical(c("bplist_error", "bperror", "error", "condition"), cls)
 }
 
 test_catching_errors <- function()
@@ -93,7 +93,7 @@ test_catching_errors <- function()
             res <- tryCatch({
                 bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
             }, error=identity)
-            checkTrue(is(res, "bplist-error"))
+            checkTrue(is(res, "bplist_error"))
             result <- attr(res, "result")
             checkTrue(length(result) == 3L)
             msg <- "non-numeric argument to mathematical function"
@@ -127,7 +127,7 @@ test_BPREDO <- function()
             res <- tryCatch({
                 bplapply(x, f, BPPARAM=param)
             }, error=identity)
-            checkTrue(is(res, "bplist-error"))
+            checkTrue(is(res, "bplist_error"))
             result <- attr(res, "result")
             checkIdentical(3L, length(result))
             checkTrue(inherits(result[[2]], "condition"))
@@ -138,10 +138,10 @@ test_BPREDO <- function()
             res2 <- tryCatch({
                 bplapply(x, f, BPPARAM=param, BPREDO=result)
             }, error=identity)
-            checkTrue(is(res2, "bplist-error"))
+            checkTrue(is(res2, "bplist_error"))
             result <- attr(res2, "result")
             checkIdentical(3L, length(result))
-            checkTrue(is(result[[2]], "remote-error"))
+            checkTrue(is(result[[2]], "remote_error"))
             checkIdentical(as.list(sqrt(c(1, 3))), result[c(1, 3)])
             closeAllConnections()
             Sys.sleep(0.25)

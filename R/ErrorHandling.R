@@ -14,6 +14,14 @@ bpok <- function(x) {
     vapply(x, function(elt) !is(elt, "bperror"), logical(1))
 }
 
+bptry <- function(expr, bplist_error, ...)
+{
+    if (missing(bplist_error))
+        bplist_error <- function(err)
+            attr(err, "result")
+    tryCatch(expr, ..., bplist_error=bplist_error)
+}
+
 .composeTry <- function(FUN, log, stop.on.error,
                         stop.immediate = FALSE, # TRUE for SerialParam lapply
                         as.error = TRUE,        # FALSE for BatchJobs compatible
@@ -71,25 +79,25 @@ bpok <- function(x) {
 
 .condition_remote <- function(x, call) {
     ## BatchJobs does not return errors
-    structure(x, class = c("remote-error", "bperror", "condition"),
+    structure(x, class = c("remote_error", "bperror", "condition"),
               traceback = capture.output(traceback(call))) 
 }
 
 .error_remote <- function(x, call) {
-    structure(x, class = c("remote-error", "bperror", "error", "condition"),
+    structure(x, class = c("remote_error", "bperror", "error", "condition"),
               traceback = capture.output(traceback(call))) 
 }
 
 .error_unevaluated <- function()
 {
     structure(list(message="not evaluated due to previous error"),
-              class=c("unevaluated-error", "bperror", "error", "condition"))
+              class=c("unevaluated_error", "bperror", "error", "condition"))
 }
 
 .error_worker_comm <- function(error, msg) {
     msg <- sprintf("%s:\n  %s", msg, conditionMessage(error))
     structure(list(message=msg, original_error_class=class(error)),
-              class=c("worker-comm-error", "bperror", "error", "condition"))
+              class=c("worker_comm_error", "bperror", "error", "condition"))
 }
 
 .error_bplist <- function(result) {
@@ -101,15 +109,15 @@ bpok <- function(x) {
             if (length(idx) > 6) ", ..." else "",
             conditionMessage(result[[idx[1]]]))),
         result=result,
-        class = c("bplist-error", "bperror", "error", "condition"))
+        class = c("bplist_error", "bperror", "error", "condition"))
 }
 
-`print.remote-error` <- function(x, ...) {
+print.remote_error <- function(x, ...) {
     NextMethod(x)
     cat("traceback() available as 'attr(x, \"traceback\")'\n")
 }
 
-`print.bplist-error` <- function(x, ...) {
+`print.bplist_error` <- function(x, ...) {
     NextMethod(x)
     cat("results and errors available as 'attr(x, \"result\")'\n")
 }
