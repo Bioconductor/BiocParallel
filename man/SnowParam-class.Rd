@@ -421,8 +421,8 @@ snowWorkers()
 ## -----------------------------------------------------------------------
 
 ## SnowParam supports distributed memory computing. The object fields
-## control the division of tasks, error handling, logging and 
-## result format.
+## control the division of tasks, error handling, logging and result
+## format.
 bpparam <- SnowParam()
 bpparam
 
@@ -435,9 +435,10 @@ bpparam
 ## Logging:
 ## -----------------------------------------------------------------------
 
-## When 'log == TRUE' the workers use a custom script (in BiocParallel) 
-## that enables logging and access to other job statistics. Log messages 
-## are returned as each job completes rather than waiting for all to finish.
+## When 'log == TRUE' the workers use a custom script (in BiocParallel)
+## that enables logging and access to other job statistics. Log messages
+## are returned as each job completes rather than waiting for all to
+## finish.
 
 ## In 'fun', a value of 'x = 1' will throw a warning, 'x = 2' is ok
 ## and 'x = 3' throws an error. Because 'x = 1' sleeps, the warning
@@ -463,7 +464,8 @@ tryCatch({
     bplapply(X, fun, BPPARAM = bpparam)
 }, error=identity)
 
-## When a 'logdir' location is given the messages are redirected to a file:
+## When a 'logdir' location is given the messages are redirected to a
+## file:
 \dontrun{
 bplogdir(bpparam) <- tempdir()
 bplapply(X, fun, BPPARAM = bpparam)
@@ -491,15 +493,14 @@ list.files(bpresultdir(bpparam))
 ## is thrown. 
 
 ## When 'stop.on.error' is FALSE all computations are attempted. Partial
-## results are returned along with errors.
+## results are returned along with errors. Use bptry() to see the
+## partial results
 bpparam <- SnowParam(2, stop.on.error = FALSE)
-res <- tryCatch({
-   bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
-}, error=identity)
+res <- bptry(bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam))
 res
-attr(res, "result")
 
-## Calling bpok() on the result list returns TRUE for elements with no error.
+## Calling bpok() on the result list returns TRUE for elements with no
+## error.
 bpok(res)
 
 ## -----------------------------------------------------------------------
@@ -512,7 +513,8 @@ bpok(res)
 ## streams to members of the cluster.
 
 bpparam <- SnowParam(3, RNGseed = 7739465)
-bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
+bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1),
+         BPPARAM = bpparam)
 
 }
 

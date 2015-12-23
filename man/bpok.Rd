@@ -90,11 +90,8 @@ tryCatch({
 ## are signalled but the full evaluation can be retrieved
 param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
-res <- tryCatch({
-    bplapply(X, sqrt, BPPARAM = param)
-}, error=identity)
-res
-result <- attr(res, "result")
+result <- bptry(bplapply(X, sqrt, BPPARAM = param))
+result
 
 ## Check for errors:
 fail <- !bpok(result)
@@ -114,10 +111,7 @@ tail(attr(result[[2]], "traceback"), 5)
 ## A call of sqrt() on the character "2" returns an error.
 param <- SnowParam(workers = 2, stop.on.error = FALSE)
 X <- list(1, "two", 3)
-res <- tryCatch({
-    bplapply(X, sqrt, BPPARAM = param)
-}, error=identity)
-result <- attr(res, "result")
+result <- bptry(bplapply(X, sqrt, BPPARAM = param))
 
 ## Fix the input data by changing the character "2" to a numeric 2:
 X_mod <- list(1, 2, 3)
