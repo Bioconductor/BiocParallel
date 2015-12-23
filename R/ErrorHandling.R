@@ -14,7 +14,7 @@ bpok <- function(x) {
     vapply(x, function(elt) !is(elt, "bperror"), logical(1))
 }
 
-bptry <- function(expr, bplist_error, ...)
+bptry <- function(expr, ..., bplist_error)
 {
     if (missing(bplist_error))
         bplist_error <- function(err)

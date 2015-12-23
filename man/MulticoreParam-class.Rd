@@ -437,10 +437,8 @@ list.files(bpresultdir(bpparam))
 
 ## All results along with error:
 bpparam <- MulticoreParam(2, tasks = 4, stop.on.error = FALSE)
-res <- tryCatch({
-    bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam)
-}, error=identity)
-res <- attr(res, "result")
+res <- bptry(bplapply(list(1, "two", 3, 4), sqrt, BPPARAM = bpparam))
+res
 
 ## Calling bpok() on the result list returns TRUE for elements with no error.
 bpok(res)

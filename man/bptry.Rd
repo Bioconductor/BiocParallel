@@ -12,7 +12,7 @@
 
 }
 \usage{
-bptry(expr, bplist_error, ...)
+bptry(expr, ..., bplist_error)
 }
 
 \arguments{
