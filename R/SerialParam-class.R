@@ -95,7 +95,7 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     if (any(idx))
         X <- X[idx]
 
-    .log_load(BPPARAM)
+    .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        stop.immediate=bpstopOnError(BPPARAM),
@@ -155,7 +155,7 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
-    .log_load(BPPARAM)
+    .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))

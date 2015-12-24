@@ -15,13 +15,9 @@ bpslaveLoop <- function(master)
     repeat {
         tryCatch({
             msg <- parallel:::recvData(master)
-            buffer <<- NULL   ## futile.logger buffer
 
             if (msg$type == "DONE") {
-                ## FIXME: was just closeNode(); snow is on search()
-                ## (empirically), but parallel used for send/recvData
-                ## ??
-                snow::closeNode(master)
+                parallel:::closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
@@ -45,7 +41,8 @@ bpslaveLoop <- function(master)
                 success <- !any(vapply(value, is, logical(1), "error"))
                 value <- list(type = "VALUE", value = value,
                               success = success,
-                              time = t2 - t1, tag = msg$data$tag, log = buffer,
+                              time = t2 - t1, tag = msg$data$tag,
+                              log = .log_buffer_get(),
                               gc = gc(), node = node, sout = sout)
                 parallel:::sendData(master, value)
             }
@@ -97,7 +94,6 @@ bprunMPIslave <- function() {
     timeout <- getClusterOption("timeout", options)
     renice <- getClusterOption("renice", options)
 
-    environment(bpslaveLoop) <- getNamespace('parallel')
     f <- mcfork()
     if (inherits(f, "masterProcess")) { # the slave
         on.exit(mcexit(1L, structure("fatal error in wrapper code",
@@ -137,24 +133,20 @@ bprunMPIslave <- function() {
 ###
 
 .initiateLogging <- function(BPPARAM) {
-    level <- bpthreshold(BPPARAM)
-    message("loading futile.logger on workers")
     cl <- bpbackend(BPPARAM)
-    parallel::clusterExport(cl, c(buffer=NULL))
 
-    .bufferload <- function(i, level) {
+    .bufferload <- function(i, log, threshold) {
         tryCatch({
-            loadNamespace("futile.logger")
-            futile.logger::flog.threshold(level)
-            fun <- function(line)
-                buffer <<- c(buffer, line)
-            futile.logger::flog.appender(fun, 'ROOT')
+            .log_load(log, threshold)
+            .log_appender()
         }, error = identity)
     }
     ok <- tryCatch({
-        parallel::clusterApply(cl, seq_along(cl), .bufferload, level=level)
+        parallel::clusterApply(cl, seq_along(cl), .bufferload,
+                               log=bplog(BPPARAM),
+                               threshold=bpthreshold(BPPARAM))
     }, error=function(e) {
-        stop(.error_worker_comm(e, "'initiateLogging()' failed"))
+        stop(.error_worker_comm(e, "'.initiateLogging()' failed"))
     })
     if (!all(vapply(ok, is.null, logical(1)))) {
         bpstop(cl)
