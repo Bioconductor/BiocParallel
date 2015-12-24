@@ -44,8 +44,7 @@ setOldClass(c("NULLcluster", "cluster"))
         },
         show = function() {
             callSuper()
-            cat("\n",
-                "  bpRNGseed: ", bpRNGseed(.self),
+            cat("  bpRNGseed: ", bpRNGseed(.self),
                 "\n",
                 "  bplogdir: ", bplogdir(.self),
                 "\n",
@@ -192,9 +191,8 @@ setMethod("bpstart", "SnowParam",
     }
 
     ## logging
-    if (bplog(x)) {
+    if (bplog(x))
         .initiateLogging(x)
-    }
 
     ## random numbers 
     if (!is.null(bpRNGseed(x))) {
