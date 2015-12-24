@@ -99,29 +99,34 @@ setMethod("bpschedule", "MulticoreParam",
 setMethod("bpvec", c("ANY", "MulticoreParam"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
+    if (!length(X))
+        return(list())
+
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
 
-    if (!length(X))
-        return(list())
     if (!bpschedule(BPPARAM))
         return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
                BPPARAM=SerialParam()))
 
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
+        X <- X[idx]
+
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
 
-    if (length(BPREDO)) {
-        idx <- !bpok(BPREDO)
-        if (!any(idx))
-            stop("no previous error in 'BPREDO'")
-        if (length(BPREDO) != length(X))
-            stop("length(BPREDO) must equal length(X)")
-        message("Resuming previous calculation ... ")
-        res <- pvec(X[idx], FUN, ..., AGGREGATE=AGGREGATE, 
-                   mc.cores=bpworkers(BPPARAM))
+    res <- pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
+
+    names(res) <- names(X)
+
+    if (any(idx)) {
         BPREDO[idx] <- res
-        BPREDO
+        res <- BPREDO 
     }
-    pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
 })

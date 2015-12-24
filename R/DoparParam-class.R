@@ -59,18 +59,12 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 {
     if (!length(X))
         return(list())
+
     FUN <- match.fun(FUN)
 
-    if (length(BPREDO)) {
-        idx <- !bpok(BPREDO)
-        if (!any(idx))
-            stop("no previous error in 'BPREDO'")
-        if (length(BPREDO) != length(X))
-            stop("length(BPREDO) must equal length(X)")
-        message("Resuming previous calculation ... ")
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
         X <- X[idx]
-    }
-    nms <- names(X)
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
@@ -89,10 +83,9 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         updt
     })
 
-    if (!is.null(res))
-        names(res) <- nms
+    names(res) <- names(X)
 
-    if (length(BPREDO)) {
+    if (any(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO 
     }

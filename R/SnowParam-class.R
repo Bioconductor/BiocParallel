@@ -273,15 +273,11 @@ setMethod("bplapply", c("ANY", "SnowParam"),
                              threshold=bpthreshold(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=param))
     }
-    if (length(BPREDO)) {
-        idx <- !bpok(BPREDO)
-        if (!any(idx))
-            stop("no previous error in 'BPREDO'")
-        if (length(BPREDO) != length(X))
-            stop("length(BPREDO) must equal length(X)")
-        message("Resuming previous calculation ... ")
+
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
         X <- X[idx]
-    }
+
     nms <- names(X)
 
     ## split into tasks 
@@ -310,7 +306,7 @@ setMethod("bplapply", c("ANY", "SnowParam"),
         names(res) <- nms
     }
 
-    if (length(BPREDO)) {
+    if (any(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO 
     }
