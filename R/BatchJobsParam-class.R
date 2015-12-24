@@ -21,11 +21,11 @@
             callSuper(...)
 
             ## save user config and reset it on exit
-            prev.config <- getConfig()
-            on.exit(do.call(setConfig, prev.config))
+            prev.config <- BatchJobs::getConfig()
+            on.exit(do.call(BatchJobs::setConfig, prev.config))
             if (!is.null(conf.pars$conffile))
                 loadConfig(conf.pars$conffile)
-            new.conf <- unclass(do.call(setConfig,
+            new.conf <- unclass(do.call(BatchJobs::setConfig,
                 conf.pars[setdiff(names(conf.pars), "conffile")]))
             x_workers <- if (is.na(workers)) {
                 getNumberCPUs <- function(conf) {
@@ -94,7 +94,7 @@ setMethod("bpschedule", "BatchJobsParam",
 
 setMethod("bpisup", "BatchJobsParam", function(x) TRUE)
 
-setMethod("bpbackend", "BatchJobsParam", function(x) getConfig())
+setMethod("bpbackend", "BatchJobsParam", function(x) BatchJobs::getConfig())
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
@@ -105,7 +105,8 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 {
     FUN <- match.fun(FUN)
     if (length(BPREDO)) {
-        if (all(idx <- !bpok(BPREDO)))
+        idx <- !bpok(BPREDO)
+        if (!any(idx))
             stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("Cannot resume: length mismatch in arguments")
@@ -134,9 +135,9 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         on.exit(unlink(file.dir, recursive=TRUE), add=TRUE)
 
     ## switch config
-    prev.config <- getConfig()
-    on.exit(setConfig(conf=prev.config), add=TRUE)
-    setConfig(conf=BPPARAM$conf.pars)
+    prev.config <- BatchJobs::getConfig()
+    on.exit(BatchJobs::setConfig(conf=prev.config), add=TRUE)
+    BatchJobs::setConfig(conf=BPPARAM$conf.pars)
 
     ## package args for batchMap
     wrap <- function(.x, .FUN, .MoreArgs) {
@@ -145,20 +146,21 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     ## define jobs and submit, possibly chunked
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        as.error=FALSE, timeout=bptimeout(BPPARAM))
-    ids <- suppressMessages(batchMap(reg, fun=wrap, X, 
+    ids <- suppressMessages(BatchJobs::batchMap(reg, fun=wrap, X,
                             more.args=list(.FUN=FUN, .MoreArgs=list(...))))
     pars <- c(list(reg=reg), BPPARAM$submit.pars)
     if (is.na(BPPARAM$workers))
         pars$ids <- ids
     else
         pars$ids <- BBmisc::chunk(ids, n.chunks=BPPARAM$workers, shuffle=TRUE)
-    suppressMessages(do.call(submitJobs, pars))
+    suppressMessages(do.call(BatchJobs::submitJobs, pars))
 
     # wait for the jobs to terminate
-    waitForJobs(reg, ids, timeout=Inf, stop.on.error=BPPARAM$stop.on.error)
+    BatchJobs::waitForJobs(reg, ids, timeout=Inf,
+                           stop.on.error=BPPARAM$stop.on.error)
 
     ## FIXME: pass USE.NAMES?
-    res <- loadResults(reg, ids, use.names="none")
+    res <- BatchJobs::loadResults(reg, ids, use.names="none")
 
     if (!is.null(res))
         names(res) <- nms

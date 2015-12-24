@@ -27,7 +27,7 @@
 }
 
 \usage{
-DoparParam(catch.errors = TRUE)
+DoparParam(catch.errors = TRUE, stop.on.error=TRUE)
 }
 
 \details{
@@ -52,6 +52,10 @@ DoparParam(catch.errors = TRUE)
         blocks which triggers a resume mechanism (see
         \link{bpresume}). Defaults to \code{TRUE}.  
         
+    \item{stop.on.error}{\code{logical(1)}} Stop all jobs as soon as one
+        jobs fails (\code{stop.on.error == TRUE}) or wait for all jobs
+        to terminate.  Default is \code{TRUE}.
+
 }
 
 \section{DoparParam constructor}{
