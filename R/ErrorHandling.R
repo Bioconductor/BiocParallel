@@ -56,7 +56,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
         call <- sapply(sys.calls(), deparse)
         e <- if (as.error) {
             .error_remote(e, call)
-        } else .condition_remote(e, call)
+        } else .condition_remote(e, call) # BatchJobs
         invokeRestart("abort", e)
     }
 
@@ -86,6 +86,10 @@ bptry <- function(expr, ..., bplist_error, bperror)
               traceback = capture.output(traceback(call))) 
 }
 
+.error <- function(msg) {
+    structure(list(message=msg), class = c("bperror", "error", "condition"))
+}
+
 .error_remote <- function(x, call) {
     structure(x, class = c("remote_error", "bperror", "error", "condition"),
               traceback = capture.output(traceback(call))) 
@@ -97,6 +101,12 @@ bptry <- function(expr, ..., bplist_error, bperror)
               class=c("unevaluated_error", "bperror", "error", "condition"))
 }
 
+.error_not_available <- function(msg)
+{
+    structure(list(message=msg),
+              class=c("not_available_error", "bperror", "error", "condition"))
+}
+
 .error_worker_comm <- function(error, msg) {
     msg <- sprintf("%s:\n  %s", msg, conditionMessage(error))
     structure(list(message=msg, original_error_class=class(error)),
@@ -104,7 +114,8 @@ bptry <- function(expr, ..., bplist_error, bperror)
 }
 
 .error_bplist <- function(result) {
-    idx <- which(!bpok(result))
+    idx <- which(!bpok(result) &
+                  !vapply(result, is, logical(1), "not_available_error"))
     err <- structure(list(
         message=sprintf(
             "BiocParallel errors\n  element index: %s%s\n  first error: %s",

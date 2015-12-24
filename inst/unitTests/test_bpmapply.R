@@ -15,9 +15,9 @@ test_bpmapply_Params <- function()
         f <- function(x, y) x + y
         expected <- x + y
         for (param in params) {
-          current <- quiet(bpmapply(f, x, y, BPPARAM=param))
-          checkIdentical(expected, current)
-          closeAllConnections()
+            current <- quiet(bpmapply(f, x, y, BPPARAM=param))
+            checkIdentical(expected, current)
+            closeAllConnections()
         }
 
         # test names and simplify

@@ -2,13 +2,6 @@
 ### SnowParam objects
 ### -------------------------------------------------------------------------
 
-## 11 February, 2014 -- this is a hack: import'ing
-## parallel::stopCluster and then library(snow) overwrites
-## parallel::stopCluster.default with snow::stopCluster.default,
-## resulting in incorrect dispatch to snow::sendData
-stopCluster <- parallel::stopCluster
-makeCluster <- parallel::makeCluster
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor 
 ###
@@ -177,14 +170,6 @@ setMethod("bpstart", "SnowParam",
         stop("'bpstart' not available; instance from outside BiocParallel?")
     if (bpisup(x))
         stop("cluster already started")
-    if (!"package:parallel" %in% search()) {
-        tryCatch({
-            attachNamespace("parallel")
-        }, error=function(err) {
-            stop(conditionMessage(err), 
-                "SnowParam objects require the 'parallel' package")
-        })
-    }
 
     ## 'X' has been split into tasks - start minimum number of workers.
     if (lenX > 0) {
@@ -203,7 +188,7 @@ setMethod("bpstart", "SnowParam",
             if (!cargs$useRscript)
                 cargs$scriptdir <- find.package("BiocParallel")
         }
-        bpbackend(x) <- do.call(makeCluster, cargs)
+        bpbackend(x) <- do.call(parallel::makeCluster, cargs)
     }
 
     ## logging
@@ -214,7 +199,7 @@ setMethod("bpstart", "SnowParam",
     ## random numbers 
     if (!is.null(bpRNGseed(x))) {
         tryCatch({
-            clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
+            parallel::clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
         }, error = function(err) {
                bpstop(x)
                stop(conditionMessage(err), ": problem setting RNG stream") 
@@ -224,7 +209,7 @@ setMethod("bpstart", "SnowParam",
     ## timeout 
     if (is.finite(timeout <- bptimeout(x))) {
         tryCatch({
-            clusterExport(bpbackend(x), "timeout", env=environment())
+            parallel::clusterExport(bpbackend(x), "timeout", env=environment())
         }, error = function(err) {
                bpstop(x)
                stop(conditionMessage(err), ": problem setting worker timeout") 
@@ -242,7 +227,7 @@ setMethod("bpstop", "SnowParam",
         return(invisible(x))
 
     tryCatch({
-        stopCluster(bpbackend(x))
+        parallel::stopCluster(bpbackend(x))
     }, error=function(err) {
         txt <- sprintf("failed to stop %s cluster: %s",
                        sQuote(class(bpbackend(x))[[1]]), 
@@ -279,7 +264,6 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 setMethod("bplapply", c("ANY", "SnowParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
-
     if (!length(X))
         return(list())
     FUN <- match.fun(FUN)
@@ -290,7 +274,8 @@ setMethod("bplapply", c("ANY", "SnowParam"),
         return(bplapply(X, FUN, ..., BPPARAM=param))
     }
     if (length(BPREDO)) {
-        if (all(idx <- !bpok(BPREDO)))
+        idx <- !bpok(BPREDO)
+        if (!any(idx))
             stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
