@@ -48,7 +48,7 @@ test_redo_index <- function() {
     checkIdentical(c(TRUE, TRUE),       # all need recalculating
                    .redo_index(list("1", "2"), list(err, err), verbose=FALSE))
     checkIdentical(c(FALSE, TRUE),      # X can be a vector
-                   .redo_index(1:2, list(err, err), verbose=FALSE))
+                   .redo_index(1:2, list(1, err), verbose=FALSE))
 
     checkException(.redo_index(list(1, 2), list(err)),  # lengths differ
                    silent=TRUE)
