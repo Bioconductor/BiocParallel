@@ -44,15 +44,13 @@ bptry <- function(expr, ..., bplist_error, bperror)
     UNEVALUATED <- .error_unevaluated() # singleton
 
     handle_warning <- function(w) {
-        if (log)
-            flog.warn("%s", w)
+        .log_warn(log, "%s", w)
         w
     }
 
     handle_error <- function(e) {
         ERROR_OCCURRED <<- TRUE
-        if (log)
-            flog.error("%s", e)
+        .log_error(log, "%s", e)
         call <- sapply(sys.calls(), deparse)
         e <- if (as.error) {
             .error_remote(e, call)
