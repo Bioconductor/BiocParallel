@@ -286,13 +286,13 @@ a couple of {\it WARN} and {\it DEBUG}-level messages.
 
 <<logs_FUN>>=
 FUN <- function(i) {
-  flog.debug(paste("value of 'i':", i))
+  futile.logger::flog.debug(paste("value of 'i':", i))
 
   if (!length(i)) {
-      flog.warn("'i' has length 0")
+      futile.logger::flog.warn("'i' has length 0")
       NA 
   } else if (!is(i, "numeric")) {
-      flog.debug("coercing 'i' to numeric")
+      futile.logger::flog.debug("coercing 'i' to numeric")
       as.numeric(i)
   } else {
       i
@@ -506,11 +506,11 @@ the index `i'.
 <<debug_fun1_debug>>=
 fun2 <- function(x) {
     v <- abs(x)
-    flog.debug(
+    futile.logger::flog.debug(
       paste0("'x' = ", paste(x, collapse=","), ": length(v) = ", length(v))
     )
     sapply(1:length(v), function(i) {
-      flog.info(paste0("'i' = ", i))
+      futile.logger::flog.info(paste0("'i' = ", i))
       sqrt(v[i])
     })
 }
