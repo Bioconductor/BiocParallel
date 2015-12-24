@@ -95,18 +95,7 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     if (any(idx))
         X <- X[idx]
 
-    if (bplog(BPPARAM)) {
-        if (!"package:futile.logger" %in% search()) {
-            tryCatch({
-                attachNamespace("futile.logger")
-            }, error=function(err) {
-                msg <- "logging requires the 'futile.logger' package"
-                stop(conditionMessage(err), msg) 
-            })
-        }
-        flog.info("loading futile.logger package")
-        flog.threshold(bpthreshold(BPPARAM))
-    }
+    .log_load(BPPARAM)
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        stop.immediate=bpstopOnError(BPPARAM),
@@ -165,20 +154,11 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    if (bplog(BPPARAM)) {
-        if (!"package:futile.logger" %in% search()) {
-            tryCatch({
-                attachNamespace("futile.logger")
-            }, error=function(err) {
-                msg <- "logging requires the 'futile.logger' package"
-                stop(conditionMessage(err), msg) 
-            })
-        }
-        flog.info("loading futile.logger package")
-        flog.threshold(bpthreshold(BPPARAM))
-    }
+
+    .log_load(BPPARAM)
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
+
     .bpiterate_serial(ITER, FUN, ...)
 })
