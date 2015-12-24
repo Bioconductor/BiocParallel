@@ -88,16 +88,12 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 {
     if (!length(X))
         return(list())
+
     FUN <- match.fun(FUN)
-    if (length(BPREDO)) {
-        idx <- !bpok(BPREDO)
-        if (!any(idx))
-            stop("no previous error in 'BPREDO'")
-        if (length(BPREDO) != length(X))
-            stop("length(BPREDO) must equal length(X)")
-        message("Resuming previous calculation ... ")
+
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
         X <- X[idx]
-    }
 
     if (bplog(BPPARAM)) {
         if (!"package:futile.logger" %in% search()) {
@@ -112,13 +108,15 @@ setMethod("bplapply", c("ANY", "SerialParam"),
         flog.threshold(bpthreshold(BPPARAM))
     }
 
-    ## logging & stopping
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        stop.immediate=bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
+
     res <- lapply(X, FUN, ...)
 
-    if (length(BPREDO)) {
+    names(res) <- names(X)
+
+    if (any(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO 
     }
