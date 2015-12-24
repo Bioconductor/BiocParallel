@@ -18,7 +18,7 @@ local({
         .libPaths(c(snowlib, .libPaths()))
     library(methods) ## because Rscript as of R 2.7.0 doesn't load methods
     loadNamespace("Rmpi")
-    library(snow)
+    loadNamespace("snow")
 
     #sinkWorkerOutput(outfile)
     message("starting MPI worker\n")
