@@ -21,11 +21,10 @@ local({
     if (! (snowlib %in% .libPaths()))
         .libPaths(c(snowlib, .libPaths()))
     library(methods) ## because Rscript as of R 2.7.0 doesn't load methods
-    library(snow)
+    loadNamespace("snow")
 
     if (port == "") port <- getClusterOption("port")
 
-    #sinkWorkerOutput(outfile)  ## use 'logdir' instead
     message("starting worker ", master, ":", port)
-    BiocParallel::bpslaveLoop(makeSOCKmaster(master, port))
+    BiocParallel::bpslaveLoop(snow::makeSOCKmaster(master, port))
 })

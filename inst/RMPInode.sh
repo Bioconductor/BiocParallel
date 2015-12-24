@@ -2,8 +2,8 @@
 
 ${RPROG:-R} --vanilla <<EOF > ${OUT:-/dev/null} 2>&1
 
-loadNamespace(Rmpi)
-library(snow)
+loadNamespace("Rmpi")
+loadNamespace("snow")
 
 BiocParallel::bprunMPIslave()
 EOF

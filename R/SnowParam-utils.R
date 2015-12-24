@@ -18,7 +18,10 @@ bpslaveLoop <- function(master)
             buffer <<- NULL   ## futile.logger buffer
 
             if (msg$type == "DONE") {
-                closeNode(master)
+                ## FIXME: was just closeNode(); snow is on search()
+                ## (empirically), but parallel used for send/recvData
+                ## ??
+                snow::closeNode(master)
                 break;
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors

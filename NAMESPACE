@@ -1,5 +1,4 @@
 import(methods)
-import(futile.logger)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes
