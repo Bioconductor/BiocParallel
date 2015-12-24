@@ -22,6 +22,7 @@ bpslaveLoop <- function(master)
                 break;
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
+                sout <- character()
                 file <- textConnection("sout", "w", local=TRUE)
                 sink(file, type="message")
                 sink(file, type="output")
@@ -56,15 +57,15 @@ bpslaveLoop <- function(master)
 bprunMPIslave <- function() {
     comm <- 1
     intercomm <- 2
-    mpi.comm.get.parent(intercomm)
-    mpi.intercomm.merge(intercomm,1,comm)
-    mpi.comm.set.errhandler(comm)
-    mpi.comm.disconnect(intercomm)
+    Rmpi::mpi.comm.get.parent(intercomm)
+    Rmpi::mpi.intercomm.merge(intercomm,1,comm)
+    Rmpi::mpi.comm.set.errhandler(comm)
+    Rmpi::mpi.comm.disconnect(intercomm)
 
-    bpslaveLoop(makeMPImaster(comm))
+    bpslaveLoop(snow::makeMPImaster(comm))
 
-    mpi.comm.disconnect(comm)
-    mpi.quit()
+    Rmpi::mpi.comm.disconnect(comm)
+    Rmpi::mpi.quit()
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,7 +137,7 @@ bprunMPIslave <- function() {
     level <- bpthreshold(BPPARAM)
     message("loading futile.logger on workers")
     cl <- bpbackend(BPPARAM)
-    clusterExport(cl, c(buffer=NULL))
+    parallel::clusterExport(cl, c(buffer=NULL))
 
     .bufferload <- function(i, level) {
         tryCatch({

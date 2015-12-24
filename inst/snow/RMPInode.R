@@ -17,7 +17,7 @@ local({
     if (! (snowlib %in% .libPaths()))
         .libPaths(c(snowlib, .libPaths()))
     library(methods) ## because Rscript as of R 2.7.0 doesn't load methods
-    library(Rmpi)
+    loadNamespace("Rmpi")
     library(snow)
 
     #sinkWorkerOutput(outfile)

@@ -86,7 +86,7 @@ test_catching_errors <- function()
         params <- list(
             mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
-            dopar=DoparParam(),
+            dopar=DoparParam(stop.on.error=FALSE),
             batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {
@@ -120,7 +120,7 @@ test_BPREDO <- function()
         params <- list(
             mc = MulticoreParam(2, stop.on.error=FALSE),
             snow=SnowParam(2, stop.on.error=FALSE),
-            dopar=DoparParam(),
+            dopar=DoparParam(stop.on.error=FALSE),
             batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
 
         for (param in params) {

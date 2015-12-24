@@ -112,14 +112,15 @@ setMethod("bpvec", c("ANY", "MulticoreParam"),
                        timeout=bptimeout(BPPARAM))
 
     if (length(BPREDO)) {
-        if (all(idx <- !bpok(BPREDO)))
+        idx <- !bpok(BPREDO)
+        if (!any(idx))
             stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
         message("Resuming previous calculation ... ")
         res <- pvec(X[idx], FUN, ..., AGGREGATE=AGGREGATE, 
                    mc.cores=bpworkers(BPPARAM))
-        BPREDO[id] <- res
+        BPREDO[idx] <- res
         BPREDO
     }
     pvec(X, FUN, ..., AGGREGATE=AGGREGATE, mc.cores=bpworkers(BPPARAM))
