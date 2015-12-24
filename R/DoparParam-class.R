@@ -14,20 +14,20 @@
 )
 
 DoparParam <-
-    function(catch.errors=TRUE)
+    function(catch.errors=TRUE, stop.on.error=TRUE)
 {
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
     if (!"package:foreach" %in% search()) {
         tryCatch({
-            attachNamespace("foreach")
+            loadNamespace("foreach")
         }, error=function(err) {
             stop(conditionMessage(err), "\n",
                  "  DoparParam() requires the 'foreach' package")
         })
     }
-    .DoparParam(catch.errors=catch.errors)
+    .DoparParam(catch.errors=catch.errors, stop.on.error=stop.on.error)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,26 +38,16 @@ setMethod("bpworkers", "DoparParam",
     function(x)
 {
     if (bpisup(x))
-        getDoParWorkers()
+        foreach::getDoParWorkers()
     else 0L
 })
 
 setMethod("bpisup", "DoparParam",
     function(x)
 {
-    if ("package:foreach" %in% search() && getDoParRegistered() && 
-        (getDoParName() != "doSEQ") && getDoParWorkers() > 1L) {
-        TRUE
-    } else {
-        FALSE
-    }
-})
-
-setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
-    function(x, value)
-{
-    if (value)
-        stop("'stop.on.error == TRUE' not implemented for DoparParam")
+    isNamespaceLoaded("foreach") && foreach::getDoParRegistered() &&
+        (foreach::getDoParName() != "doSEQ") &&
+        (foreach::getDoParWorkers() > 1L)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,9 +57,13 @@ setReplaceMethod("bpstopOnError", c("DoparParam", "logical"),
 setMethod("bplapply", c("ANY", "DoparParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
+    if (!length(X))
+        return(list())
     FUN <- match.fun(FUN)
+
     if (length(BPREDO)) {
-        if (all(idx <- !bpok(BPREDO)))
+        idx <- !bpok(BPREDO)
+        if (!any(idx))
             stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
@@ -78,16 +72,22 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     }
     nms <- names(X)
 
-    if (!bpisup(BPPARAM))
-        return(bplapply(X, FUN=FUN, ..., BPPARAM=SerialParam()))
-
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
 
     i <- NULL
-    handle <- ifelse(bpcatchErrors(BPPARAM), "pass", "stop")
-    res <- foreach(i=seq_along(X), .errorhandling=handle) %dopar% 
-        { FUN(X[[i]], ...) }
+    handle <- ifelse(bpstopOnError(BPPARAM), "stop", "pass")
+    `%dopar%` <- foreach::`%dopar%`
+    res <- tryCatch({
+        foreach::foreach(X=X, .errorhandling=handle) %dopar% FUN(X, ...)
+    }, error=function(e) {
+        txt <- "'DoparParam()' does not support partial results"
+        updt <- rep(list(.error_not_available(txt)), length(X))
+        msg <- conditionMessage(e)
+        i <- sub("task ([[:digit:]]+).*", "\\1", msg)
+        updt[[as.integer(i)]] <- .error(msg)
+        updt
+    })
 
     if (!is.null(res))
         names(res) <- nms

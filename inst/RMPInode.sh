@@ -2,7 +2,7 @@
 
 ${RPROG:-R} --vanilla <<EOF > ${OUT:-/dev/null} 2>&1
 
-library(Rmpi)
+loadNamespace(Rmpi)
 library(snow)
 
 BiocParallel::bprunMPIslave()

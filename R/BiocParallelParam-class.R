@@ -49,7 +49,7 @@
                 "\n",
                 "  bptimeout: ", bptimeout(.self),
                 "; bpprogressbar: ", bpprogressbar(.self),
-                sep="")
+                "\n", sep="")
         })
 )
 

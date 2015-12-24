@@ -90,7 +90,8 @@ setMethod("bplapply", c("ANY", "SerialParam"),
         return(list())
     FUN <- match.fun(FUN)
     if (length(BPREDO)) {
-        if (all(idx <- !bpok(BPREDO)))
+        idx <- !bpok(BPREDO)
+        if (!any(idx))
             stop("no previous error in 'BPREDO'")
         if (length(BPREDO) != length(X))
             stop("length(BPREDO) must equal length(X)")
