@@ -29,6 +29,21 @@
     relist(X, idx)
 }
 
+.redo_index <-
+    function(X, BPREDO, verbose=TRUE)
+{
+    idx <- !bpok(BPREDO)
+    if (length(idx)) {
+        if (length(BPREDO) != length(X))
+            stop("'length(BPREDO)' must equal 'length(X)'")
+        if (!any(idx))
+            stop("no previous error in 'BPREDO'")
+        if (verbose)
+            message("resuming previous calculation ... ")
+    }
+    idx
+}
+
 .rename <-
     function(results, dots, USE.NAMES=FALSE)
 {

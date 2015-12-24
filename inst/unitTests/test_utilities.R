@@ -37,3 +37,17 @@ test_splitX <- function()
     checkIdentical(list(X[1], X[2:3], X[4]), .splitX(X, 2, 3))
     checkIdentical(as.list(X),               .splitX(X, 2, 4))
 }
+
+test_redo_index <- function() {
+    .redo_index <- BiocParallel:::.redo_index
+    err <- BiocParallel:::.error("")
+    checkIdentical(logical(), .redo_index(list(), list()))
+    checkIdentical(TRUE, .redo_index(list(1), list(err), verbose=FALSE))
+    checkIdentical(c(FALSE, TRUE),
+                   .redo_index(list(1, "2"), list(1, err), verbose=FALSE))
+
+    checkException(.redo_index(list(1, 2), list(err)),  # lengths differ
+                   silent=TRUE)
+    checkException(.redo_index(list(1, 2), list(1, 2)), # no previous error
+                   silent=TRUE)
+}

@@ -103,22 +103,17 @@ setMethod("bpbackend", "BatchJobsParam", function(x) BatchJobs::getConfig())
 setMethod("bplapply", c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
-    FUN <- match.fun(FUN)
-    if (length(BPREDO)) {
-        idx <- !bpok(BPREDO)
-        if (!any(idx))
-            stop("no previous error in 'BPREDO'")
-        if (length(BPREDO) != length(X))
-            stop("Cannot resume: length mismatch in arguments")
-        message("Resuming previous calculation ... ")
-        X <- X[idx]
-    }
-    nms <- names(X)
-
     if (!length(X))
         return(list())
+
+    FUN <- match.fun(FUN)
+
     if (!bpschedule(BPPARAM)) 
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
+
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
+        X <- X[idx]
 
     ## turn progressbar on/off
     prev.pb <- getOption("BBmisc.ProgressBar.style")
@@ -162,10 +157,9 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     ## FIXME: pass USE.NAMES?
     res <- BatchJobs::loadResults(reg, ids, use.names="none")
 
-    if (!is.null(res))
-        names(res) <- nms
+    names(res) <- names(X)
 
-    if (length(BPREDO)) {
+    if (any(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO 
     }
