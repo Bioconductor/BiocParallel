@@ -19,19 +19,12 @@ Imports: futile.logger, parallel, snow
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, 
     doParallel, Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14, Rsamtools,
     GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr
-Collate.unix: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R log.R
-    bpbackend-methods.R bpisup-methods.R bplapply-methods.R bpmapply-methods.R
-    bpiterate-methods.R bpschedule-methods.R bpstart-methods.R bpstop-methods.R
-    bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
-    bpaggregate-methods.R bpvalidate.R SnowParam-class.R MulticoreParam-class.R
-    register.R SerialParam-class.R DoparParam-class.R SnowParam-utils.R
-    BatchJobsParam-class.R progress.R utilities.R unix/pvec.R 
-    unix/mclapply.R unix/zzz.R
-Collate.windows: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R log.R
-    bpbackend-methods.R bpisup-methods.R bplapply-methods.R bpmapply-methods.R
-    bpiterate-methods.R bpschedule-methods.R bpstart-methods.R bpstop-methods.R
-    bpvec-methods.R bpvectorize-methods.R bpworkers-methods.R
-    bpaggregate-methods.R bpvalidate.R SnowParam-class.R MulticoreParam-class.R
-    register.R SerialParam-class.R DoparParam-class.R SnowParam-utils.R
-    BatchJobsParam-class.R progress.R utilities.R windows/zzz.R
+Collate: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R log.R
+    bpbackend-methods.R bpisup-methods.R bplapply-methods.R
+    bpmapply-methods.R bpiterate-methods.R bpschedule-methods.R
+    bpstart-methods.R bpstop-methods.R bpvec-methods.R
+    bpvectorize-methods.R bpworkers-methods.R bpaggregate-methods.R
+    bpvalidate.R SnowParam-class.R MulticoreParam-class.R register.R
+    SerialParam-class.R DoparParam-class.R SnowParam-utils.R
+    BatchJobsParam-class.R progress.R utilities.R zzz.R
 VignetteBuilder: knitr
