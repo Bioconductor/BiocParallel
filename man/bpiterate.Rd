@@ -113,10 +113,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \examples{
 \dontrun{
-if (all(require(Rsamtools) && 
-        require(RNAseqData.HNRNPC.bam.chr14) &&
-        require(GenomicAlignments) &&
-        require(ShortRead))) { 
+if (require(Rsamtools) && require(RNAseqData.HNRNPC.bam.chr14) &&
+    require(GenomicAlignments) && require(ShortRead)) {
 
   ## ----------------------------------------------------------------------
   ## Iterate through a BAM file
