@@ -157,8 +157,55 @@ test_BPREDO <- function()
         env <- foreach:::.foreachGlobals
         rm(list=ls(name=env), pos=env)
         closeAllConnections()
-        TRUE
-    } else TRUE
+    }
+    TRUE
+}
+
+test_bpvec_BPREDO <- function()
+{
+    if (.Platform$OS.type != "windows") {
+        f = function(i) if (2 %in% i) stop() else sqrt(i)
+        x = 1:10
+
+        doParallel::registerDoParallel(2)
+        params <- list(
+            mc = MulticoreParam(2, stop.on.error=FALSE),
+            snow=SnowParam(2, stop.on.error=FALSE),
+            dopar=DoparParam(stop.on.error=FALSE),
+            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
+
+        for (param in params) {
+            res <- bptry(bpvec(x, f, BPPARAM=param), bplist_error=identity)
+            checkTrue(is(res, "bplist_error"))
+            result <- attr(res, "result")
+            checkIdentical(2L, length(result))
+            checkTrue(inherits(result[[1]], "condition"))
+            closeAllConnections()
+            Sys.sleep(0.25)
+
+            ## data not fixed
+            res2 <- bptry(bpvec(x, f, BPPARAM=param, BPREDO=result),
+                          bplist_error=identity)
+            checkTrue(is(res2, "bplist_error"))
+            result <- attr(res2, "result")
+            checkIdentical(2L, length(result))
+            checkTrue(is(result[[1]], "remote_error"))
+            closeAllConnections()
+            Sys.sleep(0.25)
+
+            ## data fixed
+            res3 <- bpvec(x, sqrt, BPPARAM=param, BPREDO=result)
+            checkIdentical(sqrt(x), res3)
+            closeAllConnections()
+            Sys.sleep(0.25)
+        }
+
+        ## clean up
+        env <- foreach:::.foreachGlobals
+        rm(list=ls(name=env), pos=env)
+        closeAllConnections()
+    }
+    TRUE
 }
 
 test_bpiterate_errors <- function()

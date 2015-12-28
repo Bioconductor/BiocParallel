@@ -2,9 +2,43 @@
 ### bpvec methods 
 ### -------------------------------------------------------------------------
 
-## MulticoreParam has a dedicated bpvec() method all others use
-## bpvec,ANY,BiocParallelParam. bpvec() dispatches to bplapply()
-## where errors and logging are handled.
+## bpvec() dispatches to bplapply() where errors and logging are
+## handled.
+
+setMethod("bpvec", c("ANY", "BiocParallelParam"),
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
+{
+    if (!length(X))
+        return(list())
+
+    FUN <- match.fun(FUN)
+    AGGREGATE <- match.fun(AGGREGATE)
+
+    if (!bpschedule(BPPARAM))
+        return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
+               BPPARAM=SerialParam()))
+
+    si <- .splitX(seq_along(X), bpworkers(BPPARAM), bptasks(BPPARAM))
+    bptasks(BPPARAM) <- 0
+
+    idx <- .redo_index(si, BPREDO)
+    if (any(idx))
+        si <- si[idx]
+
+    ## FIXME: 'X' sent to all workers, but ith worker only needs X[i]
+    FUN1 <- function(i, ...) FUN(X[i], ...)
+    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO[idx], BPPARAM=BPPARAM))
+
+    if (any(idx)) {
+        BPREDO[idx] <- res
+        res <- BPREDO
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    do.call(AGGREGATE, res)
+})
 
 setMethod("bpvec", c("ANY", "missing"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
@@ -14,24 +48,23 @@ setMethod("bpvec", c("ANY", "missing"),
     bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
-setMethod("bpvec", c("ANY", "BiocParallelParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
+setMethod("bpvec", c("ANY", "list"),
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    AGGREGATE <- match.fun(AGGREGATE)
 
-    if (is.na(bpworkers(BPPARAM)))
-        stop("'bpworkers' must be set in your backend to use bpvec")
-    ## pvec parellelizes execution of a function on vector elements 
-    ## by splitting the vector and submitting each part to one core.
-    ## This is equivalent to saying length(X) is evenly divided over
-    ## available cores which is the (default) behavior of bplapply()
-    ## for SnowParam and MulticoreParam when tasks = 0.
-    if (is(BPPARAM, "DoparParam") || is(BPPARAM, "BatchJobsParam"))
-        X <- .splitX(X, bpworkers(BPPARAM), 0)
-    else if (bptasks(BPPARAM) != 0)
-        bptasks(BPPARAM) <- 0
-    ans <- bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM) 
-    do.call(AGGREGATE, ans)
+    if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
+        stop("All elements in 'BPPARAM' must be BiocParallelParam objects")
+    if (length(BPPARAM) == 0L)
+        stop("'length(BPPARAM)' must be > 0")
+
+    myFUN <- if (length(BPPARAM) > 1L) {
+        param <- BPPARAM[-1]
+        if (length(param) == 1L)
+            function(...) FUN(..., BPPARAM=param[[1]])
+        else
+            function(...) FUN(..., BPPARAM=param)
+    } else FUN
+
+    bpvec(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
-
