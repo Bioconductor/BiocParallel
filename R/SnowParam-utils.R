@@ -77,7 +77,6 @@ bprunMPIslave <- function() {
     nnodes <- as.integer(nnodes)
     if (is.na(nnodes) || nnodes < 1L) 
         stop("'nnodes' must be >= 1")
-    parallel:::.check_ncores(nnodes)
     cl <- vector("list", nnodes)
     for (i in seq_along(cl)) cl[[i]] <- .bpnewForkNode(..., rank = i)
     class(cl) <- c("SOCKcluster", "cluster")
@@ -94,11 +93,11 @@ bprunMPIslave <- function() {
     timeout <- getClusterOption("timeout", options)
     renice <- getClusterOption("renice", options)
 
-    f <- mcfork()
+    f <- parallel:::mcfork()
     if (inherits(f, "masterProcess")) { # the slave
-        on.exit(mcexit(1L, structure("fatal error in wrapper code",
-                                  class = "try-error")))
-        # closeStdout()
+        on.exit(parallel:::mcexit(1L,
+                                  structure("fatal error in wrapper code",
+                                            class = "try-error")))
         master <- "localhost"
         makeSOCKmaster <- function(master, port, timeout)
         {
@@ -119,7 +118,7 @@ bprunMPIslave <- function() {
             tools::psnice(Sys.getpid(), renice)
 
         bpslaveLoop(makeSOCKmaster(master, port, timeout))
-        mcexit(0L)
+        parallel:::mcexit(0L)
     }
 
     con <- socketConnection("localhost", port = port, server = TRUE,
@@ -225,7 +224,8 @@ bpdynamicClusterApply <- function(cl, fun, n, argfun, BPPARAM, progress)
             con <- NULL
     }
 
-    parallel:::checkCluster(cl)
+    if (!inherits(cl, "cluster"))
+        stop("bpdynamicClusterApply: 'cl' is not a valid cluster")
     workers <- length(cl)
     val <- vector("list", n)
     sjobs <- character()
@@ -352,7 +352,8 @@ bpdynamicClusterIterate <- function(cl, fun, ITER, REDUCE, init,
             con <- NULL
     }
 
-    parallel:::checkCluster(cl)
+    if (!inherits(cl, "cluster"))
+        stop("bpdynamicClusterIterate: 'cl' is not a valid cluster")
     p <- length(cl)
     ss <- list(sjobs = character(), ## job status ('running', 'done')
                rjobs = list(),      ## non-reduced result
