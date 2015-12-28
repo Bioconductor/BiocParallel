@@ -84,8 +84,7 @@
 
 \examples{
 
-if (all(require(Rsamtools) && 
-        require(GenomicAlignments))) {
+if (require(Rsamtools) && require(GenomicAlignments)) {
 
   fl <- system.file("extdata", "ex1.bam", package="Rsamtools")
   param <- ScanBamParam(what = c("flag", "mapq"))

@@ -19,8 +19,7 @@ bpvalidate <- function(fun)
     if (any(c("require", "library") %in% unknown)) {
         xx <- withCallingHandlers(tryCatch({
             dep <- deparse(fun)
-            i <- grepl("library", dep, fixed=TRUE) |
-                 grepl("require", dep, fixed=TRUE)
+            i <- grepl("(library|require)", dep)
             sapply(dep[i], function(elt) {
                 pkg <- gsub(")", "", strsplit(elt, "(", fixed=TRUE)[[1]][2])
                 unknown %in% getNamespaceExports(pkg)
@@ -32,15 +31,14 @@ bpvalidate <- function(fun)
             warn <<- append(warn, conditionMessage(w))
             invokeRestart("muffleWarning")
         })
-        if (!is.null(warn) || !is.null(err)) {
-            msg <- "attempt to load library failed:\n"
-            stop(sprintf(msg, paste(c(warn, err), collapse="\n      ")))
-        }
+        if (!is.null(warn) || !is.null(err))
+            stop("\nattempt to load library failed:\n    ",
+                 paste(c(warn, err), collapse="\n    "))
         unknown <- unknown[rowSums(xx) == 0L]
     }
 
     ## look in search path
-    inpath <- list()
+    inpath <- structure(list(), names=character())
     if (length(unknown)) {
         inpath <- .foundInPath(unknown)
         unknown <- setdiff(unknown, names(inpath))
