@@ -1,7 +1,7 @@
 \name{bpvec}
 \alias{bpvec}
 \alias{bpvec,ANY,missing-method}
-\alias{bpvec,ANY,MulticoreParam-method}
+\alias{bpvec,ANY,list-method}
 \alias{bpvec,ANY,BiocParallelParam-method}
 
 \title{Parallel, vectorized evaluation}
@@ -17,12 +17,6 @@
 
 \usage{
 bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
-
-\S4method{bpvec}{ANY,BiocParallelParam}(X, FUN, ..., AGGREGATE=c, 
-    BPREDO=list(), BPPARAM=bpparam())
-
-\S4method{bpvec}{ANY,missing}(X, FUN, ..., AGGREGATE=c, 
-    BPREDO=list(), BPPARAM=bpparam())
 }
 
 \arguments{
@@ -40,8 +34,11 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
     concatenates objects and is appropriate for vectors; \code{rbind}
     might be appropriate for data frames.
   }
-  \item{BPPARAM}{A optional \code{\link{BiocParallelParam}} instance
-    determining the parallel back-end to be used during evaluation.
+  \item{BPPARAM}{
+    An optional \code{\link{BiocParallelParam}} instance
+    determining the parallel back-end to be used during evaluation, or a
+    \code{list} of \code{BiocParallelParam} instances, to be applied in
+    sequence for nested calls to \pkg{BiocParallel} functions.
   }
   \item{BPREDO}{A \code{list} of output from \code{bpvec} with one or
     more failed elements. When a list is given in \code{BPREDO},
@@ -53,25 +50,21 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 
 \details{
 
-  When \code{BPPARAM} is a \code{MulticoreParam} this method dispatches to the
-  \code{pvec} function from the parallel package.
-  
-  For all other \code{BiocParallelParam}s, this method creates a vector of
-  indices for \code{X} that divide the elements as evenly as possible given the
-  number of workers. Indices and data are passed to \code{bplapply} for parallel
-  evaluation. \code{SnowParam} and \code{MulticoreParam} offer further control 
-  over the division of \code{X} through the \code{tasks} argument.
-  See ?\code{bptasks}.
+  This method creates a vector of indices for \code{X} that divide the
+  elements as evenly as possible given the number of \code{bpworkers()}
+  and \code{bptasks()} of \code{BPPARAM}. Indices and data are passed to
+  \code{bplapply} for parallel evaluation.
 
   The distinction between \code{bpvec} and \code{bplapply} is that
-  \code{bplapply} applies \code{FUN} to each element of \code{X} separately
-  whereas \code{bpvec} assumes the function is vectorized, e.g.,
-  \code{c(FUN(x[1]), FUN(x[2]))} is equivalent to \code{FUN(x[1:2])}. This
-  approach can be more efficient than \code{bplapply} but requires the
-  assumption that \code{FUN} takes a vector input and creates a vector output of
-  the same length as the input which does not depend on partitioning of the
-  vector. This behavior is consistent with \code{parallel:::pvec} and
-  the ?\code{pvec} man page should be consulted for further details.
+  \code{bplapply} applies \code{FUN} to each element of \code{X}
+  separately whereas \code{bpvec} assumes the function is vectorized,
+  e.g., \code{c(FUN(x[1]), FUN(x[2]))} is equivalent to
+  \code{FUN(x[1:2])}. This approach can be more efficient than
+  \code{bplapply} but requires the assumption that \code{FUN} takes a
+  vector input and creates a vector output of the same length as the
+  input which does not depend on partitioning of the vector. This
+  behavior is consistent with \code{parallel:::pvec} and the
+  ?\code{pvec} man page should be consulted for further details.
 
 }
 
@@ -80,12 +73,15 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
   The result should be identical to \code{FUN(X, ...)} (assuming that 
   \code{AGGREGATE} is set appropriately).
 
+  On error, a \code{list} with the same geometry (i.e.,
+  \code{lengths()}) as the split appliedt to \code{X} to create chunks
+  for parallel evaluation; elements of the list may contain a
+  \code{bperror} element, indicting that the vectorized calculation
+  failed for at least one of the index values in that chunk.
+
 }
 
-\author{
-  Martin Morgan \url{mailto:mtmorgan@fhcrc.org}. Original code as
-  attributed in \code{\link[parallel]{pvec}}.
-}
+\author{Martin Morgan \url{mailto:mtmorgan@fhcrc.org}.}
 
 \seealso{
 
