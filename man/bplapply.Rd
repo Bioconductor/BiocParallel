@@ -20,15 +20,7 @@
 }
 
 \usage{
-
 bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
-
-\S4method{bplapply}{ANY,missing}(X, FUN, ..., 
-    BPREDO = list(), BPPARAM=bpparam())
-
-\S4method{bplapply}{ANY,BiocParallelParam}(X, FUN, ...,
-    BPREDO = list(), BPPARAM=bpparam())
-
 }
 
 \arguments{
@@ -47,7 +39,7 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
     An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation, or a
     \code{list} of \code{BiocParallelParam} instances, to be applied in
-    sequence for nested calls to \code{bplapply}.
+    sequence for nested calls to \pkg{BiocParallel} functions.
   }
   \item{BPREDO}{A \code{list} of output from \code{bplapply} with one or
     more failed elements. When a list is given in \code{BPREDO},
