@@ -269,7 +269,7 @@ setMethod("bplapply", c("ANY", "SnowParam"),
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM))
-        return(bplapply(X, FUN, ..., BPPARAM=param))
+        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
     }
 
     idx <- .redo_index(X, BPREDO)

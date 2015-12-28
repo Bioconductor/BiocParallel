@@ -20,7 +20,7 @@
         },
         show = function() {
             callSuper()
-            cat("\n  bplogdir: ", bplogdir(.self), "\n", sep="")
+            cat("  bplogdir: ", bplogdir(.self), "\n", sep="")
         })
 )
 
