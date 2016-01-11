@@ -151,7 +151,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     suppressMessages(do.call(BatchJobs::submitJobs, pars))
 
     # wait for the jobs to terminate
-    BatchJobs::waitForJobs(reg, ids, timeout=Inf,
+    BatchJobs::waitForJobs(reg, ids, timeout=30L * 24L * 60L * 60L,
                            stop.on.error=BPPARAM$stop.on.error)
 
     ## FIXME: pass USE.NAMES?
