@@ -104,7 +104,8 @@ bpparam(bpparamClass)
 ## ----------------------------------------------------------------------
 
 ## The default registry.
-registered()
+default <- registered()
+default
 
 ## When default = TRUE the last param registered becomes the new default.
 snowparam <- SnowParam(workers = 3, type = "SOCK")
@@ -116,6 +117,10 @@ bpparam()
 
 ## or a specific BiocParallelParam.
 bpparam("SnowParam")
+
+## restore original registry -- push the defaults in reverse order
+for (param in rev(default))
+    register(param)
 
 ## ----------------------------------------------------------------------
 ## Specifying a back-end for evaluation
