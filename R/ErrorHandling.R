@@ -28,7 +28,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .composeTry <- function(FUN, log, stop.on.error,
                         stop.immediate = FALSE, # TRUE for SerialParam lapply
                         as.error = TRUE,        # FALSE for BatchJobs compatible
-                        timeout=Inf)
+                        timeout)
 {
     if (!stop.on.error && stop.immediate)
         stop("[internal] 'stop.on.error == FALSE' && 'stop.immediate == TRUE'")
