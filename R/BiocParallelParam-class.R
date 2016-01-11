@@ -13,7 +13,7 @@
         log="logical",
         threshold="character",
         stop.on.error="logical",
-        timeout="numeric",
+        timeout="integer",
         ## deprecated
         catch.errors="logical"
     ),
@@ -26,13 +26,13 @@
             log=FALSE,
             threshold="INFO",
             stop.on.error=TRUE,
-            timeout=Inf,
+            timeout= 30L * 24L * 60L * 60L, # 30 days
             progressbar=FALSE)
         {
             callSuper(...)
             initFields(workers=workers, tasks=tasks, jobname=jobname, 
                        catch.errors=catch.errors, log=log, threshold=threshold,
-                       stop.on.error=stop.on.error, timeout=timeout,
+                       stop.on.error=stop.on.error, timeout=as.integer(timeout),
                        progressbar=progressbar)
         },
         show = function() {
@@ -160,7 +160,7 @@ setMethod("bptimeout", "BiocParallelParam",
 setReplaceMethod("bptimeout", c("BiocParallelParam", "numeric"),
     function(x, value)
 {
-    x$timeout <- as.numeric(value)
+    x$timeout <- as.integer(value)
     x
 })
 
