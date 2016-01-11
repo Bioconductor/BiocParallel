@@ -30,7 +30,8 @@
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L, 
                catch.errors = TRUE, stop.on.error = TRUE,
-               progressbar = FALSE, RNGseed = NULL, timeout = Inf,
+               progressbar = FALSE, RNGseed = NULL,
+               timeout = 30L * 24L * 60L * 60L,
                log = FALSE, threshold = "INFO", logdir = NA_character_, 
                resultdir = NA_character_, jobname = "BPJOB", ...)
 
