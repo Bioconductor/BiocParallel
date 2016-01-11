@@ -93,11 +93,11 @@ greet <- c("morning", "night")
 who <- c("sun", "moon")
 
 param <- bpparam()
+original <- bpworkers(param)
 bpworkers(param) <- 2
-\dontrun{
 result <- bpmapply(fun, greet, who, BPPARAM = param)
 cat(paste(result, collapse="\n"), "\n")
-}
+bpworkers(param) <- original
 }
 
 \keyword{manip}

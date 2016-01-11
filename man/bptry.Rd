@@ -70,6 +70,7 @@ bptry(expr, ..., bplist_error, bperror)
 }
 \examples{
 param = registered()[[1]]
+param
 X = list(1, "2", 3)
 bptry(bplapply(X, sqrt))                         # bplist_error handler
 bptry(bplapply(X, sqrt), bplist_error=identity)  # bperror handler
