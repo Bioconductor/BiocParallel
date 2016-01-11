@@ -14,11 +14,16 @@ bpslaveLoop <- function(master)
 {
     repeat {
         tryCatch({
-            msg <- parallel:::recvData(master)
+            msg <- tryCatch({
+                parallel:::recvData(master)
+            }, error=identity)
+            if (inherits(msg, "simpleError"))
+                ## lost socket connection?
+                break
 
             if (msg$type == "DONE") {
                 parallel:::closeNode(master)
-                break;
+                break
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
                 sout <- character()
@@ -46,7 +51,9 @@ bpslaveLoop <- function(master)
                               gc = gc(), node = node, sout = sout)
                 parallel:::sendData(master, value)
             }
-        }, interrupt = function(e) NULL)
+        }, interrupt = function(e) {
+            NULL
+        })
     }
 }
 
@@ -72,58 +79,51 @@ bprunMPIslave <- function() {
 ### parallel::FORK
 ###
 
-.bpmakeForkCluster <- function (nnodes = getOption("mc.cores", 2L), ...) 
+.bpmakeForkCluster <- function (nnodes, timeout, port=NA)
 {
     nnodes <- as.integer(nnodes)
     if (is.na(nnodes) || nnodes < 1L) 
         stop("'nnodes' must be >= 1")
+
+    if (is.na(port))
+        port <- 11000L + sample(1000L, 1L)
+    else if (length(port) != 1L)
+        stop("'port' must be integer(1)")
+    host <- Sys.info()[["nodename"]]
+
     cl <- vector("list", nnodes)
-    for (i in seq_along(cl)) cl[[i]] <- .bpnewForkNode(..., rank = i)
+    for (rank in seq_len(nnodes)) {
+        .bpmakeForkChild(host, port, rank, timeout)
+        cl[[rank]] <- .bpconnectForkChild(host, port, rank, timeout)
+    }
+
     class(cl) <- c("SOCKcluster", "cluster")
     cl
 }
 
-.bpnewForkNode <- function(..., 
-                           options = parallel:::defaultClusterOptions, rank)
+.bpmakeForkChild <-
+    function(host, port, rank, timeout)
 {
-    getClusterOption <- parallel:::getClusterOption
-    options <- parallel:::addClusterOptions(options, list(...))
-    outfile <- getClusterOption("outfile", options)
-    port <- getClusterOption("port", options)
-    timeout <- getClusterOption("timeout", options)
-    renice <- getClusterOption("renice", options)
+    parallel::mcparallel({
+        con <- NULL
+        suppressWarnings({
+            while (is.null(con)) {
+                con <- tryCatch({
+                    socketConnection(host, port, FALSE, TRUE, "a+b",
+                                     timeout = timeout)
+                }, error=function(e) {})
+            }
+        })
+        node <- structure(list(con = con), class = "SOCK0node")
+        bpslaveLoop(node)
+    }, detached=TRUE)
+}
 
-    f <- parallel:::mcfork()
-    if (inherits(f, "masterProcess")) { # the slave
-        on.exit(parallel:::mcexit(1L,
-                                  structure("fatal error in wrapper code",
-                                            class = "try-error")))
-        master <- "localhost"
-        makeSOCKmaster <- function(master, port, timeout)
-        {
-            port <- as.integer(port)
-            ## maybe use `try' and sleep/retry if first time fails?
-            con <- socketConnection(master, port = port, blocking = TRUE,
-                                    open = "a+b", timeout = timeout)
-            structure(list(con = con), class = "SOCK0node")
-        }
-        parallel:::sinkWorkerOutput(outfile)
-        msg <- sprintf("starting worker pid=%d on %s at %s\n",
-                       Sys.getpid(), paste(master, port, sep = ":"),
-                       format(Sys.time(), "%H:%M:%OS3"))
-        cat(msg)
-        ## allow this to quit when the loop is done.
-        tools::pskill(Sys.getpid(), tools::SIGUSR1)
-        if(!is.na(renice) && renice) ## ignore 0
-            tools::psnice(Sys.getpid(), renice)
-
-        bpslaveLoop(makeSOCKmaster(master, port, timeout))
-        parallel:::mcexit(0L)
-    }
-
-    con <- socketConnection("localhost", port = port, server = TRUE,
-                            blocking = TRUE, open = "a+b", timeout = timeout)
-    structure(list(con = con, host = "localhost", rank = rank),
+.bpconnectForkChild <-
+    function(host, port, rank, timeout)
+{
+    con <- socketConnection(host, port, TRUE, TRUE, "a+b", timeout = timeout)
+    structure(list(con = con, host = host, rank = rank),
               class = c("forknode", "SOCK0node"))
 }
 
