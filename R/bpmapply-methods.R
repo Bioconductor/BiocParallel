@@ -29,7 +29,8 @@ setMethod("bpmapply", c("ANY", "missing"),
              USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-    bpmapply(FUN, ..., BPPARAM=BPPARAM)
+    bpmapply(FUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+             USE.NAMES=USE.NAMES, BPREDO=BPREDO, BPPARAM=BPPARAM)
 })
 
 setMethod("bpmapply", c("ANY", "list"),
@@ -50,5 +51,6 @@ setMethod("bpmapply", c("ANY", "list"),
           else
             function(...) FUN(..., BPPARAM=param)
         } else FUN
-    bpmapply(myFUN, ..., BPPARAM=BPPARAM[[1L]])
+    bpmapply(myFUN, ..., MoreArgs=MoreArgs, SIMPLIFY=SIMPLIFY,
+             USE.NAMES=USE.NAMES, BPREDO=BPREDO, BPPARAM=BPPARAM[[1L]])
 })
