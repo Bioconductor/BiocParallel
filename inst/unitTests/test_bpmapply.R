@@ -1,5 +1,13 @@
 quiet <- suppressWarnings
 
+test_bpmapply_MoreArgs_names <- function()
+{
+    ## https://github.com/Bioconductor/BiocParallel/issues/51
+    f <- function(x, y) x
+    target <- bpmapply(f, 1:3, MoreArgs=list(x=1L))
+    checkIdentical(rep(1L, 3), target)
+}
+
 test_bpmapply_Params <- function() 
 {
     if (.Platform$OS.type != "windows") {

@@ -17,6 +17,9 @@ BUG FIXES
 
     o SerialParam() respects stop.on.error
 
+    o bpmapply,ANY,* methods did not honor all arguments, particularly
+      MoreArgs.
+
 CHANGES IN VERSION 1.2.0
 ------------------------
 
