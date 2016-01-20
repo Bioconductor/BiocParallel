@@ -869,7 +869,7 @@ LOCATION     51495 52270 52272 52273 52528 52538 52540 52541 52716
 General strategies exist for handling large genomic data that are well 
 suited to \R{} programs. A manuscript titled \emph{Scalable Genomics with
 \R{} and \Bioconductor{}} 
-(\url{http://www.imstat.org/sts/future_papers.html}) by Michael Lawrence 
+(\url{http://arxiv.org/abs/1409.2864}) by Michael Lawrence 
 and Martin Morgan, reviews several of these approaches and demonstrate 
 implementation with \Bioconductor{} packages. Problem areas include 
 scalable processing, summarization and visualization. The techniques 
