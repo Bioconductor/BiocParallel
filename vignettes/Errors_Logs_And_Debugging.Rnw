@@ -8,11 +8,11 @@
 
 <<style, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
-@ 
+@
 
 \newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
 
-\title{Errors, Logs and Debugging in \BiocParallel} 
+\title{Errors, Logs and Debugging in \BiocParallel}
 \author{Valerie Obenchain and Martin Morgan}
 \date{Edited: December 16, 2015; Compiled: \today}
 
@@ -44,7 +44,7 @@ logging available through \Rcode{SnowParam} and \Rcode{MulticoreParam} objects.
 
 In this document the term ``job'' is used to describe a single call to a
 bp*apply function (e.g., the \Rcode{X} in \Rcode{bplapply}). A ``job'' consists
-of one or more ``tasks'', where each ``task'' is run separately on a worker. 
+of one or more ``tasks'', where each ``task'' is run separately on a worker.
 
 The \Rpackage{BiocParallel} package is available at bioconductor.org
 and can be downloaded via \Rcode{biocLite}:
@@ -52,7 +52,7 @@ and can be downloaded via \Rcode{biocLite}:
 <<biocLite, eval=FALSE>>=
 source("http://bioconductor.org/biocLite.R")
 biocLite("BiocParallel")
-@ 
+@
 
 Load the package:
 
@@ -66,7 +66,7 @@ library(BiocParallel)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Catching errors} 
+\subsection{Catching errors}
 
 By default, \BiocParallel{} attempts all computations and returns any warnings
 and errors along with successful results.  The \Rcode{stop.on.error} field
@@ -81,7 +81,7 @@ param <- SnowParam()
 param
 @
 
-The field can be set when constructing the param or modified with the 
+The field can be set when constructing the param or modified with the
 \Rcode{bpstopOnError} accessor.
 
 <<errors_stopOnError>>=
@@ -112,7 +112,7 @@ res <- tryCatch({
 }, error=identity)
 res
 attr(res, "result")
-@ 
+@
 
 Using \Rcode{stop.on.error=FALSE}, all tasks are evaluated.
 
@@ -124,7 +124,7 @@ res <- tryCatch({
 }, error=identity)
 res
 attr(res, "result")
-@ 
+@
 
 \Rcode{bptry()} is a convenient way of trying to evaluate a
 \Rcode{bpapply}-like expression, returning the evaluated results
@@ -139,8 +139,8 @@ bptry({
 In the next example the elements of \Rcode{X} are grouped instead
 of run separately. The default value for \Rcode{tasks} is 0 which means 'X' is
 split as evenly as possible across the number of workers. There are 3
-workers so the first task consists of list(1, 2), the second is list("3", 4) 
-and the third is list(5, 6). 
+workers so the first task consists of list(1, 2), the second is list("3", 4)
+and the third is list(5, 6).
 
 <<errors_3tasksA_stopOnError>>=
 X <- list(1, 2, "3", 4, 5, 6)
@@ -154,7 +154,7 @@ workers before the first error occurred.
 
 <<errors_3tasksA_stopOnError_output>>=
 bptry(bplapply(X, sqrt, BPPARAM = param))
-@ 
+@
 
 Side Note: Results are collected from workers as they finish which is not
 necessarily the same order in which they were loaded.  Depending on how tasks
@@ -206,7 +206,7 @@ X <- list(1, "2", 3)
 param <- SnowParam(2, stop.on.error=FALSE)
 result <- bptry(bplapply(X, sqrt, BPPARAM=param))
 result
-@ 
+@
 
 
 First fix the input data.
@@ -221,7 +221,7 @@ in the present case requiring only one worker.
 
 <<redo_run>>=
 bplapply(X.redo, sqrt, BPREDO=result, BPPARAM=param)
-@ 
+@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -234,7 +234,7 @@ MulticoreParam and SerialParam.
 
 \subsection{Parameters}
 
-Logging in \BiocParallel{} is controlled by 3 fields in the 
+Logging in \BiocParallel{} is controlled by 3 fields in the
 \Rcode{BiocParallelParam}:
 
 \begin{verbatim}
@@ -243,9 +243,9 @@ Logging in \BiocParallel{} is controlled by 3 fields in the
   threshold: one of "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
 \end{verbatim}
 
-When \Rcode{log = TRUE} the \CRANpkg{futile.logger} package is loaded on 
+When \Rcode{log = TRUE} the \CRANpkg{futile.logger} package is loaded on
 each worker. \BiocParallel{} uses a custom script on the workers to
-collect log messages as well as additional statistics such as gc, runtime 
+collect log messages as well as additional statistics such as gc, runtime
 and node information. Output to stderr and stdout is also captured.
 
 By default \Rcode{log} is FALSE and \Rcode{threshold} is {\it INFO}.
@@ -271,8 +271,8 @@ messages greater than or equal to the severity of the threshold are shown. For
 example, a threshold of {\it INFO} will print all messages tagged as {\it
 FATAL}, {\it ERROR}, {\it WARN} and {\it INFO}.
 
-Because the default threshold is {\it INFO} it catches the {\it ERROR}-level 
-message thrown when attempting the square root of a character ("2"). 
+Because the default threshold is {\it INFO} it catches the {\it ERROR}-level
+message thrown when attempting the square root of a character ("2").
 
 <<logs_bplapply>>=
 tryCatch({
@@ -281,7 +281,7 @@ tryCatch({
 @
 
 All user-supplied messages written in the \CRANpkg{futile.logger} syntax
-are also captured. This function performs argument checking and includes 
+are also captured. This function performs argument checking and includes
 a couple of {\it WARN} and {\it DEBUG}-level messages.
 
 <<logs_FUN>>=
@@ -290,7 +290,7 @@ FUN <- function(i) {
 
   if (!length(i)) {
       futile.logger::flog.warn("'i' has length 0")
-      NA 
+      NA
   } else if (!is(i, "numeric")) {
       futile.logger::flog.debug("coercing 'i' to numeric")
       as.numeric(i)
@@ -306,20 +306,20 @@ Turn logging on and set the threshold to {\it WARN}.
 param <- SnowParam(2, log = TRUE, threshold = "WARN", stop.on.error=FALSE)
 result <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
 simplify2array(result)
-@ 
+@
 
-Changing the threshold to {\it DEBUG} catches both {\it WARN} and 
+Changing the threshold to {\it DEBUG} catches both {\it WARN} and
 {\it DEBUG} messages.
 
 <<logs_FUN_DEBUG>>=
 param <- SnowParam(2, log = TRUE, threshold = "DEBUG", stop.on.error=FALSE)
 result <- bplapply(list(1, "2", integer()), FUN, BPPARAM = param)
 simplify2array(result)
-@ 
+@
 
 \subsection{Log files}
 
-When \Rcode{log == TRUE}, log messages are written to the console by default. 
+When \Rcode{log == TRUE}, log messages are written to the console by default.
 If \Rcode{logdir} is given the output is written out to files, one per task.
 File names are prefixed with the name in \Rcode{bpjobname(BPPARAM)}; default
 is 'BPJOB'.
@@ -337,26 +337,26 @@ Read in BPJOB.task2.log:
 \begin{verbatim}
 readLines(paste0(bplogdir(param), "/BPJOB.task2.log"))
 
-##  [1] "############### LOG OUTPUT ###############"      
-##  [2] "Task: 2"                                         
-##  [3] "Node: 2"                                         
-##  [4] "Timestamp: 2015-07-08 09:03:59"                  
-##  [5] "Success: TRUE"                                   
-##  [6] "Task duration: "                                 
-##  [7] "   user  system elapsed "                        
-##  [8] "  0.009   0.000   0.011 "                        
-##  [9] "Memory use (gc): "                               
+##  [1] "############### LOG OUTPUT ###############"
+##  [2] "Task: 2"
+##  [3] "Node: 2"
+##  [4] "Timestamp: 2015-07-08 09:03:59"
+##  [5] "Success: TRUE"
+##  [6] "Task duration: "
+##  [7] "   user  system elapsed "
+##  [8] "  0.009   0.000   0.011 "
+##  [9] "Memory use (gc): "
 ## [10] "         used (Mb) gc trigger (Mb) max used (Mb)"
 ## [11] "Ncells 325664 17.4     592000 31.7   393522 21.1"
 ## [12] "Vcells 436181  3.4    1023718  7.9   530425  4.1"
-## [13] "Log messages:"                                   
-## [14] "DEBUG [2015-07-08 09:03:59] value of 'i': 2"     
-## [15] "INFO [2015-07-08 09:03:59] coercing to numeric"  
-## [16] "DEBUG [2015-07-08 09:03:59] value of 'i': "      
-## [17] "WARN [2015-07-08 09:03:59] 'i' is missing"       
-## [18] ""                                                
-## [19] "stderr and stdout:"                              
-## [20] "character(0)"    
+## [13] "Log messages:"
+## [14] "DEBUG [2015-07-08 09:03:59] value of 'i': 2"
+## [15] "INFO [2015-07-08 09:03:59] coercing to numeric"
+## [16] "DEBUG [2015-07-08 09:03:59] value of 'i': "
+## [17] "WARN [2015-07-08 09:03:59] 'i' is missing"
+## [18] ""
+## [19] "stderr and stdout:"
+## [20] "character(0)"
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -402,14 +402,14 @@ of error handling and logging techniques.  In general, when debugging
 by adding debug messages to the worker function. When trouble shooting
 unexpected behavior (i.e., not a formal error or warning) adding debug messages
 or switching to \Rcode{SerialParam} are good approaches. Below is an overview
-of these different strategies. 
+of these different strategies.
 
 \subsection{Accessing the traceback}
 
-The traceback is a good place to start when tracking down \R{}-generated 
+The traceback is a good place to start when tracking down \R{}-generated
 errors. Because the function is executed on the workers it's not accessible for
 interactive debugging with functions such as \Rcode{trace} or \Rcode{debug}.
-The traceback provides a snapshot of the state of the worker at the time 
+The traceback provides a snapshot of the state of the worker at the time
 the error was thrown.
 
 This function takes the square root of the absolute value of a vector.
@@ -432,10 +432,10 @@ result
 
 ## [[1]]
 ## [1] 1.000000 1.732051
-## 
+##
 ## [[2]]
 ## [1] 2.236068
-## 
+##
 ## [[3]]
 ## <remote_error in abs(x): non-numeric argument to mathematical function>
 ## traceback() available as 'attr(x, "traceback")'
@@ -458,16 +458,16 @@ is(result[[3]], "condition")
 \end{verbatim}
 
 
-The traceback is an attribute of the \Rcode{condition} and can be accessed with 
-the \Rcode{attr} function. 
+The traceback is an attribute of the \Rcode{condition} and can be accessed with
+the \Rcode{attr} function.
 
 \begin{verbatim}
 noquote(tail(attr(result[[3]], "traceback")))
 
-## [1]        call <- sapply(sys.calls(), deparse)                          
+## [1]        call <- sapply(sys.calls(), deparse)
 ## [2]        e <- structure(e, class = c("remote_error", "condition"),
-## [3]            traceback = capture.output(traceback(call)))              
-## [4]        invokeRestart("abort", e)                                     
+## [3]            traceback = capture.output(traceback(call)))
+## [4]        invokeRestart("abort", e)
 ## [5]    }, "non-numeric argument to mathematical function", quote(abs(x)))
 ## [6] 1: h(simpleError(msg, call))
 \end{verbatim}
@@ -482,14 +482,14 @@ bplapply(list(c(1,3), numeric(), 6), fun1, BPPARAM = param)
 
 ## [[1]]
 ## [1] 1.000000 1.732051
-## 
+##
 ## [[2]]
 ## [[2]][[1]]
 ## [1] NA
-## 
+##
 ## [[2]][[2]]
 ## numeric(0)
-## 
+##
 ## [[3]]
 ## [1] 2.44949
 \end{verbatim}
@@ -500,7 +500,7 @@ different levels of severity. A message created with \Rcode{flog.debug} will
 only print if the threshold is {\it DEBUG} or lower. So in this case it will
 catch both INFO and DEBUG messages.
 
-``fun2'' has debug statements that show the value of `x', length of `v' and 
+``fun2'' has debug statements that show the value of `x', length of `v' and
 the index `i'.
 
 <<debug_fun1_debug>>=
@@ -538,7 +538,7 @@ instead of \Rcode{1:length(v)}.
 \subsection{Local debugging with \Rcode{SerialParam}}
 
 Errors that occur on parallel workers can be difficult to debug. Often the
-traceback sent back from the workers is too much to parse or not informative. 
+traceback sent back from the workers is too much to parse or not informative.
 We are also limited in that our interactive strategies of
 \Rcode{browser} and \Rcode{trace} are not available.
 
@@ -552,7 +552,7 @@ of \Rcode{X}.
 
 <<debug_sqrt>>=
 res <- bptry({
-    bplapply(list(1, "2", 3), sqrt, 
+    bplapply(list(1, "2", 3), sqrt,
              BPPARAM = SnowParam(3, stop.on.error=FALSE))
 })
 result
@@ -573,19 +573,19 @@ debug(fun3)
 \end{verbatim}
 
 We want to recompute only elements that failed and for that we use
-the \Rcode{BPREDO} argument. The BPPARAM has been changed to 
+the \Rcode{BPREDO} argument. The BPPARAM has been changed to
 \Rcode{SerialParam} so the job is run in the local workspace in serial.
 
 \begin{verbatim}
 > bplapply(list(1, "2", 3), fun3, BPREDO = result, BPPARAM = SerialParam())
-Resuming previous calculation ... 
+Resuming previous calculation ...
 debugging in: FUN(...)
 debug: sqrt(i)
 Browse[2]> objects()
 [1] "i"
 Browse[2]> i
 [1] "2"
-Browse[2]> 
+Browse[2]>
 \end{verbatim}
 
 The local browsing allowed us to see the problem input was the
