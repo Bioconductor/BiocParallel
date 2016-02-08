@@ -1,5 +1,11 @@
 import(methods)
 
+importFrom(stats, setNames, terms)
+
+importFrom(utils, capture.output, find, head, relist,
+           setTxtProgressBar, txtProgressBar)
+
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes
 ###
