@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.5.16
+Version: 1.5.17
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
@@ -21,7 +21,8 @@ Imports: stats, utils, futile.logger, parallel, snow
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc,
     doParallel, Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14, Rsamtools,
     GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr
-Collate: AllGenerics.R BiocParallelParam-class.R ErrorHandling.R log.R
+Collate: AllGenerics.R BiocParallelParam-class.R
+    bploop.R ErrorHandling.R log.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R
     bpmapply-methods.R bpiterate-methods.R bpschedule-methods.R
     bpstart-methods.R bpstop-methods.R bpvec-methods.R

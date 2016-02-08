@@ -40,10 +40,6 @@
 \alias{coerce,spawnedMPIcluster,SnowParam-method}
 \alias{show,SnowParam-method}
 
-% Other functions
-\alias{bpslaveLoop}
-\alias{bprunMPIslave}
-
 \title{Enable simple network of workstations (SNOW)-style parallel evaluation}
 
 \description{

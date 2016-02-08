@@ -11,11 +11,11 @@ importFrom(utils, capture.output, find, head, relist,
 ###
 
 exportClass(
-    BiocParallelParam, 
-    MulticoreParam, 
+    BiocParallelParam,
+    MulticoreParam,
     SnowParam,
-    DoparParam, 
-    SerialParam, 
+    DoparParam,
+    SerialParam,
     BatchJobsParam
 )
 
@@ -33,22 +33,23 @@ export(
     bpresume, bplasterror, bptry,
 
     ## helpers
-    multicoreWorkers, snowWorkers, bpvalidate, bpok, 
-    bpslaveLoop, bprunMPIslave 
+    bploop,                             # worker, manager loops
+    multicoreWorkers, snowWorkers, bpvalidate, bpok,
+    bprunMPIslave
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Export S4 generics and methods defined in BiocParallel 
+### Export S4 generics and methods defined in BiocParallel
 ###
 
 export(
     bplapply, bpvec, bpvectorize, bpmapply, bpaggregate, bpiterate,
 
     ## bp-controls
-    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", 
+    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-",
     bptasks, "bptasks<-", bpjobname, "bpjobname<-",
-    bpstart, bpstop, bpisup, 
-    bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
+    bpstart, bpstop, bpisup,
+    bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-",
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
     bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
@@ -62,10 +63,10 @@ exportMethods(
     bplapply, bpvec, bpvectorize, bpmapply, bpaggregate, bpiterate,
 
     ## bp-controls
-    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-", 
+    bpworkers, "bpworkers<-", bpbackend, "bpbackend<-",
     bptasks, "bptasks<-", bpjobname, "bpjobname<-",
-    bpstart, bpstop, bpisup, 
-    bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-", 
+    bpstart, bpstop, bpisup,
+    bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-",
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
     bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
@@ -75,7 +76,7 @@ exportMethods(
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Export S4 methods for generics not defined in BiocParallel 
+### Export S4 methods for generics not defined in BiocParallel
 ###
 
 exportMethods(
@@ -83,8 +84,14 @@ exportMethods(
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Export S3 methods 
+### Export S3 methods
 ###
 
-S3method(print, "remote_error")
-S3method(print, "bplist_error")
+S3method(print, remote_error)
+S3method(print, bplist_error)
+
+S3method(bploop, MPInode)
+S3method(bploop, SOCKnode)
+S3method(bploop, SOCK0node)
+S3method(bploop, lapply)
+S3method(bploop, iterate)

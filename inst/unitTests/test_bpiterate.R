@@ -1,4 +1,5 @@
 quiet <- suppressWarnings
+
 .lazyCount <- function(count) {
     count <- count
     i <- 0L
@@ -94,9 +95,7 @@ test_bpiterate_REDUCE <- function() {
         FUN <- function(count, ...) rep(count, 10)
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-        checkTrue(length(res) == 1L)
-        expected <- list(rep(6L, 10))
-        checkIdentical(expected, res)
+        checkIdentical(rep(6L, 10), res)
 
         FUN <- function(count, ...) {
             Sys.sleep(3 - count)
@@ -107,26 +106,26 @@ test_bpiterate_REDUCE <- function() {
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
                          reduce.in.order=FALSE)
-        checkIdentical(unlist(res, use.names=FALSE), "321")
+        checkIdentical("321", res)
 
         message("      'reduce.in.order' FALSE [2]")
         ITER <- .lazyCount(ncount)
         res <- quiet(bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, init=0, 
                                reduce.in.order=FALSE))
-        checkIdentical(unlist(res, use.names=FALSE), "0321")
+        checkIdentical("0321", res)
 
         ## 'reduce.in.order' TRUE 
         message("      'reduce.in.order' TRUE [1]")
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
                          reduce.in.order=TRUE)
-        checkIdentical(unlist(res, use.names=FALSE), "123")
+        checkIdentical("123", res)
 
         message("      'reduce.in.order' TRUE [2]")
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
                          init=0, reduce.in.order=TRUE)
-        checkIdentical(unlist(res, use.names=FALSE), "0123")
+        checkIdentical("0123", res)
     }
 
     ## clean up
