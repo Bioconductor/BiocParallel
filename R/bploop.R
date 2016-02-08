@@ -47,7 +47,8 @@ bploop <- function(manager, ...)
                 close(file)
 
                 node <- Sys.info()["nodename"]
-                success <- !any(vapply(value, is, logical(1), "error"))
+                success <- !(is(value, "error") ||
+                             any(vapply(value, is, logical(1), "error")))
                 value <- list(type = "VALUE", value = value,
                               success = success,
                               time = t2 - t1, tag = msg$data$tag,
@@ -288,15 +289,11 @@ bploop.iterate <-
 
         ## reduce
         ## FIXME: if any worker has an error - can't reduce
-        success <- d$value$success
-        if (!success && bpstopOnError(BPPARAM))
-            break
         reducer$add(njob, value)
-
         .manager_log(BPPARAM, njob, d)
         .manager_result_save(BPPARAM, njob, reducer$value())
 
-        if (bpstopOnError(BPPARAM) && !success) {
+        if (bpstopOnError(BPPARAM) && !d$value$success) {
             ## stop on error; let running jobs finish, do not re-load
             ## FIXME: harvest assigned jobs
             .clear_cluster(cl, running)
