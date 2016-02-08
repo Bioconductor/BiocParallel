@@ -116,6 +116,60 @@ bploop.SOCK0node <- .bploop.worker
     save(value, file=rfile)
 }
 
+.reducer <-
+    function(REDUCE, init, reduce.in.order=FALSE)
+{
+    env <- new.env(parent=emptyenv())
+    env[["reduce"]] <- !missing(REDUCE)
+    env[["init"]] <- !missing(init)
+
+    if (env[["reduce"]])
+        env[["value"]] <- if (env[["init"]]) init else list()
+    env[["index"]] <- 1L
+
+    reduce_one <- function(idx) {
+        if (env[["reduce"]]) {
+            env[["value"]] <- if (!env[["init"]] && (env[["index"]] == 1L)) {
+                env[[idx]]
+            } else {
+                REDUCE(env[["value"]], env[[idx]])
+            }
+            rm(list=idx, envir=env)
+        }
+        env[["index"]] <- env[["index"]] + 1L
+        1L
+    }
+
+    add_immediate <- function(i, value) {
+        env[[as.character(i)]] <- value
+        reduce_one(as.character(i))
+    }
+
+    add_inorder <- function(i, value) {
+        status <- 0L
+        env[[as.character(i)]] <- value
+        while (exists(as.character(env[["index"]]), envir=env))
+            status <- status + reduce_one(as.character(env[["index"]]))
+        status
+    }
+
+    list(add=function(i, value) {
+        if (reduce.in.order)
+            add_inorder(i, value)
+        else add_immediate(i, value)
+    }, isComplete=function() {
+        length(setdiff(ls(env), c("reduce", "init", "value", "index"))) == 0L
+    }, value=function() {
+        if (env[["reduce"]])
+            env[["value"]]              # NULL if no values
+        else {
+            lst <- as.list(env)
+            idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
+            unname(lst[idx[order(as.integer(idx))]])
+        }
+    })
+}
+
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
 ##
@@ -189,60 +243,6 @@ bploop.lapply <-
 ## - results not pre-allocated; list grows each iteration if no REDUCE
 ## - args wrapped in arglist with different chunks from ITER()
 ##
-
-.reducer <-
-    function(REDUCE, init, reduce.in.order=FALSE)
-{
-    env <- new.env(parent=emptyenv())
-    env[["reduce"]] <- !missing(REDUCE)
-    env[["init"]] <- !missing(init)
-
-    if (env[["reduce"]])
-        env[["value"]] <- if (env[["init"]]) init else list()
-    env[["index"]] <- 1L
-
-    reduce_one <- function(idx) {
-        if (env[["reduce"]]) {
-            env[["value"]] <- if (!env[["init"]] && (env[["index"]] == 1L)) {
-                env[[idx]]
-            } else {
-                REDUCE(env[["value"]], env[[idx]])
-            }
-            rm(list=idx, envir=env)
-        }
-        env[["index"]] <- env[["index"]] + 1L
-        1L
-    }
-
-    add_immediate <- function(i, value) {
-        env[[as.character(i)]] <- value
-        reduce_one(as.character(i))
-    }
-
-    add_inorder <- function(i, value) {
-        status <- 0L
-        env[[as.character(i)]] <- value
-        while (exists(as.character(env[["index"]]), envir=env))
-            status <- status + reduce_one(as.character(env[["index"]]))
-        status
-    }
-
-    list(add=function(i, value) {
-        if (reduce.in.order)
-            add_inorder(i, value)
-        else add_immediate(i, value)
-    }, isComplete=function() {
-        length(setdiff(ls(env), c("reduce", "init", "value", "index"))) == 0L
-    }, value=function() {
-        if (env[["reduce"]])
-            env[["value"]]              # NULL if no values
-        else {
-            lst <- as.list(env)
-            idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
-            unname(lst[idx[order(as.integer(idx))]])
-        }
-    })
-}
 
 bploop.iterate <-
     function(manager, ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order,
