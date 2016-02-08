@@ -99,5 +99,5 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("bpiterate not supported for DoparParam"))
+    stop("'bpiterate' not supported for DoparParam")
 })

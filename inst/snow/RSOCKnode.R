@@ -26,5 +26,5 @@ local({
     if (port == "") port <- getClusterOption("port")
 
     message("starting worker ", master, ":", port)
-    BiocParallel::bpslaveLoop(snow::makeSOCKmaster(master, port))
+    BiocParallel::bploop(snow::makeSOCKmaster(master, port))
 })

@@ -90,8 +90,9 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \value{
 
-  A \code{list} the same length as the number of chunks in ITER(). When
-  \code{REDUCE} is used list length is 1.
+  By default, a \code{list} the same length as the number of chunks in
+  \code{ITER()}. When \code{REDUCE} is used, the return is consistent
+  with application of the reduction.
 
 }
 

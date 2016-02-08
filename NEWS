@@ -11,6 +11,13 @@ NEW FEATURES
        computed results; when stop.on.error = FALSE, the result vector
        is parallel to (has the same geometry as) the input vector.
 
+USER-VISIBLE CHANGES
+
+    o Rename bpslaveLoop to (S3 generic) bploop
+
+    o bpiterate() returns values consistent with REDUCE, rather than
+      wrapping in list()
+
 BUG FIXES
 
     o workers=1, tasks=0 assigns all elements of X in one chunk

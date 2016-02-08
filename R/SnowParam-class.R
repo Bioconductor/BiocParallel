@@ -276,9 +276,17 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 setMethod("bplapply", c("ANY", "SnowParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
+    FUN <- match.fun(FUN)
+
+    if (!is.na(bpresultdir(BPPARAM)))
+        BatchJobs:::checkDir(bpresultdir(BPPARAM))
+
+    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
+        BatchJobs:::checkDir(bplogdir(BPPARAM))
+
     if (!length(X))
         return(list())
-    FUN <- match.fun(FUN)
+
     if (!bpschedule(BPPARAM) || length(X) == 1L || bpworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
@@ -289,11 +297,7 @@ setMethod("bplapply", c("ANY", "SnowParam"),
     idx <- .redo_index(X, BPREDO)
     if (any(idx))
         X <- X[idx]
-
     nms <- names(X)
-
-    ## split into tasks
-    X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
 
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {
@@ -301,17 +305,16 @@ setMethod("bplapply", c("ANY", "SnowParam"),
         on.exit(bpstop(BPPARAM), TRUE)
     }
 
-    ## progress bar
-    progress <- .progress(active=bpprogressbar(BPPARAM))
-    progress$init(length(X))
-    on.exit(progress$term(), TRUE)
-
+    ## FUN
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
-    argfun <- function(i) c(list(X[[i]]), list(FUN=FUN), list(...))
-    res <- bpdynamicClusterApply(bpbackend(BPPARAM), lapply,
-                                 length(X), argfun, BPPARAM,
-                                 progress)
+
+    ## split into tasks
+    X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
+    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
+
+    res <- bploop(structure(list(), class="lapply"), # dispatch
+                  X, lapply, ARGFUN, BPPARAM)
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
@@ -330,16 +333,32 @@ setMethod("bplapply", c("ANY", "SnowParam"),
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
+             BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
-    if (!bpschedule(BPPARAM))
-        return(bpiterate(ITER, FUN, ..., BPPARAM=SerialParam()))
+    if (missing(REDUCE)) {
+        if (reduce.in.order)
+            stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
+        if (!missing(init))
+            stop("REDUCE must be provided when 'init' is given")
+    }
 
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    if (!is.na(bpresultdir(BPPARAM)))
+        BatchJobs:::checkDir(bpresultdir(BPPARAM))
+
+    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
+        BatchJobs:::checkDir(bplogdir(BPPARAM))
+
+    if (!bpschedule(BPPARAM) || bpworkers(BPPARAM) == 1L) {
+        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
+                             log=bplog(BPPARAM),
+                             threshold=bpthreshold(BPPARAM))
+        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
+                         BPPARAM=param))
+    }
 
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {
@@ -347,7 +366,14 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
         on.exit(bpstop(BPPARAM), TRUE)
     }
 
-    bpdynamicClusterIterate(bpbackend(BPPARAM), FUN, ITER, ..., BPPARAM=BPPARAM)
+    ## FUN
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
+    ARGFUN <- function(value) c(list(value), list(...))
+
+    ## FIXME: handle errors via bpok()
+    bploop(structure(list(), class="iterate"), # dispatch
+           ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
