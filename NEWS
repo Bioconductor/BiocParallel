@@ -18,6 +18,9 @@ USER-VISIBLE CHANGES
     o bpiterate() returns values consistent with REDUCE, rather than
       wrapping in list()
 
+    o BatchJobsParam() passes more arguments to BatchJobs'
+      makeRegistry(), setConfig(), submitJobs()
+
 BUG FIXES
 
     o workers=1, tasks=0 assigns all elements of X in one chunk
