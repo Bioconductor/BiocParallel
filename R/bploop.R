@@ -6,6 +6,42 @@
 ### Derived from snow version 0.3-13 by Luke Tierney
 ### Derived from parallel version 2.16.0 by R Core Team
 
+.send_EXEC <-
+    function(node, tag, fun, args)
+{
+    data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
+    parallel:::sendData(node, data)
+    TRUE
+}
+
+.send_VALUE <-
+    function(node, tag, value, success, time, log, gc, sout)
+{
+    data <- list(type = "VALUE", tag = tag,
+                 value = value, success = success,
+                 time = time, log = log, gc = gc, sout = sout)
+    parallel:::sendData(node, data)
+    TRUE
+}
+
+.recv <- function(node, id)
+    tryCatch({
+        parallel:::recvData(node)
+    }, error=function(e) {
+        ## capture without throwing
+        .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
+    })
+
+.recv1 <- function(cluster, id)
+    tryCatch({
+        parallel:::recvOneData(cluster)
+    }, error=function(e) {
+        stop(.error_worker_comm(e, sprintf("'%s' receive data failed", id)))
+    })
+
+.close <- function(node)
+    parallel:::closeNode(node)
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
 ### .composeTry.
@@ -17,15 +53,12 @@ bploop <- function(manager, ...)
 {
     repeat {
         tryCatch({
-            msg <- tryCatch({
-                parallel:::recvData(manager)
-            }, error=identity)
-            if (inherits(msg, "simpleError"))
-                ## lost socket connection?
-                break
+            msg <- .recv(manager, "worker")
+            if (inherits(msg, "error"))
+                break                   # lost socket connection?
 
             if (msg$type == "DONE") {
-                parallel:::closeNode(manager)
+                .close(manager)
                 break
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
@@ -46,16 +79,13 @@ bploop <- function(manager, ...)
                 sink(NULL, type="output")
                 close(file)
 
-                node <- Sys.info()["nodename"]
                 success <- !(is(value, "error") ||
                              any(vapply(value, is, logical(1), "error")))
-                value <- list(type = "VALUE", value = value,
-                              success = success,
-                              time = t2 - t1, tag = msg$data$tag,
-                              log = .log_buffer_get(),
-                              gc = gc(), node = node, sout = sout)
+                log <- .log_buffer_get()
+                gc <- gc()
 
-                parallel:::sendData(manager, value)
+                .send_VALUE(manager, msg$data$tag, value, success, t2 - t1,
+                            log, gc, sout)
             }
         }, interrupt = function(e) {
             NULL
@@ -82,7 +112,7 @@ bploop.SOCK0node <- .bploop.worker
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
         while (any(running)) {
-            d <- parallel:::recvOneData(cl)
+            d <- .recv1(cl, "clear_cluster")
             if (!is.null(result))
                 result[[d$value$tag]] <- d$value$value
             running[d$node] <- FALSE
@@ -91,11 +121,6 @@ bploop.SOCK0node <- .bploop.worker
         stop(.error_worker_comm(e, "stop worker failed"))
     })
     result
-}
-
-.submit <- function(node, job, value) {
-    parallel:::sendCall(cl[[node]], FUN, ARGFUN(value), tag = job)
-    TRUE
 }
 
 .manager_log <- function(BPPARAM, njob, d) {
@@ -197,15 +222,11 @@ bploop.lapply <-
         ## initial load
         running <- logical(workers)
         for (i in seq_len(min(n, workers)))
-            running[i] <- .submit(i, i, i)
+            running[i] <- .send_EXEC(cl[[i]], i, FUN, ARGFUN(i))
 
         for (i in seq_len(n)) {
             ## collect
-            tryCatch({
-                d <- parallel:::recvOneData(cl)
-            }, error=function(e) {
-                stop(.error_worker_comm(e, "bplapply receive data failed"))
-            })
+            d <- .recv1(cl, "bplapply")
 
             value <- d$value$value
             njob <- d$value$tag
@@ -225,7 +246,7 @@ bploop.lapply <-
             ## re-load
             j <- i + min(n, workers)
             if (j <= n)
-                running[d$node] <- .submit(d$node, j, j)
+                running[d$node] <- .send_EXEC(cl[[d$node]], j, FUN, ARGFUN(j))
         }
     }
 
@@ -257,13 +278,13 @@ bploop.iterate <-
 
     ## initial load
     for (i in seq_len(workers)) {
-        alue <- ITER()
+        value <- ITER()
         if (is.null(value)) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        running[i] <- .submit(i, i, value)
+        running[i] <- .send_EXEC(cl[[i]], i, FUN, ARGFUN(value))
     }
 
     repeat {
@@ -271,11 +292,7 @@ bploop.iterate <-
             break
 
         ## collect
-        d <- tryCatch({
-            parallel:::recvOneData(cl)
-        }, error=function(e) {
-            stop(.error_worker_comm(e, "bpiterate receive data failed"))
-        })
+        d <- .recv1(cl, "bpiterate")
 
         value <- d$value$value
         njob <- d$value$tag
@@ -298,7 +315,7 @@ bploop.iterate <-
         value <- ITER()
         if (!is.null(value)) {
             i <- i + 1L
-            running[d$node] <- .submit(d$node, i, value)
+            running[d$node] <- .send_EXEC(cl[[d$node]], i, FUN, ARGFUN(value))
         }
     }
 
