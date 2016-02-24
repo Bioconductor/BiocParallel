@@ -47,7 +47,7 @@
         show = function() {
             ## TODO more output
             callSuper()
-            cat("\n  cleanup: ", .self$cleanup, "\n", sep="")
+            cat("  cleanup: ", .self$cleanup, "\n", sep="")
         })
 )
 
@@ -55,31 +55,27 @@ BatchJobsParam <-
     function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
         work.dir=getwd(), stop.on.error=TRUE, seed=NULL, resources=NULL,
         conffile=NULL, cluster.functions=NULL,
-        progressbar=TRUE, jobname = "BPJOB", ...)
+        progressbar=TRUE, jobname = "BPJOB",
+        reg.pars=list(seed=seed, work.dir=work.dir),
+        conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
+        submit.pars=list(resources=resources), ...)
 {
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
-    if (!"package:BatchJobs" %in% search()) {
-        tryCatch({
-            attachNamespace("BatchJobs")
-        }, error=function(err) {
-            stop(conditionMessage(err), "\n",
-                 "  BatchJobsParam() requires the 'BatchJobs' package")
-        })
-    }
+    if (!requireNamespace("BatchJobs", quietly=TRUE))
+        stop("BatchJobsParam() requires the 'BatchJobs' package")
 
     not_null <- Negate(is.null)
-    reg.pars <- Filter(not_null, list(seed=seed, work.dir=work.dir))
-    submit.pars <- Filter(not_null, list(resources=resources))
-    conf.pars <- Filter(not_null,
-        list(conffile=conffile, cluster.functions=cluster.functions))
+    reg.pars <- Filter(not_null, reg.pars)
+    submit.pars <- Filter(not_null, submit.pars)
+    conf.pars <- Filter(not_null, conf.pars)
 
     .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
                     conf.pars=conf.pars, workers=workers, 
                     catch.errors=catch.errors, cleanup=cleanup, 
                     stop.on.error=stop.on.error, 
-                    progressbar=progressbar, jobname=jobname, ...)
+                    progressbar=progressbar, jobname=jobname)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -103,10 +99,10 @@ setMethod("bpbackend", "BatchJobsParam", function(x) BatchJobs::getConfig())
 setMethod("bplapply", c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
+    FUN <- match.fun(FUN)
+
     if (!length(X))
         return(list())
-
-    FUN <- match.fun(FUN)
 
     if (!bpschedule(BPPARAM)) 
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
@@ -114,50 +110,55 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     idx <- .redo_index(X, BPREDO)
     if (any(idx))
         X <- X[idx]
+    nms <- names(X)
 
-    ## turn progressbar on/off
-    prev.pb <- getOption("BBmisc.ProgressBar.style")
-    options(BBmisc.ProgressBar.style=c("off", "text")[bpprogressbar(BPPARAM)+1L])
+    ## restore current settings
+    prev.bp <- getOption("BBmisc.ProgressBar.style")
     on.exit(options(BBmisc.ProgressBar.style=prev.pb))
 
-    ## create registry, handle cleanup
-    file.dir <- file.path(BPPARAM$reg.pars$work.dir,
-        tempfile("BiocParallel_tmp_", ""))
-    pars <- c(list(id=bpjobname(BPPARAM), file.dir=file.dir, skip=FALSE),
-        BPPARAM$reg.pars)
-    reg <- suppressMessages(do.call("makeRegistry", pars))
-    if (BPPARAM$cleanup)
-        on.exit(unlink(file.dir, recursive=TRUE), add=TRUE)
-
-    ## switch config
     prev.config <- BatchJobs::getConfig()
     on.exit(BatchJobs::setConfig(conf=prev.config), add=TRUE)
+
+
+    pb <- c("off", "text")[bpprogressbar(BPPARAM)+1L]
+    prev.pb <- options(BBmisc.ProgressBar.style=pb)
+
+    ## switch config
     BatchJobs::setConfig(conf=BPPARAM$conf.pars)
 
-    ## package args for batchMap
-    wrap <- function(.x, .FUN, .MoreArgs) {
-        do.call(.FUN, c(list(.x), .MoreArgs))
-    }
-    ## define jobs and submit, possibly chunked
+    ## reg.pars
+    reg.pars <- c(list(id=bpjobname(BPPARAM), skip=FALSE), BPPARAM$reg.pars)
+    if (is.null(reg.pars$file.dir))
+        reg.pars$file.dir <-
+            file.path(reg.pars$work.dir, tempfile("BiocParallel_tmp_", ""))
+    if (BPPARAM$cleanup)
+        on.exit(unlink(reg.pars$file.dir, recursive=TRUE), add=TRUE)
+
+    ## FUN
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        as.error=FALSE, timeout=bptimeout(BPPARAM))
-    ids <- suppressMessages(BatchJobs::batchMap(reg, fun=wrap, X,
-                            more.args=list(.FUN=FUN, .MoreArgs=list(...))))
-    pars <- c(list(reg=reg), BPPARAM$submit.pars)
-    if (is.na(BPPARAM$workers))
-        pars$ids <- ids
-    else
-        pars$ids <- BBmisc::chunk(ids, n.chunks=BPPARAM$workers, shuffle=TRUE)
-    suppressMessages(do.call(BatchJobs::submitJobs, pars))
+    WRAP <- function(.x, .FUN, .MoreArgs)
+        do.call(.FUN, c(list(.x), .MoreArgs))
 
-    # wait for the jobs to terminate
-    BatchJobs::waitForJobs(reg, ids, timeout=30L * 24L * 60L * 60L,
-                           stop.on.error=BPPARAM$stop.on.error)
+    res <- suppressMessages({
+        ## make / map / submit / wait/ load
+        reg <- do.call(BatchJobs::makeRegistry, reg.pars)
+        ids <- BatchJobs::batchMap(
+            reg, WRAP, X, more.args=list(.FUN=FUN, .MoreArgs=list(...)))
 
-    ## FIXME: pass USE.NAMES?
-    res <- BatchJobs::loadResults(reg, ids, use.names="none")
+        submit.pars <- c(list(reg=reg), BPPARAM$submit.pars)
+        submit.pars$ids <- if (is.na(bpworkers(BPPARAM))) {
+            ids
+        } else BBmisc::chunk(ids, n.chunks=bpworkers(BPPARAM), shuffle=TRUE)
+        do.call(BatchJobs::submitJobs, submit.pars)
 
-    names(res) <- names(X)
+        BatchJobs::waitForJobs(reg, ids, timeout=30L * 24L * 60L * 60L,
+                               stop.on.error=bpstopOnError(BPPARAM))
+        BatchJobs::loadResults(reg, ids, use.names="none")
+    })
+
+    ## post-process
+    names(res) <- nms
 
     if (any(idx)) {
         BPREDO[idx] <- res

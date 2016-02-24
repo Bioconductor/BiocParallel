@@ -28,7 +28,11 @@
 BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, 
     work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
     resources = NULL, conffile = NULL, cluster.functions = NULL, 
-    progressbar = TRUE, jobname = "BPJOB", ...) 
+    progressbar = TRUE, jobname = "BPJOB",
+    reg.pars=list(seed=seed, work.dir=work.dir),
+    conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
+    submit.pars=list(resources=resources),
+    ...)
 }
 
 \arguments{
@@ -62,7 +66,8 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
         files. Note that this must be shared across computational nodes
         if you use a distributed computing backend. Default ist the
         current working directory of \code{R}, see
-        \code{\link[base]{getwd}}.
+        \code{\link[base]{getwd}}. Ignored when \code{reg.pars} is
+        provided.
 
     \item{stop.on.error}{\code{logical(1)}} Stop all jobs as soon as one
         jobs fails (\code{stop.on.error == TRUE}) or wait for all jobs
@@ -71,30 +76,47 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
     \item{seed}{\code{integer(1L)}} Set an initial seed for the RNG. See
         \code{\link[BatchJobs]{makeRegistry}} for more information.
         Default is \code{NULL} where a random seed is chosen upon
-        initialization.
+        initialization. Ignored when \code{reg.pars} is provided.
 
     \item{resources}{\code{list()}} List of job specific resources
         passed to \code{\link[BatchJobs]{submitJobs}}.  Default is
         \code{NULL} where the resources defined in the configuration are
-        used.
+        used. Ignored when \code{submit.pars} is provided.
 
     \item{conffile}{\code{character(1)}} URI to a custom BatchJobs
         configuration file used for execution.  Default is \code{NULL}
-        which relies on BatchJobs to handle configuration files.
+        which relies on BatchJobs to handle configuration files. Ignored
+        when \code{conf.pars} is provided.
 
     \item{cluster.functions}{ClusterFunctions} Specify a specific
         cluster backend using on of the constructors provided by
         BatchJobs, see \link[BatchJobs]{ClusterFunctions}.  Default is
         \code{NULL} where the default cluster functions defined in the
-        configuration are used.
+        configuration are used. Ignored when \code{conf.pars} is provided.
 
     \item{progressbar}{\code{logical(1)}}
         Suppress the progress bar used in BatchJobs and be less verbose.
         Default is \code{FALSE}.
 
    \item{jobname}{\code{character(1)}} Job name that is prepended
-        to the output log and result files. Default is "BPJOB".
+       to the output log and result files. Default is "BPJOB".
 
+   \item{reg.pars}{\code{list()}}
+       List of parameters passed to \code{BatchJobs::makeRegistry()}. When
+       present, user-supplied arguments \code{seed} and \code{work.dir}
+       to \code{BatchJobsParam} are ignored.
+
+   \item{conf.pars}{\code{list()}}
+       List of parameters passed to \code{BatchJobs::setConfig()}. When
+       present, user-supplied arguments \code{conffile},
+       \code{cluster.functions} to \code{BatchJobsParam} are ignored.
+
+   \item{submit.pars}{\code{list()}}
+       List of parameters passed to \code{BatchJobs::submitJobs}. When
+       present, user-supplied argument \code{resources} to
+       \code{BatchJobsParam} is ignored. \code{submitJobs} parameters
+       \code{reg}, \code{id} cannot be set.
+   
     \item{\dots}{Addition arguments, currently not handled.}
 }
 
