@@ -93,6 +93,11 @@ bploop.SOCK0node <- .bploop.worker
     result
 }
 
+.submit <- function(node, job, value) {
+    parallel:::sendCall(cl[[node]], FUN, ARGFUN(value), tag = job)
+    TRUE
+}
+
 .manager_log <- function(BPPARAM, njob, d) {
     if (bplog(BPPARAM)) {
         con <- NULL
@@ -189,15 +194,10 @@ bploop.lapply <-
         on.exit(progress$term(), TRUE)
         progress$init(n)
 
-        submit <- function(node, job) {
-            parallel:::sendCall(cl[[node]], FUN, ARGFUN(job), tag = job)
-            TRUE
-        }
-
         ## initial load
         running <- logical(workers)
         for (i in seq_len(min(n, workers)))
-            running[i] <- submit(i, i)
+            running[i] <- .submit(i, i, i)
 
         for (i in seq_len(n)) {
             ## collect
@@ -225,7 +225,7 @@ bploop.lapply <-
             ## re-load
             j <- i + min(n, workers)
             if (j <= n)
-                running[d$node] <- submit(d$node, j)
+                running[d$node] <- .submit(d$node, j, j)
         }
     }
 
@@ -255,21 +255,15 @@ bploop.iterate <-
     running <- logical(workers)
     reducer <- .reducer(REDUCE, init, reduce.in.order)
 
-    submit <- function(node, job, value) {
-        parallel:::sendCall(cl[[node]], FUN, ARGFUN(value), tag = job)
-        TRUE
-    }
-
-
     ## initial load
     for (i in seq_len(workers)) {
-        iter_value <- ITER()
-        if (is.null(iter_value)) {
+        alue <- ITER()
+        if (is.null(value)) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        running[i] <- submit(i, i, iter_value)
+        running[i] <- .submit(i, i, value)
     }
 
     repeat {
@@ -301,10 +295,10 @@ bploop.iterate <-
         }
 
         ## re-load
-        iter_value <- ITER()
-        if (!is.null(iter_value)) {
+        value <- ITER()
+        if (!is.null(value)) {
             i <- i + 1L
-            running[d$node] <- submit(d$node, i, iter_value)
+            running[d$node] <- .submit(d$node, i, value)
         }
     }
 
