@@ -2,6 +2,28 @@
 ### SnowParam objects
 ### -------------------------------------------------------------------------
 
+.SnowClusters <- local({
+    ## package-global registry of backends; use to avoid closing
+    ## socket connections of unreferenced backends during garbage
+    ## collection -- bpstart(MulticoreParam(1)); gc(); gc()
+    uid <- 0
+    env <- environment()
+    list(add = function(backend) {
+        uid <<- uid + 1L
+        cuid <- as.character(uid)
+        env[[cuid]] <- backend          # protection
+        cuid
+    }, drop = function(cuid) {
+        rm(list=cuid, envir=env)
+        invisible(NULL)
+    }, get = function(cuid) {
+        env[[cuid]]
+    }, ls = function() {
+        cuid <- setdiff(ls(env), c("uid", "env"))
+        cuid[order(as.integer(cuid))]
+    })
+})
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
 ###
@@ -27,6 +49,7 @@ setOldClass(c("NULLcluster", "cluster"))
         cluster="cluster",
         .clusterargs="list",
         .controlled="logical",
+        .uid = "character",
         RNGseed="ANY",
         logdir="character",
         resultdir="character",
@@ -225,8 +248,9 @@ setMethod("bpstart", "SnowParam",
         stop("setting worker timeout:\n  ", conditionMessage(err))
     })
 
-    ## finalizer -- don't let the connections close
-    x$finalizer_env[["backend"]] <- bpbackend(x)
+    ## don't let the connections close
+    x$.uid <- .SnowClusters$add(bpbackend(x))
+
     invisible(x)
 })
 
@@ -247,6 +271,7 @@ setMethod("bpstop", "SnowParam",
         stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
     })
     bpbackend(x) <- .NULLcluster()
+    .SnowClusters$drop(x$.uid)
     invisible(x)
 })
 
