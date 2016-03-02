@@ -37,6 +37,9 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     if (!all(bpok(res)))
         stop(.error_bplist(res))
 
+    if (any(lengths(res) != lengths(si)))
+        stop(.error("length(FUN(X)) not equal to length(X)", "bpvec_error"))
+
     do.call(AGGREGATE, res)
 })
 

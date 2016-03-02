@@ -7,12 +7,12 @@
 \title{Parallel, vectorized evaluation}
 
 \description{
-
   \code{bpvec} applies \code{FUN} to subsets of \code{X}. Any type of
-  object \code{X} is allowed, provided \code{length}, \code{[}, and
-  \code{c} methods are available. The return value is a \code{vector} of
-  length equal to \code{X}, as with \code{FUN(X)}.
-
+  object \code{X} is allowed, provided \code{length}, and \code{[} are
+  defined on \code{X}. \code{FUN} is a function such that
+  \code{length(FUN(X)) == length(X)}. The objects returned by \code{FUN}
+  are concatenated by \code{AGGREGATE} (\code{c()} by default). The
+  return value is \code{FUN(X)}.
 }
 
 \usage{
@@ -20,12 +20,19 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 }
 
 \arguments{
+
   \item{X}{
-    Any object for which methods \code{length}, \code{[}, and \code{c}
-    are implemented.
+    Any object for which methods \code{length} and \code{[} are
+    implemented.
   }
-  \item{FUN}{The \code{function} to be applied to subsets of \code{X}.
+
+  \item{FUN}{
+    A function to be applied to subsets of \code{X}. The relationship
+    between \code{X} and \code{FUN(X)} is 1:1, so that
+    \code{length(FUN(X, ...)) == length(X)}. The return value of
+    separate calls to \code{FUN} are concatenated with \code{AGGREGATE}.
   }
+
   \item{\dots}{Additional arguments for \code{FUN}.
   }
   \item{AGGREGATE}{A function taking any number of arguments \code{...}
@@ -64,7 +71,7 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
   vector input and creates a vector output of the same length as the
   input which does not depend on partitioning of the vector. This
   behavior is consistent with \code{parallel:::pvec} and the
-  ?\code{pvec} man page should be consulted for further details.
+  \code{?pvec} man page should be consulted for further details.
 
 }
 
@@ -73,11 +80,17 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
   The result should be identical to \code{FUN(X, ...)} (assuming that 
   \code{AGGREGATE} is set appropriately).
 
-  On error, a \code{list} with the same geometry (i.e.,
-  \code{lengths()}) as the split appliedt to \code{X} to create chunks
-  for parallel evaluation; elements of the list may contain a
+  When evaluation of individual elements of \code{X} results in an
+  error, the result is a \code{list} with the same geometry (i.e.,
+  \code{lengths()}) as the split applied to \code{X} to create chunks
+  for parallel evaluation; one or more elements of the list contain a
   \code{bperror} element, indicting that the vectorized calculation
   failed for at least one of the index values in that chunk.
+
+  An error is also signaled when \code{FUN(X)} does not return an
+  object of the same length as \code{X}; this condition is only detected
+  when the number of elements in \code{X} is greater than the number of
+  workers.
 
 }
 
@@ -105,6 +118,8 @@ fun <- function(v) {
 system.time(result <- bpvec(1:10, fun)) 
 result
 
+## invalid FUN -- length(class(X)) is not equal to length(X)
+bptry(bpvec(1:2, class, BPPARAM=SerialParam()))
 }
 
 \keyword{manip}

@@ -36,3 +36,8 @@ test_bpvec_MulticoreParam_short_jobs <- function() {
     closeAllConnections()
     TRUE
 }
+
+test_bpvec_invalid_FUN <- function() {
+    res <- bptry(bpvec(1:2, class, BPPARAM=SerialParam()))
+    checkTrue(inherits(res, "bpvec_error"))
+}
