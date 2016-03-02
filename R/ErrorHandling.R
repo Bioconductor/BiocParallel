@@ -84,8 +84,9 @@ bptry <- function(expr, ..., bplist_error, bperror)
               traceback = capture.output(traceback(call))) 
 }
 
-.error <- function(msg) {
-    structure(list(message=msg), class = c("bperror", "error", "condition"))
+.error <- function(msg, class=NULL) {
+    structure(list(message=msg),
+              class = c(class, "bperror", "error", "condition"))
 }
 
 .error_remote <- function(x, call) {
