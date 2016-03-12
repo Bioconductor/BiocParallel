@@ -29,6 +29,9 @@ export(
     ## register
     register, registered, bpparam,
 
+    ## accessor
+    bpnworkers,
+
     ## error handlers
     bpresume, bplasterror, bptry,
 
