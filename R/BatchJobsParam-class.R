@@ -147,9 +147,9 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
             reg, WRAP, X, more.args=list(.FUN=FUN, .MoreArgs=list(...)))
 
         submit.pars <- c(list(reg=reg), BPPARAM$submit.pars)
-        submit.pars$ids <- if (is.na(bpworkers(BPPARAM))) {
+        submit.pars$ids <- if (is.na(bpnworkers(BPPARAM))) {
             ids
-        } else BBmisc::chunk(ids, n.chunks=bpworkers(BPPARAM), shuffle=TRUE)
+        } else BBmisc::chunk(ids, n.chunks=bpnworkers(BPPARAM), shuffle=TRUE)
         do.call(BatchJobs::submitJobs, submit.pars)
 
         BatchJobs::waitForJobs(reg, ids, timeout=30L * 24L * 60L * 60L,
