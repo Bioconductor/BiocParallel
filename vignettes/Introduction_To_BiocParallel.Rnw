@@ -292,7 +292,7 @@ environment.
   \item{\Rcode{bpisup(x)}: }
     Query a \Rcode{BiocParallelParam} back-end \Rcode{x} for its status.
 
-  \item{\Rcode{bpworkers}: }
+  \item{\Rcode{bpworkers}; \Rcode{bpnworkers}: }
     Query a \Rcode{BiocParallelParam} back-end for the number of workers
     available for parallel evaluation.
 

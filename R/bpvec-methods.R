@@ -18,7 +18,7 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
         return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
                BPPARAM=SerialParam()))
 
-    si <- .splitX(seq_along(X), bpworkers(BPPARAM), bptasks(BPPARAM))
+    si <- .splitX(seq_along(X), bpnworkers(BPPARAM), bptasks(BPPARAM))
     bptasks(BPPARAM) <- 0
 
     idx <- .redo_index(si, BPREDO)

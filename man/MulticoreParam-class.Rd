@@ -275,6 +275,7 @@ multicoreWorkers()
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
     \item{}{\code{bpworkers(x)}}
+    \item{}{\code{bpnworkers(x)}}
     \item{}{\code{bptasks(x)}, \code{bptasks(x) <- value}}
     \item{}{\code{bpstart(x)}}
     \item{}{\code{bpstop(x)}}
@@ -454,7 +455,7 @@ bpok(res)
 ## streams to members of the cluster.
 
 bpparam <- MulticoreParam(3, RNGseed = 7739465)
-bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
+bplapply(seq_len(bpnworkers(bpparam)), function(i) rnorm(1), BPPARAM = bpparam)
 
 }
 

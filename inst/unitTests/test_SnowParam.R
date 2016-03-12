@@ -19,6 +19,11 @@ test_SnowParam_SOCK <- function()
     checkIdentical(FALSE, bpisup(param))
 }
 
+test_SnowParam_SOCK_character <- function()
+{
+    bpstop(bpstart(SnowParam("localhost")))
+}
+
 test_SnowParam_MPI <- function() 
 {
     if (.Platform$OS.type == "windows")

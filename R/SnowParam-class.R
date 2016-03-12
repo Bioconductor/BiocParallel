@@ -149,7 +149,7 @@ setValidity("SnowParam", function(object)
         msg <- c(msg, "'.controlled' must be TRUE or FALSE")
 
     if (.controlled(object)) {
-        if (bpworkers(object) != object$.clusterargs$spec)
+        if (!all(bpworkers(object) == object$.clusterargs$spec))
             msg <- c(msg,
                 "'bpworkers(BPPARAM)' must equal BPPARAM$.clusterargs$spec")
         msg <- c(msg,
@@ -194,16 +194,16 @@ setReplaceMethod("bpRNGseed", c("SnowParam", "numeric"),
 ###
 
 setMethod("bpstart", "SnowParam",
-    function(x, lenX = bpworkers(x))
+    function(x, lenX = bpnworkers(x))
 {
     if (!.controlled(x))
         stop("'bpstart' not available; instance from outside BiocParallel?")
     if (bpisup(x))
         stop("cluster already started")
-    if (bpworkers(x) == 0 && lenX <= 0)
+    if (bpnworkers(x) == 0 && lenX <= 0)
         stop("cluster not started; no workers specified")
 
-    nnodes <- min(bpworkers(x), lenX)
+    nnodes <- min(bpnworkers(x), lenX)
     if (nnodes > 128L - nrow(showConnections(all=TRUE)))
         stop("cannot create ", nnodes, " workers; ",
              128L - nrow(showConnections(all=TRUE)),
@@ -312,7 +312,7 @@ setMethod("bplapply", c("ANY", "SnowParam"),
     if (!length(X))
         return(list())
 
-    if (!bpschedule(BPPARAM) || length(X) == 1L || bpworkers(BPPARAM) == 1L) {
+    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM))
@@ -335,7 +335,7 @@ setMethod("bplapply", c("ANY", "SnowParam"),
                        timeout=bptimeout(BPPARAM))
 
     ## split into tasks
-    X <- .splitX(X, bpworkers(BPPARAM), bptasks(BPPARAM))
+    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
     ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
 
     res <- bploop(structure(list(), class="lapply"), # dispatch
@@ -377,7 +377,7 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
         BatchJobs:::checkDir(bplogdir(BPPARAM))
 
-    if (!bpschedule(BPPARAM) || bpworkers(BPPARAM) == 1L) {
+    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM))

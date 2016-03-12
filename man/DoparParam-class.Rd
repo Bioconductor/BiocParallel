@@ -72,9 +72,10 @@ DoparParam(catch.errors = TRUE, stop.on.error=TRUE)
 
   The following generics are implemented and perform as documented on
   the corresponding help page (e.g., \code{?bpisup}):
-  \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
-  \code{\link{bpisup}}, \code{\link{bpbackend}},
-  \code{\link{bpbackend<-}}, \code{\link{bpvec}}.
+  \code{\link{bpworkers}}, \code{\link{bpnworkers}},
+  \code{\link{bpstart}}, \code{\link{bpstop}}, \code{\link{bpisup}},
+  \code{\link{bpbackend}}, \code{\link{bpbackend<-}},
+  \code{\link{bpvec}}.
 
 }
 

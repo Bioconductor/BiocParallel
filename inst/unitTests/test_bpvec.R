@@ -23,7 +23,7 @@ test_bpvec_Params <- function()
 }
 
 test_bpvec_MulticoreParam_short_jobs <- function() {
-    ## bpvec should return min(length(X), bpworkers())
+    ## bpvec should return min(length(X), bpnworkers())
     if (.Platform$OS.type == "windows")
         return(TRUE)
 

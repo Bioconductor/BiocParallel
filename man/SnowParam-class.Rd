@@ -313,7 +313,8 @@ snowWorkers()
   In the code below \code{x} is a \code{SnowParam} object.  See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpworkers(x)}, \code{bpworkers(x) <- value}}
+    \item{}{\code{bpworkers(x)}, \code{bpworkers(x) <- value},
+      \code{bpnworkers(x)}}
     \item{}{\code{bptasks(x)}, \code{bptasks(x) <- value}}
     \item{}{\code{bpstart(x)}}
     \item{}{\code{bpstop(x)}}
@@ -510,7 +511,7 @@ bpok(res)
 ## streams to members of the cluster.
 
 bpparam <- SnowParam(3, RNGseed = 7739465)
-bplapply(seq_len(bpworkers(bpparam)), function(i) rnorm(1),
+bplapply(seq_len(bpnworkers(bpparam)), function(i) rnorm(1),
          BPPARAM = bpparam)
 
 }

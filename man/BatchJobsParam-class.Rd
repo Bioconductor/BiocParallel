@@ -129,9 +129,9 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 \section{Methods}{
 
     The following generics are implemented and perform as documented on
-    the corresponding help page:
-    \code{\link{bpworkers}}, \code{\link{bpstart}}, \code{\link{bpstop}},
-    \code{\link{bpisup}}, \code{\link{bpbackend}},
+    the corresponding help page: \code{\link{bpworkers}},
+    \code{\link{bpnworkers}}, \code{\link{bpstart}},
+    \code{\link{bpstop}}, \code{\link{bpisup}}, \code{\link{bpbackend}},
     \code{\link{bpbackend<-}}
 
 }
