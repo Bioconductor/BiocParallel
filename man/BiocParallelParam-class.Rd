@@ -20,6 +20,7 @@
 \alias{bpstop}
 \alias{bpstop,ANY-method}
 \alias{bpstop,missing-method}
+\alias{bpnworkers}
 \alias{bpworkers}
 \alias{bpworkers<-}
 \alias{bpworkers,missing-method}
@@ -117,6 +118,10 @@
         \code{integer(1)} or \code{character()}. Gets the number or names of 
         the back-end workers. The setter is supported for SnowParam and 
         MulticoreParam only.
+      }
+      \item{}{
+        \code{bpnworkers(x)}:
+        \code{integer(1)}. Gets the number of the back-end workers.
       }
       \item{}{
         \code{bptasks(x)}, \code{bptasks(x) <- value}:
