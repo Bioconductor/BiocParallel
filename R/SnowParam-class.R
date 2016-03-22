@@ -217,7 +217,9 @@ setMethod("bpstart", "SnowParam",
     ## SOCK, MPI
     } else {
         cargs <- x$.clusterargs
-        cargs$spec <- nnodes
+        cargs$spec <- if (is.numeric(cargs$spec)) {
+            nnodes
+        } else cargs$spec[seq_len(nnodes)]
         cargs$snowlib <- find.package("BiocParallel")
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- find.package("BiocParallel")
