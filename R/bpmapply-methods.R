@@ -39,7 +39,7 @@ setMethod("bpmapply", c("ANY", "list"),
 {
     FUN <- match.fun(FUN)
 
-    if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
+    if (!all(vapply(BPPARAM, inherits, logical(1), "BiocParallelParam")))
         stop("All elements in 'BPPARAM' must be BiocParallelParam objects")
     if (length(BPPARAM) == 0L)
         stop("'length(BPPARAM)' must be > 0")

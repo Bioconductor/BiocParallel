@@ -79,8 +79,8 @@ bploop <- function(manager, ...)
                 sink(NULL, type="output")
                 close(file)
 
-                success <- !(is(value, "error") ||
-                             any(vapply(value, is, logical(1), "error")))
+                success <- !(inherits(value, "bperror") || !all(bpok(value)))
+
                 log <- .log_buffer_get()
                 gc <- gc()
 

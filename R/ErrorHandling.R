@@ -11,7 +11,7 @@ bpresume <- function(expr) {
 }
 
 bpok <- function(x) {
-    vapply(x, function(elt) !is(elt, "bperror"), logical(1))
+    !vapply(x, inherits, logical(1), "bperror")
 }
 
 bptry <- function(expr, ..., bplist_error, bperror)
@@ -45,7 +45,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
     handle_warning <- function(w) {
         .log_warn(log, "%s", w)
-        w
+        w       # FIXME: muffleWarning; don't rely on capture.output()
     }
 
     handle_error <- function(e) {
@@ -54,27 +54,27 @@ bptry <- function(expr, ..., bplist_error, bperror)
         call <- sapply(sys.calls(), deparse)
         e <- if (as.error) {
             .error_remote(e, call)
-        } else .condition_remote(e, call) # BatchJobs
-        invokeRestart("abort", e)
-    }
-
-    handle_abort <- if (!stop.immediate) force else stop
-
-    .try <- function(expr) {
-        if (stop.on.error && ERROR_OCCURRED) {
-            UNEVALUATED
         } else {
-            withRestarts({
-                withCallingHandlers(expr, warning=handle_warning, 
-                                    error=handle_error)
-            }, abort=handle_abort)
+            .condition_remote(e, call) # BatchJobs
         }
+        if (stop.immediate)
+            stop(e)
+        else e
     }
 
     function(...) {
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
-        .try(FUN(...))
+
+        if (stop.on.error && ERROR_OCCURRED) {
+            UNEVALUATED
+        } else {
+            withCallingHandlers({
+                tryCatch({
+                    FUN(...)
+                }, error=handle_error)
+            }, warning=handle_warning)
+        }
     }
 }
 
@@ -114,7 +114,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
 .error_bplist <- function(result) {
     idx <- which(!bpok(result) &
-                  !vapply(result, is, logical(1), "not_available_error"))
+                  !vapply(result, inherits, logical(1), "not_available_error"))
     err <- structure(list(
         message=sprintf(
             "BiocParallel errors\n  element index: %s%s\n  first error: %s",
