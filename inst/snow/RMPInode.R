@@ -20,7 +20,5 @@ local({
     loadNamespace("Rmpi")
     loadNamespace("snow")
 
-    #sinkWorkerOutput(outfile)
-    message("starting MPI worker\n")
     BiocParallel::bprunMPIslave()
 })
