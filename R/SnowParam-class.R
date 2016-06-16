@@ -204,7 +204,7 @@ setMethod("bpstart", "SnowParam",
         stop("cluster not started; no workers specified")
 
     nnodes <- min(bpnworkers(x), lenX)
-    if (nnodes > 128L - nrow(showConnections(all=TRUE)))
+    if (x$.clusterargs$type != "MPI" & nnodes > 128L - nrow(showConnections(all=TRUE)))
         stop("cannot create ", nnodes, " workers; ",
              128L - nrow(showConnections(all=TRUE)),
              " connections available in this session")
