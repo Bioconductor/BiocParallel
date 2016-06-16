@@ -39,7 +39,7 @@
             cat("class: ", class(.self),
                 "\n",
                 "  bpisup: ", bpisup(.self),
-                "; bpworkers: ", bpworkers(.self),
+                "; bpnworkers: ", bpnworkers(.self),
                 "; bptasks: ", bptasks(.self),
                 "; bpjobname: ", bpjobname(.self),
                 "\n",
