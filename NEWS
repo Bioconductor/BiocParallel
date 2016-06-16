@@ -1,3 +1,12 @@
+CHANGES IN VERSION 1.7
+----------------------
+
+BUG FIXES
+
+    o (v. 1.7.4) Allow more than 125 MPI nodes,
+      https://github.com/Bioconductor/BiocParallel/issues/55
+      
+
 CHANGES IN VERSION 1.5
 ----------------------
 
