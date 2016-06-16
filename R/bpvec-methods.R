@@ -34,7 +34,7 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
         res <- BPREDO
     }
 
-    if (!all(bpok(res)))
+    if (is(res, "error") || !all(bpok(res)))
         stop(.error_bplist(res))
 
     if (any(lengths(res) != lengths(si)))
@@ -56,7 +56,7 @@ setMethod("bpvec", c("ANY", "list"),
 {
     FUN <- match.fun(FUN)
 
-    if (!all(vapply(BPPARAM, is, logical(1), "BiocParallelParam")))
+    if (!all(vapply(BPPARAM, inherits, logical(1), "BiocParallelParam")))
         stop("All elements in 'BPPARAM' must be BiocParallelParam objects")
     if (length(BPPARAM) == 0L)
         stop("'length(BPPARAM)' must be > 0")
