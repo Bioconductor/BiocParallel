@@ -118,7 +118,7 @@ bploop.SOCK0node <- .bploop.worker
             running[d$node] <- FALSE
         }
     }, error=function(e) {
-        stop(.error_worker_comm(e, "stop worker failed"))
+        warning(.error_worker_comm(e, "stop worker failed"))
     })
     result
 }
