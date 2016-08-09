@@ -51,7 +51,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
     handle_error <- function(e) {
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
-        call <- sapply(sys.calls(), deparse)
+        call <- sapply(sys.calls(), deparse, nlines=3)
         e <- if (as.error) {
             .error_remote(e, call)
         } else {

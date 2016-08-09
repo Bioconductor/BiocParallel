@@ -51,8 +51,6 @@ bploop <- function(manager, ...)
 
 .bploop.worker <- function(manager, ...)
 {
-    oopt <- options(deparse.max.lines=1) # limit unused traceback() output
-    on.exit(options(oopt))
     repeat {
         tryCatch({
             msg <- .recv(manager, "worker")
