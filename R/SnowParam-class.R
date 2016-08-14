@@ -30,6 +30,8 @@
 
 snowWorkers <- function() {
     cores <- max(1L, parallel::detectCores() - 2L)
+    if (nzchar(Sys.getenv("BBS_HOME")))
+        cores <- min(4L, cores)
     getOption("mc.cores", cores)
 }
 

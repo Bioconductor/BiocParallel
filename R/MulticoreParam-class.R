@@ -3,12 +3,13 @@
 ### -------------------------------------------------------------------------
 
 multicoreWorkers <- function() {
-    cores <- 
-        if (.Platform$OS.type == "windows") {
-            1L
-        } else {
-            max(1L, parallel::detectCores() - 2L)
-        }
+    if (.Platform$OS.type == "windows") {
+        cores <- 1L
+    } else {
+        cores <- max(1L, parallel::detectCores() - 2L)
+        if (nzchar("BBS_HOME"))
+            cores <- min(4L, cores)
+    }
     getOption("mc.cores", cores)
 }
 
