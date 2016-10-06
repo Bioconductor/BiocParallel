@@ -7,7 +7,7 @@ multicoreWorkers <- function() {
         cores <- 1L
     } else {
         cores <- max(1L, parallel::detectCores() - 2L)
-        if (nzchar("BBS_HOME"))
+        if (nzchar(Sys.getenv("BBS_HOME")))
             cores <- min(4L, cores)
     }
     getOption("mc.cores", cores)
