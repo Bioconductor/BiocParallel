@@ -22,7 +22,7 @@ bprunMPIslave <- function() {
 ### parallel::FORK
 ###
 
-.bpmakeForkCluster <- function (nnodes, timeout, port=NA)
+.bpmakeForkCluster <- function (nnodes, timeout, host, port=NA)
 {
     nnodes <- as.integer(nnodes)
     if (is.na(nnodes) || nnodes < 1L) 
@@ -32,7 +32,8 @@ bprunMPIslave <- function() {
         port <- 11000L + sample(1000L, 1L)
     else if (length(port) != 1L)
         stop("'port' must be integer(1)")
-    host <- Sys.info()[["nodename"]]
+    if (length(host) != 1L || is.na(host) || !is.character(host))
+        stop("'host' must be character(1)")
 
     cl <- vector("list", nnodes)
     for (rank in seq_len(nnodes)) {

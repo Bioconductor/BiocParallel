@@ -216,6 +216,7 @@ setMethod("bpstart", "SnowParam",
     if (x$.clusterargs$type == "FORK") {
         bpbackend(x) <-
             .bpmakeForkCluster(nnodes, bptimeout(x),
+                               getOption("bphost", Sys.info()[["nodename"]]),
                                getOption("ports", NA_integer_))
     ## SOCK, MPI
     } else {
