@@ -157,14 +157,15 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
 
   Evaluate \BiocParallel-enabled code using multiple cores on a single
   computer. When available, this is the most efficient and least
-  troublesome way to parallelize code. Windows does not
-  support multi-core evaluation (the \Rcode{MulticoreParam} object can
-  be used, but evaluation is serial). On other operating systems, the
+  troublesome way to parallelize code. Windows does not support
+  multi-core evaluation (the \Rcode{MulticoreParam} object can be
+  used, but evaluation is serial). On other operating systems, the
   default number of workers equals the value of the global option
-  \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that is
-  not set, the number of cores returned by \Rcode{parallel::detectCores()}.
-  Based on facilities originally implemented in the \CRANpkg{multicore}
-  package and subsequently the \CRANpkg{parallel} package in base \R{}.
+  \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that
+  is not set, the number of cores returned by
+  \Rcode{parallel::detectCores() - 2}.  Based on facilities originally
+  implemented in the \CRANpkg{multicore} package and subsequently the
+  \CRANpkg{parallel} package in base \R{}.
 
   \item{\Rcode{SnowParam}: }
 
