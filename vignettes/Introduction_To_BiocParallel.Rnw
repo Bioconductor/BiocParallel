@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Introduction to BiocParallel}
+%\VignetteIndexEntry{1. Introduction to BiocParallel}
 %\VignetteKeywords{parallel, Infrastructure}
 %\VignettePackage{BiocParallel}
 %\VignetteEngine{knitr::knitr}
