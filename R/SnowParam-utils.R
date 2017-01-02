@@ -22,30 +22,28 @@ bprunMPIslave <- function() {
 ### parallel::FORK
 ###
 
-.bpmakeForkCluster <- function (nnodes, timeout, host, port=NA)
+.bpfork <- function (nnodes, timeout, host, port)
 {
     nnodes <- as.integer(nnodes)
     if (is.na(nnodes) || nnodes < 1L) 
         stop("'nnodes' must be >= 1")
 
-    if (is.na(port))
-        port <- 11000L + sample(1000L, 1L)
-    else if (length(port) != 1L)
-        stop("'port' must be integer(1)")
     if (length(host) != 1L || is.na(host) || !is.character(host))
         stop("'host' must be character(1)")
+    if (length(port) != 1L || is.na(port) || !is.integer(port))
+        stop("'port' must be integer(1)")
 
     cl <- vector("list", nnodes)
-    for (rank in seq_len(nnodes)) {
-        .bpmakeForkChild(host, port, rank, timeout)
-        cl[[rank]] <- .bpconnectForkChild(host, port, rank, timeout)
+    for (rank in seq_along(cl)) {
+        .bpforkChild(host, port, rank, timeout)
+        cl[[rank]] <- .bpforkConnect(host, port, rank, timeout)
     }
 
     class(cl) <- c("SOCKcluster", "cluster")
     cl
 }
 
-.bpmakeForkChild <-
+.bpforkChild <-
     function(host, port, rank, timeout)
 {
     parallel::mcparallel({
@@ -63,7 +61,7 @@ bprunMPIslave <- function() {
     }, detached=TRUE)
 }
 
-.bpconnectForkChild <-
+.bpforkConnect <-
     function(host, port, rank, timeout)
 {
     con <- socketConnection(host, port, TRUE, TRUE, "a+b", timeout = timeout)

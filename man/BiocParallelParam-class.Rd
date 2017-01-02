@@ -125,11 +125,11 @@
       }
       \item{}{
         \code{bptasks(x)}, \code{bptasks(x) <- value}:
-        \code{integer(1)}. Get or set the number of tasks for a job. \code{value}
-        must be a scalar integer >= 0L. This argument applies
-        to \code{SnowParam} and \code{MulticoreParam} only; \code{DoparParam}
-        and \code{BatchJobsParam} have their own approach to dividing a job
-        among workers. 
+        \code{integer(1)}. Get or set the number of tasks for a
+        job. \code{value} must be a scalar integer >= 0L. This argument
+        applies to \code{SnowParam} and \code{MulticoreParam} only;
+        \code{DoparParam} and \code{BatchJobsParam} have their own
+        approach to dividing a job among workers.
  
         We define a job as a single call to a function such as \code{bplapply}, 
         \code{bpmapply} etc. A task is the division of the

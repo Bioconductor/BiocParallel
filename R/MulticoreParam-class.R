@@ -2,16 +2,8 @@
 ### MulticoreParam objects
 ### -------------------------------------------------------------------------
 
-multicoreWorkers <- function() {
-    if (.Platform$OS.type == "windows") {
-        cores <- 1L
-    } else {
-        cores <- max(1L, parallel::detectCores() - 2L)
-        if (nzchar(Sys.getenv("BBS_HOME")))
-            cores <- min(4L, cores)
-    }
-    getOption("mc.cores", cores)
-}
+multicoreWorkers <- function()
+    .snowCores(multicore=TRUE)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor 
@@ -27,7 +19,8 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         catch.errors=TRUE, stop.on.error=TRUE, 
         progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
         log=FALSE, threshold="INFO", logdir=NA_character_,
-        resultdir=NA_character_, jobname = "BPJOB", ...)
+        resultdir=NA_character_, jobname = "BPJOB",
+        manager.hostname=NA_character_, manager.port=NA_integer_, ...)
 {
     if (.Platform$OS.type == "windows")
         warning("MulticoreParam() not supported on Windows, use SnowParam()")
@@ -43,7 +36,8 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         progressbar=progressbar, 
         RNGseed=RNGseed, timeout=timeout,
         log=log, threshold=threshold, logdir=logdir,
-        resultdir=resultdir, jobname=jobname)
+        resultdir=resultdir, jobname=jobname,
+        hostname=manager.hostname, port=manager.port)
 }
 
 setValidity("MulticoreParam",

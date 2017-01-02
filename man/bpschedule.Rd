@@ -18,7 +18,7 @@ bpschedule(x)
 }
 
 \arguments{
-  
+
   \item{x}{
 
     An instance of a \code{BiocParallelParam} class, e.g.,
@@ -58,8 +58,8 @@ bpschedule(x)
 }
 
 \examples{
-bpschedule(SnowParam()) 		# TRUE
-bpschedule(MulticoreParam(2))		# FALSE on windows
+bpschedule(SnowParam())                 # TRUE
+bpschedule(MulticoreParam(2))           # FALSE on windows
 
 p <- MulticoreParam()
 bpschedule(p)                           # TRUE

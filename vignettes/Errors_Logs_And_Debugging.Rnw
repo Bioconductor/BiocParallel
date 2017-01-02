@@ -542,10 +542,11 @@ traceback sent back from the workers is too much to parse or not informative.
 We are also limited in that our interactive strategies of
 \Rcode{browser} and \Rcode{trace} are not available.
 
-One option for further debugging is to run the code in serial with \Rcode{SerialParam}.
-This removes the ``parallel'' component and is the same as running a
-straight \Rcode{*apply} function. This approach may not help if the problem
-was hardware related but can be very useful when the bug is in the \R{} code.
+One option for further debugging is to run the code in serial with
+\Rcode{SerialParam}.  This removes the ``parallel'' component and is
+the same as running a straight \Rcode{*apply} function. This approach
+may not help if the problem was hardware related but can be very
+useful when the bug is in the \R{} code.
 
 We use the now familiar square root example with a bug in the second element
 of \Rcode{X}.

@@ -25,15 +25,57 @@
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor
+### Helpers
 ###
 
-snowWorkers <- function() {
+.snowHost <- function(local=TRUE) {
+    host <-
+        if (local) {
+            "localhost"
+        } else Sys.info()[["nodename"]]
+    host <- Sys.getenv("MASTER", host)
+    host <- getOption("bphost", host)
+
+    host
+}
+
+.snowPort <- function(hostname=NULL) {
+    port <- Sys.getenv("R_PARALLEL_PORT", NA_integer_)
+    port <- Sys.getenv("PORT", port)
+    port <- getOption("ports", port)
+
+    port <-
+        if (identical(tolower(port), "random")) {
+            NA_integer_
+        } else as.integer(port)
+
+    if (is.na(port)) {
+        port <- as.integer(
+            11000 +
+            1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L))
+    }
+
+    port
+}
+
+.snowCores <- function(multicore=FALSE) {
+    if (multicore && .Platform$OS.type == "windows")
+        return(1L)
+
     cores <- max(1L, parallel::detectCores() - 2L)
+    cores <- getOption("mc.cores", cores)
     if (nzchar(Sys.getenv("BBS_HOME")))
         cores <- min(4L, cores)
-    getOption("mc.cores", cores)
+
+    cores
 }
+
+snowWorkers <- function()
+    .snowCores()
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Constructor
+###
 
 setOldClass(c("NULLcluster", "cluster"))
 
@@ -52,6 +94,8 @@ setOldClass(c("NULLcluster", "cluster"))
         .clusterargs="list",
         .controlled="logical",
         .uid = "character",
+        hostname="character",
+        port="integer",
         RNGseed="ANY",
         logdir="character",
         resultdir="character",
@@ -60,6 +104,7 @@ setOldClass(c("NULLcluster", "cluster"))
         initialize = function(...,
             .clusterargs=list(spec=0, type="SOCK"),
             .controlled=TRUE,
+            hostname=NA_character_, port=NA_character_,
             RNGseed=NULL,
             logdir=NA_character_,
             resultdir=NA_character_)
@@ -69,8 +114,19 @@ setOldClass(c("NULLcluster", "cluster"))
                 if (.controlled(e[["self"]]))
                     bpstop(e[["self"]])
             }, onexit=TRUE)
+            manager.hostname <-
+                if (is.na(hostname)) {
+                    local <- (.clusterargs$type == "FORK") ||
+                        is.numeric(.clusterargs$spec)
+                    manager.hostname <- .snowHost(local)
+                } else as.character(hostname)
+            manager.port <-
+                if (is.na(port)) {
+                    .snowPort(manager.hostname)
+                } else as.integer(port)
             callSuper(...)
             initFields(.clusterargs=.clusterargs, .controlled=.controlled,
+                       hostname = manager.hostname, port = manager.port,
                        RNGseed=RNGseed, logdir=logdir, resultdir=resultdir,
                        finalizer_env=env)
         },
@@ -93,7 +149,9 @@ SnowParam <- function(workers=snowWorkers(),
                       progressbar=FALSE, RNGseed=NULL,
                       timeout= 30L * 24L * 60L * 60L,
                       log=FALSE, threshold="INFO", logdir=NA_character_,
-                      resultdir=NA_character_, jobname = "BPJOB", ...)
+                      resultdir=NA_character_, jobname = "BPJOB",
+                      manager.hostname=NA_character_,
+                      manager.port=NA_integer_, ...)
 {
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
@@ -112,7 +170,8 @@ SnowParam <- function(workers=snowWorkers(),
                     catch.errors=catch.errors, stop.on.error=stop.on.error,
                     progressbar=progressbar, RNGseed=RNGseed, timeout=timeout,
                     log=log, threshold=threshold, logdir=logdir,
-                    resultdir=resultdir, jobname=jobname)
+                    resultdir=resultdir, jobname=jobname,
+                    hostname=manager.hostname, port=manager.port)
     validObject(x)
     x
 }
@@ -166,6 +225,12 @@ setValidity("SnowParam", function(object)
 ### Getters / Setters
 ###
 
+.hostname <- function(x)
+    x$hostname
+
+.port <- function(x)
+    x$port
+
 setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     function(x, value)
 {
@@ -214,10 +279,7 @@ setMethod("bpstart", "SnowParam",
 
     ## FORK (useRscript not relevant)
     if (x$.clusterargs$type == "FORK") {
-        bpbackend(x) <-
-            .bpmakeForkCluster(nnodes, bptimeout(x),
-                               getOption("bphost", Sys.info()[["nodename"]]),
-                               getOption("ports", NA_integer_))
+        bpbackend(x) <- .bpfork(nnodes, bptimeout(x), .hostname(x), .port(x))
     ## SOCK, MPI
     } else {
         cargs <- x$.clusterargs
@@ -227,6 +289,12 @@ setMethod("bpstart", "SnowParam",
         cargs$snowlib <- find.package("BiocParallel")
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- find.package("BiocParallel")
+
+        if (x$.clusterargs$type == "SOCK") {
+            cargs$master <- .hostname(x)
+            cargs$port <- .port(x)
+        }
+
         bpbackend(x) <- do.call(parallel::makeCluster, cargs)
     }
 
