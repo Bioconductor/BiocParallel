@@ -40,28 +40,6 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         hostname=manager.hostname, port=manager.port)
 }
 
-setValidity("MulticoreParam",
-    function(object)
-{
-    msg <- NULL
-    txt <- function(fmt, flds)
-        sprintf(fmt, paste(sQuote(flds), collapse=", "))
-
-    fields <- names(.paramFields(.MulticoreParam))
-
-    FUN <- function(i, x) length(x[[i]])
-    isScalar <- sapply(fields, FUN, object) == 1L
-    if (!all(isScalar))
-        msg <- c(msg, txt("%s must be length 1", fields[!isScalar]))
-
-    FUN <- function(i, x) is.na(x[[i]])
-    isNA <- sapply(fields[isScalar], FUN, object)
-    if (any(isNA))
-        msg <- c(msg, txt("%s must be length 1", fields[isNA]))
-
-    if (!is.null(msg)) msg else TRUE
-})
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
 ###
