@@ -98,18 +98,20 @@ bprunMPIslave <- function() {
 
 .bpwriteLog <- function(con, d) {
     .log_internal <- function() {
-        message("############### LOG OUTPUT ###############")
-        message(sprintf("Task: %i", d$value$tag))
-        message(sprintf("Node: %s", d$node))
-        message(sprintf("Timestamp: %s", Sys.time()))
-        message(sprintf("Success: %s", d$value$success))
-        message("Task duration:\n",
-                paste(capture.output(d$value$time), collapse="\n"))
-        message("Memory used:\n", paste(capture.output(gc()), collapse="\n"))
-        message("Log messages:")
-        message(d$value$log)
-        message("stderr and stdout:\n",
-                paste(capture.output(noquote(d$value$sout)), collapse="\n"))
+        message(
+            "############### LOG OUTPUT ###############\n",
+            "Task: ", d$value$tag,
+            "\nNode: ", d$node,
+            "\nTimestamp: ", Sys.time(),
+            "\nSuccess: ", d$value$success,
+            "\nTask duration:\n",
+            paste(capture.output(d$value$time), collapse="\n"),
+            "\nMemory used:\n", paste(capture.output(gc()), collapse="\n"),
+            "\nLog messages:",
+            paste(d$value$log, collapse="\n"),
+            "\nstderr and stdout:\n",
+            paste(noquote(d$value$sout), collapse="\n")
+        )
     }
     if (!is.null(con)) {
         sink(con, type = "message")
@@ -117,6 +119,5 @@ bprunMPIslave <- function() {
         .log_internal()    
         sink(NULL, type = "message")
         sink(NULL, type = "output")
-        close(con)
     } else .log_internal()
 }

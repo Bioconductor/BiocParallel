@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.9
+----------------------
+
+BUG FIXES
+
+    o (v. 1.9.6) use of logdir= no longer tries to double-close log
+      file.
+
 CHANGES IN VERSION 1.7
 ----------------------
 
@@ -6,7 +14,6 @@ BUG FIXES
     o (v. 1.7.4) Allow more than 125 MPI nodes,
       https://github.com/Bioconductor/BiocParallel/issues/55
       
-
 NEW FEATURES
 
     o Throttle number of cores used on Bioconductor build systems
