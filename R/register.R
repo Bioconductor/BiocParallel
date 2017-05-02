@@ -18,11 +18,34 @@
             invisible(registered())
         },
         registered = function(bpparamClass) {
+            if (length(bpparams) == 0L)
+                .registry_init()
             if (missing(bpparamClass))
                 bpparams
             else bpparams[[bpparamClass]]
         })
 )$new()  # Singleton
+
+.registry_init <- function() {
+    multicore <- (parallel::detectCores() - 2L) > 1L
+    tryCatch({
+        if ((.Platform$OS.type == "windows") && multicore) {
+            register(getOption("SnowParam", SnowParam()), TRUE)
+            register(getOption("SerialParam", SerialParam()), FALSE)
+        } else if (multicore) {
+            ## linux / mac
+            register(getOption("MulticoreParam", MulticoreParam()), TRUE)
+            register(getOption("SnowParam", SnowParam()), FALSE)
+            register(getOption("SerialParam", SerialParam()), FALSE)
+        } else {
+            register(getOption("SerialParam", SerialParam()), TRUE)
+        }
+    }, error=function(err) {
+        message("'BiocParallel' did not register default ",
+                "BiocParallelParams:\n  ", conditionMessage(err))
+        NULL
+    })
+}
 
 register <- .registry$register
 
