@@ -2,26 +2,36 @@
 ### progress bar 
 ### -------------------------------------------------------------------------
 
-## derived from plyr::progress_text()
-.progress <- function(style = 3, active = TRUE, ...) {
-    ntasks <- 0
-    txt <- NULL
-    max <- 0
+.progress <- function(style = 3, active = TRUE, iterate = FALSE, ...) {
 
     if (active) {
-        list(
-            init = function(x) {
+        ntasks <- 0L
+        if (iterate) {
+            list(init = function(x) {
+                message("iteration: ", appendLF=FALSE)
+            }, step = function() {
+                ntasks <<- ntasks + 1L
+                erase <- paste(rep("\b", ceiling(log10(ntasks))), collapse="")
+                message(erase, ntasks, appendLF = FALSE)
+            }, term = function() {
+                message()               # new line
+            })
+        } else {
+            ## derived from plyr::progress_text()
+            txt <- NULL
+            max <- 0
+            list(init = function(x) {
                 txt <<- txtProgressBar(max = x, style = style, ...)
                 setTxtProgressBar(txt, 0)
                 max <<- x
-            },
-            step = function() {
-                ntasks <<- ntasks + 1
+            }, step = function() {
+                ntasks <<- ntasks + 1L
                 setTxtProgressBar(txt, ntasks)
                 if (ntasks == max) cat("\n")
-            },
-            term = function() close(txt)
-        )
+            }, term = function() {
+                close(txt)
+            })
+        }
     } else {
         list(
             init = function(x) NULL,

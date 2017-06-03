@@ -276,6 +276,10 @@ bploop.iterate <-
     running <- logical(workers)
     reducer <- .reducer(REDUCE, init, reduce.in.order)
 
+    progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
+    on.exit(progress$term(), TRUE)
+    progress$init(n)
+
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
@@ -293,6 +297,7 @@ bploop.iterate <-
 
         ## collect
         d <- .recv1(cl, "bpiterate")
+        progress$step()
 
         value <- d$value$value
         njob <- d$value$tag

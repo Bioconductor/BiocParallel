@@ -6,6 +6,10 @@ BUG FIXES
     o (v. 1.11.1) Change registered backend initialization  to first
       invocation, rather than on load.
 
+NEW FEATURES
+
+    o (v. 1.11.2) bpiterate() gains a progress counter.
+
 CHANGES IN VERSION 1.9
 ----------------------
 
