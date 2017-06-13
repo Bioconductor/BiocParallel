@@ -15,11 +15,11 @@
 }
 
 .send_VALUE <-
-    function(node, tag, value, success, time, log, gc, sout)
+    function(node, tag, value, success, time, log, sout)
 {
     data <- list(type = "VALUE", tag = tag,
                  value = value, success = success,
-                 time = time, log = log, gc = gc, sout = sout)
+                 time = time, log = log, sout = sout)
     parallel:::sendData(node, data)
     TRUE
 }
@@ -66,7 +66,6 @@ bploop <- function(manager, ...)
                 file <- textConnection("sout", "w", local=TRUE)
                 sink(file, type="message")
                 sink(file, type="output")
-                gc(reset=TRUE)
                 t1 <- proc.time()
                 value <- tryCatch({
                     do.call(msg$data$fun, msg$data$args)
@@ -82,10 +81,9 @@ bploop <- function(manager, ...)
                 success <- !(inherits(value, "bperror") || !all(bpok(value)))
 
                 log <- .log_buffer_get()
-                gc <- gc()
 
                 .send_VALUE(manager, msg$data$tag, value, success, t2 - t1,
-                            log, gc, sout)
+                            log, sout)
             }
         }, interrupt = function(e) {
             NULL
@@ -278,7 +276,7 @@ bploop.iterate <-
 
     progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
     on.exit(progress$term(), TRUE)
-    progress$init(n)
+    progress$init()
 
     ## initial load
     for (i in seq_len(workers)) {

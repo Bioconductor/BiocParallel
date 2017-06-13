@@ -1,3 +1,5 @@
+useDynLib(BiocParallel, .registration=TRUE)
+
 import(methods)
 
 importFrom(stats, setNames, terms)
