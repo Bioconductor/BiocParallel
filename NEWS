@@ -10,6 +10,8 @@ NEW FEATURES
 
     o (v. 1.11.2) bpiterate() gains a progress counter.
 
+    o (v. 1.11.5) ipclock(), etc: inter-process locks and counters
+
 CHANGES IN VERSION 1.9
 ----------------------
 

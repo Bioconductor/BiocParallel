@@ -321,6 +321,12 @@ Logging":
 browseVignettes("BiocParallel")
 @
 
+\subsubsection{Locks and counters}
+
+Inter-process (i.e., single machine) locks and counters are supported
+using \Rcode{ipclock()}, \Rcode{ipcyield()}, and friends. Use these to
+synchronize computation, e.g., allowing only a single process to write
+to a file at a time.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
