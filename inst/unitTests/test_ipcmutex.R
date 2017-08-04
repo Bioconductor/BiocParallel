@@ -9,8 +9,8 @@ test_ipclock <- function()
         BiocParallel::ipcunlock(id)
         time
     }, id, BPPARAM=SnowParam(2))
-    d <- diff(sort(unlist(result, use.names=FALSE)))
-    checkEquals(d, rep(.1, 4), tolerance=.01)
+    d <- diff(range(unlist(result, use.names=FALSE)))
+    checkTrue(d > 0.4)
 }
 
 test_ipccounter <- function()
