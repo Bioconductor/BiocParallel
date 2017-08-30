@@ -10,6 +10,18 @@
 BiocStyle::latex()
 @
 
+<<setup, echo=FALSE>>=
+suppressPackageStartupMessages({
+    library(BiocParallel)
+    library(Rmpi)
+    library(BatchJobs)
+    library(VariantAnnotation)
+    library(GenomicAlignments)
+    library(RNAseqData.HNRNPC.bam.chr14)
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+})
+@ 
+
 \newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
 
 \title{Introduction to \BiocParallel}
@@ -234,6 +246,7 @@ bpparam()
 Add a specialized instance with \Rcode{register}. When
 \Rcode{default} is TRUE, the new instance becomes the default.
 <<register_BatchJobsParam>>=
+default <- registered()
 register(BatchJobsParam(workers = 10), default = TRUE)
 @
 
@@ -243,6 +256,13 @@ is now the default.
 names(registered())
 bpparam()
 @
+
+Restore the original registry
+
+<<register_restore>>=
+for (param in rev(default))
+    register(param)
+@ 
 
 \subsection{Functions}
 
@@ -407,7 +427,9 @@ To re-run the counting example, FUN needs to modified such that `gr` is
 passed as a formal argument and required libraries are loaded on each worker.
 <<cluster_FUN>>=
 FUN <- function(fl, param, gr) {
-  library(GenomicAlignments)
+  suppressPackageStartupMessages({
+     library(GenomicAlignments)
+  })
   gal <- readGAlignments(fl, param = param)
   sum(countOverlaps(gr, gal))
 }
