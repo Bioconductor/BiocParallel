@@ -18,27 +18,29 @@
             invisible(registered())
         },
         registered = function(bpparamClass) {
-            if (length(bpparams) == 0L)
-                .registry_init()
             if (missing(bpparamClass))
-                bpparams
-            else bpparams[[bpparamClass]]
+                .self$bpparams
+            else .self$bpparams[[bpparamClass]]
         })
 )$new()  # Singleton
+
+.register <- .registry$register
+
+.registered <- .registry$registered
 
 .registry_init <- function() {
     multicore <- (parallel::detectCores() - 2L) > 1L
     tryCatch({
         if ((.Platform$OS.type == "windows") && multicore) {
-            register(getOption("SnowParam", SnowParam()), TRUE)
-            register(getOption("SerialParam", SerialParam()), FALSE)
+            .register(getOption("SnowParam", SnowParam()), TRUE)
+            .register(getOption("SerialParam", SerialParam()), FALSE)
         } else if (multicore) {
             ## linux / mac
-            register(getOption("MulticoreParam", MulticoreParam()), TRUE)
-            register(getOption("SnowParam", SnowParam()), FALSE)
-            register(getOption("SerialParam", SerialParam()), FALSE)
+            .register(getOption("MulticoreParam", MulticoreParam()), TRUE)
+            .register(getOption("SnowParam", SnowParam()), FALSE)
+            .register(getOption("SerialParam", SerialParam()), FALSE)
         } else {
-            register(getOption("SerialParam", SerialParam()), TRUE)
+            .register(getOption("SerialParam", SerialParam()), TRUE)
         }
     }, error=function(err) {
         message("'BiocParallel' did not register default ",
@@ -47,9 +49,17 @@
     })
 }
 
-register <- .registry$register
+register <- function(BPPARAM, default = TRUE) {
+    if (length(.registry$bpparams) == 0L)
+        .registry_init()
+    .register(BPPARAM, default = default)
+}
 
-registered <- .registry$registered
+registered <- function(bpparamClass) {
+    if (length(.registry$bpparams) == 0L)
+        .registry_init()
+    .registered(bpparamClass)
+}
 
 bpparam <- function(bpparamClass) {
     if (missing(bpparamClass))
