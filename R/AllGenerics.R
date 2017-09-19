@@ -51,6 +51,9 @@ setGeneric("bpRNGseed",
 setGeneric("bpRNGseed<-",
     function(x, value) standardGeneric("bpRNGseed<-"))
 
+setGeneric("username",
+    function(x) standardGeneric("username"))
+
 ## errors
 
 setGeneric("bpcatchErrors",
