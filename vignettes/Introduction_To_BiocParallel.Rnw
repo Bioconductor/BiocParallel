@@ -13,7 +13,6 @@ BiocStyle::latex()
 <<setup, echo=FALSE>>=
 suppressPackageStartupMessages({
     library(BiocParallel)
-    library(Rmpi)
     library(BatchJobs)
     library(VariantAnnotation)
     library(GenomicAlignments)
