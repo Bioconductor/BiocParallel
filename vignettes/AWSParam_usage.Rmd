@@ -1,0 +1,18 @@
+---
+title: "README_AWSParam.md"
+author: "Nitesh Turaga"
+date: "9/27/2017"
+output: html_document
+---
+
+## AWS credentials
+
+Get credentials from AWS dashboard --> IAM settings. 
+
+The credentials need to be stored in a specific format on your machine under "~/.aws/credentials", more information given at
+[AWS Credentials](https://aws.amazon.com/blogs/security/a-new-and-standardized-way-to-manage-credentials-in-the-aws-sdks/)
+
+
+```{r, include=FALSE}
+aws.signature::use_credentials()
+```

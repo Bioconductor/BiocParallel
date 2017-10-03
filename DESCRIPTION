@@ -18,7 +18,7 @@ biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
 Depends: methods
-Imports: stats, utils, futile.logger, parallel, snow
+Imports: stats, utils, futile.logger, parallel, snow, aws.ec2
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc,
     doParallel, Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14, Rsamtools,
     GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr
