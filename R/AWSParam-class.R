@@ -118,6 +118,12 @@ awsSecretKey <-
     x$awsSecretKey
 }
 
+awsInstance <-
+    function(x)
+{
+    x$awsInstance
+}
+
 awsInstanceType <- 
     function(x)
 {
@@ -157,7 +163,7 @@ setMethod("bpstart", "AWSParam",
                                 sgroup=awsSecurityGroup(x))
         ## Print instance state to screen after starting instance
         x$awsInstance <- result
-        x
+        invisible(x)
     })
 
 
@@ -176,7 +182,6 @@ setMethod("bpstart", "AWSParam",
     }
 }
 
-
 #' @importFrom aws.ec2 terminate_instances
 setMethod("bpstop", "AWSParam",
     function(x)
@@ -186,14 +191,14 @@ setMethod("bpstop", "AWSParam",
         }
         ## Return terminated instance state to screen
         x$awsInstance <- list()
-        x
+        invisible(x)
     })
 
 
 setMethod("bpisup", "AWSParam",
     function(x)
     {
-        .awsInstanceStatus(x$awsInstance) == "running"
+        .awsInstanceStatus(awsInstance(x)) == "running"
     })
 
 
