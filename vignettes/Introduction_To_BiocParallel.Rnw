@@ -19,7 +19,7 @@ suppressPackageStartupMessages({
     library(RNAseqData.HNRNPC.bam.chr14)
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 })
-@ 
+@
 
 \newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
 
@@ -174,9 +174,22 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   default number of workers equals the value of the global option
   \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that
   is not set, the number of cores returned by
-  \Rcode{parallel::detectCores() - 2}.  Based on facilities originally
-  implemented in the \CRANpkg{multicore} package and subsequently the
-  \CRANpkg{parallel} package in base \R{}.
+  \Rcode{parallel::detectCores() - 2}.
+
+  \Rcode{MulticoreParam} uses 'forked' processes with 'copy-on-change'
+  semantics -- memory is only copied when it is changed. This makes it
+  very efficient to invoke compared to other back-ends. A subtle cost,
+  though, is that \R's garbage collector runs periodically, and
+  'marks' memory as in use. This effectively triggers a copy of the
+  marked memory. \R's generational garbage collector is triggered at
+  difficult-to-predict times; the effect in a long-running forked
+  process is that the memory is eventually copied. See
+  \href{https://support.bioconductor.org/p/70196/#70509}{this post}
+  for additional details.
+
+  Based on facilities originally implemented in the
+  \CRANpkg{multicore} package and subsequently the \CRANpkg{parallel}
+  package in base \R{}.
 
   \item{\Rcode{SnowParam}: }
 
@@ -261,7 +274,7 @@ Restore the original registry
 <<register_restore>>=
 for (param in rev(default))
     register(param)
-@ 
+@
 
 \subsection{Functions}
 
@@ -946,6 +959,12 @@ Developers wishing to invoke back-ends other than
 \Rcode{MulticoreParam} need to take special care to ensure that
 required packages, data, and functions are available and loaded on the
 remote nodes.
+
+In \Rcode{bplapply()}, the environment of \Rcode{FUN} (other than the
+global environment) is serialized to the workers. A consequence is
+that, when \Rcode{FUN} is inside a package name space, other function
+available in the name space are available to \Rcode{FUN} on the
+workers.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
