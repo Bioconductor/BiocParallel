@@ -7,6 +7,8 @@ importFrom(stats, setNames, terms)
 importFrom(utils, capture.output, find, head, relist,
            setTxtProgressBar, txtProgressBar)
 
+importFrom(aws.ec2, run_instances, terminate_instances, instance_status)
+importFrom(aws.signature, use_credentials)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes

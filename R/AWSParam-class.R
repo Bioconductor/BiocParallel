@@ -118,6 +118,25 @@ awsSecretKey <-
     x$awsSecretKey
 }
 
+
+.awsCredentials <-
+    function(x)
+{
+    fpath <- "~/.aws/credentials"
+    ## AWS credential template
+    template <-
+        sprintf("[default]
+aws_access_key_id = %s
+aws_secret_access_key = %s", awsAccessKey(x), awsSecretKey(x))
+    if (!file.exists(fpath)) {
+        fileConn <- file(fpath)
+        writeLines(template, fileConn)
+        close(fileConn)
+    }
+    ## Use credentials written in file
+    use_credentials()
+}
+
 awsInstance <-
     function(x)
 {
@@ -156,6 +175,7 @@ awsSecurityGroup <-
 setMethod("bpstart", "AWSParam",
     function(x)
     {
+        .awsCredentials(x)
         ## Set awsBiocVersion, devel vs release
         result <- run_instances(image=awsAmiId(x),
                                 type=awsInstanceType(x),
