@@ -437,6 +437,8 @@ for use with the \Rpackage{foreach} package.
 
 To re-run the counting example, FUN needs to modified such that `gr` is
 passed as a formal argument and required libraries are loaded on each worker.
+(In general, this is not necessary for functions defined in a package name 
+space, see Section~\ref{sec:developers}.)
 <<cluster_FUN>>=
 FUN <- function(fl, param, gr) {
   suppressPackageStartupMessages({
@@ -925,6 +927,7 @@ genomics problems in \R{}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{For developers}
+\label{sec:developers}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -962,7 +965,7 @@ remote nodes.
 
 In \Rcode{bplapply()}, the environment of \Rcode{FUN} (other than the
 global environment) is serialized to the workers. A consequence is
-that, when \Rcode{FUN} is inside a package name space, other function
+that, when \Rcode{FUN} is inside a package name space, other functions
 available in the name space are available to \Rcode{FUN} on the
 workers.
 
