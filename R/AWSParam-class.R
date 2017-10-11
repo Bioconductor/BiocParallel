@@ -119,6 +119,12 @@ awsSecretKey <-
 }
 
 
+awsWorkers <-
+    function(x)
+{
+    x$workers
+}
+
 .awsCredentials <-
     function(x)
 {
@@ -171,18 +177,54 @@ awsSecurityGroup <-
 ### Methods - control
 ###
 
+.awsCluster <- local({
+    cl <- NULL
+    list(
+        isup = function() !is.null(cl),
+        get = function() cl,
+        set = function(cluster) {
+            stopifnot(is(cluster, "AWSParam"))
+            cl <<- cluster
+        }
+    )
+})
+
+awsCluster <- function() {
+    if (!.awsCluster$isup())
+        stop("no existing cluster")
+    .awsCluster$get()
+}
+
 #' @importFrom aws.ec2 run_instances
 setMethod("bpstart", "AWSParam",
     function(x)
     {
+        if (.awsCluster$isup())
+            stop(
+                "use 'bpstop(awsCluster())' to shut down existing AWS cluster",
+                call. = FALSE
+            )
         .awsCredentials(x)
         ## Set awsBiocVersion, devel vs release
         result <- run_instances(image=awsAmiId(x),
                                 type=awsInstanceType(x),
+                                min=awsWorkers(x),
+                                keypair = "bioc-default",
                                 subnet=awsSubnet(x),
                                 sgroup=awsSecurityGroup(x))
         ## Print instance state to screen after starting instance
         x$awsInstance <- result
+        .awsCluster$set(x)
+        ## Wait for instance to be up.
+        message("starting..", appendLF = FALSE)
+        repeat{
+            if (bpisup(x)) {
+                break
+            }
+            message(".", appendLF = FALSE)
+            Sys.sleep(1)
+        }
+        message(.awsInstanceStatus(x))
         invisible(x)
     })
 
@@ -190,8 +232,9 @@ setMethod("bpstart", "AWSParam",
 # Check status of aws ec2 instance
 #' @importFrom aws.ec2 instance_status
 .awsInstanceStatus <-
-    function(instance)
+    function(x)
 {
+    instance <- awsInstance(x)
     if (length(instance) == 0L) {
         "stopped"
     } else {
@@ -208,6 +251,13 @@ setMethod("bpstop", "AWSParam",
     {
         if (bpisup(x)) {
             result <- terminate_instances(x$awsInstance)
+            message("stopping..", appendLF = FALSE)
+            repeat {
+                if (!bpisup(x))
+                    break
+                message(".", appendLF = FALSE)
+            }
+            message(.awsInstanceStatus(x))
         }
         ## Return terminated instance state to screen
         x$awsInstance <- list()
@@ -218,7 +268,14 @@ setMethod("bpstop", "AWSParam",
 setMethod("bpisup", "AWSParam",
     function(x)
     {
-        .awsInstanceStatus(awsInstance(x)) == "running"
+        .awsInstanceStatus(x) == "running"
     })
 
+
+
+.awsClusterIps <- function(x)
+{
+    instances <- aws.ec2::describe_instances(awsInstance(aws))
+    vapply(instances[[1]][["instancesSet"]], `[[`, character(1), "ipAddress")
+}
 
