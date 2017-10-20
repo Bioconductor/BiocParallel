@@ -293,7 +293,8 @@ setMethod("bpstart", "SnowParam",
         cargs$spec <- if (is.numeric(cargs$spec)) {
             nnodes
         } else cargs$spec[seq_len(nnodes)]
-        cargs$snowlib <- find.package("BiocParallel")
+        if (is.null(cargs$snowlib))
+            cargs$snowlib <- find.package("BiocParallel")
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- find.package("BiocParallel")
 
