@@ -243,6 +243,13 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     x
 })
 
+setReplaceMethod("bpworkers", c("SnowParam", "character"),
+    function(x, value)
+{
+    x$workers <- x$.clusterargs$spec <- value
+    x
+})
+
 setMethod("bpRNGseed", "SnowParam",
     function(x)
 {
