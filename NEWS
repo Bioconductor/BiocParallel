@@ -1,4 +1,12 @@
-CHANGES IN VERSION 1.11
+CHANGES IN VERSION 1.14
+-----------------------
+
+BUG FIXES
+
+    o (v 1.13.1) bpiterate,serial-method does not unlist the result of
+    FUN before passing to REDUCE.
+
+CHANGES IN VERSION 1.12
 -----------------------
 
 BUG FIXES
@@ -15,7 +23,7 @@ NEW FEATURES
 
     o (v. 1.11.5) ipclock(), etc: inter-process locks and counters
 
-CHANGES IN VERSION 1.9
+CHANGES IN VERSION 1.10
 ----------------------
 
 BUG FIXES
@@ -23,7 +31,7 @@ BUG FIXES
     o (v. 1.9.6) use of logdir= no longer tries to double-close log
       file.
 
-CHANGES IN VERSION 1.7
+CHANGES IN VERSION 1.8
 ----------------------
 
 BUG FIXES
@@ -36,7 +44,7 @@ NEW FEATURES
     o Throttle number of cores used on Bioconductor build systems
       (with environment variable BBS_HOME set) to 4
 
-CHANGES IN VERSION 1.5
+CHANGES IN VERSION 1.6
 ----------------------
 
 NEW FEATURES
