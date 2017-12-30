@@ -71,7 +71,7 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \details{
 
-  Supported for \code{SnowParam} and \code{MulticorParam}.
+  Supported for \code{SnowParam} and \code{MulticoreParam}.
 
   \code{bpiterate} iterates through an unknown number of data
   chunks, dispatching chunks to parallel workers as they
