@@ -3,10 +3,9 @@
 ### ----------------------------------------------------------------
 
 batchtoolsWorkers <-
-    function(workers=2L)
+    function()
 {
-    workers <- workers
-    workers
+    .snowCores(multicore=.Platform$OS.type != "windows")
 }
 
 
