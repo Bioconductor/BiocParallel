@@ -18,7 +18,8 @@ exportClass(
     SnowParam,
     DoparParam,
     SerialParam,
-    BatchJobsParam
+    BatchJobsParam,
+    BatchtoolsParam
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,6 +28,7 @@ exportClass(
 
 export(
     MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
+    BatchtoolsParam,
 
     ## register
     register, registered, bpparam,
