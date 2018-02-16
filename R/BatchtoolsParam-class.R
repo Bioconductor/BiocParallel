@@ -23,6 +23,8 @@ batchtoolsConf <-
 ### Constructor
 ###
 
+setOldClass("Registry")
+
 .BatchtoolsParam <- setRefClass("BatchtoolsParam",
      contains="BiocParallelParam",
      field = list(
