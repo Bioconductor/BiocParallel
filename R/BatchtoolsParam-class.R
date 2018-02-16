@@ -33,11 +33,20 @@ batchtoolsCluster <-
 
 setOldClass("Registry")
 
+setOldClass(c("NULLRegistry", "Registry"))
+
+.NULLRegistry <-
+    function()
+{
+    structure(list(), class=c("NULLRegistry", "Registry"))
+}
+
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
     contains="BiocParallelParam",
     field = list(
-        cluster = "character"
+        cluster = "character",
+        registry = "Registry"
     ),
     methods = list(
         show = function() {
@@ -52,7 +61,9 @@ BatchtoolsParam <-
     function(workers = batchtoolsWorkers(cluster),
              cluster = batchtoolsCluster())
 {
-    .BatchtoolsParam(workers = workers, cluster = cluster)
+    .BatchtoolsParam(
+        workers = workers, cluster = cluster, registry = .NULLRegistry()
+    )
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,10 +71,10 @@ BatchtoolsParam <-
 ###
 
 setMethod("bpisup", "BatchtoolsParam",
-          function(x)
-          {
-              TRUE
-          })
+    function(x)
+{
+    !is(x$registry, "NULLRegistry")
+})
 
 setMethod("bpbackend", "BatchtoolsParam",
     function(x)
@@ -72,23 +83,36 @@ setMethod("bpbackend", "BatchtoolsParam",
 })
 
 setMethod("bpstart", "BatchtoolsParam",
-          function(x)
+    function(x)
 {
-    reg <- batchtools::makeRegistry(
-        file.dir=tempfile("registry_", "."),
-        conf.file = conf.file
-    )
-    ## TODO: set the registry to BatchtoolsParam
-    setRegistry(x) <- reg
-})
+    cluster <- bpbackend(x)
 
+    oopt <- options(batchtools.verbose = FALSE)
+    on.exit(options(batchtools.verbose = oopt$batchtools.verbose))
+
+    registry <- makeRegistry(
+        file.dir = tempfile(), conf.file = character(),
+        make.default = FALSE
+    )
+    registry$cluster.functions <- switch(
+        cluster,
+        interactive = makeClusterFunctionsInteractive(),
+        socket = makeClusterFunctionsSocket(bpnworkers(x)),
+        multicore = makeClusterFunctionsMulticore(bpnworkers(x))
+    )
+
+    x$registry <- registry
+    invisible(x)
+})
 
 setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
-    ## TODO: getRegistry
-    reg <- getRegistry(x)
-    batchtools::removeRegistry(reg=reg)
+    registry <- x$registry
+    batchtools::removeRegistry(reg=registry)
+
+    x$registry <- .NULLRegistry()
+    invisible(x)
 })
 
 

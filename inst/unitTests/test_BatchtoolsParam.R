@@ -1,4 +1,5 @@
 test_BatchtoolsParam_constructor <- function() {
+    ## TODO: is(param$registry, "NULLRegistry")
     param <- BatchtoolsParam()
     checkTrue(validObject(param))
 
@@ -42,4 +43,12 @@ test_batchtoolsWorkers <- function() {
     checkIdentical(1L, batchtoolsWorkers("interactive"))
 
     checkException(batchtoolsWorkers("unknown"))
+}
+
+test_BatchtoolsParam_bpisup_start_stop <- function() {
+    checkIdentical(FALSE, bpisup(BatchtoolsParam()))
+    checkIdentical(TRUE, bpisup(bpstart(BatchtoolsParam())))
+    ## TODO: other cluster types
+    ## TODO: is an interactive cluster always up? yes
+    ## TODO bpstop
 }
