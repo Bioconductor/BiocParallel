@@ -3,9 +3,13 @@
 ### ----------------------------------------------------------------
 
 batchtoolsWorkers <-
-    function()
+    function(cluster = c("socket", "multicore", "interactive"))
 {
-    .snowCores(multicore=.Platform$OS.type != "windows")
+    switch(
+        match.arg(cluster),
+        interactive = 1L,
+        .snowCores(multicore=.Platform$OS.type != "windows")
+    )
 }
 
 batchtoolsCluster <-
@@ -45,7 +49,7 @@ setOldClass("Registry")
 )
 
 BatchtoolsParam <-
-    function(workers = batchtoolsWorkers(),
+    function(workers = batchtoolsWorkers(cluster),
              cluster = batchtoolsCluster())
 {
     .BatchtoolsParam(workers = workers, cluster = cluster)
@@ -70,8 +74,10 @@ setMethod("bpbackend", "BatchtoolsParam",
 setMethod("bpstart", "BatchtoolsParam",
           function(x)
 {
-    reg <- batchtools::makeRegistry(file.dir=tempfile("registry_", "."),
-                                    conf.file = conf.file)
+    reg <- batchtools::makeRegistry(
+        file.dir=tempfile("registry_", "."),
+        conf.file = conf.file
+    )
     ## TODO: set the registry to BatchtoolsParam
     setRegistry(x) <- reg
 })
