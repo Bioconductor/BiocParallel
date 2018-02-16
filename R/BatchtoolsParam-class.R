@@ -1,3 +1,10 @@
+## TODO: bplapply
+## TODO: updated unit tests
+## TODO: Support more BiocParallel-class parameters, e.g., jobname
+## TODO: Support more makeClusterFunction* and makeRegistry args
+## TODO: Support more cluster back-ends, e.g., SGE
+##   - maybe templates in inst/batchtools/; batchtoolTemplates()
+
 ### ================================================================
 ### BatchtoolsParam objects
 ### ----------------------------------------------------------------
