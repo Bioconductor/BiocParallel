@@ -8,15 +8,20 @@ batchtoolsWorkers <-
     .snowCores(multicore=.Platform$OS.type != "windows")
 }
 
-
-## Return batchtools.Multicore_conf.R as the default path.
-batchtoolsConf <-
-    function(path="inst/batchtools.Multicore_conf.R")
+batchtoolsCluster <-
+    function(cluster = c("socket", "multicore", "interactive"))
 {
-    conf <- path
-    conf
+    if (missing(cluster)) {
+        if (.Platform$OS.type == "windows") {
+            cluster <- "socket"
+        } else {
+            cluster <- "multicore"
+        }
+    } else {
+        cluster <- match.arg(cluster)
+    }
+    cluster
 }
-
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
@@ -24,51 +29,26 @@ batchtoolsConf <-
 
 setOldClass("Registry")
 
-.BatchtoolsParam <- setRefClass("BatchtoolsParam",
-     contains="BiocParallelParam",
-     field = list(
-         reg = "Registry",
-         conf.file = "character"
-     ),
-     methods = list(
-         ## Initialize
-         initialize = function(...,
-             conf.file="character",
-             workers=NA_integer_)
-         {
-             ## Get workers
-             x_workers <- if (is.na(workers)) {
-                              getNumberCPUs <- function(reg) {
-                                  x <- environment(reg$cluster.functions$submitJob)$p
-                                  x[["ncpus"]]
-                              }       
-                          }
-             
-             ## Get config
-             conf <- batchtoolsConf()
-         },
-                               
-         ## Show 
-         show = function() {
-             callSuper()
-             cat(" registry: ", .self$reg,
-                 "\n conf.file: ", .self$conf.file,
-                 sep = "")
-         }
-     )
+.BatchtoolsParam <- setRefClass(
+    "BatchtoolsParam",
+    contains="BiocParallelParam",
+    field = list(
+        cluster = "character"
+    ),
+    methods = list(
+        show = function() {
+            callSuper()
+            cat("  cluster type: ", .self$cluster,
+                "\n", sep="")
+        }
+    )
 )
 
 BatchtoolsParam <-
-    function(workers=batchtoolsWorkers(),
-             conf.file=batchtoolsConf(),
-             ...)
+    function(workers = batchtoolsWorkers(),
+             cluster = batchtoolsCluster())
 {
-
-
-    x <- .BatchtoolsParam(
-        workers = workers,
-        reg = reg,
-        conf.file = conf.file)
+    .BatchtoolsParam(workers = workers, cluster = cluster)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -80,6 +60,12 @@ setMethod("bpisup", "BatchtoolsParam",
           {
               TRUE
           })
+
+setMethod("bpbackend", "BatchtoolsParam",
+    function(x)
+{
+    x$cluster
+})
 
 setMethod("bpstart", "BatchtoolsParam",
           function(x)

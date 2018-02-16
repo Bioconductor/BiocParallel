@@ -41,7 +41,9 @@ export(
 
     ## helpers
     bploop,                             # worker, manager loops
-    multicoreWorkers, snowWorkers, bpvalidate, bpok,
+    multicoreWorkers, snowWorkers,
+    batchtoolsWorkers, batchtoolsCluster,
+    bpvalidate, bpok,
     bprunMPIslave,
 
     ## ipcmutex
