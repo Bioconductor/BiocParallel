@@ -87,6 +87,13 @@ setMethod("bpisup", "BatchtoolsParam",
     ## }
 })
 
+
+setMethod("bpworkers", "BatchtoolsParam",
+    function(x)
+{
+    x$workers
+})
+
 setMethod("bpbackend", "BatchtoolsParam",
     function(x)
 {
@@ -103,14 +110,13 @@ setMethod("bpstart", "BatchtoolsParam",
 
     registry <- batchtools::makeRegistry(
         file.dir = tempfile(), conf.file = character(),
-        ## Make registry default TRUE
         make.default = FALSE
     )
     registry$cluster.functions <- switch(
         cluster,
-        interactive = makeClusterFunctionsInteractive(),
-        socket = makeClusterFunctionsSocket(bpnworkers(x)),
-        multicore = makeClusterFunctionsMulticore(bpnworkers(x))
+        interactive = batchtools::makeClusterFunctionsInteractive(),
+        socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
+        multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x))
     )
 
     x$registry <- registry
@@ -135,41 +141,29 @@ setMethod("bpstop", "BatchtoolsParam",
 setMethod("bplapply", c("ANY", "BatchtoolsParam"),
           function(X, FUN, ..., BPPARAM=bpparam())
 {
-    browser()
     FUN <- match.fun(FUN)
 
     if (!length(X))
         return(list())
 
-
+    ## start / stop cluster
     if (!bpisup(BPPARAM)) {
-        stop("`bpisup()` is FALSE. Start the param using `bpstart()` before using `bplapply()`")
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
     }
+
     registry <- BPPARAM$registry
-    res <- suppressMessages({
-        ##  Make registry / map / submit / wait / load
+    ##  Make registry / map / submit / wait / load
+    ids = batchtools::batchMap(fun=FUN, X=X, more.args = list(...), reg = registry)
+    ids$chunk = batchtools::chunk(ids$job.id, n.chunks = BPPARAM$workers)
 
-        if (is(registry, "NULLRegistry")) {
-            stop("Call 'bpstart()' on your BatchtoolsParam object before using 'bplapply()'")
-        }
-        workers <- bpnworkers(BPPARAM)
-        ids <- batchtools::batchMap(fun=FUN,
-                                    n=workers,
-                                    reg=registry)
-
-        batchtools::submitJobs(ids, reg=registry)
-
-        batchtools::waitForJobs(reg=registry, ids=ids)
-        ##stop.on.error=bpstopOnError(BPPARAM))
-
-        ## loadResults
-        lapply(seq_len(workers), batchtools::loadResult,
-               id=getJobTable(reg=registry),
-               reg=registry)
-
-    })
-    ## Make invisible call to clear registry
+    batchtools::submitJobs(ids = ids, reg = registry)
+    batchtools::waitForJobs(ids = ids, reg = registry)
+    result <- batchtools::reduceResultsList(ids = ids, reg = registry)
+    ## Clear registry
     batchtools::clearRegistry(reg=registry)
+    
+    result
 })
 
-## Workers and how we are passing them in
+
