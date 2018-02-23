@@ -1,7 +1,8 @@
 test_BatchtoolsParam_constructor <- function() {
-    ## TODO: is(param$registry, "NULLRegistry")
     param <- BatchtoolsParam()
     checkTrue(validObject(param))
+
+    checkTrue(is(param$registry, "NULLRegistry"))
 
     isWindows <- .Platform$OS.type == "windows"
     nworkers <- BiocParallel:::.snowCores(isWindows)
@@ -45,10 +46,57 @@ test_batchtoolsWorkers <- function() {
     checkException(batchtoolsWorkers("unknown"))
 }
 
-test_BatchtoolsParam_bpisup_start_stop <- function() {
-    checkIdentical(FALSE, bpisup(BatchtoolsParam()))
-    checkIdentical(TRUE, bpisup(bpstart(BatchtoolsParam())))
-    ## TODO: other cluster types
-    ## TODO: is an interactive cluster always up? yes
-    ## TODO bpstop
+test_BatchtoolsParam_bpisup_start_stop_default<- function() {
+    param <- BatchtoolsParam(workers=2)
+    checkIdentical(FALSE, bpisup(param))
+    checkIdentical(TRUE, bpisup(bpstart(param)))
+    checkIdentical(FALSE, bpisup(bpstop(param)))
 }
+
+## TODO: other cluster types
+test_BatchtoolsParam_bpisup_start_stop_socket <- function() {
+    cluster <- "socket"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    checkIdentical(FALSE, bpisup(param))
+    checkIdentical(TRUE, bpisup(bpstart(param)))
+    checkIdentical(FALSE, bpisup(bpstop(param)))
+
+}
+
+test_BatchtoolsParam_bpisup_start_stop_interactive <- function() {
+    cluster <- "interactive"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    checkIdentical(FALSE, bpisup(param))
+    checkIdentical(TRUE,bpisup( bpstart(param)))
+    checkIdentical(FALSE, bpisup(bpstop(param)))
+}
+
+test_BatchtoolsParam_bplapply <- function() {
+    fun <- function(x) Sys.getpid()
+    ## Check for all cluster types
+    cluster <-  "interactive"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bplapply(1:5, fun, BPPARAM=param)
+    checkIdentical(1L, length(unique(unlist(result))))
+
+    ## Check for multicore
+    cluster <- "multicore"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bplapply(1:5, fun, BPPARAM=param)
+    checkIdentical(2L, length(unique(unlist(result))))
+
+    ## Check for socket
+    cluster <- "socket"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bplapply(1:5, fun, BPPARAM=param)
+    checkIdentical(2L, length(unique(unlist(result))))
+}
+
+
+## TODO: Check registry
+## Check param$registry is not NULLRegistry
+## checkTrue(is(param$registry, "Registry"))
