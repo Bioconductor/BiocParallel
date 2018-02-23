@@ -1,3 +1,4 @@
+## TODO: Support more arguments from BiocParallelPram, jobname, tasks,
 ## TODO: bplapply
 ## TODO: updated unit tests
 ## TODO: Support more BiocParallel-class parameters, e.g., jobname
@@ -81,10 +82,6 @@ setMethod("bpisup", "BatchtoolsParam",
     function(x)
 {
     !is(x$registry, "NULLRegistry")
-    ## TODO: bpisup(x) for interactive is TRUE
-    ## if (identical(bpbackend(x), "interactive")) {
-    ##     TRUE
-    ## }
 })
 
 
@@ -154,16 +151,14 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     registry <- BPPARAM$registry
     ##  Make registry / map / submit / wait / load
-    ids = batchtools::batchMap(fun=FUN, X=X, more.args = list(...), reg = registry)
-    ids$chunk = batchtools::chunk(ids$job.id, n.chunks = BPPARAM$workers)
+    ids = batchtools::batchMap(fun=FUN, X, more.args = list(...), reg = registry)
+    ids$chunk = batchtools::chunk(ids$job.id, n.chunks = bpnworkers(BPPARAM))
 
-    batchtools::submitJobs(ids = ids, reg = registry)
+    batchtools::submitJobs(ids = ids, resources = list(), reg = registry)
     batchtools::waitForJobs(ids = ids, reg = registry)
     result <- batchtools::reduceResultsList(ids = ids, reg = registry)
     ## Clear registry
     batchtools::clearRegistry(reg=registry)
-    
+
     result
 })
-
-
