@@ -1,4 +1,6 @@
-## TODO: Support more arguments from BiocParallelPram, jobname, tasks,
+## TODO: Support more arguments from BiocParallelPram, RNGseed, tasks
+##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
+##   chunk.size?), log / logdir (copy from registry??)
 ## TODO: bplapply
 ## TODO: updated unit tests
 ## TODO: Support more makeClusterFunction* and makeRegistry args
@@ -48,18 +50,16 @@ setOldClass(c("NULLRegistry", "Registry"))
     structure(list(), class=c("NULLRegistry", "Registry"))
 }
 
+setMethod("show", "NULLRegistry", function(object) {
+    cat("NULL Job Registry\n")
+})
+
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
     contains="BiocParallelParam",
     fields = list(
         cluster = "character",
-        registry = "Registry",
-        jobname = "character",
-        progressbar = "logical",
-        ## FIXME: composeTry
-        log = "logical",
-        stop.on.error = "logical",
-        timeout = "integer"
+        registry = "Registry"
     ),
     methods = list(
         show = function() {
@@ -71,23 +71,20 @@ setOldClass(c("NULLRegistry", "Registry"))
 )
 
 BatchtoolsParam <-
-    function(workers = batchtoolsWorkers(cluster),
-             cluster = batchtoolsCluster(), stop.on.error = TRUE,
-             jobname = "BPJOB",
-             ## FIXME: Not sure why we need to have log either
-             log = FALSE,
-             ## 1 week == 604800 sec, Number taken from batchtools waitForJobs
-             timeout = 7L * 24L * 60L * 60L,
-             progressbar = FALSE
-             )
+    function(
+        workers = batchtoolsWorkers(cluster),
+        cluster = batchtoolsCluster(), stop.on.error = TRUE,
+        progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
+        log=FALSE, logdir=NA_character_,
+        resultdir=NA_character_, jobname = "BPJOB"
+    )
 {
-    if (!requireNamespace("batchtools", quietly=TRUE)) {
+    if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
-    }
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
-        jobname = jobname,progressbar = progressbar,
+        jobname = jobname, progressbar = progressbar,
         ## FIXME: These are taken by composeTry and batchtools::submitJobs
         log = log, stop.on.error = stop.on.error, timeout = timeout
     )
@@ -101,12 +98,6 @@ setMethod("bpisup", "BatchtoolsParam",
     function(x)
 {
     !is(x$registry, "NULLRegistry")
-})
-
-setMethod("bpworkers", "BatchtoolsParam",
-    function(x)
-{
-    x$workers
 })
 
 setMethod("bpbackend", "BatchtoolsParam",
@@ -171,7 +162,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     prev.bp <- getOption("BBmisc.ProgressBar.style")
     on.exit(options(BBmisc.ProgressBar.style=prev.pb))
 
-    pb <- c("off", "text")[bpprogressbar(BPPARAM)+1L]
+    pb <- c("off", "text")[bpprogressbar(BPPARAM) + 1L]
     prev.pb <- options(BBmisc.ProgressBar.style=pb)
 
     registry <- BPPARAM$registry
@@ -185,7 +176,10 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
                             stop.on.error = bpstopOnError(BPPARAM))
     result <- batchtools::reduceResultsList(ids = ids, reg = registry)
     ## Clear registry
-    batchtools::clearRegistry(reg=registry)
+    suppressMessages({
+        batchtools::clearRegistry(reg=registry)
+        cat("\n")                       # terminate progress bar
+    })
 
     result
 })
