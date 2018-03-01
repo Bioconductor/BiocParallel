@@ -96,17 +96,21 @@ test_BatchtoolsParam_bplapply <- function() {
     checkIdentical(2L, length(unique(unlist(result))))
 }
 
-
-## TODO: Check registry
-## Check param$registry is not NULLRegistry
-## checkTrue(is(param$registry, "Registry"))
+## Check registry
+test_BatchtoolsParam_registry <- function() {
+    param <- BatchtoolsParam()
+    checkTrue(is(param$registry, "NULLRegistry"))
+    bpstart(param)
+    checkIdentical(FALSE, is(param$registry, "NULLRegistry"))
+    checkTrue(is(param$registry, "Registry"))
+    bpstop(param)
+}
 
 ## Check bpjobname
 test_BatchtoolsParam_bpjobname <- function() {
     checkIdentical("BPJOB", bpjobname(BatchtoolsParam()))
     checkIdentical("myjob", bpjobname(BatchtoolsParam(jobname="myjob")))
 }
-
 
 ## Check bpstopOnError
 test_BatchtoolsParam_bpstopOnError <- function() {
