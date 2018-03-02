@@ -101,9 +101,9 @@ test_BatchtoolsParam_registry <- function() {
     param <- BatchtoolsParam()
     checkTrue(is(param$registry, "NULLRegistry"))
     bpstart(param)
-    checkIdentical(FALSE, is(param$registry, "NULLRegistry"))
+    on.exit(bpstop(param))
+    checkTrue(!is(param$registry, "NULLRegistry"))
     checkTrue(is(param$registry, "Registry"))
-    bpstop(param)
 }
 
 ## Check bpjobname
@@ -120,6 +120,6 @@ test_BatchtoolsParam_bpstopOnError <- function() {
 
 ## Check bptimeout
 test_BatchtoolsParam_bptimeout <- function() {
-    checkEquals(604800L, bptimeout(BatchtoolsParam()))
+    checkEquals(30L * 24L * 60L * 60L, bptimeout(BatchtoolsParam()))
     checkEquals(123L, bptimeout(BatchtoolsParam(timeout=123)))
 }
