@@ -59,13 +59,16 @@ setMethod("show", "NULLRegistry", function(object) {
     contains="BiocParallelParam",
     fields = list(
         cluster = "character",
-        registry = "Registry"
+        registry = "Registry",
+        RNGseed = "integer"
     ),
     methods = list(
         show = function() {
             callSuper()
             cat("  cluster type: ", .self$cluster,
-                "\n", sep="")
+                "\n", sep="",
+                "  bpRNGseed: ", .self$RNGseed,
+                "\n")
         }
     )
 )
@@ -74,8 +77,8 @@ BatchtoolsParam <-
     function(
         workers = batchtoolsWorkers(cluster),
         cluster = batchtoolsCluster(), stop.on.error = TRUE,
-        progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
-        log=FALSE, logdir=NA_character_,
+        progressbar=FALSE, RNGseed=NA_integer_,
+        timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB"
     )
 {
@@ -86,7 +89,8 @@ BatchtoolsParam <-
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
         jobname = jobname, progressbar = progressbar,
         ## FIXME: These are taken by composeTry and batchtools::submitJobs
-        log = log, stop.on.error = stop.on.error, timeout = timeout
+        log = log, stop.on.error = stop.on.error, timeout = timeout,
+        RNGseed = RNGseed
     )
 }
 
@@ -98,6 +102,24 @@ setMethod("bpisup", "BatchtoolsParam",
     function(x)
 {
     !is(x$registry, "NULLRegistry")
+})
+
+setMethod("bpRNGseed", "BatchtoolsParam",
+    function(x)
+{
+    x$RNGseed
+})
+
+setReplaceMethod("bpRNGseed", "BatchtoolsParam",
+    function(x, value)
+{
+    if (bpisup(x)) {
+        message("'bpRNGseed()' does not support being reset being started with",
+                " 'bpstart()'.\n Use 'bpstop()' before resetting the 'bpRNGseed()'")
+    } else if (!bpisup(x)) {
+        x$RNGseed <- value
+    }
+    x
 })
 
 setMethod("bpbackend", "BatchtoolsParam",
@@ -116,7 +138,7 @@ setMethod("bpstart", "BatchtoolsParam",
 
     registry <- batchtools::makeRegistry(
         file.dir = tempfile(), conf.file = character(),
-        make.default = FALSE
+        make.default = FALSE, seed=x$RNGseed
     )
     registry$cluster.functions <- switch(
         cluster,
