@@ -123,3 +123,29 @@ test_BatchtoolsParam_bptimeout <- function() {
     checkEquals(30L * 24L * 60L * 60L, bptimeout(BatchtoolsParam()))
     checkEquals(123L, bptimeout(BatchtoolsParam(timeout=123)))
 }
+
+## Check bpRNGseed
+test_BatchtoolsParam_bpRNGseed <- function() {
+    ##  Check setting RNGseed
+    param <- BatchtoolsParam(RNGseed=123L)
+    checkEqualsNumeric(123L, bpRNGseed(param))
+    ## Check reset RNGseed
+    new_seed <- 234L
+    bpRNGseed(param) <- new_seed
+    checkEqualsNumeric(new_seed, bpRNGseed(param))
+    ## Check after bpstart
+    bpstart(param)
+    checkEqualsNumeric(new_seed, bpRNGseed(param))
+    checkEqualsNumeric(new_seed, param$registry$seed)
+    bpstop(param)
+    ## Check failure to reset
+    set_val <- function(val) {
+        bpRNGseed(param) <- val
+    }
+    ## Check NULL value
+    param <- BatchtoolsParam()
+    on.exit(bpstop(param))
+    checkEquals(NULL, bpRNGseed(param))
+    ## Check fail
+    checkException(set_val("abc"))
+}
