@@ -1,4 +1,4 @@
-## TODO: Support more arguments from BiocParallelPram, RNGseed, tasks
+## TODO: Support more arguments from BiocParallelPram, tasks
 ##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
 ##   chunk.size?), log / logdir (copy from registry??)
 ## TODO: bplapply
@@ -50,7 +50,9 @@ setOldClass(c("NULLRegistry", "Registry"))
     structure(list(), class=c("NULLRegistry", "Registry"))
 }
 
-setMethod("show", "NULLRegistry", function(object) {
+setMethod("show", "NULLRegistry",
+    function(object)
+{
     cat("NULL Job Registry\n")
 })
 
@@ -60,7 +62,7 @@ setMethod("show", "NULLRegistry", function(object) {
     fields = list(
         cluster = "character",
         registry = "Registry",
-        RNGseed = "integer"
+        RNGseed = "ANY"
     ),
     methods = list(
         show = function() {
@@ -77,7 +79,7 @@ BatchtoolsParam <-
     function(
         workers = batchtoolsWorkers(cluster),
         cluster = batchtoolsCluster(), stop.on.error = TRUE,
-        progressbar=FALSE, RNGseed=NA_integer_,
+        progressbar=FALSE, RNGseed=NULL,
         timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB"
     )
@@ -85,10 +87,14 @@ BatchtoolsParam <-
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
 
+    if(!is.null(RNGseed)) {
+        if (!is(RNGseed,"numeric"))
+            stop("'RNGseed' needs to be numeric value")
+    }
+
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
         jobname = jobname, progressbar = progressbar,
-        ## FIXME: These are taken by composeTry and batchtools::submitJobs
         log = log, stop.on.error = stop.on.error, timeout = timeout,
         RNGseed = RNGseed
     )
@@ -110,14 +116,14 @@ setMethod("bpRNGseed", "BatchtoolsParam",
     x$RNGseed
 })
 
-setReplaceMethod("bpRNGseed", "BatchtoolsParam",
+setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     function(x, value)
 {
     if (bpisup(x)) {
         message("'bpRNGseed()' does not support being reset being started with",
                 " 'bpstart()'.\n Use 'bpstop()' before resetting the 'bpRNGseed()'")
     } else if (!bpisup(x)) {
-        x$RNGseed <- value
+        x$RNGseed <- as.integer(value)
     }
     x
 })
