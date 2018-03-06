@@ -139,13 +139,35 @@ test_BatchtoolsParam_bpRNGseed <- function() {
     checkEqualsNumeric(new_seed, param$registry$seed)
     bpstop(param)
     ## Check failure to reset
-    set_val <- function(val) {
-        bpRNGseed(param) <- val
-    }
-    ## Check NULL value
-    param <- BatchtoolsParam()
-    on.exit(bpstop(param))
-    checkEquals(NULL, bpRNGseed(param))
-    ## Check fail
+    ## set_val <- function(val) {
+    ##     bpRNGseed(param) <- val
+    ## }
+    ## ## Check NULL value
+    ## param <- BatchtoolsParam()
+    ## on.exit(bpstop(param))
+    ## checkEquals(NULL, bpRNGseed(param))
+    ## ## Check fail
     checkException(set_val("abc"))
+}
+
+
+test_BatchtoolsParam_bplog <- function() {
+    ## Test param w/o log and logdir
+    checkTrue(is.na(bplogdir(BatchtoolsParam())))
+    checkTrue(!bplog(BatchtoolsParam()))
+    ## test param with log, w/o logdir
+    param <- BatchtoolsParam(log=TRUE)
+    checkTrue(bplog(param))
+    checkTrue(is.na(bplogdir(param)))
+    ## Check if setter works
+    temp_log_dir <- tempfile()
+    bplogdir(param) <- temp_log_dir
+    checkIdentical(temp_log_dir, bplogdir(param))
+    ## test param without log and w logdir
+    checkException(BatchtoolsParam(logdir=temp_log_dir))
+    ## check logs in logdir
+    param <- BatchtoolsParam(log=TRUE, logdir=temp_log_dir)
+    bplapply(1:5, sqrt, BPPARAM=param)
+    checkTrue(file.exists(temp_log_dir))
+    checkTrue(file.exists(file.path(temp_log_dir, "logs")))
 }
