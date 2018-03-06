@@ -62,15 +62,18 @@ setMethod("show", "NULLRegistry",
     fields = list(
         cluster = "character",
         registry = "Registry",
-        RNGseed = "ANY"
+        RNGseed = "ANY",
+        logdir = "character"
     ),
     methods = list(
         show = function() {
             callSuper()
             cat("  cluster type: ", .self$cluster,
-                "\n", sep="",
+                "\n",
                 "  bpRNGseed: ", .self$RNGseed,
-                "\n")
+                "\n",
+                "  bplogdir: ", .self$logdir,
+                "\n", sep="")
         }
     )
 )
@@ -94,15 +97,57 @@ BatchtoolsParam <-
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
-        jobname = jobname, progressbar = progressbar,
-        log = log, stop.on.error = stop.on.error, timeout = timeout,
+        jobname = jobname, progressbar = progressbar, log = log,
+        logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
         RNGseed = RNGseed
     )
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Validity
+###
+
+.valid.BatchtoolsParam.log <- .valid.SnowParam.log
+
+setValidity("BatchtoolsParam", function(object)
+{
+    msg <- NULL
+    if(!is.na(object$log))
+        msg <- c(msg,
+                 .valid.BatchtoolsParam.log(object))
+
+    if (is.null(msg))
+        TRUE
+    else
+        msg
+})
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
 ###
+
+setMethod("bplogdir", "BatchtoolsParam",
+    function(x)
+{
+    x$logdir
+})
+
+setReplaceMethod("bplogdir", c("BatchtoolsParam", "character"),
+    function(x, value)
+{
+    if (!length(value)) {
+        ##        if (bpisup(x))
+        ##           value <- x$registry$file.dir
+        ##        else
+        value <- NA_character_
+    }
+    x$logdir <- value
+    if (is.null(msg <- .valid.BatchtoolsParam.log(x)))
+        x
+    else
+        stop(msg)
+})
 
 setMethod("bpisup", "BatchtoolsParam",
     function(x)
@@ -203,6 +248,18 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
                             timeout = bptimeout(BPPARAM),
                             stop.on.error = bpstopOnError(BPPARAM))
     result <- batchtools::reduceResultsList(ids = ids, reg = registry)
+
+    ## Copy logs from log dir to bplogdir before clearing registry
+    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
+
+        logs <- file.path(BPPARAM$registry$file.dir, "logs")
+        ## Create log dir
+        dir.create(bplogdir(BPPARAM))
+        ## Recursive copy logs
+        file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE,
+                  overwrite=TRUE)
+    }
+
     ## Clear registry
     suppressMessages({
         batchtools::clearRegistry(reg=registry)
