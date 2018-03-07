@@ -1,6 +1,6 @@
 ## TODO: Support more arguments from BiocParallelPram, tasks
 ##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
-##   chunk.size?), log / logdir (copy from registry??)
+##   chunk.size?)
 ## TODO: bplapply
 ## TODO: updated unit tests
 ## TODO: Support more makeClusterFunction* and makeRegistry args
@@ -12,7 +12,7 @@
 ### ----------------------------------------------------------------
 
 batchtoolsWorkers <-
-    function(cluster = c("socket", "multicore", "interactive"))
+    function(cluster = c("socket", "multicore", "interactive", "SGE"))
 {
     switch(
         match.arg(cluster),
@@ -22,7 +22,7 @@ batchtoolsWorkers <-
 }
 
 batchtoolsCluster <-
-    function(cluster = c("socket", "multicore", "interactive"))
+    function(cluster = c("socket", "multicore", "interactive", "SGE"))
 {
     if (missing(cluster)) {
         if (.Platform$OS.type == "windows") {
@@ -191,11 +191,18 @@ setMethod("bpstart", "BatchtoolsParam",
         file.dir = tempfile(), conf.file = character(),
         make.default = FALSE, seed=x$RNGseed
     )
+
+    browser()
+    template <- .batchtoolsTemplates(cluster)
+    ##    .createConfFile(cluster, template)
+    ##    conf.file = system.file("inst", "batchtools", "conf", packages="BiocParallel")
+
     registry$cluster.functions <- switch(
         cluster,
         interactive = batchtools::makeClusterFunctionsInteractive(),
         socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
-        multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x))
+        multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
+        sge = batchtools::makeClusterFunctionsSGE(template=template)
     )
 
     x$registry <- registry
@@ -268,3 +275,26 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     result
 })
+
+### -------------------------------------------------
+###  Helper function to return correct template
+###
+.batchtoolsTemplates <-
+    function(cluster)
+{
+    templatesPath <- system.file("inst", "batchtools", package="BiocParallel")
+    cl <- tolower(cluster)
+
+    templatesList <- list.files(templatesPath, pattern=".tmpl", full.names=TRUE)
+    template <- templatesList[grep(cl, templatesList)]
+    template
+}
+
+
+## .createConfFile <-
+##     function(cluster, template)
+## {
+##     x <- paste0("cluster.functions = makeClusterFunctions", cluster, "('", template,"')")
+##     conf.file = system.file("inst", "batchtools", "conf", package="BiocParallel")
+##     write(x, file = conf.file)
+## }
