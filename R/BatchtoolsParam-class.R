@@ -6,13 +6,18 @@
 ## TODO: Support more makeClusterFunction* and makeRegistry args
 ## TODO: Support more cluster back-ends, e.g., SGE
 ##   - maybe templates in inst/batchtools/; batchtoolTemplates()
+## TODO: fix progress bar
+
+## CHALLEGING: implement BPREDO for bplapply; bpiterate()
 
 ### ================================================================
 ### BatchtoolsParam objects
 ### ----------------------------------------------------------------
 
+.BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge")
+
 batchtoolsWorkers <-
-    function(cluster = c("socket", "multicore", "interactive", "SGE"))
+    function(cluster = .BATCHTOOLS_CLUSTERS)
 {
     switch(
         match.arg(cluster),
@@ -22,7 +27,7 @@ batchtoolsWorkers <-
 }
 
 batchtoolsCluster <-
-    function(cluster = c("socket", "multicore", "interactive", "SGE"))
+    function(cluster = .BATCHTOOLS_CLUSTERS)
 {
     if (missing(cluster)) {
         if (.Platform$OS.type == "windows") {
@@ -50,11 +55,11 @@ setOldClass(c("NULLRegistry", "Registry"))
     structure(list(), class=c("NULLRegistry", "Registry"))
 }
 
-setMethod("show", "NULLRegistry",
-    function(object)
+print.NULLRegistry <-
+    function(x, ...)
 {
     cat("NULL Job Registry\n")
-})
+}
 
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
@@ -62,7 +67,7 @@ setMethod("show", "NULLRegistry",
     fields = list(
         cluster = "character",
         registry = "Registry",
-        RNGseed = "ANY",
+        RNGseed = "integer",
         logdir = "character"
     ),
     methods = list(
@@ -70,9 +75,9 @@ setMethod("show", "NULLRegistry",
             callSuper()
             cat("  cluster type: ", .self$cluster,
                 "\n",
-                "  bpRNGseed: ", .self$RNGseed,
+                "  bpRNGseed: ", bpRNGseed(.self),
                 "\n",
-                "  bplogdir: ", .self$logdir,
+                "  bplogdir: ", bplogdir(.self),
                 "\n", sep="")
         }
     )
@@ -81,19 +86,16 @@ setMethod("show", "NULLRegistry",
 BatchtoolsParam <-
     function(
         workers = batchtoolsWorkers(cluster),
-        cluster = batchtoolsCluster(), stop.on.error = TRUE,
-        progressbar=FALSE, RNGseed=NULL,
+        cluster = batchtoolsCluster(),
+        template = batchtoolsTemplate(cluster),
+        stop.on.error = TRUE,
+        progressbar=FALSE, RNGseed = NA_integer_,
         timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB"
     )
 {
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
-
-    if(!is.null(RNGseed)) {
-        if (!is(RNGseed,"numeric"))
-            stop("'RNGseed' needs to be numeric value")
-    }
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
@@ -112,9 +114,12 @@ BatchtoolsParam <-
 setValidity("BatchtoolsParam", function(object)
 {
     msg <- NULL
-    if(!is.na(object$log))
-        msg <- c(msg,
-                 .valid.BatchtoolsParam.log(object))
+    if (!bpbackend(object) %in% .BATCHTOOLS_CLUSTERS) {
+        types <- paste(.BATCHTOOLS_CLUSTERS, collape = ", ")
+        msg <- c(msg, paste("'cluster' must be one of", types))
+    }
+    if(.isTRUEorFALSE(bplog(object)))
+        msg <- c(msg, .valid.BatchtoolsParam.log(object))
 
     if (is.null(msg))
         TRUE
@@ -136,17 +141,12 @@ setMethod("bplogdir", "BatchtoolsParam",
 setReplaceMethod("bplogdir", c("BatchtoolsParam", "character"),
     function(x, value)
 {
-    if (!length(value)) {
-        ##        if (bpisup(x))
-        ##           value <- x$registry$file.dir
-        ##        else
-        value <- NA_character_
-    }
+    if (bpisup(x))
+        stop("use 'bpstop()' before setting 'bplogdir()'")
+
     x$logdir <- value
-    if (is.null(msg <- .valid.BatchtoolsParam.log(x)))
-        x
-    else
-        stop(msg)
+    validObject(x)
+    x
 })
 
 setMethod("bpisup", "BatchtoolsParam",
@@ -164,12 +164,10 @@ setMethod("bpRNGseed", "BatchtoolsParam",
 setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     function(x, value)
 {
-    if (bpisup(x)) {
-        message("'bpRNGseed()' does not support being reset being started with",
-                " 'bpstart()'.\n Use 'bpstop()' before resetting the 'bpRNGseed()'")
-    } else if (!bpisup(x)) {
-        x$RNGseed <- as.integer(value)
-    }
+    if (bpisup(x))
+        stop("use 'bpstop()' before setting 'bpRNGseed()'")
+
+    x$RNGseed <- as.integer(value)
     x
 })
 
@@ -187,22 +185,24 @@ setMethod("bpstart", "BatchtoolsParam",
     oopt <- options(batchtools.verbose = FALSE)
     on.exit(options(batchtools.verbose = oopt$batchtools.verbose))
 
+    seed <- bpRNGseed(x)
+    if (is.na(seed))
+        seed <- NULL
     registry <- batchtools::makeRegistry(
         file.dir = tempfile(), conf.file = character(),
-        make.default = FALSE, seed=x$RNGseed
+        make.default = FALSE, seed = seed
     )
-
-    browser()
-    template <- .batchtoolsTemplates(cluster)
-    ##    .createConfFile(cluster, template)
-    ##    conf.file = system.file("inst", "batchtools", "conf", packages="BiocParallel")
 
     registry$cluster.functions <- switch(
         cluster,
         interactive = batchtools::makeClusterFunctionsInteractive(),
         socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
         multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
-        sge = batchtools::makeClusterFunctionsSGE(template=template)
+        sge = {
+            template <- .batchtoolsTemplates(cluster)
+            batchtools::makeClusterFunctionsSGE(template = template)
+        },
+        default = stop("unsupported cluster type '", cluster, "'")
     )
 
     x$registry <- registry
@@ -279,22 +279,9 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 ### -------------------------------------------------
 ###  Helper function to return correct template
 ###
-.batchtoolsTemplates <-
+batchtoolsTemplate <-
     function(cluster)
 {
-    templatesPath <- system.file("inst", "batchtools", package="BiocParallel")
-    cl <- tolower(cluster)
-
-    templatesList <- list.files(templatesPath, pattern=".tmpl", full.names=TRUE)
-    template <- templatesList[grep(cl, templatesList)]
-    template
+    tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
+    system.file("batchtools", tmpl, package="BiocParallel")
 }
-
-
-## .createConfFile <-
-##     function(cluster, template)
-## {
-##     x <- paste0("cluster.functions = makeClusterFunctions", cluster, "('", template,"')")
-##     conf.file = system.file("inst", "batchtools", "conf", package="BiocParallel")
-##     write(x, file = conf.file)
-## }
