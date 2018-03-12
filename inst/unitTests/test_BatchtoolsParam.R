@@ -139,15 +139,11 @@ test_BatchtoolsParam_bpRNGseed <- function() {
     checkEqualsNumeric(new_seed, param$registry$seed)
     bpstop(param)
     ## Check failure to reset
-    ## set_val <- function(val) {
-    ##     bpRNGseed(param) <- val
-    ## }
     ## ## Check NULL value
-    ## param <- BatchtoolsParam()
-    ## on.exit(bpstop(param))
-    ## checkEquals(NULL, bpRNGseed(param))
+    param <- BatchtoolsParam()
+    checkTrue(is.na(bpRNGseed(param)))
     ## ## Check fail
-    checkException(set_val("abc"))
+    checkException({bpRNGseed(param) <- "abc"})
 }
 
 
@@ -171,3 +167,21 @@ test_BatchtoolsParam_bplog <- function() {
     checkTrue(file.exists(temp_log_dir))
     checkTrue(file.exists(file.path(temp_log_dir, "logs")))
 }
+
+
+test_BatchtoolsParam_available_clusters <- function() {
+    clusters <- BiocParallel:::.BATCHTOOLS_CLUSTERS
+    checkTrue(all.equal(
+        c("socket", "multicore", "interactive", "sge"),
+        clusters)
+        )
+}
+
+test_BatchtoolsParam_template <- function() {
+
+}
+
+test_BatchtoolsParam_sge <- function() {
+    param <- BatchtoolsParam(cluster="sge")
+    checkIdenctical("batchtools-sge.tmpl", basename(param$template))
+    }

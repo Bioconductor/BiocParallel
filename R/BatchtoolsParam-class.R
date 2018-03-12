@@ -66,6 +66,7 @@ print.NULLRegistry <-
     contains="BiocParallelParam",
     fields = list(
         cluster = "character",
+        template = "character",
         registry = "Registry",
         RNGseed = "integer",
         logdir = "character"
@@ -74,6 +75,8 @@ print.NULLRegistry <-
         show = function() {
             callSuper()
             cat("  cluster type: ", .self$cluster,
+                "\n",
+                "  template: ", .self$template,
                 "\n",
                 "  bpRNGseed: ", bpRNGseed(.self),
                 "\n",
@@ -87,7 +90,7 @@ BatchtoolsParam <-
     function(
         workers = batchtoolsWorkers(cluster),
         cluster = batchtoolsCluster(),
-        template = batchtoolsTemplate(cluster),
+        template = NA_character_,
         stop.on.error = TRUE,
         progressbar=FALSE, RNGseed = NA_integer_,
         timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
@@ -97,11 +100,18 @@ BatchtoolsParam <-
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
 
+    ## Check if template is valid
+    if (missing(template)) {
+        template <- batchtoolsTemplate(cluster)
+    } else {
+        template <- template
+    }
+
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
-        RNGseed = RNGseed
+        RNGseed = RNGseed, template = template
     )
 }
 
@@ -188,6 +198,7 @@ setMethod("bpstart", "BatchtoolsParam",
     seed <- bpRNGseed(x)
     if (is.na(seed))
         seed <- NULL
+
     registry <- batchtools::makeRegistry(
         file.dir = tempfile(), conf.file = character(),
         make.default = FALSE, seed = seed
@@ -199,9 +210,10 @@ setMethod("bpstart", "BatchtoolsParam",
         socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
         multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
         sge = {
-            template <- .batchtoolsTemplates(cluster)
+            template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsSGE(template = template)
         },
+        ## slurm, lsf, torque, openlava
         default = stop("unsupported cluster type '", cluster, "'")
     )
 
@@ -282,6 +294,15 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 batchtoolsTemplate <-
     function(cluster)
 {
-    tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
-    system.file("batchtools", tmpl, package="BiocParallel")
+    ## cluster should accept template from only
+    ## sge, slurm, lsf, torque, openlava
+    condition <- !file.exists(cluster)
+
+    ## Check if template and cluster are valid
+    if (condition) {
+        tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
+        return(system.file("batchtools", tmpl, package="BiocParallel"))
+    } else {
+        return(cluster)
+    }
 }
