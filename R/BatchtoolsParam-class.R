@@ -15,7 +15,7 @@
 ### ----------------------------------------------------------------
 
 .BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge",
-                          "slurm", "lsf", "openlava", "torque")
+                          "slurm", "lsf", "openlava")
 
 batchtoolsWorkers <-
     function(cluster = .BATCHTOOLS_CLUSTERS)
@@ -100,13 +100,6 @@ BatchtoolsParam <-
 {
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
-
-    ## Check if template is valid
-    if (missing(template)) {
-        template <- batchtoolsTemplate(cluster)
-    } else {
-        template <- template
-    }
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
@@ -213,25 +206,25 @@ setMethod("bpstart", "BatchtoolsParam",
         sge = {
             template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsSGE(template = template)
+            x$template <- template
         },
         ## Add mutliple cluster support
         slurm = {
             template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsSlurm(template=template)
+            x$template <- template
         },
         lsf = {
             template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsLSF(template=template)
+            x$template <- template
         },
         openlava = {
             template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsOpenLava(template=template)
+            x$template <- template
         },
-        torque = {
-            template <- batchtoolsTemplate(cluster)
-            batchtools::makeClusterFunctionsTORQUE(template = template)
-        },
-        ## slurm, lsf, torque, openlava
+        ## slurm, lsf, openlava
         default = stop("unsupported cluster type '", cluster, "'")
     )
 
@@ -242,6 +235,7 @@ setMethod("bpstart", "BatchtoolsParam",
 setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
+    ## TODO: bpstop for cluster types not available on
     registry <- x$registry
     batchtools::removeRegistry(reg=registry)
 
@@ -313,19 +307,20 @@ batchtoolsTemplate <-
     function(cluster)
 {
     ## cluster should accept template from only
-    ## sge, slurm, lsf, torque, openlava
+    ## sge, slurm, lsf, openlava
     condition <- !file.exists(cluster)
 
     ## Check if template and cluster are valid
     if (condition) {
         tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
         tmpl_file <- system.file("batchtools", tmpl, package="BiocParallel")
-    	if (tmpl_file == "") {
-			tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
-			tmpl_file <- system.file("templates", tmpl, package="batchtools")
-		}
-		warning("template not provided, using the default template in batchtools.")
-		return(tmpl_file)
+        if (tmpl_file == "") {
+            tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
+            tmpl_file <-
+                system.file("templates", tmpl, package="batchtools")
+        }
+        warning("template not provided, using the default template in batchtools.")
+        return(tmpl_file)
     } else {
         return(cluster)
     }
