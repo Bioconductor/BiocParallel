@@ -1,18 +1,16 @@
 #!/bin/bash
 
-## The name of the job, can be anything, simply used when displaying
-## the list of running jobs
+## The name of the job, can be anything, simply used when displaying the list of running jobs
 #$ -N <%= job.name %>
 
 ## Combining output/error messages into one file
 #$ -j y
 
-## Give the name of the output log file
+## Giving the name of the output log file
 #$ -o <%= log.file %>
 
-## One needs to tell the queue system to use the current directory as
-## the working directory Or else the script may fail as it will
-## execute in your top level home directory /home/username
+## One needs to tell the queue system to use the current directory as the working directory
+## Or else the script may fail as it will execute in your top level home directory /home/username
 #$ -cwd
 
 ## Use environment variables
@@ -21,8 +19,11 @@
 ## Use correct queue
 #$ -q all.q
 
-## On the worker node, set up and run R
+## R settings
 module load R/3.4.3
+
+## Export value of DEBUGME environemnt var to slave
+export DEBUGME=<%= Sys.getenv("DEBUGME") %>
+
 Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
 exit 0
-
