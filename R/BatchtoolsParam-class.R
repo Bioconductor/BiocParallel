@@ -14,7 +14,8 @@
 ### BatchtoolsParam objects
 ### ----------------------------------------------------------------
 
-.BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge")
+.BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge",
+                          "slurm", "lsf", "openlava", "torque")
 
 batchtoolsWorkers <-
     function(cluster = .BATCHTOOLS_CLUSTERS)
@@ -213,6 +214,23 @@ setMethod("bpstart", "BatchtoolsParam",
             template <- batchtoolsTemplate(cluster)
             batchtools::makeClusterFunctionsSGE(template = template)
         },
+        ## Add mutliple cluster support
+        slurm = {
+            template <- batchtoolsTemplate(cluster)
+            batchtools::makeClusterFunctionsSlurm(template=template)
+        },
+        lsf = {
+            template <- batchtoolsTemplate(cluster)
+            batchtools::makeClusterFunctionsLSF(template=template)
+        },
+        openlava = {
+            template <- batchtoolsTemplate(cluster)
+            batchtools::makeClusterFunctionsOpenLava(template=template)
+        },
+        torque = {
+            template <- batchtoolsTemplate(cluster)
+            batchtools::makeClusterFunctionsTORQUE(template = template)
+        },
         ## slurm, lsf, torque, openlava
         default = stop("unsupported cluster type '", cluster, "'")
     )
@@ -301,7 +319,13 @@ batchtoolsTemplate <-
     ## Check if template and cluster are valid
     if (condition) {
         tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
-        return(system.file("batchtools", tmpl, package="BiocParallel"))
+        tmpl_file <- system.file("batchtools", tmpl, package="BiocParallel")
+    	if (tmpl_file == "") {
+			tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
+			tmpl_file <- system.file("templates", tmpl, package="batchtools")
+		}
+		warning("template not provided, using the default template in batchtools.")
+		return(tmpl_file)
     } else {
         return(cluster)
     }
