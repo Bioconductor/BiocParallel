@@ -28,6 +28,26 @@ test_BatchtoolsParam_constructor <- function() {
     checkIdentical(cluster, bpbackend(param))
     checkIdentical(1L, bpnworkers(param))
 
+    cluster <- "sge"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    cluster <- "lsf"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    cluster <- "slurm"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    cluster <- "openlava"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
+    cluster <- "torque"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical(cluster, bpbackend(param))
+
     cluster <- "unknown"
     checkException(BatchtoolsParam(cluster=cluster))
 }
@@ -82,18 +102,21 @@ test_BatchtoolsParam_bplapply <- function() {
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(1L, length(unique(unlist(result))))
+    bpstop(param)
 
     ## Check for multicore
     cluster <- "multicore"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(2L, length(unique(unlist(result))))
+    bpstop(param)
 
     ## Check for socket
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(2L, length(unique(unlist(result))))
+    bpstop(param)
 }
 
 ## Check registry
@@ -101,9 +124,9 @@ test_BatchtoolsParam_registry <- function() {
     param <- BatchtoolsParam()
     checkTrue(is(param$registry, "NULLRegistry"))
     bpstart(param)
-    on.exit(bpstop(param))
     checkTrue(!is(param$registry, "NULLRegistry"))
     checkTrue(is(param$registry, "Registry"))
+    bpstop(param)
 }
 
 ## Check bpjobname
@@ -166,22 +189,21 @@ test_BatchtoolsParam_bplog <- function() {
     bplapply(1:5, sqrt, BPPARAM=param)
     checkTrue(file.exists(temp_log_dir))
     checkTrue(file.exists(file.path(temp_log_dir, "logs")))
+    bpstop(param)
 }
 
 
 test_BatchtoolsParam_available_clusters <- function() {
     clusters <- BiocParallel:::.BATCHTOOLS_CLUSTERS
     checkTrue(all.equal(
-        c("socket", "multicore", "interactive", "sge"),
-        clusters)
-        )
+        c("socket", "multicore", "interactive", "sge",
+          "slurm", "lsf", "openlava", "torque"),
+        clusters))
 }
 
 test_BatchtoolsParam_template <- function() {
-
 }
 
 test_BatchtoolsParam_sge <- function() {
     param <- BatchtoolsParam(cluster="sge")
-    checkIdenctical("batchtools-sge.tmpl", basename(param$template))
-    }
+}
