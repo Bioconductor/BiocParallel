@@ -3,25 +3,15 @@
 ##   chunk.size?)
 ## TODO: bplapply
 ## TODO: updated unit tests
-## TODO: Support more makeClusterFunction* and makeRegistry args
-## TODO: Support more cluster back-ends, e.g., SGE
-##   - maybe templates in inst/batchtools/; batchtoolTemplates()
 ## TODO: fix progress bar
-
-## CHALLEGING: implement BPREDO for bplapply; bpiterate()
+## CHALLEGING TODO: implement BPREDO for bplapply; bpiterate()
 
 ### ================================================================
 ### BatchtoolsParam objects
 ### ----------------------------------------------------------------
 
-.BATCHTOOLS_CLUSTERS <- c("socket",
-                          "multicore",
-                          "interactive",
-                          "sge",
-                          "slurm",
-                          "lsf",
-                          "openlava")
-
+.BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge",
+                          "slurm", "lsf", "openlava", "torque")
 
 batchtoolsWorkers <-
     function(cluster = .BATCHTOOLS_CLUSTERS)
@@ -68,6 +58,15 @@ print.NULLRegistry <-
     cat("NULL Job Registry\n")
 }
 
+setOldClass("ClusterFunctions")
+
+batchtoolsRegistryargs <- function(...) {
+    args <- list(...)
+    registryargs <- as.list(formals(batchtools::makeRegistry))
+    registryargs[names(args)] <- args
+    registryargs
+}
+
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
     contains="BiocParallelParam",
@@ -75,8 +74,10 @@ print.NULLRegistry <-
         cluster = "character",
         template = "character",
         registry = "Registry",
+        registryargs = "list",
         RNGseed = "integer",
-        logdir = "character"
+        logdir = "character",
+        .cluster.functions = "ClusterFunctions"
     ),
     methods = list(
         show = function() {
@@ -96,8 +97,10 @@ print.NULLRegistry <-
 BatchtoolsParam <-
     function(
         workers = batchtoolsWorkers(cluster),
+        ## Provide either cluster or template
         cluster = batchtoolsCluster(),
-        template = NA_character_,
+        registryargs = batchtoolsRegistryargs(),
+        template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
         progressbar=FALSE, RNGseed = NA_integer_,
         timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
@@ -107,11 +110,26 @@ BatchtoolsParam <-
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
 
+    .cluster.functions <- switch(
+        cluster,
+        interactive = batchtools::makeClusterFunctionsInteractive(),
+        socket = batchtools::makeClusterFunctionsSocket(workers),
+        multicore = batchtools::makeClusterFunctionsMulticore(workers),
+        sge = batchtools::makeClusterFunctionsSGE(template = template),
+        ## Add mutliple cluster support
+        slurm = batchtools::makeClusterFunctionsSlurm(template=template),
+        lsf = batchtools::makeClusterFunctionsLSF(template=template),
+        openlava = batchtools::makeClusterFunctionsOpenLava(template=template),
+        torque = batchtools::makeClusterFunctionsTORQUE(template=template),
+        default = stop("unsupported cluster type '", cluster, "'")
+    )
+
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
+        registryargs = registryargs,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
-        RNGseed = RNGseed, template = template
+        RNGseed = RNGseed, template = template, .cluster.functions = .cluster.functions
     )
 }
 
@@ -181,23 +199,11 @@ setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     x
 })
 
-
 setMethod("bptemplate", "BatchtoolsParam",
     function(x)
 {
     x$template
 })
-
-setReplaceMethod("bptemplate", c("BatchtoolsParam", "character"),
-    function(x, value)
-{
-    if (bpisup(x))
-        stop("use 'bpstop()' before setting 'bpRNGseed()'")
-
-    x$template <- as.character(value)
-    x
-})
-
 
 setMethod("bpbackend", "BatchtoolsParam",
     function(x)
@@ -216,38 +222,14 @@ setMethod("bpstart", "BatchtoolsParam",
     seed <- bpRNGseed(x)
     if (is.na(seed))
         seed <- NULL
-    ## TODO: The issue is the place where the tempfile is being made!
-    registry <- batchtools::makeRegistry(
-        file.dir = tempfile(), conf.file = character(),
-        make.default = FALSE, seed = seed
-    )
-    registry$cluster.functions <- switch(
-        cluster,
-        interactive = batchtools::makeClusterFunctionsInteractive(),
-        socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
-        multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
-        sge = {
-            template <- batchtoolsTemplate(cluster)
-            batchtools::makeClusterFunctionsSGE(template = template)
-        },
-        ## Add mutliple cluster support
-        ## FIXME:
-        ## slurm, lsf, openlava. Cluster torque and others have more
-        ## specific configurations.
-        slurm = {
-            template <- batchtoolsTemplate(cluster)
-            batchtools::makeClusterFunctionsSlurm(template=template)
-        },
-        lsf = {
-            template <- batchtoolsTemplate(cluster)
-            batchtools::makeClusterFunctionsLSF(template=template)
-        },
-        openlava = {
-            template <- batchtoolsTemplate(cluster)
-            batchtools::makeClusterFunctionsOpenLava(template=template)
-        },
-        default = stop("unsupported cluster type '", cluster, "'")
-    )
+
+    x$registryargs$conf.file = character()
+    x$registryargs$make.default = FALSE
+    x$registryargs$seed = seed
+
+    registry <- do.call(batchtools::makeRegistry, x$registryargs)
+
+    registry$cluster.functions <- x$.cluster.functions
 
     x$registry <- registry
     invisible(x)
@@ -327,22 +309,16 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 batchtoolsTemplate <-
     function(cluster)
 {
-    ## cluster should accept template from only
-    ## sge, slurm, lsf, openlava
-    condition <- !file.exists(cluster)
+    if (!cluster %in% .BATCHTOOLS_CLUSTERS)
+        stop("unsupported cluster type.")
+    if (cluster %in% c("socket", "multicore"))
+        return(NA_character_)
 
-    ## Check if template and cluster are valid
-    if (condition) {
-        warning("template not provided, using the default template in batchtools.")
-        tmpl <- sprintf("batchtools-%s.tmpl", tolower(cluster))
-        tmpl_file <- system.file("batchtools", tmpl, package="BiocParallel")
-        if (tmpl_file == "") {
-            tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
-            tmpl_file <-
-                system.file("templates", tmpl, package="batchtools")
-        }
-        return(tmpl_file)
-    } else {
-        return(cluster)
-    }
+    message("using default '", cluster, "' template in batchtools.")
+    if (cluster == "torque")
+        tmpl <- "torque-lido.tmpl"
+    else
+        tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
+    ## return template
+    system.file("templates", tmpl, package="batchtools")
 }
