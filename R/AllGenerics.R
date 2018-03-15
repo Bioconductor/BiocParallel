@@ -23,9 +23,9 @@ setGeneric("bpaggregate", signature=c("x", "BPPARAM"),
     function(x, ..., BPREDO=list(), BPPARAM=bpparam())
     standardGeneric("bpaggregate"))
 
-## 
+##
 ## accessors
-## 
+##
 
 setGeneric("bpworkers",
     function(x) standardGeneric("bpworkers"))
@@ -50,6 +50,10 @@ setGeneric("bpRNGseed",
 
 setGeneric("bpRNGseed<-",
     function(x, value) standardGeneric("bpRNGseed<-"))
+
+## BatchtoolsParam generics
+setGeneric("bptemplate",
+    function(x) standardGeneric("bptemplate"))
 
 ## errors
 
