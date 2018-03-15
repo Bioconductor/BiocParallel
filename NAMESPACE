@@ -67,6 +67,9 @@ export(
     bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
+    ## BatchtoolsParam methods
+    bptemplate,
+
     ## schedule
     bpschedule
 )
@@ -83,6 +86,9 @@ exportMethods(
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
     bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
+
+    ## BatchtoolsParam methods
+    bptemplate,
 
     ## schedule
     bpschedule
