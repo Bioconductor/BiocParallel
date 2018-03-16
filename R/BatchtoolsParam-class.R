@@ -13,12 +13,14 @@
                           "slurm", "lsf", "openlava", "torque")
 
 batchtoolsWorkers <-
-    function(cluster = .BATCHTOOLS_CLUSTERS)
+    function(cluster = batchtoolsCluster())
 {
     switch(
-        match.arg(cluster),
+        match.arg(cluster, .BATCHTOOLS_CLUSTERS),
         interactive = 1L,
-        .snowCores(multicore=.Platform$OS.type != "windows")
+        socket = snowWorkers(),
+        multicore = multicoreWorkers(),
+        stop("specify number of workers for '", cluster, "'")
     )
 }
 
@@ -61,8 +63,16 @@ setOldClass("ClusterFunctions")
 
 batchtoolsRegistryargs <- function(...) {
     args <- list(...)
+
+    ## our defaults...
     registryargs <- as.list(formals(batchtools::makeRegistry))
+    registryargs$file.dir <- tempfile(tmpdir=getwd())
+    registryargs$conf.file = character()
+    registryargs$make.default = FALSE
+
+    ## ...modified by user
     registryargs[names(args)] <- args
+
     registryargs
 }
 
@@ -75,8 +85,7 @@ batchtoolsRegistryargs <- function(...) {
         registry = "Registry",
         registryargs = "list",
         RNGseed = "integer",
-        logdir = "character",
-        .cluster.functions = "ClusterFunctions"
+        logdir = "character"
     ),
     methods = list(
         show = function() {
@@ -109,26 +118,12 @@ BatchtoolsParam <-
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
 
-    .cluster.functions <- switch(
-        cluster,
-        interactive = batchtools::makeClusterFunctionsInteractive(),
-        socket = batchtools::makeClusterFunctionsSocket(workers),
-        multicore = batchtools::makeClusterFunctionsMulticore(workers),
-        sge = batchtools::makeClusterFunctionsSGE(template = template),
-        ## Add mutliple cluster support
-        slurm = batchtools::makeClusterFunctionsSlurm(template=template),
-        lsf = batchtools::makeClusterFunctionsLSF(template=template),
-        openlava = batchtools::makeClusterFunctionsOpenLava(template=template),
-        torque = batchtools::makeClusterFunctionsTORQUE(template=template),
-        default = stop("unsupported cluster type '", cluster, "'")
-    )
-
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
         registryargs = registryargs,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
-        RNGseed = RNGseed, template = template, .cluster.functions = .cluster.functions
+        RNGseed = RNGseed, template = template
     )
 }
 
@@ -213,24 +208,38 @@ setMethod("bpbackend", "BatchtoolsParam",
 setMethod("bpstart", "BatchtoolsParam",
     function(x)
 {
+    if (bpisup(x))
+        return(invisible(x))
+
     cluster <- bpbackend(x)
+    registryargs <- x$registryargs
 
     oopt <- options(batchtools.verbose = FALSE)
     on.exit(options(batchtools.verbose = oopt$batchtools.verbose))
 
     seed <- bpRNGseed(x)
-    if (is.na(seed))
-        seed <- NULL
+    if (!is.na(seed))
+        registryargs$seed <- seed
 
-    x$registryargs$conf.file = character()
-    x$registryargs$make.default = FALSE
-    x$registryargs$seed = seed
+    registry <- do.call(batchtools::makeRegistry, registryargs)
 
-    registry <- do.call(batchtools::makeRegistry, x$registryargs)
+    registry$cluster.functions <- switch(
+        cluster,
+        interactive = batchtools::makeClusterFunctionsInteractive(),
+        socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
+        multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
+        sge = batchtools::makeClusterFunctionsSGE(template = bptemplate(x)),
+        ## Add mutliple cluster support
+        slurm = batchtools::makeClusterFunctionsSlurm(template=bptemplate(x)),
+        lsf = batchtools::makeClusterFunctionsLSF(template=bptemplate(x)),
+        openlava = batchtools::makeClusterFunctionsOpenLava(
+            template=bptemplate(x)
+        ),
+        torque = batchtools::makeClusterFunctionsTORQUE(template=bptemplate(x)),
+        default = stop("unsupported cluster type '", cluster, "'")
+    )
 
-    registry$cluster.functions <- x$.cluster.functions
-
-    x$registry <- registry
+    x$registry <- registry              # toggles bpisup()
     invisible(x)
 })
 
@@ -241,7 +250,7 @@ setMethod("bpstop", "BatchtoolsParam",
     registry <- x$registry
     batchtools::removeRegistry(reg=registry)
 
-    x$registry <- .NULLRegistry()
+    x$registry <- .NULLRegistry()       # toggles bpisup()
     invisible(x)
 })
 
@@ -266,20 +275,23 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     ## progressbar
     prev.bp <- getOption("BBmisc.ProgressBar.style")
-    on.exit(options(BBmisc.ProgressBar.style=prev.pb))
+    on.exit(options(BBmisc.ProgressBar.style=prev.pb), TRUE)
 
     pb <- c("off", "text")[bpprogressbar(BPPARAM) + 1L]
     prev.pb <- options(BBmisc.ProgressBar.style=pb)
 
     registry <- BPPARAM$registry
     ##  Make registry / map / submit / wait / load
-    ids = batchtools::batchMap(fun=FUN, X, more.args = list(...), reg = registry)
+    ids = batchtools::batchMap(
+        fun=FUN, X, more.args = list(...), reg = registry
+    )
     ids$chunk = batchtools::chunk(ids$job.id, n.chunks = bpnworkers(BPPARAM))
 
     batchtools::submitJobs(ids = ids, resources = list(), reg = registry)
-    batchtools::waitForJobs(ids = ids, reg = registry,
-                            timeout = bptimeout(BPPARAM),
-                            stop.on.error = bpstopOnError(BPPARAM))
+    batchtools::waitForJobs(
+        ids = ids, reg = registry, timeout = bptimeout(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM)
+    )
     result <- batchtools::reduceResultsList(ids = ids, reg = registry)
 
     ## Copy logs from log dir to bplogdir before clearing registry
