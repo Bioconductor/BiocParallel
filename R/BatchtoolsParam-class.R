@@ -1,7 +1,6 @@
 ## TODO: Support more arguments from BiocParallelPram, tasks
 ##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
 ##   chunk.size?)
-## TODO: bplapply
 ## TODO: updated unit tests
 ## TODO: fix progress bar
 ## CHALLEGING TODO: implement BPREDO for bplapply; bpiterate()
@@ -311,7 +310,7 @@ batchtoolsTemplate <-
 {
     if (!cluster %in% .BATCHTOOLS_CLUSTERS)
         stop("unsupported cluster type.")
-    if (cluster %in% c("socket", "multicore"))
+    if (cluster %in% c("socket", "multicore", "interactive"))
         return(NA_character_)
 
     message("using default '", cluster, "' template in batchtools.")

@@ -202,8 +202,72 @@ test_BatchtoolsParam_available_clusters <- function() {
 }
 
 test_BatchtoolsParam_template <- function() {
+    cluster <- "socket"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkTrue(is.na(bptemplate(param)))
+
+    cluster <- "multicore"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkTrue(is.na(bptemplate(param)))
+
+    cluster <- "interactive"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkTrue(is.na(bptemplate(param)))
+
+    ## Test clusters with template
+    cluster <- "sge"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical("sge-simple.tmpl",
+                   basename(bptemplate(param)))
+
+    cluster <- "slurm"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical("slurm-simple.tmpl",
+                   basename(bptemplate(param)))
+
+    cluster <- "lsf"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical("lsf-simple.tmpl",
+                   basename(bptemplate(param)))
+
+    cluster <- "openlava"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical("openlava-simple.tmpl",
+                   basename(bptemplate(param)))
+
+    cluster <- "torque"
+    param <- BatchtoolsParam(cluster=cluster)
+    checkIdentical("torque-lido.tmpl",
+                   basename(bptemplate(param)))
+
+    ## Check setting template to file path
+    cluster <- "sge"
+    template <- system.file("templates", "sge-simple.tmpl",
+                            package="batchtools")
+
+    param <- BatchtoolsParam(cluster=cluster,
+                             template=template)
+    checkIdentical(template, bptemplate(param))
 }
 
+## Run only of SGE clusters, this will fail on other machines
 test_BatchtoolsParam_sge <- function() {
-    param <- BatchtoolsParam(cluster="sge")
+    res <- system2("qstat")
+    if (res == 127L)
+        return()
+
+    fun <- function(x) Sys.getpid()
+
+    template <- system.file("script", "test-sge-template.tmpl")
+    param <- BatchtoolsParam(cluster="sge",
+                             template=template)
+    bpstart(param)
+    checkIdentical("SGE", param$registry$backend)
+
+    result <- bplapply(1:5, fun, BPPARAM=param)
+    checkIdentical(2L, length(unique(unlist(result))))
+
+    bpstop(param)
 }
+
+## TODO: write tests for other cluster types, slurm, lsf, torque, openlava
