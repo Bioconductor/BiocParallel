@@ -90,7 +90,7 @@ batchtoolsRegistryargs <- function(...) {
             callSuper()
             cat("  cluster type: ", .self$cluster,
                 "\n",
-                "  template: ", .self$template,
+                "  template: ", .bptemplate(self),
                 "\n",
                 "  bpRNGseed: ", bpRNGseed(.self),
                 "\n",
@@ -191,11 +191,11 @@ setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     x
 })
 
-setMethod("bptemplate", "BatchtoolsParam",
+.bptemplate <-
     function(x)
 {
     x$template
-})
+}
 
 setMethod("bpbackend", "BatchtoolsParam",
     function(x)
@@ -226,14 +226,16 @@ setMethod("bpstart", "BatchtoolsParam",
         interactive = batchtools::makeClusterFunctionsInteractive(),
         socket = batchtools::makeClusterFunctionsSocket(bpnworkers(x)),
         multicore = batchtools::makeClusterFunctionsMulticore(bpnworkers(x)),
-        sge = batchtools::makeClusterFunctionsSGE(template = bptemplate(x)),
+        sge = batchtools::makeClusterFunctionsSGE(template = .bptemplate(x)),
         ## Add mutliple cluster support
-        slurm = batchtools::makeClusterFunctionsSlurm(template=bptemplate(x)),
-        lsf = batchtools::makeClusterFunctionsLSF(template=bptemplate(x)),
+        slurm = batchtools::makeClusterFunctionsSlurm(template=.bptemplate(x)),
+        lsf = batchtools::makeClusterFunctionsLSF(template=.bptemplate(x)),
         openlava = batchtools::makeClusterFunctionsOpenLava(
-            template=bptemplate(x)
+            template=.bptemplate(x)
         ),
-        torque = batchtools::makeClusterFunctionsTORQUE(template=bptemplate(x)),
+        torque = batchtools::makeClusterFunctionsTORQUE(
+            template=.bptemplate(x)
+        ),
         default = stop("unsupported cluster type '", cluster, "'")
     )
 

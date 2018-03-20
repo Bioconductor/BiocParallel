@@ -186,9 +186,6 @@ param = BatchtoolsParam(workers=5,
                         cluster="sge",
                         template="script/test-sge-template.tmpl")
 
-## Check the template that is being used
-bptemplate(param)
-
 ## start param
 bpstart(param)
 

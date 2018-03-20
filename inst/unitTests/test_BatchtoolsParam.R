@@ -198,43 +198,44 @@ test_BatchtoolsParam_available_clusters <- function() {
 }
 
 test_BatchtoolsParam_template <- function() {
+    .bptemplate <- BiocParallel:::.bptemplate
     cluster <- "socket"
     param <- BatchtoolsParam(cluster=cluster)
-    checkTrue(is.na(bptemplate(param)))
+    checkTrue(is.na(.bptemplate(param)))
 
     cluster <- "multicore"
     param <- BatchtoolsParam(cluster=cluster)
-    checkTrue(is.na(bptemplate(param)))
+    checkTrue(is.na(.bptemplate(param)))
 
     cluster <- "interactive"
     param <- BatchtoolsParam(cluster=cluster)
-    checkTrue(is.na(bptemplate(param)))
+    checkTrue(is.na(.bptemplate(param)))
 
     ## Test clusters with template
     cluster <- "sge"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("sge-simple.tmpl",
-                   basename(bptemplate(param)))
+                   basename(.bptemplate(param)))
 
     cluster <- "slurm"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("slurm-simple.tmpl",
-                   basename(bptemplate(param)))
+                   basename(.bptemplate(param)))
 
     cluster <- "lsf"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("lsf-simple.tmpl",
-                   basename(bptemplate(param)))
+                   basename(.bptemplate(param)))
 
     cluster <- "openlava"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("openlava-simple.tmpl",
-                   basename(bptemplate(param)))
+                   basename(.bptemplate(param)))
 
     cluster <- "torque"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("torque-lido.tmpl",
-                   basename(bptemplate(param)))
+                   basename(.bptemplate(param)))
 
     ## Check setting template to file path
     cluster <- "sge"
@@ -244,7 +245,7 @@ test_BatchtoolsParam_template <- function() {
     param <- BatchtoolsParam(workers=2,
                              cluster=cluster,
                              template=template)
-    checkIdentical(template, bptemplate(param))
+    checkIdentical(template, .bptemplate(param))
 }
 
 ## Run only of SGE clusters, this will fail on other machines

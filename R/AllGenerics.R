@@ -51,10 +51,6 @@ setGeneric("bpRNGseed",
 setGeneric("bpRNGseed<-",
     function(x, value) standardGeneric("bpRNGseed<-"))
 
-## BatchtoolsParam generics
-setGeneric("bptemplate",
-    function(x) standardGeneric("bptemplate"))
-
 ## errors
 
 setGeneric("bpcatchErrors",
