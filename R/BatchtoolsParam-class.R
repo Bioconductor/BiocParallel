@@ -1,14 +1,11 @@
-## TODO: Support more arguments from BiocParallelPram, tasks
-##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
-##   chunk.size?)
-## CHALLEGING TODO: implement BPREDO for bplapply; bpiterate()
-
 ### ================================================================
 ### BatchtoolsParam objects
 ### ----------------------------------------------------------------
 
-.BATCHTOOLS_CLUSTERS <- c("socket", "multicore", "interactive", "sge",
-                          "slurm", "lsf", "openlava", "torque")
+.BATCHTOOLS_CLUSTERS <- c(
+    "socket", "multicore", "interactive", "sge", "slurm", "lsf", "openlava",
+    "torque"
+)
 
 batchtoolsWorkers <-
     function(cluster = batchtoolsCluster())
@@ -88,13 +85,10 @@ batchtoolsRegistryargs <- function(...) {
     methods = list(
         show = function() {
             callSuper()
-            cat("  cluster type: ", .self$cluster,
-                "\n",
-                "  template: ", .bptemplate(self),
-                "\n",
-                "  bpRNGseed: ", bpRNGseed(.self),
-                "\n",
-                "  bplogdir: ", bplogdir(.self),
+            cat("  cluster type: ", bpbackend(.self),
+                "\n", .prettyPath("  template", .bptemplate(.self)),
+                "\n  bpRNGseed: ", bpRNGseed(.self),
+                "\n  bplogdir: ", bplogdir(.self),
                 "\n", sep="")
         }
     )
