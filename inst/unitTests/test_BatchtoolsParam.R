@@ -29,23 +29,23 @@ test_BatchtoolsParam_constructor <- function() {
     checkIdentical(1L, bpnworkers(param))
 
     cluster <- "sge"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
 
     cluster <- "lsf"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
 
     cluster <- "slurm"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
 
     cluster <- "openlava"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
 
     cluster <- "torque"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
 
     cluster <- "unknown"
@@ -216,27 +216,27 @@ test_BatchtoolsParam_template <- function() {
 
     ## Test clusters with template
     cluster <- "sge"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("sge-simple.tmpl",
                    basename(bptemplate(param)))
 
     cluster <- "slurm"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("slurm-simple.tmpl",
                    basename(bptemplate(param)))
 
     cluster <- "lsf"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("lsf-simple.tmpl",
                    basename(bptemplate(param)))
 
     cluster <- "openlava"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("openlava-simple.tmpl",
                    basename(bptemplate(param)))
 
     cluster <- "torque"
-    param <- BatchtoolsParam(cluster=cluster)
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical("torque-lido.tmpl",
                    basename(bptemplate(param)))
 
@@ -245,7 +245,8 @@ test_BatchtoolsParam_template <- function() {
     template <- system.file("templates", "sge-simple.tmpl",
                             package="batchtools")
 
-    param <- BatchtoolsParam(cluster=cluster,
+    param <- BatchtoolsParam(workers=2,
+                             cluster=cluster,
                              template=template)
     checkIdentical(template, bptemplate(param))
 }
@@ -259,7 +260,8 @@ test_BatchtoolsParam_sge <- function() {
     fun <- function(x) Sys.getpid()
 
     template <- system.file("script", "test-sge-template.tmpl")
-    param <- BatchtoolsParam(cluster="sge",
+    param <- BatchtoolsParam(workers=2,
+                             cluster="sge",
                              template=template)
     bpstart(param)
     checkIdentical("SGE", param$registry$backend)
