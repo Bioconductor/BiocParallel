@@ -33,8 +33,7 @@ Collate: AllGenerics.R BiocParallelParam-class.R
     bpvectorize-methods.R bpworkers-methods.R bpaggregate-methods.R
     bpvalidate.R SnowParam-class.R MulticoreParam-class.R register.R
     SerialParam-class.R DoparParam-class.R SnowParam-utils.R
-    BatchJobsParam-class.R
-    BatchtoolsParam-class.R
+    BatchJobsParam-class.R BatchtoolsParam-class.R
     progress.R ipcmutex.R utilities.R
 LinkingTo: BH
 VignetteBuilder: knitr
