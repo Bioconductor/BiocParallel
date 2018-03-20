@@ -34,6 +34,21 @@ batchtoolsCluster <-
     cluster
 }
 
+batchtoolsRegistryargs <- function(...) {
+    args <- list(...)
+
+    ## our defaults...
+    registryargs <- as.list(formals(batchtools::makeRegistry))
+    registryargs$file.dir <- tempfile(tmpdir=getwd())
+    registryargs$conf.file = registryargs$seed <- NULL
+    registryargs$make.default = FALSE
+
+    ## ...modified by user
+    registryargs[names(args)] <- args
+
+    registryargs
+}
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
 ###
@@ -56,21 +71,6 @@ print.NULLRegistry <-
 
 setOldClass("ClusterFunctions")
 
-batchtoolsRegistryargs <- function(...) {
-    args <- list(...)
-
-    ## our defaults...
-    registryargs <- as.list(formals(batchtools::makeRegistry))
-    registryargs$file.dir <- tempfile(tmpdir=getwd())
-    registryargs$conf.file = character()
-    registryargs$make.default = FALSE
-
-    ## ...modified by user
-    registryargs[names(args)] <- args
-
-    registryargs
-}
-
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
     contains="BiocParallelParam",
@@ -85,10 +85,13 @@ batchtoolsRegistryargs <- function(...) {
     methods = list(
         show = function() {
             callSuper()
+            .registryargs <- .bpregistryargs(.self)
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  bpRNGseed: ", bpRNGseed(.self),
                 "\n  bplogdir: ", bplogdir(.self),
+                "\n  registryargs:",
+                paste0("\n    ", names(.registryargs), ": ", .registryargs),
                 "\n", sep="")
         }
     )
@@ -185,6 +188,12 @@ setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     x
 })
 
+.bpregistryargs <-
+    function(x)
+{
+    x$registryargs
+}
+
 .bptemplate <-
     function(x)
 {
@@ -204,7 +213,7 @@ setMethod("bpstart", "BatchtoolsParam",
         return(invisible(x))
 
     cluster <- bpbackend(x)
-    registryargs <- x$registryargs
+    registryargs <- .bpregistryargs(x)
 
     oopt <- options(batchtools.verbose = FALSE)
     on.exit(options(batchtools.verbose = oopt$batchtools.verbose))
