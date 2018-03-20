@@ -1,8 +1,6 @@
 ## TODO: Support more arguments from BiocParallelPram, tasks
 ##   (? maybe max.concurrent.jobs is really bpworkers(), tasks is
 ##   chunk.size?)
-## TODO: updated unit tests
-## TODO: fix progress bar
 ## CHALLEGING TODO: implement BPREDO for bplapply; bpiterate()
 
 ### ================================================================
