@@ -102,21 +102,18 @@ test_BatchtoolsParam_bplapply <- function() {
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(1L, length(unique(unlist(result))))
-    bpstop(param)
 
     ## Check for multicore
     cluster <- "multicore"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(2L, length(unique(unlist(result))))
-    bpstop(param)
 
     ## Check for socket
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(2L, length(unique(unlist(result))))
-    bpstop(param)
 }
 
 ## Check registry
@@ -189,7 +186,6 @@ test_BatchtoolsParam_bplog <- function() {
     bplapply(1:5, sqrt, BPPARAM=param)
     checkTrue(file.exists(temp_log_dir))
     checkTrue(file.exists(file.path(temp_log_dir, "logs")))
-    bpstop(param)
 }
 
 
