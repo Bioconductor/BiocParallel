@@ -34,14 +34,31 @@ batchtoolsCluster <-
     cluster
 }
 
+.batchtoolsClusterAvailable <-
+    function(cluster)
+{
+    switch(
+        cluster,
+        socket = TRUE,
+        multicore = .Platform$OS.type != "windows",
+        interactive = TRUE,
+        sge = suppressWarnings(system2("qstat", stderr=NULL) != 127L),
+        slurm = suppressWarnings(system2("squeue", stderr=NULL) != 127L),
+        lsf = suppressWarnings(system2("bjobs", stderr=NULL) != 127L),
+        openlava = suppressWarnings(system2("bjobs", stderr=NULL) != 127L),
+        torque = suppressWarnings(system2("qselect", stderr=NULL) != 127L),
+        stop("unsupported cluster type '", cluster, "'")
+    )
+}
+
 batchtoolsRegistryargs <- function(...) {
     args <- list(...)
 
     ## our defaults...
     registryargs <- as.list(formals(batchtools::makeRegistry))
     registryargs$file.dir <- tempfile(tmpdir=getwd())
-    registryargs$conf.file = registryargs$seed <- NULL
-    registryargs$make.default = FALSE
+    registryargs$conf.file <- registryargs$seed <- NULL
+    registryargs$make.default <- FALSE
 
     ## ...modified by user
     registryargs[names(args)] <- args
@@ -112,6 +129,9 @@ BatchtoolsParam <-
 {
     if (!requireNamespace("batchtools", quietly=TRUE))
         stop("BatchtoolsParam() requires 'batchtools' package")
+
+    if (!.batchtoolsClusterAvailable(cluster))
+        stop("'", cluster, "' not available")
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
@@ -216,7 +236,7 @@ setMethod("bpstart", "BatchtoolsParam",
     registryargs <- .bpregistryargs(x)
 
     oopt <- options(batchtools.verbose = FALSE)
-    on.exit(options(batchtools.verbose = oopt$batchtools.verbose))
+    on.exit(options(oopt))
 
     seed <- bpRNGseed(x)
     if (!is.na(seed))
@@ -249,7 +269,6 @@ setMethod("bpstart", "BatchtoolsParam",
 setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
-    ## TODO: bpstop for cluster types not available on
     registry <- x$registry
     batchtools::removeRegistry(reg=registry)
 
