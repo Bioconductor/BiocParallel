@@ -19,47 +19,66 @@ test_BatchtoolsParam_constructor <- function() {
     checkIdentical(nworkers, bpnworkers(param))
 
     cluster <- "multicore"
-    param <- BatchtoolsParam(cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
-    checkIdentical(nworkers, bpnworkers(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+        checkIdentical(nworkers, bpnworkers(param))
+    }
 
     cluster <- "interactive"
-    param <- BatchtoolsParam(cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
-    checkIdentical(1L, bpnworkers(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+        checkIdentical(1L, bpnworkers(param))
+    }
 
     cluster <- "sge"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+    }
 
     cluster <- "lsf"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+    }
 
     cluster <- "slurm"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+    }
 
     cluster <- "openlava"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+    }
 
     cluster <- "torque"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical(cluster, bpbackend(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical(cluster, bpbackend(param))
+    }
 
     cluster <- "unknown"
     checkException(BatchtoolsParam(cluster=cluster))
 }
 
 test_batchtoolsWorkers <- function() {
+    socket <- snowWorkers()
+    multicore <- multicoreWorkers()
     isWindows <- .Platform$OS.type == "windows"
-    expected <- BiocParallel:::.snowCores(isWindows)
 
-    checkIdentical(expected, batchtoolsWorkers())
-    checkIdentical(expected, batchtoolsWorkers("socket"))
-    if (!isWindows)
-        checkIdentical(expected, batchtoolsWorkers("multicore"))
+    checkIdentical(
+        if (isWindows) socket else multicore,
+        batchtoolsWorkers()
+    )
+    checkIdentical(socket, batchtoolsWorkers("socket"))
+    cluster <- "multicore"
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster))
+        checkIdentical(multicore, batchtoolsWorkers(cluster))
 
     checkIdentical(1L, batchtoolsWorkers("interactive"))
 
@@ -73,7 +92,6 @@ test_BatchtoolsParam_bpisup_start_stop_default<- function() {
     checkIdentical(FALSE, bpisup(bpstop(param)))
 }
 
-## TODO: other cluster types
 test_BatchtoolsParam_bpisup_start_stop_socket <- function() {
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
@@ -82,7 +100,6 @@ test_BatchtoolsParam_bpisup_start_stop_socket <- function() {
     checkIdentical(FALSE, bpisup(param))
     checkIdentical(TRUE, bpisup(bpstart(param)))
     checkIdentical(FALSE, bpisup(bpstop(param)))
-
 }
 
 test_BatchtoolsParam_bpisup_start_stop_interactive <- function() {
@@ -103,13 +120,13 @@ test_BatchtoolsParam_bplapply <- function() {
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(1L, length(unique(unlist(result))))
 
-    ## Check for multicore
     cluster <- "multicore"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    result <- bplapply(1:5, fun, BPPARAM=param)
-    checkIdentical(2L, length(unique(unlist(result))))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        result <- bplapply(1:5, fun, BPPARAM=param)
+        checkIdentical(2L, length(unique(unlist(result))))
+    }
 
-    ## Check for socket
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
@@ -166,7 +183,6 @@ test_BatchtoolsParam_bpRNGseed <- function() {
     checkException({bpRNGseed(param) <- "abc"})
 }
 
-
 test_BatchtoolsParam_bplog <- function() {
     ## Test param w/o log and logdir
     checkTrue(is.na(bplogdir(BatchtoolsParam())))
@@ -188,7 +204,6 @@ test_BatchtoolsParam_bplog <- function() {
     checkTrue(file.exists(file.path(temp_log_dir, "logs")))
 }
 
-
 test_BatchtoolsParam_available_clusters <- function() {
     clusters <- BiocParallel:::.BATCHTOOLS_CLUSTERS
     checkTrue(all.equal(
@@ -204,8 +219,10 @@ test_BatchtoolsParam_template <- function() {
     checkTrue(is.na(.bptemplate(param)))
 
     cluster <- "multicore"
-    param <- BatchtoolsParam(cluster=cluster)
-    checkTrue(is.na(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(cluster=cluster)
+        checkTrue(is.na(.bptemplate(param)))
+    }
 
     cluster <- "interactive"
     param <- BatchtoolsParam(cluster=cluster)
@@ -213,44 +230,51 @@ test_BatchtoolsParam_template <- function() {
 
     ## Test clusters with template
     cluster <- "sge"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical("sge-simple.tmpl",
-                   basename(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical("sge-simple.tmpl", basename(.bptemplate(param)))
+    }
 
     cluster <- "slurm"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical("slurm-simple.tmpl",
-                   basename(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical("slurm-simple.tmpl", basename(.bptemplate(param)))
+    }
 
     cluster <- "lsf"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical("lsf-simple.tmpl",
-                   basename(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical("lsf-simple.tmpl", basename(.bptemplate(param)))
+    }
 
     cluster <- "openlava"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical("openlava-simple.tmpl",
-                   basename(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical("openlava-simple.tmpl", basename(.bptemplate(param)))
+    }
 
     cluster <- "torque"
-    param <- BatchtoolsParam(workers=2, cluster=cluster)
-    checkIdentical("torque-lido.tmpl",
-                   basename(.bptemplate(param)))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        checkIdentical("torque-lido.tmpl", basename(.bptemplate(param)))
+    }
 
     ## Check setting template to file path
     cluster <- "sge"
-    template <- system.file("templates", "sge-simple.tmpl",
-                            package="batchtools")
-
-    param <- BatchtoolsParam(workers=2,
-                             cluster=cluster,
-                             template=template)
-    checkIdentical(template, .bptemplate(param))
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        template <- system.file(
+            "templates", "sge-simple.tmpl", package="batchtools"
+        )
+        param <- BatchtoolsParam(
+            workers=2, cluster=cluster, template=template
+        )
+        checkIdentical(template, .bptemplate(param))
+    }
 }
 
 ## Run only of SGE clusters, this will fail on other machines
 test_BatchtoolsParam_sge <- function() {
-    if (!biocparallel:::.batchtoolsClusterAvailable("sge"))
+    if (!BiocParallel:::.batchtoolsClusterAvailable("sge"))
         return()
 
     fun <- function(x) Sys.getpid()
