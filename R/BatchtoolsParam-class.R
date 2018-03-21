@@ -270,7 +270,10 @@ setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
     registry <- x$registry
-    batchtools::removeRegistry(reg=registry)
+    message("cleaning registry...")
+    suppressMessages({
+        batchtools::removeRegistry(reg=registry)
+    })
 
     x$registry <- .NULLRegistry()       # toggles bpisup()
     invisible(x)
@@ -318,20 +321,18 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     ## Copy logs from log dir to bplogdir before clearing registry
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
-
-        logs <- file.path(BPPARAM$registry$file.dir, "logs")
+        logs <- file.path(.bpregistryargs(BPPARAM)$file.dir, "logs")
         ## Create log dir
         dir.create(bplogdir(BPPARAM))
         ## Recursive copy logs
-        file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE,
-                  overwrite=TRUE)
+        file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE, overwrite=TRUE)
     }
 
     ## Clear registry
     suppressMessages({
         batchtools::clearRegistry(reg=registry)
-        cat("\n")  ## terminate progress bar
     })
+    cat("\n")  ## terminate progress bar
 
     result
 })
