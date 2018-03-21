@@ -250,13 +250,15 @@ test_BatchtoolsParam_template <- function() {
 
 ## Run only of SGE clusters, this will fail on other machines
 test_BatchtoolsParam_sge <- function() {
-    res <- system2("qstat")
-    if (res == 127L)
+    if (!biocparallel:::.batchtoolsClusterAvailable("sge"))
         return()
 
     fun <- function(x) Sys.getpid()
 
-    template <- system.file("script", "test-sge-template.tmpl")
+    template <- system.file(
+        package="BiocParallel", "unitTests", "test_script",
+        "test-sge-template.tmpl"
+    )
     param <- BatchtoolsParam(workers=2,
                              cluster="sge",
                              template=template)
