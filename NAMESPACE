@@ -43,6 +43,7 @@ export(
     bploop,                             # worker, manager loops
     multicoreWorkers, snowWorkers,
     batchtoolsWorkers, batchtoolsCluster, batchtoolsRegistryargs,
+    batchtoolsTemplate,
     bpvalidate, bpok,
     bprunMPIslave,
 

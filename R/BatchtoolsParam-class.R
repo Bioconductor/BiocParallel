@@ -7,6 +7,10 @@
     "torque"
 )
 
+### -------------------------------------------------
+###  Helper functions
+###
+
 batchtoolsWorkers <-
     function(cluster = batchtoolsCluster())
 {
@@ -49,6 +53,23 @@ batchtoolsCluster <-
         torque = suppressWarnings(system2("qselect", stderr=NULL) != 127L),
         stop("unsupported cluster type '", cluster, "'")
     )
+}
+
+batchtoolsTemplate <-
+    function(cluster)
+{
+    if (!cluster %in% .BATCHTOOLS_CLUSTERS)
+        stop("unsupported cluster type '", cluster, "'")
+    if (cluster %in% c("socket", "multicore", "interactive"))
+        return(NA_character_)
+
+    message("using default '", cluster, "' template in batchtools.")
+    if (cluster == "torque")
+        tmpl <- "torque-lido.tmpl"
+    else
+        tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
+    ## return template
+    system.file("templates", tmpl, package="batchtools")
 }
 
 batchtoolsRegistryargs <- function(...) {
@@ -336,23 +357,3 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     result
 })
-
-### -------------------------------------------------
-###  Helper function to return correct template
-###
-batchtoolsTemplate <-
-    function(cluster)
-{
-    if (!cluster %in% .BATCHTOOLS_CLUSTERS)
-        stop("unsupported cluster type.")
-    if (cluster %in% c("socket", "multicore", "interactive"))
-        return(NA_character_)
-
-    message("using default '", cluster, "' template in batchtools.")
-    if (cluster == "torque")
-        tmpl <- "torque-lido.tmpl"
-    else
-        tmpl <- sprintf("%s-simple.tmpl", tolower(cluster))
-    ## return template
-    system.file("templates", tmpl, package="batchtools")
-}
