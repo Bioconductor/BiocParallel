@@ -4,13 +4,17 @@
 
 \alias{BatchtoolsParam-class}
 \alias{BatchtoolsParam}
-
+\alias{bpRNGseed,BatchtoolsParam-method}
+\alias{bpRNGseed<-,BatchtoolsParam,numeric-method}
 \alias{bpbackend,BatchtoolsParam-method}
 \alias{bpisup,BatchtoolsParam-method}
+\alias{bplapply,ANY,BatchtoolsParam-method}
+\alias{bplogdir,BatchtoolsParam-method}
+\alias{bplogdir<-,BatchtoolsParam,character-method}
+\alias{bpschedule,BatchtoolsParam-method}
 \alias{bpstart,BatchtoolsParam-method}
 \alias{bpstop,BatchtoolsParam-method}
 \alias{bpworkers,BatchtoolsParam-method}
-\alias{bpschedule,BatchtoolsParam-method}
 \alias{show,BatchtoolsParam-method}
 \alias{batchtoolsWorkers}
 \alias{batchtoolsCluster}
@@ -123,8 +127,9 @@ batchtoolsRegistryargs(...)
     \item{jobname}{\code{character(1)}} Job name that is prepended
     to the output log and result files. Default is "BPJOB".
 
-    \item{...}{} Key-value pairs corresponding arguments from batchtools
-    \code{\link{makeRegistry}}.
+    \item{\dots}{name-value pairs}
+    Names and values correspond to arguments from batchtools
+    \code{\link[batchtools]{makeRegistry}}.
 
 }
 
@@ -139,8 +144,7 @@ batchtoolsRegistryargs(...)
     The following generics are implemented and perform as documented on
     the corresponding help page: \code{\link{bpworkers}},
     \code{\link{bpnworkers}}, \code{\link{bpstart}},
-    \code{\link{bpstop}}, \code{\link{bpisup}}, \code{\link{bpbackend}},
-    \code{\link{bptemplate}}
+    \code{\link{bpstop}}, \code{\link{bpisup}}, \code{\link{bpbackend}}.
 
 }
 
