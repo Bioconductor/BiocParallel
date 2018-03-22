@@ -26,7 +26,10 @@
 
 .recv <- function(node, id)
     tryCatch({
-        parallel:::recvData(node)
+        suppressPackageStartupMessages({
+            ## when starting workers; not supressable otherwise
+            parallel:::recvData(node)
+        })
     }, error=function(e) {
         ## capture without throwing
         .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
