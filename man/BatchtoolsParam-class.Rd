@@ -24,26 +24,47 @@
     This class is used to parameterize scheduler options on managed
     high-performance computing clusters using batchtools.
 
+    \code{BatchtoolsParam()}: Construct a BatchtoolsParam-class object.
+
+    \code{batchtoolsWorkers()}: Return the default number of workers for
+    each backend.
+
+    \code{batchtoolsTemplate()}: Return the default template for each
+    backend.
+
+    \code{batchtoolsCluster()}: Return the default cluster.
+
+    \code{batchtoolsRegistryargs()}: Create a list of arguments to be
+    used in batchtools' \code{makeRegistry}; see \code{registryargs}
+    argument.
+
 }
 
 \usage{
-BatchtoolsParam(workers = batchtoolsWorkers(cluster),
-	cluster = batchtoolsCluster(),
-	registryargs = batchtoolsRegistryargs(),
-	template = batchtoolsTemplate(cluster),
-	stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
-	timeout = 30L * 24L * 60L * 60L, log = FALSE, logdir = NA_character_,
-	resultdir=NA_character_, jobname = "BPJOB")
+BatchtoolsParam(
+    workers = batchtoolsWorkers(cluster),
+    cluster = batchtoolsCluster(),
+    registryargs = batchtoolsRegistryargs(),
+    template = batchtoolsTemplate(cluster),
+    stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
+    timeout = 30L * 24L * 60L * 60L, log = FALSE, logdir = NA_character_,
+    resultdir=NA_character_, jobname = "BPJOB"
+)
+batchtoolsWorkers(cluster = batchtoolsCluster())
+batchtoolsCluster(cluster)
+batchtoolsTemplate(cluster)
+batchtoolsRegistryargs(...)
 }
 
 \arguments{
 
     \item{workers}{\code{integer(1)}} Number of workers to divide tasks
 	(e.g., elements in the first argument of \code{bplapply})
-	between. On Multicore and SSH backends, this defaults to all
-	available nodes.  On managed (e.g., slurm, SGE) clusters
-	\code{workers} has no default, meaning that the number of
-	workers needs to be provided by the user.
+	between. On 'multicore' and 'socket' backends, this defaults to
+	\code{multicoreWorkers()} and \code{snowWorkers()}.  On managed
+	(e.g., slurm, SGE) clusters \code{workers} has no default,
+	meaning that the number of workers needs to be provided by the
+	user.
 
     \item{cluster}{\code{character(1)}} Cluster type being used as the
 	backend by \code{BatchtoolsParam}. The available options are
@@ -57,7 +78,7 @@ BatchtoolsParam(workers = batchtoolsWorkers(cluster),
     \item{registryargs}{\code{list()}} Arguments given to the registry
         created by \code{BatchtoolsParam} to configure the registry and
         where it's being stored. The \code{registryargs} can be
-        specified by the function \code{batchtoolsRegistryargs} which
+        specified by the function \code{batchtoolsRegistryargs()} which
         takes the arguments \code{file.dir}, \code{work.dir},
         \code{packages}, \code{namespaces}, \code{source}, \code{load},
         \code{make.default}. It's useful to configure these option,
@@ -81,26 +102,30 @@ BatchtoolsParam(workers = batchtoolsWorkers(cluster),
         in BatchtoolsParam and be less verbose.  Default is
         \code{FALSE}.
 	
-    \item{RNGseed}{\code{integer(1L)}} Set an initial seed for the RNG.
+    \item{RNGseed}{\code{integer(1)}} Set an initial seed for the RNG.
 	Default is \code{NULL} where a random seed is chosen upon
 	initialization.
 
     \item{timeout}{\code{list()}} Time (in seconds) allowed for worker
         to complete a task.  If the computation exceeds \code{timeout}
-        an error is thrown with message 'reached elapsed time limit'
+        an error is thrown with message 'reached elapsed time limit'.
 
     \item{log}{\code{logical(1)}} Option given to save the logs which
         are produced by the jobs. If \code{log=TRUE} then the \code{logdir}
 	option must be specified.
 
-    \item{logdir}{\code{character(1)} Path to location where logs are
+    \item{logdir}{\code{character(1)}} Path to location where logs are
     stored. The argument \code{log=TRUE} is required before using the
     logdir option.
 
     \item{resultdir}{\code{logical(1)}} Path where results are stored.
 
-   \item{jobname}{\code{character(1)}} Job name that is prepended
-       to the output log and result files. Default is "BPJOB".
+    \item{jobname}{\code{character(1)}} Job name that is prepended
+    to the output log and result files. Default is "BPJOB".
+
+    \item{...}{} Key-value pairs corresponding arguments from batchtools
+    \code{\link{makeRegistry}}.
+
 }
 
 \section{BatchtoolsParam constructor}{
@@ -119,46 +144,6 @@ BatchtoolsParam(workers = batchtoolsWorkers(cluster),
 
 }
 
-\description{
-  This function returns the default number of workers for each backend.
-}
-
-\usage{
-     batchtoolsWorkers(cluster= batchtoolsCluster())
-}
-
-\arguments{
-  \item{cluster}{\code{character(1)}} Cluster type which is used as the
-  backend for the \code{BatchtoolsParam}. 
- }
-
-
-\description{
-  This function returns the default template for each backend.
-}
-
-\usage{
-     batchtoolsTemplate(cluster)
-}
-
-\arguments{
-  \item{cluster}{\code{character(1)}} Cluster type which is used as the
-  backend for the \code{BatchtoolsParam}. 
- }
-
-\description{
-   This function returns the default cluster.
- }
- 
-\usage{
-     batchtoolsCluster(cluster)
-}
-
-\arguments{
-  \item{cluster}{\code{character(1)}} Cluster type which is used as the
-  backend for the \code{BatchtoolsParam}. 
- }
- 
 \author{Nitesh Turaga, \url{mailto:nitesh.turaga@roswellpark.org}}
 
 \seealso{
@@ -168,6 +153,7 @@ BatchtoolsParam(workers = batchtoolsWorkers(cluster),
     \code{register} for registering parameter classes for use in parallel
     evaluation.
 
+    The batchtools package.
 }
 
 \examples{
@@ -180,7 +166,7 @@ piApprox = function(n) {
 
 piApprox(1000)
 
-## Apply piApprox over
+## Calculate piApprox 10 times
 param <- BatchtoolsParam()
 result <- bplapply(rep(10e5, 10), piApprox, BPPARAM=param)
 

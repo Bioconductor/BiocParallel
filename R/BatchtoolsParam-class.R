@@ -24,7 +24,7 @@ batchtoolsWorkers <-
 }
 
 batchtoolsCluster <-
-    function(cluster = .BATCHTOOLS_CLUSTERS)
+    function(cluster)
 {
     if (missing(cluster)) {
         if (.Platform$OS.type == "windows") {
@@ -33,7 +33,7 @@ batchtoolsCluster <-
             cluster <- "multicore"
         }
     } else {
-        cluster <- match.arg(cluster)
+        cluster <- match.arg(cluster, .BATCHTOOLS_CLUSTERS)
     }
     cluster
 }
