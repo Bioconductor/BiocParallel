@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{2. Errors, Logs and Debugging}
+%\VignetteIndexEntry{3. Errors, Logs and Debugging}
 %\VignetteKeywords{parallel, Infrastructure}
 %\VignettePackage{BiocParallel}
 %\VignetteEngine{knitr::knitr}
