@@ -306,12 +306,17 @@ setMethod("bpstop", "BatchtoolsParam",
 ###
 
 setMethod("bplapply", c("ANY", "BatchtoolsParam"),
-          function(X, FUN, ..., BPPARAM=bpparam())
+          function(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
 
     if (!length(X))
         return(list())
+
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
+        X <- X[idx]
+    nms <- names(X)
 
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {
@@ -327,6 +332,11 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     prev.pb <- options(BBmisc.ProgressBar.style=pb)
 
     registry <- BPPARAM$registry
+
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM), timeout=bptimeout(BPPARAM)
+    )
+
     ##  Make registry / map / submit / wait / load
     ids = batchtools::batchMap(
         fun=FUN, X, more.args = list(...), reg = registry
@@ -338,7 +348,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         ids = ids, reg = registry, timeout = bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)
     )
-    result <- batchtools::reduceResultsList(ids = ids, reg = registry)
+    res <- batchtools::reduceResultsList(ids = ids, reg = registry)
 
     ## Copy logs from log dir to bplogdir before clearing registry
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
@@ -355,5 +365,16 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     })
     cat("\n")  ## terminate progress bar
 
-    result
+    if (!is.null(res))
+        names(res) <- nms
+
+    if (any(idx)) {
+        BPREDO[idx] <- res
+        res <- BPREDO
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
 })
