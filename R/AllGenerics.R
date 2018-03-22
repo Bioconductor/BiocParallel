@@ -23,9 +23,9 @@ setGeneric("bpaggregate", signature=c("x", "BPPARAM"),
     function(x, ..., BPREDO=list(), BPPARAM=bpparam())
     standardGeneric("bpaggregate"))
 
-## 
+##
 ## accessors
-## 
+##
 
 setGeneric("bpworkers",
     function(x) standardGeneric("bpworkers"))

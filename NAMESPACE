@@ -18,7 +18,8 @@ exportClass(
     SnowParam,
     DoparParam,
     SerialParam,
-    BatchJobsParam
+    BatchJobsParam,
+    BatchtoolsParam
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,6 +28,7 @@ exportClass(
 
 export(
     MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
+    BatchtoolsParam,
 
     ## register
     register, registered, bpparam,
@@ -39,7 +41,10 @@ export(
 
     ## helpers
     bploop,                             # worker, manager loops
-    multicoreWorkers, snowWorkers, bpvalidate, bpok,
+    multicoreWorkers, snowWorkers,
+    batchtoolsWorkers, batchtoolsCluster, batchtoolsRegistryargs,
+    batchtoolsTemplate,
+    bpvalidate, bpok,
     bprunMPIslave,
 
     ## ipcmutex

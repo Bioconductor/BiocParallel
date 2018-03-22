@@ -25,7 +25,7 @@ suppressPackageStartupMessages({
 
 \title{Introduction to \BiocParallel}
 \author{Vincent Carey, Michael Lawrence, Martin
-  Morgan\footnote{\url{mtmorgan@fhcrc.org}}}
+  Morgan\footnote{\url{Martin.Morgan@RoswellPark.org}}}
 \date{Edited: May 6, 2015; Compiled: \today}
 
 \begin{document}
