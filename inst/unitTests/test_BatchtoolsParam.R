@@ -296,3 +296,32 @@ test_BatchtoolsParam_sge <- function() {
 }
 
 ## TODO: write tests for other cluster types, slurm, lsf, torque, openlava
+
+test_BatchtoolsParam_bpmapply <- function() {
+    fun <- function(x, y, z) x + y + z
+    ## Initial test
+    param <- BatchtoolsParam()
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+             SIMPLIFY = TRUE, BPPARAM = param)
+    checkIdentical(c(3,5,7), result)
+
+    cluster <-  "interactive"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                       SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+
+    cluster <- "multicore"
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                           SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+    }
+
+    cluster <- "socket"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                       SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+}
