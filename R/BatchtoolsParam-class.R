@@ -152,7 +152,7 @@ BatchtoolsParam <-
         stop("BatchtoolsParam() requires 'batchtools' package")
 
     if (!.batchtoolsClusterAvailable(cluster))
-        stop("'", cluster, "' not available")
+        stop("'", cluster, "' supported but not available on this machine")
 
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
