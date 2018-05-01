@@ -378,3 +378,89 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     res
 })
+
+
+## bploop.iterate
+
+
+## TODO: Use 'join' functions instead of rbind
+addSingleJobToRegistry <-
+    function(newDefs, newStatus, registry)
+{
+    last_jobid <- length(registry$status$job.id)
+
+    ## rbind new defs and status
+    registry$defs <- rbind(registry$defs, newDefs)
+    registry$status <- rbind(registry$status, newStatus)
+
+    ## Add new job id
+    registry$status$job.id <- seq_len(last_jobid + 1)
+    registry$status$def.id <- seq_len(last_jobid + 1)
+
+    ## def.id
+    registry$defs$def.id <- registry$status$def.id
+    ## setkey to data table
+    setkey(registry$status, "job.id")
+    ## return registry
+    registry
+}
+
+
+newRegistryDefs <-
+    function()
+{
+
+}
+
+newRegistryStatus <-
+    function()
+{
+
+}
+
+bploop.iterate.faux <-
+    function(manager, ITER, FUN, ARGFUN, BPPARAM, REDUCE, init,
+             reduce.in.order, ...)
+{
+    cl <- bpbackend(BPPARAM)
+    workers <- bpnworkers(BPPARAM)
+
+    ## Start param if it is not up
+    if (!bpisup(BPPARAM)) {
+        bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM))
+    }
+
+    ids = batchtools::batchMap(
+        fun=FUN, ARGFUN, more.args = list(...), reg=BPPARAM$registry
+    )
+
+    for (i in seq_len(workers)) {
+        value <- ITER()
+
+        if (is.null(value)) {
+            if (i == 1L)
+                warning("first invocation of 'ITER()' returned NULL")
+            break
+        }
+
+        ## make new_defs
+        newDefs <- newRegistryDefs(ARGFUN(value))
+        ## make new_status
+        newStatus <- newRegistryStatus()
+
+        ## Add jobs to registry, one for each value
+        reg <- BPPARAM$registry
+        BPPARAM$registry <- addSingleJobToRegistry(newDefs, newStatus, reg)
+    }
+
+    ids$chunk = batchtools::chunk(ids$job.id, n.chunks = workers)
+    batchtools::submitJobs(ids = ids, resources = list(), reg = registry)
+    batchtools::waitForJobs(
+        ids = ids, reg = BPPARAM$registry, timeout = bptimeout(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM)
+    )
+    res <- batchtools::reduceResultsList(ids = ids, reg = BPPARAM$registry)
+
+    res
+}

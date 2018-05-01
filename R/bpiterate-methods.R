@@ -1,5 +1,5 @@
 ### =========================================================================
-### bpiterate methods 
+### bpiterate methods
 ### -------------------------------------------------------------------------
 
 ## All params have dedicated bpiterate() methods.
@@ -19,3 +19,10 @@ setMethod("bpiterate", c("ANY", "ANY", "BiocParallelParam"),
     FUN <- match.fun(FUN)
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
+
+## setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
+##           function(ITER, FUN, ..., BPPARAM=bpparm())
+##           {
+##               ITER <- match.fun(ITER)
+
+##           }
