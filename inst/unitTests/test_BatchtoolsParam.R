@@ -325,3 +325,66 @@ test_BatchtoolsParam_bpmapply <- function() {
                        SIMPLIFY = TRUE, BPPARAM=param)
     checkIdentical(c(3,5,7), result)
 }
+
+
+test_BatchtoolsParam_bpvec <- function() {
+    param <- BatchtoolsParam(workers=2)
+    result <- bpvec(1:2, function(x) Sys.getpid(), BPPARAM=param)
+    checkIdentical(2L, length(result))
+}
+
+
+test_BatchtoolsParam_bpvectorize <- function() {
+    psqrt <- bpvectorize(sqrt)
+    checkTrue(is(psqrt, "function"))
+}
+
+
+test_BatchtoolsParam_bpiterate <- function() {
+    ## Iterator function
+    ITER_FUN <- local({
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > 5)
+                return(NULL)
+            rep(i, 100)
+        }
+    })
+    ## test function
+    FUN <- function(fl, k) {
+        sum(readRDS(fl)) + k
+    }
+    ## Multicore cluster
+    param <- BatchtoolsParam(cluster="multicore")
+    res <- bpiterate(ITER=ITER_FUN, FUN=FUN, k=5, BPPARAM=param)
+    ## Check Identical result
+    target <- list(105, 205, 305, 405, 505)
+    checkIdentical(target, res)
+
+
+}
+
+
+test_BatchtoolsParam_bpiterate_socket <- function() {
+    ITER_FUN <- local({
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > 5)
+                return(NULL)
+            rep(i, 100)
+        }
+    })
+    ## test function
+    FUN <- function(fl, k) {
+        sum(readRDS(fl)) + k
+    }
+
+    ## Socket cluster
+    param <- BatchtoolsParam(workers=5, cluster="socket")
+    res <- bpiterate(ITER=ITER_FUN, FUN=FUN, k=5, BPPARAM=param)
+    ## Check Identical result
+    target <- list(105, 205, 305, 405, 505)
+    checkIdentical(target, res)
+}
