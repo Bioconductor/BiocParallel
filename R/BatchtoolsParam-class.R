@@ -406,7 +406,6 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     progress$init()
 
     def.id <- job.id <- 1L
-    browser()
     repeat{
         value <- ITER()
         ## If value is null break
