@@ -394,11 +394,9 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
              BPPARAM=bpparam())
 {
-    ## match fun
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
-    ## check validity
     if (missing(REDUCE)) {
         if (reduce.in.order)
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
@@ -406,18 +404,27 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
             stop("REDUCE must be provided when 'init' is given")
     }
 
-    ## Start / stop cluster
+    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
+        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
+                             log=bplog(BPPARAM),
+                             threshold=bpthreshold(BPPARAM))
+        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
+                         BPPARAM=param))
+    }
+
+    ## start / stop cluster
     if (!bpisup(BPPARAM)) {
         bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
 
     ## composeTry
-    FUN <- .composeTry(FUN, bplog(BPPARAM),
-                       bpstopOnError(BPPARAM), timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+                       timeout=bptimeout(BPPARAM))
+
     FUN <- .composeBatchtools(FUN)
 
     ## Call batchtoolsIterate with arguments
-    bploop(structure(list(), class="batchtoolsIterate"),
+    bploop(structure(list(), class="iterate_batchtools"),
            ITER, FUN, BPPARAM, REDUCE, init, reduce.in.order, ...)
 })
