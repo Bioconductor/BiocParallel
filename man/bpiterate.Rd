@@ -24,6 +24,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 \S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., BPPARAM=bpparam())
 
 \S4method{bpiterate}{ANY,ANY,BiocParallelParam}(ITER, FUN, ..., BPPARAM=bpparam())
+
+\S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(ITER, FUN, ..., BPPARAM=BatchtoolsParam())
 }
 
 \arguments{
@@ -71,7 +73,7 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \details{
 
-  Supported for \code{SnowParam} and \code{MulticoreParam}.
+  Supported for \code{SnowParam}, \code{MulticoreParam} and \code{BatchtoolsParam}.
 
   \code{bpiterate} iterates through an unknown number of data
   chunks, dispatching chunks to parallel workers as they
@@ -156,6 +158,7 @@ if (require(Rsamtools) && require(RNAseqData.HNRNPC.bam.chr14) &&
 
   ## The number of chunks returned by ITER() determines the result length.
   bpparam <- MulticoreParam(workers = 3) 
+  ## bpparam <- BatchtoolsParam(workers = 3), see ?BatchtoolsParam
   bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
 
   ## Re-initialize the iterator and combine on the fly with REDUCE:

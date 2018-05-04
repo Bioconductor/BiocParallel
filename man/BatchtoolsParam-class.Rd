@@ -182,5 +182,34 @@ param = BatchtoolsParam(workers=5,
                         template="script/test-sge-template.tmpl")
 ## Run parallel job
 result = bplapply(rep(10e5, 100), piApprox, BPPARAM=param)
+
+## bpmapply
+param = BatchtoolsParam()
+result = bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                   SIMPLIFY = TRUE, BPPARAM = param)
+
+## bpvec
+param = BatchtoolsParam(workers=2)
+result = bpvec(1:10, seq_along, BPPARAM=param)
+
+## bpvectorize
+param = BatchtoolsParam(workers=2)
+## this returns a function
+bpseq_along = bpvectorize(seq_along, BPPARAM=param)
+result = bpseq_along(1:10)
+
+##bpiterate
+ITER <- function(n=5) {
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > n)
+                return(NULL)
+        rep(i, n)
+        }
+    }
+
+param <- BatchtoolsParam()
+res <- bpiterate(ITER=ITER(), FUN=function(x,y) sum(x) + y, y=10, BPPARAM=param)
 }
 }
