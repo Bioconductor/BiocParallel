@@ -150,7 +150,8 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 }
 
 setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
+        BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
@@ -160,5 +161,5 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
 
-    .bpiterate_serial(ITER, FUN, ...)
+    .bpiterate_serial(ITER, FUN, ..., REDUCE = REDUCE, init = init)
 })

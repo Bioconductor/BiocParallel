@@ -1,19 +1,19 @@
 \name{bpiterate}
 \alias{bpiterate}
 \alias{bpiterate,ANY,ANY,missing-method}
-\alias{bpiterate,ANY,ANY,BiocParallelParam-method}
 \alias{bpiterate,ANY,ANY,SerialParam-method}
 \alias{bpiterate,ANY,ANY,SnowParam-method}
 \alias{bpiterate,ANY,ANY,BatchJobsParam-method}
 \alias{bpiterate,ANY,ANY,DoparParam-method}
+\alias{bpiterate,ANY,ANY,BatchtoolsParam-method}
 
 \title{Parallel iteration over an indeterminate number of data chunks}
 
 \description{
 
   \code{bpiterate} iterates over an indeterminate number of data chunks
-  (e.g., records in a file). Each chunk is processed by parallel workers 
-  in an asynchronous fashion; as each worker finishes it receives a 
+  (e.g., records in a file). Each chunk is processed by parallel workers
+  in an asynchronous fashion; as each worker finishes it receives a
   new chunk. Data are traversed a single time.
 
 }
@@ -23,14 +23,16 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bpiterate}{ANY,ANY,BiocParallelParam}(ITER, FUN, ..., BPPARAM=bpparam())
+\S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
+    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE, BPPARAM=bpparam()
+)
 }
 
 \arguments{
 
   \item{ITER}{
     A function with no arguments that returns an object to process,
-    generally a chunk of data from a file. When no objects 
+    generally a chunk of data from a file. When no objects
     are left (i.e., end of file) it should return NULL and continue to
     return NULL regardless of the number of times it is invoked after
     reaching the end of file. This function is run on the master.
@@ -46,38 +48,35 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bpiterate}.
   }
-  \item{\dots}{Arguments to other methods, specifically named 
-    arguments for \code{FUN}, or \code{REDUCE} or \code{init}.
 
-    \itemize{
-      \item{\code{REDUCE}: } Optional function that combines
-        (reduces) output from \code{FUN}. As each worker returns,
-        the data are combined with the \code{REDUCE} function.
-        \code{REDUCE} takes 2 arguments; one is the current
-        result and the other is the output of \code{FUN} from
-        a worker that just finished.
+  \item{REDUCE}{Optional function that combines (reduces)
+    output from \code{FUN}. As each worker returns, the data are
+    combined with the \code{REDUCE} function.  \code{REDUCE} takes 2
+    arguments; one is the current result and the other is the output of
+    \code{FUN} from a worker that just finished.}
 
-      \item{\code{init}: } Optional initial value for \code{REDUCE};
-        must be of the same type as the object returned from \code{FUN}.
-        When supplied, \code{reduce.in.order} is set to TRUE.
+  \item{init}{Optional initial value for \code{REDUCE}; must be of the
+    same type as the object returned from \code{FUN}.  When supplied,
+    \code{reduce.in.order} is set to TRUE.}
 
-      \item{\code{reduce.in.order}: } Logical. When TRUE, REDUCE
-        is applied to the results from the workers in the same order 
-        the tasks were sent out.
-    }
-  }
+  \item{reduce.in.order}{Logical. When TRUE, REDUCE is applied to the
+    results from the workers in the same order the tasks were sent out.}
+
+  \item{\dots}{Arguments to other methods, and named arguments for
+    \code{FUN}.}
 
 }
 
 \details{
 
-  Supported for \code{SnowParam} and \code{MulticoreParam}.
+  Supported for \code{SnowParam}, \code{MulticoreParam} and
+  \code{BatchtoolsParam}.
 
   \code{bpiterate} iterates through an unknown number of data
   chunks, dispatching chunks to parallel workers as they
   become available. In contrast, other \code{bp*apply} functions
-  such as \code{bplapply} or \code{bpmapply} require the number of 
-  data chunks to be specified ahead of time. This quality makes 
+  such as \code{bplapply} or \code{bpmapply} require the number of
+  data chunks to be specified ahead of time. This quality makes
   \code{bpiterate} useful for iterating through files of unknown length.
 
   \code{ITER} serves up chunks of data until the end of the file
@@ -108,7 +107,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
     \item \code{\link{bpvec}} for parallel, vectorized calculations.
     \item \code{\link{bplapply}} for parallel, lapply-like calculations.
     \item \code{\link{BiocParallelParam}} for details of \code{BPPARAM}.
-  } 
+    \item \code{\link{BatchtoolsParam}} for details of \code{BatchtoolsParam}.
+  }
 
 }
 
@@ -120,31 +120,31 @@ if (require(Rsamtools) && require(RNAseqData.HNRNPC.bam.chr14) &&
   ## ----------------------------------------------------------------------
   ## Iterate through a BAM file
   ## ----------------------------------------------------------------------
- 
+
   ## Select a single file and set 'yieldSize' in the BamFile object.
   fl <- RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]]
-  bf <- BamFile(fl, yieldSize = 300000) 
- 
+  bf <- BamFile(fl, yieldSize = 300000)
+
   ## bamIterator() is initialized with a BAM file and returns a function.
   ## The return function requires no arguments and iterates through the
   ## file returning data chunks the size of yieldSize.
   bamIterator <- function(bf) {
       done <- FALSE
       if (!isOpen( bf))
-          open(bf)
- 
+	  open(bf)
+
       function() {
-          if (done)
-              return(NULL)
-          yld <- readGAlignments(bf) 
-          if (length(yld) == 0L) {
-              close(bf)
-              done <<- TRUE
-              NULL
-          } else yld
+	  if (done)
+	      return(NULL)
+	  yld <- readGAlignments(bf)
+	  if (length(yld) == 0L) {
+	      close(bf)
+	      done <<- TRUE
+	      NULL
+	  } else yld
       }
   }
- 
+
   ## FUN counts reads in a region of interest.
   roi <- GRanges("chr14", IRanges(seq(19e6, 107e6, by = 10e6), width = 10e6))
   counter <- function(reads, roi, ...) {
@@ -155,55 +155,56 @@ if (require(Rsamtools) && require(RNAseqData.HNRNPC.bam.chr14) &&
   ITER <- bamIterator(bf)
 
   ## The number of chunks returned by ITER() determines the result length.
-  bpparam <- MulticoreParam(workers = 3) 
+  bpparam <- MulticoreParam(workers = 3)
+  ## bpparam <- BatchtoolsParam(workers = 3), see ?BatchtoolsParam
   bpiterate(ITER, counter, roi = roi, BPPARAM = bpparam)
 
   ## Re-initialize the iterator and combine on the fly with REDUCE:
   ITER <- bamIterator(bf)
-  bpparam <- MulticoreParam(workers = 3) 
+  bpparam <- MulticoreParam(workers = 3)
   bpiterate(ITER, counter, REDUCE = sum, roi = roi, BPPARAM = bpparam)
 
   ## ----------------------------------------------------------------------
   ## Iterate through a FASTA file
   ## ----------------------------------------------------------------------
- 
+
   ## Set data chunk size with 'n' in the FastqStreamer object.
   sp <- SolexaPath(system.file('extdata', package = 'ShortRead'))
   fl <- file.path(analysisPath(sp), "s_1_sequence.txt")
- 
+
   ## Create an iterator that returns data chunks the size of 'n'.
   fastqIterator <- function(fqs) {
       done <- FALSE
       if (!isOpen(fqs))
-          open(fqs)
- 
+	  open(fqs)
+
       function() {
-          if (done)
-              return(NULL)
-          yld <- yield(fqs) 
-          if (length(yld) == 0L) {
-              close(fqs)
-              done <<- TRUE
-              NULL
-          } else yld
+	  if (done)
+	      return(NULL)
+	  yld <- yield(fqs)
+	  if (length(yld) == 0L) {
+	      close(fqs)
+	      done <<- TRUE
+	      NULL
+	  } else yld
       }
   }
- 
+
   ## The process function summarizes the number of times each sequence occurs.
   summary <- function(reads, ...) {
        ShortRead::tables(reads, n = 0)$distribution
   }
 
   ## Create a param.
-  bpparam <- SnowParam(workers = 2) 
+  bpparam <- SnowParam(workers = 2)
 
   ## Initialize the streamer and iterator.
   fqs <- FastqStreamer(fl, n = 100)
   ITER <- fastqIterator(fqs)
   bpiterate(ITER, summary, BPPARAM = bpparam)
- 
+
   ## Results from the workers are combined on the fly when REDUCE is used.
-  ## Collapsing the data in this way can substantially reduce memory 
+  ## Collapsing the data in this way can substantially reduce memory
   ## requirements.
   fqs <- FastqStreamer(fl, n = 100)
   ITER <- fastqIterator(fqs)

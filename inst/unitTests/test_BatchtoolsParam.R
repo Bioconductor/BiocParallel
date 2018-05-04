@@ -296,3 +296,115 @@ test_BatchtoolsParam_sge <- function() {
 }
 
 ## TODO: write tests for other cluster types, slurm, lsf, torque, openlava
+
+test_BatchtoolsParam_bpmapply <- function() {
+    fun <- function(x, y, z) x + y + z
+    ## Initial test
+    param <- BatchtoolsParam()
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+             SIMPLIFY = TRUE, BPPARAM = param)
+    checkIdentical(c(3,5,7), result)
+
+    cluster <-  "interactive"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                       SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+
+    cluster <- "multicore"
+    if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
+        param <- BatchtoolsParam(workers=2, cluster=cluster)
+        result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                           SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+    }
+
+    cluster <- "socket"
+    param <- BatchtoolsParam(workers=2, cluster=cluster)
+    result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
+                       SIMPLIFY = TRUE, BPPARAM=param)
+    checkIdentical(c(3,5,7), result)
+}
+
+
+test_BatchtoolsParam_bpvec <- function() {
+    ## Mutlticore
+    param <- BatchtoolsParam(workers=2)
+    result <- bpvec(1:10, seq_along, BPPARAM=param)
+    target <- as.integer(rep(1:5, 2))
+    checkIdentical(target, result)
+
+    ## socket
+    param <- BatchtoolsParam(workers=2, cluster="socket")
+    result <- bpvec(1:10, seq_along, BPPARAM=param)
+    target <- as.integer(rep(1:5,2))
+    checkIdentical(target, result)
+}
+
+
+test_BatchtoolsParam_bpvectorize <- function() {
+    psqrt <- bpvectorize(sqrt)
+    checkTrue(is(psqrt, "function"))
+    ## Mutlticore
+    param <- BatchtoolsParam(workers=2)
+    bpseq_along <- bpvectorize(seq_along, BPPARAM=param)
+
+    res <- bpseq_along(1:10)
+    target <- as.integer(rep(1:5, 2))
+    checkIdentical(as.integer(target), res)
+
+    ## Socket
+    param <- BatchtoolsParam(workers=2, cluster="socket")
+    bpseq_along <- bpvectorize(seq_along, BPPARAM=param)
+
+    res <- bpseq_along(1:10)
+    target <- as.integer(rep(1:5, 2))
+    checkIdentical(as.integer(target), res)
+}
+
+
+test_BatchtoolsParam_bpiterate <- function() {
+    ## Iterator function
+    ITER <- function(n=5) {
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > n)
+                return(NULL)
+        rep(i, 100)
+        }
+    }
+
+    ## test function
+    FUN <- function(x, k) {
+        sum(x) + k
+    }
+
+    ## Multicore cluster
+    param <- BatchtoolsParam()
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5, BPPARAM=param)
+    ## Check Identical result
+    target <- list(105, 205, 305, 405, 505)
+    checkIdentical(target, res)
+
+    ## socket cluster
+    param <- BatchtoolsParam(cluster="socket")
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5, BPPARAM=param)
+    ## Check Identical result
+    checkIdentical(target, res)
+
+    ## Test REDUCE on socket
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5,
+                     REDUCE=`+`,
+                     BPPARAM=param)
+    ## Check Identical result
+    checkIdentical(1525, res)
+
+    ## Test REDUCE, init on mutlicore
+    param <- BatchtoolsParam()
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5,
+                     REDUCE=`+`, init = 10,
+                     BPPARAM=param)
+    ## Check Identical result
+    checkIdentical(1535, res)
+}

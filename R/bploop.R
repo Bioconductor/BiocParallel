@@ -332,3 +332,73 @@ bploop.iterate <-
         reducer$value()
     }
 }
+
+bploop.iterate_batchtools <-
+    function(manager, ITER, FUN, BPPARAM, REDUCE, init, reduce.in.order,...)
+{
+    ## get number of workers
+    workers <- bpnworkers(BPPARAM)
+    ## reduce in order
+    reducer <- .reducer(REDUCE, init, reduce.in.order)
+
+    ## progress bar.
+    progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
+    on.exit(progress$term(), TRUE)
+    progress$init()
+
+    message("Adding jobs ...")
+    def.id <- job.id <- 1L
+    repeat{
+        value <- ITER()
+        if (is.null(value)) {
+            if (job.id == 1L)
+                warning("first invocation of 'ITER()' returned NULL")
+            break
+        }
+
+        ## save 'value' to registry tempfile
+        fl <- tempfile(tmpdir = BPPARAM$registry$file.dir)
+        saveRDS(value, fl)
+
+        if (job.id == 1L) {
+            suppressMessages({
+                ids <- batchtools::batchMap(
+                    fun = FUN, fl, more.args = list(...),
+                    reg = BPPARAM$registry
+                )
+            })
+        } else {
+            job.pars <- list(fl)
+            BPPARAM$registry$defs <-
+                rbind(BPPARAM$registry$defs, list(def.id, list(job.pars)))
+            entry <- c(list(job.id, def.id), rep(NA, 10))
+            BPPARAM$registry$status <- rbind(BPPARAM$registry$status, entry)
+        }
+        def.id <- def.id + 1L
+        job.id <- job.id + 1L
+    }
+
+    ## finish  updating tables
+    ids <- data.table::data.table(job.id = seq_len(job.id - 1))
+    data.table::setkey(BPPARAM$registry$status, "job.id")
+    ids$chunk = batchtools::chunk(ids$job.id, n.chunks = workers)
+
+    ## submit and wait for jobs
+    batchtools::submitJobs(
+        ids = ids, resources = list(), reg = BPPARAM$registry
+    )
+    batchtools::waitForJobs(
+        ids = BPPARAM$registry$status$job.id,
+        reg = BPPARAM$registry, timeout = bptimeout(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM)
+    )
+
+    ## reduce in order
+    for (job.id in ids$job.id) {
+        value <- batchtools::loadResult(id = job.id, reg=BPPARAM$registry)
+        reducer$add(job.id, value)
+    }
+
+    ## return reducer value
+    reducer$value()
+}
