@@ -24,7 +24,7 @@ Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, doParallel,
     Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,
     GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr,
-    batchtools
+    batchtools, data.table
 Collate: AllGenerics.R BiocParallelParam-class.R
     bploop.R ErrorHandling.R log.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R
