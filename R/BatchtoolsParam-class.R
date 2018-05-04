@@ -380,21 +380,42 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 })
 
 
+.composeBatchtools <-
+    function(FUN)
+{
+    force(FUN)
+    function(fl, ...) {
+        x <- readRDS(fl)
+        FUN(x, ...)
+    }
+}
+
 ## REDUCE, init, reduce.in.order, not supported
 setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
+             BPPARAM=bpparam())
 {
     ## match fun
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
+
+    if (missing(REDUCE)) {
+        if (reduce.in.order)
+            stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
+        if (!missing(init))
+            stop("REDUCE must be provided when 'init' is given")
+    }
 
     ## Start / stop cluster
     if (!bpisup(BPPARAM)) {
         bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM))
     }
-    ## FUN <- .composeTry(FUN, bplog(BPPARAM),
-    ##                    bpstopOnError(BPPARAM), timeout=bptimeout(BPPARAM))
+
+    FUN <- .composeTry(FUN, bplog(BPPARAM),
+                       bpstopOnError(BPPARAM), timeout=bptimeout(BPPARAM))
+
+    FUN <- .composeBatchtools(FUN)
 
     ## Get cluster backend, and number of workers
     cl <- bpbackend(BPPARAM)
@@ -406,6 +427,7 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     progress$init()
 
     def.id <- job.id <- 1L
+    message("Adding jobs ...")
     repeat{
         value <- ITER()
         ## If value is null break
@@ -419,21 +441,22 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
         saveRDS(value, fl)
 
         if (job.id == 1L) {
-            ids <- batchtools::batchMap(fun = FUN, fl,
-                                        more.args = list(...),
-                                        reg = BPPARAM$registry)
+            suppressMessages(
+                ids <- batchtools::batchMap(
+                    fun = FUN, fl, more.args = list(...), reg = BPPARAM$registry)
+            )
         } else {
             job.pars <- list(fl)
             BPPARAM$registry$defs <- rbind(BPPARAM$registry$defs,
                                            list(def.id, list(job.pars)))
             entry <- c(list(job.id, def.id), rep(NA, 10))
             BPPARAM$registry$status <- rbind(BPPARAM$registry$status, entry)
-            ## Add to ids
-            ids <- rbind(ids, data.table::as.data.table(job.id))
         }
         def.id <- def.id + 1L
         job.id <- job.id + 1L
     }
+    ## Make ids
+    ids <- data.table::data.table(job.id = seq_len(job.id - 1))
     ## setkey for the data.table
     data.table::setkey(BPPARAM$registry$status, "job.id")
     ids$chunk = batchtools::chunk(ids$job.id, n.chunks = workers)
@@ -443,7 +466,13 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
         reg = BPPARAM$registry, timeout = bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)
     )
-    res <- batchtools::reduceResultsList(ids = ids, reg = BPPARAM$registry)
+    ## reduce in order
+    reducer <- .reducer(REDUCE, init, reduce.in.order)
 
-    res
+    for (id in ids$job.id) {
+        value <- batchtools::loadResult(id = id, reg=BPPARAM$registry)
+        reducer$add(id, value)
+    }
+
+    reducer$value()
 })
