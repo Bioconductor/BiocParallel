@@ -387,11 +387,11 @@ bploop.batchtoolsIterate <-
         reg = BPPARAM$registry, timeout = bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)
     )
-
+    ## reduce in order
     for (id in ids$job.id) {
         value <- batchtools::loadResult(id = id, reg=BPPARAM$registry)
         reducer$add(id, value)
     }
-
+    ## return reducer value
     reducer$value()
 }

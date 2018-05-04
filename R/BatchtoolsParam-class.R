@@ -241,6 +241,16 @@ setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     x$template
 }
 
+.composeBatchtools <-
+    function(FUN)
+{
+    force(FUN)
+    function(fl, ...) {
+        x <- readRDS(fl)
+        FUN(x, ...)
+    }
+}
+
 setMethod("bpbackend", "BatchtoolsParam",
     function(x)
 {
@@ -380,17 +390,6 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 })
 
 
-.composeBatchtools <-
-    function(FUN)
-{
-    force(FUN)
-    function(fl, ...) {
-        x <- readRDS(fl)
-        FUN(x, ...)
-    }
-}
-
-## REDUCE, init, reduce.in.order, not supported
 setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
              BPPARAM=bpparam())
