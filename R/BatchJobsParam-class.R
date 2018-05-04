@@ -181,5 +181,5 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),
     function(ITER, FUN, ..., BPPARAM=bpparam())
 {
-    stop(paste0("bpiterate not supported for BatchJobsParam"))
+    stop("bpiterate not supported for BatchJobsParam")
 })

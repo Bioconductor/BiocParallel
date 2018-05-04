@@ -1,7 +1,6 @@
 \name{bpiterate}
 \alias{bpiterate}
 \alias{bpiterate,ANY,ANY,missing-method}
-\alias{bpiterate,ANY,ANY,BiocParallelParam-method}
 \alias{bpiterate,ANY,ANY,SerialParam-method}
 \alias{bpiterate,ANY,ANY,SnowParam-method}
 \alias{bpiterate,ANY,ANY,BatchJobsParam-method}
@@ -24,9 +23,9 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
 \S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., BPPARAM=bpparam())
 
-\S4method{bpiterate}{ANY,ANY,BiocParallelParam}(ITER, FUN, ..., BPPARAM=bpparam())
-
-\S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(ITER, FUN, ..., BPPARAM=bpparam())
+\S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
+    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE, BPPARAM=bpparam()
+)
 }
 
 \arguments{
@@ -49,32 +48,29 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
     \code{list} of \code{BiocParallelParam} instances, to be applied in
     sequence for nested calls to \code{bpiterate}.
   }
-  \item{\dots}{Arguments to other methods, specifically named
-    arguments for \code{FUN}, or \code{REDUCE} or \code{init}.
 
-    \itemize{
-      \item{\code{REDUCE}: } Optional function that combines
-	(reduces) output from \code{FUN}. As each worker returns,
-	the data are combined with the \code{REDUCE} function.
-	\code{REDUCE} takes 2 arguments; one is the current
-	result and the other is the output of \code{FUN} from
-	a worker that just finished.
+  \item{REDUCE}{Optional function that combines (reduces)
+    output from \code{FUN}. As each worker returns, the data are
+    combined with the \code{REDUCE} function.  \code{REDUCE} takes 2
+    arguments; one is the current result and the other is the output of
+    \code{FUN} from a worker that just finished.}
 
-      \item{\code{init}: } Optional initial value for \code{REDUCE};
-	must be of the same type as the object returned from \code{FUN}.
-	When supplied, \code{reduce.in.order} is set to TRUE.
+  \item{init}{Optional initial value for \code{REDUCE}; must be of the
+    same type as the object returned from \code{FUN}.  When supplied,
+    \code{reduce.in.order} is set to TRUE.}
 
-      \item{\code{reduce.in.order}: } Logical. When TRUE, REDUCE
-	is applied to the results from the workers in the same order
-	the tasks were sent out.
-    }
-  }
+  \item{reduce.in.order}{Logical. When TRUE, REDUCE is applied to the
+    results from the workers in the same order the tasks were sent out.}
+
+  \item{\dots}{Arguments to other methods, and named arguments for
+    \code{FUN}.}
 
 }
 
 \details{
 
-  Supported for \code{SnowParam}, \code{MulticoreParam} and \code{BatchtoolsParam}.
+  Supported for \code{SnowParam}, \code{MulticoreParam} and
+  \code{BatchtoolsParam}.
 
   \code{bpiterate} iterates through an unknown number of data
   chunks, dispatching chunks to parallel workers as they
