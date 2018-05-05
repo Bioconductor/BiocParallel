@@ -230,7 +230,7 @@ multicoreWorkers()
     communicate. See 'Global Options' in \code{\link{SnowParam}}.
   }
   \item{\dots}{
-    Additional arguments passed to \code{\link[snow]{makeCluster}}
+    Additional arguments passed to \code{\link{makeCluster}}
   }
 
 }

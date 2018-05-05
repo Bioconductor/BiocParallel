@@ -269,7 +269,7 @@ snowWorkers()
     communicate. See 'Global Options', below.
   }
   \item{\dots}{
-    Additional arguments passed to \code{\link[snow]{makeCluster}}
+    Additional arguments passed to \code{\link{makeCluster}}
   }
 
 }

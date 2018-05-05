@@ -43,7 +43,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
   }
   \item{SIMPLIFY}{
     If \code{TRUE} the result will be simplified using
-    \code{\link[base]{simplify2array}}.
+    \code{\link{simplify2array}}.
   }
   \item{USE.NAMES}{If \code{TRUE} the result will be named.
   }
@@ -70,7 +70,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 \author{
  
   Michel Lang . Original code as attributed in
-  \code{\link[parallel]{mclapply}}.
+  \code{\link{mclapply}}.
 
 }
 

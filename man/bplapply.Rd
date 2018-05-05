@@ -61,7 +61,7 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 \author{
 
   Martin Morgan \url{mailto:mtmorgan@fhcrc.org}. Original code as
-  attributed in \code{\link[parallel]{mclapply}}.
+  attributed in \code{\link{mclapply}}.
 
 }
 

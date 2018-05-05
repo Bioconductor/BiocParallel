@@ -44,7 +44,7 @@
   \item{...}{Additional arguments for \code{FUN}.
   }
   \item{simplify}{If set to \code{TRUE}, the return values of \code{FUN}
-    will be simplified using \code{\link[base]{simplify2array}}.
+    will be simplified using \code{\link{simplify2array}}.
   }
   \item{BPPARAM}{An optional \code{\link{BiocParallelParam}} instance
     determining the parallel back-end to be used during evaluation.
