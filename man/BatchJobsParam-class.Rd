@@ -90,9 +90,11 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 
     \item{cluster.functions}{ClusterFunctions} Specify a specific
         cluster backend using on of the constructors provided by
-        BatchJobs, see \link{ClusterFunctions}.  Default is
-        \code{NULL} where the default cluster functions defined in the
-        configuration are used. Ignored when \code{conf.pars} is provided.
+        BatchJobs, see
+        \link[BatchJobs:makeClusterFunctions]{ClusterFunctions}.
+        Default is \code{NULL} where the default cluster functions
+        defined in the configuration are used. Ignored when
+        \code{conf.pars} is provided.
 
     \item{progressbar}{\code{logical(1)}}
         Suppress the progress bar used in BatchJobs and be less verbose.
