@@ -5,8 +5,7 @@ test_BatchtoolsParam_constructor <- function() {
     checkTrue(is(param$registry, "NULLRegistry"))
 
     isWindows <- .Platform$OS.type == "windows"
-    nworkers <- BiocParallel:::.snowCores(isWindows)
-
+    nworkers <- BiocParallel:::.snowCores()
     cluster <- if (isWindows) "socket" else "multicore"
     checkIdentical(cluster, bpbackend(param))
     checkIdentical(nworkers, bpnworkers(param))
