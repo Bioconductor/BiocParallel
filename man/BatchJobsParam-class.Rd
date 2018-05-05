@@ -90,7 +90,7 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
 
     \item{cluster.functions}{ClusterFunctions} Specify a specific
         cluster backend using on of the constructors provided by
-        BatchJobs, see \link[BatchJobs]{ClusterFunctions}.  Default is
+        BatchJobs, see \link{ClusterFunctions}.  Default is
         \code{NULL} where the default cluster functions defined in the
         configuration are used. Ignored when \code{conf.pars} is provided.
 
