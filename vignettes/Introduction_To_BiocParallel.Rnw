@@ -24,9 +24,9 @@ suppressPackageStartupMessages({
 \newcommand{\BiocParallel}{\Biocpkg{BiocParallel}}
 
 \title{Introduction to \BiocParallel}
-\author{Vincent Carey, Michael Lawrence, Martin
-  Morgan\footnote{\url{Martin.Morgan@RoswellPark.org}}}
-\date{Edited: May 6, 2015; Compiled: \today}
+\author{Valerie Obenchain, Vincent Carey, Michael Lawrence,
+  Martin Morgan\footnote{\url{Martin.Morgan@RoswellPark.org}}}
+\date{Edited: March 22, 2018; Compiled: \today}
 
 \begin{document}
 
@@ -437,7 +437,7 @@ for use with the \Rpackage{foreach} package.
 
 To re-run the counting example, FUN needs to modified such that `gr` is
 passed as a formal argument and required libraries are loaded on each worker.
-(In general, this is not necessary for functions defined in a package name 
+(In general, this is not necessary for functions defined in a package name
 space, see Section~\ref{sec:developers}.)
 <<cluster_FUN>>=
 FUN <- function(fl, param, gr) {
