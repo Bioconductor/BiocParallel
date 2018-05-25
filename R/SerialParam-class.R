@@ -107,8 +107,9 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     on.exit(progress$term(), TRUE)
     progress$init(length(X))
     FUN_ <- function(...) {
-        FUN(...)
+        value <- FUN(...)
         progress$step()
+        value
     }
     res <- lapply(X, FUN_, ...)
 
@@ -173,8 +174,9 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     on.exit(progress$term(), TRUE)
     progress$init()
     FUN_ <- function(...) {
-        FUN(...)
+        value <- FUN(...)
         progress$step()
+        value
     }
 
     .bpiterate_serial(ITER, FUN_, ..., REDUCE = REDUCE, init = init)
