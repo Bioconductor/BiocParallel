@@ -26,14 +26,16 @@
 
 SerialParam <-
     function(catch.errors=TRUE, stop.on.error = TRUE,
-             log=FALSE, threshold="INFO", logdir=NA_character_)
+             log=FALSE, threshold="INFO", logdir=NA_character_,
+             progressbar=FALSE)
 {
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
     x <- .SerialParam(workers=1L, catch.errors=catch.errors,
                       stop.on.error=stop.on.error,
-                      log=log, threshold=threshold, logdir=logdir) 
+                      log=log, threshold=threshold, logdir=logdir,
+                      progressbar=progressbar)
     validObject(x)
     x
 }
@@ -101,7 +103,14 @@ setMethod("bplapply", c("ANY", "SerialParam"),
                        stop.immediate=bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
 
-    res <- lapply(X, FUN, ...)
+    progress <- .progress(active=bpprogressbar(BPPARAM))
+    on.exit(progress$term(), TRUE)
+    progress$init(length(X))
+    FUN_ <- function(...) {
+        progress$step()
+        FUN(...)
+    }
+    res <- lapply(X, FUN_, ...)
 
     names(res) <- names(X)
 
@@ -160,6 +169,13 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
 
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
                        timeout=bptimeout(BPPARAM))
+    progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
+    on.exit(progress$term(), TRUE)
+    progress$init()
+    FUN_ <- function(...) {
+        progress$step()
+        FUN(...)
+    }
 
-    .bpiterate_serial(ITER, FUN, ..., REDUCE = REDUCE, init = init)
+    .bpiterate_serial(ITER, FUN_, ..., REDUCE = REDUCE, init = init)
 })

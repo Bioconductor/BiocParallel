@@ -407,7 +407,8 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM))
+                             threshold=bpthreshold(BPPARAM),
+                             progress=bpprogressbar(BPPARAM))
         return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
                          BPPARAM=param))
     }
