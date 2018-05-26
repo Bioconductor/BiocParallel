@@ -3,7 +3,7 @@
 ### -------------------------------------------------------------------------
 
 multicoreWorkers <- function()
-    .snowCores(multicore=TRUE)
+    .snowCores("multicore")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor 
@@ -48,8 +48,11 @@ setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
     function(x, value)
 {
     value <- as.integer(value)
-    if (value > multicoreWorkers())
-        stop("'value' exceeds available workers detected by multicoreWorkers()")
+    max <- .snowCoresMax("multicore")
+    if (value > max)
+        stop(
+            "'value' exceeds ", max, " available workers; see ?multicoreWorkers"
+        )
  
     x$workers <- value 
     x$.clusterargs$spec <- value 

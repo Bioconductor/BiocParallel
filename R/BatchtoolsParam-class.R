@@ -17,7 +17,7 @@ batchtoolsWorkers <-
     switch(
         match.arg(cluster, .BATCHTOOLS_CLUSTERS),
         interactive = 1L,
-        socket = snowWorkers(),
+        socket = snowWorkers("SOCK"),
         multicore = multicoreWorkers(),
         stop("specify number of workers for '", cluster, "'")
     )

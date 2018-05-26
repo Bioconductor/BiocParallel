@@ -55,7 +55,7 @@
 ## constructor
 ## ------------------------------------
 
-SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
+SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = TRUE,
           progressbar = FALSE, RNGseed = NULL,
           timeout = 30L * 24L * 60L * 60L,
@@ -73,7 +73,7 @@ SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK"),
 ## detect workers
 ## ------------------------------------
 
-snowWorkers()
+snowWorkers(type = c("SOCK", "MPI", "FORK"))
 }
 
 \details{
@@ -85,11 +85,15 @@ snowWorkers()
   handling, logging and writing out results.
 
   The default number of workers is determined by \code{snowWorkers()}
-  which is the maximum of 1 and \code{parallel::detectCores() - 2};
-  machines with 3 or fewer cores are assigned a single worker. The
-  option \code{mc.cores} can be used to specify an arbitrary number of
-  workers, e.g., \code{options(mc.cores=4L)}; the \emph{Bioconductor}
-  build system enforces a maximum of 4 workers.
+  which is usually the maximum of 1 and \code{parallel::detectCores() -
+  2}. Machines with 3 or fewer cores are assigned a single
+  worker. Machines with more than 127 cores are limited to the number of
+  \emph{R} connections available when the workers start; this is 128 (a
+  hard-coded limit in \emph{R}) minus the number of open connections as
+  returned by \code{nrow(showConnections(all=TRUE))}. The option
+  \code{mc.cores} can be used to specify an arbitrary number of workers,
+  e.g., \code{options(mc.cores=4L)}; the \emph{Bioconductor} build
+  system enforces a maximum of 4 workers.
 
   \describe{
     \item{error handling:}{

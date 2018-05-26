@@ -58,11 +58,22 @@
     port
 }
 
-.snowCores <- function(multicore=FALSE) {
-    if (multicore && .Platform$OS.type == "windows")
+.snowCoresMax <- function(type) {
+    if (type == "MPI") {
+        .Machine$integer.max
+    } else {
+        128L - nrow(showConnections(all=TRUE))
+    }
+}
+
+.snowCores <- function(type) {
+    if (type == "multicore" && .Platform$OS.type == "windows")
         return(1L)
 
-    cores <- max(1L, parallel::detectCores() - 2L)
+    cores <- min(
+        max(1L, parallel::detectCores() - 2L),
+        .snowCoresMax(type)
+    )
     cores <- getOption("mc.cores", cores)
     if (nzchar(Sys.getenv("BBS_HOME")))
         cores <- min(4L, cores)
@@ -70,8 +81,10 @@
     cores
 }
 
-snowWorkers <- function()
-    .snowCores()
+snowWorkers <- function(type = c("SOCK", "MPI", "FORK")) {
+    type <- match.arg(type)
+    .snowCores(type)
+}
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Constructor
@@ -143,7 +156,7 @@ setOldClass(c("NULLcluster", "cluster"))
         })
 )
 
-SnowParam <- function(workers=snowWorkers(),
+SnowParam <- function(workers=snowWorkers(type),
                       type=c("SOCK", "MPI", "FORK"), tasks=0L,
                       catch.errors=TRUE, stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
@@ -235,8 +248,9 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     function(x, value)
 {
     value <- as.integer(value)
-    if (value > snowWorkers())
-        stop("'value' exceeds available workers detected by snowWorkers()")
+    max <- .snowCoresMax(x$.clusterargs$type)
+    if (value > max)
+        stop("'value' exceeds ", max, " available workers; see ?snowWorkers")
 
     x$workers <- value
     x$.clusterargs$spec <- value
