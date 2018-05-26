@@ -478,7 +478,7 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
                              threshold=bpthreshold(BPPARAM),
-                             progress=bpprogressbar(BPPARAM))
+                             progressbar=bpprogressbar(BPPARAM))
         return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
                          BPPARAM=param))
     }
