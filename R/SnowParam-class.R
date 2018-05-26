@@ -411,7 +411,8 @@ setMethod("bplapply", c("ANY", "SnowParam"),
     if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM))
+                             threshold=bpthreshold(BPPARAM),
+                             progressbar=bpprogressbar(BPPARAM))
         return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
     }
 
@@ -476,7 +477,8 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
                              log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM))
+                             threshold=bpthreshold(BPPARAM),
+                             progress=bpprogressbar(BPPARAM))
         return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
                          BPPARAM=param))
     }

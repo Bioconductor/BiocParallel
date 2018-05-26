@@ -23,7 +23,7 @@
 
 \usage{
 SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
-    threshold = "INFO", logdir= NA_character_)
+    threshold = "INFO", logdir = NA_character_, progressbar = FALSE)
 }
 
 \section{Constructor}{
@@ -58,6 +58,10 @@ SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
   \item{logdir}{
     \code{character(1)} Log files directory. When not provided, log
     messages are returned to stdout.
+  }
+
+  \item{progressbar}{
+    \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
   }
 }
 
