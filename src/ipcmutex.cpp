@@ -214,6 +214,7 @@ extern "C" {
     void R_init_BiocParallel(DllInfo *info)
     {
         R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+        R_useDynamicSymbols(info, FALSE);
     }
 
     void R_unload_BiocParallel(DllInfo *info)
