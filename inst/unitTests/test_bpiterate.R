@@ -1,14 +1,11 @@
 quiet <- suppressWarnings
 
 .lazyCount <- function(count) {
-    count <- count
     i <- 0L
-
     function() {
         if (i >= count)
             return(NULL)
-        else
-            i <<- i + 1L
+        i <<- i + 1L
         i
     }
 }
@@ -134,4 +131,35 @@ test_bpiterate_REDUCE <- function() {
     TRUE
 
     message("test_bpiterate_REDUCE DONE")
+}
+
+test_bpiterate_REDUCE_SerialParam <- function() {
+    p <- SerialParam()
+    FUN <- identity
+
+    ## REDUCE missing, concatenate
+    ITER <- .lazyCount(0)
+    res <- bpiterate(ITER, FUN, BPPARAM=p)
+    checkIdentical(list(), res)
+
+    ITER <- .lazyCount(1)
+    res <- bpiterate(ITER, FUN, BPPARAM=p)
+    checkIdentical(list(1L), res)
+
+    ITER <- .lazyCount(5)
+    res <- bpiterate(ITER, FUN, BPPARAM=p)
+    checkIdentical(as.list(1:5), res)
+
+    ## REDUCE == `+`
+    ITER <- .lazyCount(0)
+    res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
+    checkIdentical(list(), res)
+
+    ITER <- .lazyCount(1)
+    res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
+    checkIdentical(1L, res)
+
+    ITER <- .lazyCount(5)
+    res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
+    checkIdentical(15L, res)
 }

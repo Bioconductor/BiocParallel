@@ -130,33 +130,17 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
-    N_GROW <- 100L
-    n <- 0
-    result <- vector("list", n)
-    if (!missing(init)) result[[1]] <- init
+    reducer <- .reducer(REDUCE, init)
     i <- 0L
     repeat {
-        if(is.null(dat <- ITER()))
+        value <- ITER()
+        if(is.null(value))
             break
-        else
-            value <- FUN(dat, ...)
-
-        if (missing(REDUCE)) {
-            i <- i + 1L
-            if (i > n) {
-                n <- n + N_GROW
-                length(result) <- n
-            }
-            result[[i]] <- value
-        } else {
-            if (length(result))
-                result[[1]] <- REDUCE(result[[1]], value)
-            else
-                result[[1]] <- value 
-        }
+        i <- i + 1L
+        value <- FUN(value, ...)
+        reducer$add(i, value)
     }
-    length(result) <- ifelse(i == 0L, 1, i)
-    result
+    reducer$value()
 }
 
 setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
