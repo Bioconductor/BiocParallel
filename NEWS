@@ -6,6 +6,9 @@ BUG FIXES
     o (v 1.13.1) bpiterate,serial-method does not unlist the result of
     FUN before passing to REDUCE.
 
+    o (v 1.13.2) bpaggregate,formula-method failed to find BPREDO
+    (https://support.bioconductor.org/p/110784)
+
 CHANGES IN VERSION 1.12
 -----------------------
 
