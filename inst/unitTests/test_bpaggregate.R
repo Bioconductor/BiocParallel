@@ -20,3 +20,19 @@ test_bpaggregate <-
     closeAllConnections()
     TRUE
 }
+
+test_bpaggregate_formula <-
+    function()
+{
+    f <- Sepal.Length ~ Species
+    iris1 <- iris
+    iris1$Species <-       # FIXME: bpaggregate doesn't respect factor
+        as.character(iris1$Species) 
+    x1 <- aggregate(f, data=iris1, FUN=sum)
+    x2 <- bpaggregate(f, data = iris1, FUN = sum)
+    checkIdentical(x1, x2)
+
+    iris1 <- iris1[sample(nrow(iris1)),]
+    x3 <- bpaggregate(f, data = iris1, FUN = sum)
+    checkIdentical(x2, x3)
+}

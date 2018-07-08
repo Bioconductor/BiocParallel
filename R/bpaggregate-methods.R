@@ -39,7 +39,7 @@ setMethod("bpaggregate", c("data.frame", "BiocParallelParam"),
         sapply(.x[.ind,, drop=FALSE], .AGGRFUN, ..., simplify=.simplify)
     }
     ind <- Filter(length, split(seq_len(nrow(x)), by))
-    grp <- rep(seq_along(ind), sapply(ind, length))
+    grp <- rep(seq_along(ind), lengths(ind))
     grp <- grp[match(seq_len(nrow(x)), unlist(ind))]
     res <- bplapply(ind, wrapper, .x=x, .AGGRFUN=FUN, .simplify=simplify,
                     BPREDO=BPREDO, BPPARAM=BPPARAM)
@@ -70,8 +70,9 @@ setMethod("bpaggregate", c("formula", "BiocParallelParam"),
     m <- match.call(expand.dots=FALSE)
     if (is.matrix(eval(m$data, parent.frame()))) 
         m$data <- as.data.frame(data)
-    m$... <- m$FUN <- m$BPPARAM <- NULL
-    m[[1L]] <- as.name("model.frame")
+    m$... <- m$FUN <- m$BPPARAM <- m$BPREDO <- NULL
+    m[[1L]] <- quote(stats::model.frame)
+    names(m)[[2]] <- "formula"
 
     if (x[[2L]] == ".") {
         rhs <- as.list(attr(terms(x[-2L]), "variables")[-1])
