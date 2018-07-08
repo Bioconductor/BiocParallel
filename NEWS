@@ -6,6 +6,9 @@ BUG FIXES
     o (v 1.15.6) bpiterate,serial-method does not return a list() when
     REDUCE present (https://github.com/Bioconductor/BiocParallel/issues/77)
 
+    o (v 1.15.7) bpaggregate,formula-method failed to find BPREDO
+    (https://support.bioconductor.org/p/110784)
+
 CHANGES IN VERSION 1.14
 -----------------------
 
