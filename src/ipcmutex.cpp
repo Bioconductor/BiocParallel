@@ -1,3 +1,5 @@
+#define BOOST_NO_AUTO_PTR
+
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
