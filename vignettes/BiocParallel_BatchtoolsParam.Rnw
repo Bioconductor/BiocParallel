@@ -52,7 +52,7 @@ using batchtools. The first step involves creating a
 \Rcode{BatchtoolsParam} class. You can compute using 'bplapply' and
 then the result is stored.
 
-<<biocLite>>=
+<<intro>>=
 library(BiocParallel)
 
 ## Pi approximation

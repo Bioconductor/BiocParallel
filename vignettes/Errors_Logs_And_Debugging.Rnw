@@ -47,11 +47,12 @@ bp*apply function (e.g., the \Rcode{X} in \Rcode{bplapply}). A ``job'' consists
 of one or more ``tasks'', where each ``task'' is run separately on a worker.
 
 The \Rpackage{BiocParallel} package is available at bioconductor.org
-and can be downloaded via \Rcode{biocLite}:
+and can be downloaded via \Rcode{BiocManager::install}:
 
-<<biocLite, eval=FALSE>>=
-source("http://bioconductor.org/biocLite.R")
-biocLite("BiocParallel")
+<<BiocManager, eval=FALSE>>=
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("BiocParallel")
 @
 
 Load the package:

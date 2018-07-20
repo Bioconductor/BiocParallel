@@ -94,10 +94,12 @@ passed as an argument to the \BiocParallel{} functions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The \Rpackage{BiocParallel} package is available at bioconductor.org
-and can be downloaded via \Rcode{biocLite}:
-<<biocLite, eval=FALSE>>=
-source("http://bioconductor.org/biocLite.R")
-biocLite("BiocParallel")
+and can be downloaded via \Rcode{BiocManager}:
+<<BiocManager, eval=FALSE>>=
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("BiocParallel")
 @
 
 Load \BiocParallel{}.
