@@ -117,6 +117,7 @@ setOldClass("ClusterFunctions")
         template = "character",
         registry = "Registry",
         registryargs = "list",
+        resources = "list",
         RNGseed = "integer",
         logdir = "character"
     ),
@@ -124,12 +125,15 @@ setOldClass("ClusterFunctions")
         show = function() {
             callSuper()
             .registryargs <- .bpregistryargs(.self)
+            .resources <- .bpresources(.self)       
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  bpRNGseed: ", bpRNGseed(.self),
                 "\n  bplogdir: ", bplogdir(.self),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
+                "\n  resources:", 
+                paste0("\n    ", names(.resources), ": ", .resources),
                 "\n", sep="")
         }
     )
@@ -141,6 +145,7 @@ BatchtoolsParam <-
         ## Provide either cluster or template
         cluster = batchtoolsCluster(),
         registryargs = batchtoolsRegistryargs(),
+        resources = list(),
         template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
         progressbar=FALSE, RNGseed = NA_integer_,
@@ -154,9 +159,12 @@ BatchtoolsParam <-
     if (!.batchtoolsClusterAvailable(cluster))
         stop("'", cluster, "' supported but not available on this machine")
 
+    if (length(resources)  && is.null(names(resources)))
+        stop("'resources' must be a named list")
+
     .BatchtoolsParam(
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
-        registryargs = registryargs,
+        registryargs = registryargs, resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
         RNGseed = RNGseed, template = template
@@ -233,6 +241,12 @@ setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
     function(x)
 {
     x$registryargs
+}
+
+.bpresources <-
+    function(x)
+{
+    x$resources
 }
 
 .bptemplate <-
@@ -353,7 +367,9 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     )
     ids$chunk = batchtools::chunk(ids$job.id, n.chunks = bpnworkers(BPPARAM))
 
-    batchtools::submitJobs(ids = ids, resources = list(), reg = registry)
+    batchtools::submitJobs(
+        ids = ids, resources = .bpresources(BPPARAM), reg = registry
+    )
     batchtools::waitForJobs(
         ids = ids, reg = registry, timeout = bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)

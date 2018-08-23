@@ -1,6 +1,11 @@
 CHANGES IN VERSION 1.16
 -----------------------
 
+NEW FEATURES
+
+    o (v 1.15.9) BatchtoolsParam() gains resources=list() for template file
+    substitution.
+
 BUG FIXES
 
     o (v 1.15.6) bpiterate,serial-method does not return a list() when

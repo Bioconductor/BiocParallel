@@ -385,7 +385,7 @@ bploop.iterate_batchtools <-
 
     ## submit and wait for jobs
     batchtools::submitJobs(
-        ids = ids, resources = list(), reg = BPPARAM$registry
+        ids = ids, resources = .bpresources(BPPARAM), reg = BPPARAM$registry
     )
     batchtools::waitForJobs(
         ids = BPPARAM$registry$status$job.id,

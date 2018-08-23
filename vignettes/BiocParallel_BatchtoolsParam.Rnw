@@ -100,21 +100,27 @@ schedulers.
     The 'registryargs' argument takes a list of arguments to create a
     new job registry for you \Rcode{BatchtoolsParam}. The job registry
     is a data.table which stores all the required information to
-    process your jobs. The arguments we support for registryargs are,
+    process your jobs. The arguments we support for registryargs are:
 
-    'file.dir': Path where all files of the registry are saved. Note that
-    some templates do not handle relative paths well. If nothing is given,
-    a temporary directory will be used in your current working directory.
+    \begin{description}
 
-    'work.dir': Working directory for R process for running jobs.
+      \item{file.dir} Path where all files of the registry are
+        saved. Note that some templates do not handle relative paths
+        well. If nothing is given, a temporary directory will be used
+        in your current working directory.
 
-    'packages': Packages that will be loaded on each node.
+      \item{work.dir} Working directory for R process for running
+        jobs.
 
-    'namespaces': Namespaces that will be loaded on each node.
+      \item{packages} Packages that will be loaded on each node.
 
-    'source': Files that are sourced before executing a job.
+      \item{namespaces} Namespaces that will be loaded on each node.
 
-    'load': Files that are loaded before executing a job.
+      \item{source} Files that are sourced before executing a job.
+
+      \item{load} Files that are loaded before executing a job.
+
+    \end{description}
 
 <<<>>=
 registryargs <- batchtoolsRegistryargs(
@@ -129,29 +135,26 @@ param <- BatchtoolsParam(registryargs = registryargs)
 param
 @
 
-\item{template}
+  \item{resources} A named list of key-value pairs to be subsituted into
+    the template file; see \Rcode{?batchtools::submitJobs}.
 
-  The template argument is unique to the \Rcode{BatchtoolsParam} class. It is
-  required by the job scheduler. It defines how the jobs are submitted
-  to the job scheduler. If the template is not given and the cluster
-  is chosen, a default template is selected from the batchtools
-  package. We recommend that the user define a template which works on
-  their cluster, and supply a path to the template argument.
+  \item{template} The template argument is unique to the
+    \Rcode{BatchtoolsParam} class. It is required by the job
+    scheduler. It defines how the jobs are submitted to the job
+    scheduler. If the template is not given and the cluster is chosen,
+    a default template is selected from the batchtools package. We
+    recommend that the user define a template which works on their
+    cluster, and supply a path to the template argument.
 
-\item{log}
+  \item{log} The log option is logical, TRUE/FALSE. If it is set to
+    TRUE, then the logs which are in the registry are copied to
+    directory given by the user using the \Rcode{logdir} argument.
 
-  The log option is logical, TRUE/FALSE. If it is set to TRUE, then
-  the logs which are in the registry are copied to directory given by
-  the user using the \Rcode{logdir} argument.
+  \item{logdir} Path to the logs. It is given only if
+    \Rcode{log=TRUE}.
 
-\item{logdir}
-
-  Path to the logs. It is given only if \Rcode{log=TRUE}.
-
-\item{resultdir}
-
-  Path to the directory is given when the job has files to be saved in
-  a directory.
+  \item{resultdir} Path to the directory is given when the job has
+    files to be saved in a directory.
 
 \end{itemize}
 

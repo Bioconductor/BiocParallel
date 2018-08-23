@@ -49,6 +49,7 @@ BatchtoolsParam(
     workers = batchtoolsWorkers(cluster),
     cluster = batchtoolsCluster(),
     registryargs = batchtoolsRegistryargs(),
+    resources = list(),
     template = batchtoolsTemplate(cluster),
     stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
     timeout = 30L * 24L * 60L * 60L, log = FALSE, logdir = NA_character_,
@@ -90,6 +91,12 @@ batchtoolsRegistryargs(...)
         to all the nodes on your job scheduler i.e master and
         workers. \code{file.dir} uses a default setting to make a
         registry in your working directory.
+
+    \item{resources}{\code{named list()}} Arguments passed to the
+        \code{resources} argument of \code{batchtools::submitJobs}
+        during evaluation of \code{bplapply} and similar
+        functions. These name-value pairs are used for substitution
+        into the template file.
 
     \item{template}{\code{character(1)}} Path to a template for the
         backend in \code{BatchtoolsParam}. It is possible to check which
