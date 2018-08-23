@@ -125,14 +125,14 @@ setOldClass("ClusterFunctions")
         show = function() {
             callSuper()
             .registryargs <- .bpregistryargs(.self)
-            .resources <- .bpresources(.self)       
+            .resources <- .bpresources(.self)
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  bpRNGseed: ", bpRNGseed(.self),
                 "\n  bplogdir: ", bplogdir(.self),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
-                "\n  resources:", 
+                "\n  resources:",
                 paste0("\n    ", names(.resources), ": ", .resources),
                 "\n", sep="")
         }

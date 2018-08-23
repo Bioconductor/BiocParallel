@@ -19,7 +19,7 @@ suppressPackageStartupMessages({
 
 \title{Introduction to \emph{BatchtoolsParam}}
 \author{
-  Nitesh Turaga\footnote{\url{Nitesh.Turaga@RoswellPark.org}}, 
+  Nitesh Turaga\footnote{\url{Nitesh.Turaga@RoswellPark.org}},
   Martin Morgan\footnote{\url{Martin.Morgan@RoswellPark.org}}
 }
 \date{Edited: March 22, 2018; Compiled: \today}
@@ -86,9 +86,9 @@ schedulers.
 
 \begin{itemize}
 
-  \item{workers}{The number of workers used by the job.}
+  \item{\Rcode{workers}} The number of workers used by the job.
 
-  \item{cluster}
+  \item{\Rcode{cluster}}
     We currently support, SGE, SLURM, LSF, TORQUE and
     OpenLava. The 'cluster' argument is supported only if the R
     environment knows how to find the job scheduler. Each cluster type
@@ -96,7 +96,7 @@ schedulers.
     not given we use the default templates as given in the 'batchtools'
     package. The cluster can be accessed by 'bpbackend(param)'.
 
-  \item{registryargs} 
+  \item{\Rcode{registryargs}}
     The 'registryargs' argument takes a list of arguments to create a
     new job registry for you \Rcode{BatchtoolsParam}. The job registry
     is a data.table which stores all the required information to
@@ -104,21 +104,23 @@ schedulers.
 
     \begin{description}
 
-      \item{file.dir} Path where all files of the registry are
+      \item{\Rcode{file.dir}} Path where all files of the registry are
         saved. Note that some templates do not handle relative paths
         well. If nothing is given, a temporary directory will be used
         in your current working directory.
 
-      \item{work.dir} Working directory for R process for running
-        jobs.
+      \item{\Rcode{work.dir}} Working directory for R process for
+        running jobs.
 
-      \item{packages} Packages that will be loaded on each node.
+      \item{\Rcode{packages}} Packages that will be loaded on each node.
 
-      \item{namespaces} Namespaces that will be loaded on each node.
+      \item{\Rcode{namespaces}} Namespaces that will be loaded on each
+        node.
 
-      \item{source} Files that are sourced before executing a job.
+      \item{\Rcode{source}} Files that are sourced before executing a
+        job.
 
-      \item{load} Files that are loaded before executing a job.
+      \item{\Rcode{load}} Files that are loaded before executing a job.
 
     \end{description}
 
@@ -135,10 +137,11 @@ param <- BatchtoolsParam(registryargs = registryargs)
 param
 @
 
-  \item{resources} A named list of key-value pairs to be subsituted into
-    the template file; see \Rcode{?batchtools::submitJobs}.
+  \item{\Rcode{resources}} A named list of key-value pairs to be
+    subsituted into the template file; see
+    \Rcode{?batchtools::submitJobs}.
 
-  \item{template} The template argument is unique to the
+  \item{\Rcode{template}} The template argument is unique to the
     \Rcode{BatchtoolsParam} class. It is required by the job
     scheduler. It defines how the jobs are submitted to the job
     scheduler. If the template is not given and the cluster is chosen,
@@ -146,15 +149,15 @@ param
     recommend that the user define a template which works on their
     cluster, and supply a path to the template argument.
 
-  \item{log} The log option is logical, TRUE/FALSE. If it is set to
-    TRUE, then the logs which are in the registry are copied to
+  \item{\Rcode{log}} The log option is logical, TRUE/FALSE. If it is
+    set to TRUE, then the logs which are in the registry are copied to
     directory given by the user using the \Rcode{logdir} argument.
 
-  \item{logdir} Path to the logs. It is given only if
+  \item{\Rcode{logdir}} Path to the logs. It is given only if
     \Rcode{log=TRUE}.
 
-  \item{resultdir} Path to the directory is given when the job has
-    files to be saved in a directory.
+  \item{\Rcode{resultdir}} Path to the directory is given when the job
+    has files to be saved in a directory.
 
 \end{itemize}
 
