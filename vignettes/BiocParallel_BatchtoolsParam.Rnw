@@ -124,7 +124,7 @@ schedulers.
 
     \end{description}
 
-<<<>>=
+<<>>=
 registryargs <- batchtoolsRegistryargs(
     file.dir = "mytempreg",
     work.dir = getwd(),
@@ -145,7 +145,7 @@ param
     \Rcode{BatchtoolsParam} class. It is required by the job
     scheduler. It defines how the jobs are submitted to the job
     scheduler. If the template is not given and the cluster is chosen,
-    a default template is selected from the batchtools package. 
+    a default template is selected from the batchtools package.
 
   \item{\Rcode{log}} The log option is logical, TRUE/FALSE. If it is
     set to TRUE, then the logs which are in the registry are copied to
@@ -165,31 +165,42 @@ param
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The job submission template controls how the job is processed by the job scheduler on the cluster.
-Obviously, the format of the template will differ depending on the type of job scheduler.
-Let's look at the default SLURM template as an example:
+The job submission template controls how the job is processed by the
+job scheduler on the cluster.  Obviously, the format of the template
+will differ depending on the type of job scheduler.  Let's look at the
+default SLURM template as an example:
 
 <<>>=
 fname <- batchtoolsTemplate("slurm")
 cat(readLines(fname), sep="\n")
 @
 
-The \Rcode{<\%= =>} blocks are automatically replaced by the values of the elements in the \Rcode{resources} argument in the \Rcode{BatchtoolsParam} constructor.
-Failing to specify critical parameters properly (e.g., wall time or memory limits too low) will cause jobs to crash, usually rather cryptically.
-We suggest setting parameters explicitly to provide robustness to changes to system defaults.
-Note that the \Rcode{<\%= =>} blocks themselves do not usually need to be modified in the template.
+The \Rcode{<\%= =>} blocks are automatically replaced by the values of
+the elements in the \Rcode{resources} argument in the
+\Rcode{BatchtoolsParam} constructor.  Failing to specify critical
+parameters properly (e.g., wall time or memory limits too low) will
+cause jobs to crash, usually rather cryptically.  We suggest setting
+parameters explicitly to provide robustness to changes to system
+defaults.  Note that the \Rcode{<\%= =>} blocks themselves do not
+usually need to be modified in the template.
 
-The part of the template that is most likely to require explicit customization is the last line containing the call to \Rcode{Rscript}.
-A more customized call may be necessary if the R installation is not standard, e.g., if multiple versions of R have been installed on a cluster.
-For example, one might use instead:
+The part of the template that is most likely to require explicit
+customization is the last line containing the call to \Rcode{Rscript}.
+A more customized call may be necessary if the R installation is not
+standard, e.g., if multiple versions of R have been installed on a
+cluster.  For example, one might use instead:
 
 <<eval=FALSE>>=
-echo 'batchtools::doJobCollection("<%= uri %>")' | ArbitraryRcommand --no-save --slave
+echo 'batchtools::doJobCollection("<%= uri %>")' |\
+    ArbitraryRcommand --no-save --slave
 @
 
-If such customization is necessary, we suggest making a local copy of the template, modifying it as required, 
-and then constructing a \Rcode{BiocParallelParam} object with the modified template using the \Rcode{template} argument.
-However, we find that the default templates accessible with \Rcode{batchtoolsTemplate} are satisfactory in most cases.
+If such customization is necessary, we suggest making a local copy of
+the template, modifying it as required, and then constructing a
+\Rcode{BiocParallelParam} object with the modified template using the
+\Rcode{template} argument.  However, we find that the default
+templates accessible with \Rcode{batchtoolsTemplate} are satisfactory
+in most cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
