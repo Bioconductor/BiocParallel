@@ -958,7 +958,10 @@ the safest option for developers. Unfortunately,
 
 Developers should document that their function uses \BiocParallel{}
 functions on the man page, and should perhaps include in their
-function signature an argument \Rcode{BPPARAM=bpparam()}.
+function signature an argument \Rcode{BPPARAM=bpparam()}. Developers
+should NOT use `register()` in package code -- this sets a preference
+that influences use of `bplapply()` and friends in all packages, not
+just their package.
 
 Developers wishing to invoke back-ends other than
 \Rcode{MulticoreParam} need to take special care to ensure that
