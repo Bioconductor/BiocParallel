@@ -58,7 +58,7 @@
 SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, catch.errors=TRUE, stop.on.error = TRUE,
           progressbar = FALSE, RNGseed = NULL,
-          timeout = 30L * 24L * 60L * 60L,
+          timeout = 30L * 24L * 60L * 60L, exportglobals = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
           resultdir = NA_character_, jobname = "BPJOB",
           manager.hostname = NA_character_, manager.port = NA_integer_,
@@ -182,7 +182,8 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
-                      progressbar = FALSE, RNGseed = NULL, timeout = Inf,
+                      progressbar = FALSE, RNGseed = NULL,
+                      timeout = Inf, exportglobals = TRUE,
                       log = FALSE, threshold = "INFO", logdir = NA_character_,
                       resultdir = NA_character_, jobname = "BPJOB",
                       manager.hostname = NA_character_,
@@ -245,6 +246,10 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     This value is passed to base::setTimeLimit() as both the \code{cpu} and
     \code{elapsed} arguments. If the computation exceeds \code{timeout} an
     error is thrown with message 'reached elapsed time limit'.
+  }
+  \item{exportglobals}{
+    \code{logical(1)} Export \code{base::options()} from manager to
+    workers? Default \code{TRUE}.
   }
   \item{log}{
     \code{logical(1)} Enable logging.

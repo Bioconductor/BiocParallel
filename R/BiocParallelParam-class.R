@@ -14,6 +14,7 @@
         threshold="character",
         stop.on.error="logical",
         timeout="integer",
+        exportglobals="logical",
         ## deprecated
         catch.errors="logical"
     ),
@@ -26,14 +27,15 @@
             log=FALSE,
             threshold="INFO",
             stop.on.error=TRUE,
-            timeout= 30L * 24L * 60L * 60L, # 30 days
+            timeout=30L * 24L * 60L * 60L, # 30 days
+            exportglobals=TRUE,
             progressbar=FALSE)
         {
             callSuper(...)
             initFields(workers=workers, tasks=tasks, jobname=jobname, 
                        catch.errors=catch.errors, log=log, threshold=threshold,
                        stop.on.error=stop.on.error, timeout=as.integer(timeout),
-                       progressbar=progressbar)
+                       exportglobals=exportglobals, progressbar=progressbar)
         },
         show = function() {
             cat("class: ", class(.self),
@@ -49,6 +51,7 @@
                 "\n",
                 "  bptimeout: ", bptimeout(.self),
                 "; bpprogressbar: ", bpprogressbar(.self),
+                "; bpexportglobals: ", bpexportglobals(.self),
                 "\n", sep="")
         })
 )
@@ -79,6 +82,9 @@ setValidity("BiocParallelParam", function(object)
         if (tasks > 0L && tasks < workers)
             msg <- c(msg, "number of tasks is less than number of workers")
     }
+
+    if (!.isTRUEorFALSE(bpexportglobals(object)))
+        msg <- c(msg, "'bpexportglobals' must be TRUE or FALSE")
 
     ## error handling
     if (!.isTRUEorFALSE(bpcatchErrors(object)))
@@ -161,6 +167,20 @@ setReplaceMethod("bptimeout", c("BiocParallelParam", "numeric"),
     function(x, value)
 {
     x$timeout <- as.integer(value)
+    x
+})
+
+setMethod("bpexportglobals", "BiocParallelParam",
+    function(x)
+{
+    x$exportglobals
+})
+
+setReplaceMethod("bpexportglobals", c("BiocParallelParam", "logical"),
+    function(x, value)
+{
+    x$exportglobals <- value
+    validObject(x)
     x
 })
 

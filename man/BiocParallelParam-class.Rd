@@ -48,6 +48,10 @@
 \alias{bptimeout<-}
 \alias{bptimeout,BiocParallelParam-method}
 \alias{bptimeout<-,BiocParallelParam,numeric-method}
+\alias{bpexportglobals}
+\alias{bpexportglobals<-}
+\alias{bpexportglobals,BiocParallelParam-method}
+\alias{bpexportglobals<-,BiocParallelParam,logical-method}
 \alias{bpprogressbar}
 \alias{bpprogressbar,BiocParallelParam-method}
 \alias{bpprogressbar<-}
@@ -186,6 +190,11 @@
         as both the \code{cpu} and \code{elapsed} arguments. If the
         computation exceeds \code{timeout} an error is thrown with
         message 'reached elapsed time limit'.
+      }
+      \item{}{
+        \code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}: 
+        \code{logical(1)} Export \code{base::options()} from manager to
+        workers? Default \code{TRUE}.
       }
       \item{}{
         \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}: 

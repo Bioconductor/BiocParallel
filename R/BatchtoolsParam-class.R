@@ -149,7 +149,8 @@ BatchtoolsParam <-
         template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
         progressbar=FALSE, RNGseed = NA_integer_,
-        timeout= 30L * 24L * 60L * 60L, log=FALSE, logdir=NA_character_,
+        timeout= 30L * 24L * 60L * 60L, exportglobals=TRUE,
+        log=FALSE, logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB"
     )
 {
@@ -166,7 +167,8 @@ BatchtoolsParam <-
         workers = workers, cluster = cluster, registry = .NULLRegistry(),
         registryargs = registryargs, resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
-        logdir = logdir, stop.on.error = stop.on.error, timeout = timeout,
+        logdir = logdir, stop.on.error = stop.on.error,
+        timeout = timeout, exportglobals = exportglobals,
         RNGseed = RNGseed, template = template
     )
 }
@@ -358,7 +360,8 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     registry <- BPPARAM$registry
 
     FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM), timeout=bptimeout(BPPARAM)
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
 
     ##  Make registry / map / submit / wait / load
@@ -436,8 +439,10 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     }
 
     ## composeTry
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
 
     FUN <- .composeBatchtools(FUN)
 

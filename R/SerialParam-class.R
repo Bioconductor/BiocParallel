@@ -99,9 +99,10 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       stop.immediate=bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=FALSE
+    )
 
     progress <- .progress(active=bpprogressbar(BPPARAM))
     on.exit(progress$term(), TRUE)
@@ -152,8 +153,10 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
 
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=FALSE
+    )
     progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
     on.exit(progress$term(), TRUE)
     progress$init()

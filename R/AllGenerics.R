@@ -79,6 +79,12 @@ setGeneric("bptimeout",
 setGeneric("bptimeout<-",
     function(x, value) standardGeneric("bptimeout<-"))
 
+setGeneric("bpexportglobals",
+    function(x) standardGeneric("bpexportglobals"))
+
+setGeneric("bpexportglobals<-",
+    function(x, value) standardGeneric("bpexportglobals<-"))
+
 setGeneric("bplog",
     function(x) standardGeneric("bplog"))
 

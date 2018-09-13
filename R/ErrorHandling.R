@@ -28,7 +28,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .composeTry <- function(FUN, log, stop.on.error,
                         stop.immediate = FALSE, # TRUE for SerialParam lapply
                         as.error = TRUE,        # FALSE for BatchJobs compatible
-                        timeout)
+                        timeout, exportglobals = TRUE)
 {
     if (!stop.on.error && stop.immediate)
         stop("[internal] 'stop.on.error == FALSE' && 'stop.immediate == TRUE'")
@@ -39,6 +39,8 @@ bptry <- function(expr, ..., bplist_error, bperror)
     force(stop.immediate)
     force(as.error)
     force(timeout)
+    if (exportglobals)
+        global_options <- base::options()
 
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton
@@ -65,6 +67,9 @@ bptry <- function(expr, ..., bplist_error, bperror)
     function(...) {
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
+
+        if (exportglobals)
+            base::options(global_options)
 
         if (stop.on.error && ERROR_OCCURRED) {
             UNEVALUATED

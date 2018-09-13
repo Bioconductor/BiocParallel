@@ -66,8 +66,10 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     if (any(idx))
         X <- X[idx]
 
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
 
     i <- NULL
     handle <- ifelse(bpstopOnError(BPPARAM), "stop", "pass")

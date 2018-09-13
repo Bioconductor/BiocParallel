@@ -18,6 +18,7 @@ multicoreWorkers <- function()
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
         catch.errors=TRUE, stop.on.error=TRUE, 
         progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
+        exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB",
         manager.hostname=NA_character_, manager.port=NA_integer_, ...)
@@ -34,9 +35,9 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         tasks=as.integer(tasks),
         catch.errors=catch.errors, stop.on.error=stop.on.error, 
         progressbar=progressbar, 
-        RNGseed=RNGseed, timeout=timeout,
-        log=log, threshold=threshold, logdir=logdir,
-        resultdir=resultdir, jobname=jobname,
+        RNGseed=RNGseed, timeout=timeout, exportglobals=exportglobals,
+        log=log, threshold=threshold,
+        logdir=logdir, resultdir=resultdir, jobname=jobname,
         hostname=manager.hostname, port=manager.port)
 }
 

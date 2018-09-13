@@ -65,7 +65,8 @@ export(
     bpstart, bpstop, bpisup,
     bpcatchErrors, "bpcatchErrors<-", bpstopOnError, "bpstopOnError<-",
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
-    bptimeout, "bptimeout<-", bplog, "bplog<-", bplogdir, "bplogdir<-",
+    bptimeout, "bptimeout<-", bpexportglobals, "bpexportglobals<-",
+    bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
     ## schedule

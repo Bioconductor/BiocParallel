@@ -160,7 +160,8 @@ SnowParam <- function(workers=snowWorkers(type),
                       type=c("SOCK", "MPI", "FORK"), tasks=0L,
                       catch.errors=TRUE, stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
-                      timeout= 30L * 24L * 60L * 60L,
+                      timeout=30L * 24L * 60L * 60L,
+                      exportglobals=TRUE,
                       log=FALSE, threshold="INFO", logdir=NA_character_,
                       resultdir=NA_character_, jobname = "BPJOB",
                       manager.hostname=NA_character_,
@@ -181,7 +182,8 @@ SnowParam <- function(workers=snowWorkers(type),
     x <- .SnowParam(.clusterargs=args, cluster=.NULLcluster(),
                     .controlled=TRUE, workers=workers, tasks=as.integer(tasks),
                     catch.errors=catch.errors, stop.on.error=stop.on.error,
-                    progressbar=progressbar, RNGseed=RNGseed, timeout=timeout,
+                    progressbar=progressbar, RNGseed=RNGseed,
+                    timeout=timeout, exportglobals=exportglobals,
                     log=log, threshold=threshold, logdir=logdir,
                     resultdir=resultdir, jobname=jobname,
                     hostname=manager.hostname, port=manager.port)
@@ -428,8 +430,10 @@ setMethod("bplapply", c("ANY", "SnowParam"),
     }
 
     ## FUN
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
 
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
@@ -490,8 +494,10 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
     }
 
     ## FUN
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       timeout=bptimeout(BPPARAM))
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
     ARGFUN <- function(value) c(list(value), list(...))
 
     ## FIXME: handle errors via bpok()

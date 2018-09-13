@@ -136,7 +136,8 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 
     ## FUN
     FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       as.error=FALSE, timeout=bptimeout(BPPARAM))
+                       as.error=FALSE, timeout=bptimeout(BPPARAM),
+                       exportglobals=bpexportglobals(BPPARAM))
     WRAP <- function(.x, .FUN, .MoreArgs)
         do.call(.FUN, c(list(.x), .MoreArgs))
 

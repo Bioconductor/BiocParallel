@@ -6,6 +6,9 @@ NEW FEATURES
     o (v 1.15.9) BatchtoolsParam() gains resources=list() for template file
     substitution.
 
+    o (v 1.15.12) bpexportglobals() for all BPPARAM exports global
+    options (i.e., base::options()) to workers. Default TRUE.
+
 BUG FIXES
 
     o (v 1.15.6) bpiterate,serial-method does not return a list() when

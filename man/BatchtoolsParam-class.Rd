@@ -52,8 +52,9 @@ BatchtoolsParam(
     resources = list(),
     template = batchtoolsTemplate(cluster),
     stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
-    timeout = 30L * 24L * 60L * 60L, log = FALSE, logdir = NA_character_,
-    resultdir=NA_character_, jobname = "BPJOB"
+    timeout = 30L * 24L * 60L * 60L, exportglobals=TRUE,
+    log = FALSE, logdir = NA_character_, resultdir=NA_character_,
+    jobname = "BPJOB"
 )
 batchtoolsWorkers(cluster = batchtoolsCluster())
 batchtoolsCluster(cluster)
@@ -120,6 +121,9 @@ batchtoolsRegistryargs(...)
     \item{timeout}{\code{list()}} Time (in seconds) allowed for worker
         to complete a task.  If the computation exceeds \code{timeout}
         an error is thrown with message 'reached elapsed time limit'.
+
+    \item{exportglobals}{\code{logical(1)}} Export
+        \code{base::options()} from manager to workers? Default \code{TRUE}.
 
     \item{log}{\code{logical(1)}} Option given to save the logs which
         are produced by the jobs. If \code{log=TRUE} then the \code{logdir}
