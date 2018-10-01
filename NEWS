@@ -17,6 +17,9 @@ BUG FIXES
     o (v 1.15.7) bpaggregate,formula-method failed to find BPREDO
     (https://support.bioconductor.org/p/110784)
 
+    o (v 1.15.13) bplappy,BatchtoolsParam() coerces List to list
+    (https://github.com/Bioconductor/BiocParallel/issues/82)
+
 CHANGES IN VERSION 1.14
 -----------------------
 

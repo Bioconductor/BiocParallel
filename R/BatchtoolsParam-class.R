@@ -339,6 +339,10 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     if (!length(X))
         return(list())
 
+    if (is(X, "List"))
+        ## hack; issue 82
+        X <- as.list(X)
+
     idx <- .redo_index(X, BPREDO)
     if (any(idx))
         X <- X[idx]

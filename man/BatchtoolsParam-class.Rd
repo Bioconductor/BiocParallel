@@ -157,6 +157,8 @@ batchtoolsRegistryargs(...)
     \code{\link{bpnworkers}}, \code{\link{bpstart}},
     \code{\link{bpstop}}, \code{\link{bpisup}}, \code{\link{bpbackend}}.
 
+    \code{\link{bplapply}} handles arguments \code{X} of classes derived
+    from \code{S4Vectors::List} specially, coercing to \code{list}.
 }
 
 \author{Nitesh Turaga, \url{mailto:nitesh.turaga@roswellpark.org}}
