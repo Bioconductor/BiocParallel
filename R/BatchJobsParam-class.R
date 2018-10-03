@@ -3,8 +3,18 @@
 ### -------------------------------------------------------------------------
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
+
+.BatchJobsParam_prototype <- c(
+    list(
+        reg.pars = list(),
+        submit.pars = list(),
+        conf.pars = list(),
+        cleanup = logical()
+    ),
+    .BiocParallelParam_prototype
+)
 
 .BatchJobsParam <- setRefClass("BatchJobsParam",
     contains="BiocParallelParam",
@@ -14,36 +24,6 @@
         conf.pars="list",
         cleanup="logical"),
     methods=list(
-        initialize = function(..., 
-            conf.pars=list(), 
-            workers=NA_integer_) 
-        {
-            callSuper(...)
-
-            ## save user config and reset it on exit
-            prev.config <- BatchJobs::getConfig()
-            on.exit(do.call(BatchJobs::setConfig, prev.config))
-            if (!is.null(conf.pars$conffile))
-                loadConfig(conf.pars$conffile)
-            new.conf <- unclass(do.call(BatchJobs::setConfig,
-                conf.pars[setdiff(names(conf.pars), "conffile")]))
-            x_workers <- if (is.na(workers)) {
-                getNumberCPUs <- function(conf) {
-                    x <- 
-                      environment(new.conf$cluster.functions$submitJob)$workers
-                    vapply(x, "[[", integer(1L), "ncpus")
-                }
-                cf.name <- new.conf$cluster.functions$name
-                if (is.null(cf.name)) {
-                    NA_integer_
-                } else {
-                    switch(cf.name, Multicore=getNumberCPUs(new.conf),
-                           SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
-                }
-            } else as.integer(workers)
-
-            initFields(workers=x_workers, conf.pars=new.conf)
-        },
         show = function() {
             ## TODO more output
             callSuper()
@@ -71,11 +51,41 @@ BatchJobsParam <-
     submit.pars <- Filter(not_null, submit.pars)
     conf.pars <- Filter(not_null, conf.pars)
 
-    .BatchJobsParam(reg.pars=reg.pars, submit.pars=submit.pars,
-                    conf.pars=conf.pars, workers=workers, 
-                    catch.errors=catch.errors, cleanup=cleanup, 
-                    stop.on.error=stop.on.error, 
-                    progressbar=progressbar, jobname=jobname)
+    ## save user config and reset it on exit
+    prev.config <- BatchJobs::getConfig()
+    on.exit(do.call(BatchJobs::setConfig, prev.config))
+    if (!is.null(conf.pars$conffile))
+        BatchJobs::loadConfig(conf.pars$conffile)
+    new.conf <- unclass(do.call(
+        BatchJobs::setConfig,
+        conf.pars[setdiff(names(conf.pars), "conffile")]
+    ))
+    workers <-
+        if (is.na(workers)) {
+            getNumberCPUs <- function(conf) {
+                x <-
+                    environment(new.conf$cluster.functions$submitJob)$workers
+                vapply(x, "[[", integer(1L), "ncpus")
+            }
+            cf.name <- new.conf$cluster.functions$name
+            if (is.null(cf.name)) {
+                NA_integer_
+            } else {
+                switch(cf.name, Multicore=getNumberCPUs(new.conf),
+                       SSH=sum(getNumberCPUs(new.conf)), NA_integer_)
+            }
+        } else as.integer(workers)
+
+    prototype <- .prototype_update(
+        .BatchJobsParam_prototype,
+        reg.pars=reg.pars, submit.pars=submit.pars,
+        conf.pars=conf.pars, workers=workers,
+        catch.errors=catch.errors, cleanup=cleanup,
+        stop.on.error=stop.on.error,
+        progressbar=progressbar, jobname=jobname
+    )
+
+    do.call(.BatchJobsParam, prototype)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,7 +114,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     if (!length(X))
         return(list())
 
-    if (!bpschedule(BPPARAM)) 
+    if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     idx <- .redo_index(X, BPREDO)
@@ -163,7 +173,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 
     if (any(idx)) {
         BPREDO[idx] <- res
-        res <- BPREDO 
+        res <- BPREDO
     }
 
     ok <- bpok(res)

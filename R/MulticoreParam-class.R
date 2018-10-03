@@ -9,6 +9,8 @@ multicoreWorkers <- function()
 ### Constructor 
 ###
 
+.MulticoreParam_prototype <- .SnowParam_prototype
+
 .MulticoreParam <- setRefClass("MulticoreParam",
     contains="SnowParam",
     fields=list(),
@@ -29,16 +31,41 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
-    args <- c(list(spec=workers, type="FORK"), list(...)) 
-    .MulticoreParam(.clusterargs=args, cluster=.NULLcluster(),
+    clusterargs <- c(list(spec=workers, type="FORK"), list(...))
+
+    manager.hostname <-
+        if (is.na(manager.hostname)) {
+            local <- (clusterargs$type == "FORK") ||
+                is.numeric(clusterargs$spec)
+            manager.hostname <- .snowHost(local)
+        } else as.character(manager.hostname)
+
+    manager.port <-
+        if (is.na(manager.port)) {
+            .snowPort(manager.hostname)
+        } else as.integer(manager.port)
+
+    if (!is.null(RNGseed))
+        RNGseed <- as.integer(RNGseed)
+
+    prototype <- .prototype_update(
+        .MulticoreParam_prototype,
+        .clusterargs=clusterargs, cluster=.NULLcluster(),
         .controlled=TRUE, workers=as.integer(workers), 
         tasks=as.integer(tasks),
         catch.errors=catch.errors, stop.on.error=stop.on.error, 
         progressbar=progressbar, 
-        RNGseed=RNGseed, timeout=timeout, exportglobals=exportglobals,
+        RNGseed=RNGseed, timeout=as.integer(timeout),
+        exportglobals=exportglobals,
         log=log, threshold=threshold,
         logdir=logdir, resultdir=resultdir, jobname=jobname,
-        hostname=manager.hostname, port=manager.port)
+        hostname=manager.hostname, port=manager.port,
+        ...
+    )
+
+    x <- do.call(.MulticoreParam, prototype)
+    validObject(x)
+    x
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

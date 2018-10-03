@@ -7,6 +7,8 @@
 ### Constructor 
 ###
 
+.DoparParam_prototype <- .BiocParallelParam_prototype
+
 .DoparParam <- setRefClass("DoparParam",
     contains="BiocParallelParam",
     fields=list(),
@@ -27,7 +29,15 @@ DoparParam <-
                  "  DoparParam() requires the 'foreach' package")
         })
     }
-    .DoparParam(catch.errors=catch.errors, stop.on.error=stop.on.error)
+
+    prototype <- .prototype_update(
+        .DoparParam_prototype,
+        catch.errors=catch.errors, stop.on.error=stop.on.error
+    )
+
+    x <- do.call(.DoparParam, prototype)
+    validObject(x)
+    x
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

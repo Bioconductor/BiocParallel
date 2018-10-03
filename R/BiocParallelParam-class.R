@@ -2,6 +2,19 @@
 ### BiocParallelParam objects
 ### -------------------------------------------------------------------------
 
+.BiocParallelParam_prototype <- list(
+    workers=0,
+    tasks=0L,
+    jobname="BPJOB",
+    catch.errors=TRUE,    ## deprecated
+    log=FALSE,
+    threshold="INFO",
+    stop.on.error=TRUE,
+    timeout=30L * 24L * 60L * 60L, # 30 days
+    exportglobals=TRUE,
+    progressbar=FALSE
+)
+
 .BiocParallelParam <- setRefClass("BiocParallelParam",
     contains="VIRTUAL",
     fields=list(
@@ -19,24 +32,6 @@
         catch.errors="logical"
     ),
     methods=list(
-        initialize = function(..., 
-            workers=0, 
-            tasks=0L, 
-            jobname="BPJOB",
-            catch.errors=TRUE,    ## deprecated
-            log=FALSE,
-            threshold="INFO",
-            stop.on.error=TRUE,
-            timeout=30L * 24L * 60L * 60L, # 30 days
-            exportglobals=TRUE,
-            progressbar=FALSE)
-        {
-            callSuper(...)
-            initFields(workers=workers, tasks=tasks, jobname=jobname, 
-                       catch.errors=catch.errors, log=log, threshold=threshold,
-                       stop.on.error=stop.on.error, timeout=as.integer(timeout),
-                       exportglobals=exportglobals, progressbar=progressbar)
-        },
         show = function() {
             cat("class: ", class(.self),
                 "\n",
@@ -104,7 +99,7 @@ setValidity("BiocParallelParam", function(object)
     }
 
     if (!.isTRUEorFALSE(bpstopOnError(object)))
-        msg <- c(msg, "'bpstopOnError(BPPARAM)' must be logical(1)")
+        msg <- c(msg, "'bpstopOnError' must be logical(1)")
 
     if (is.null(msg)) TRUE else msg
 })

@@ -109,6 +109,19 @@ print.NULLRegistry <-
 
 setOldClass("ClusterFunctions")
 
+.BatchtoolsParam_prototype <- c(
+    list(
+        cluster = NA_character_,
+        template = NA_character_,
+        registry = .NULLRegistry(),
+        registryargs = list(),
+        resources = list(),
+        RNGseed = NA_integer_,
+        logdir=NA_character_
+    ),
+    .BiocParallelParam_prototype
+)
+
 .BatchtoolsParam <- setRefClass(
     "BatchtoolsParam",
     contains="BiocParallelParam",
@@ -133,7 +146,8 @@ setOldClass("ClusterFunctions")
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
                 "\n  resources:",
-                paste0("\n    ", names(.resources), ": ", .resources),
+                if (length(.resources))
+                    paste0("\n    ", names(.resources), ": ", .resources),
                 "\n", sep="")
         }
     )
@@ -163,14 +177,20 @@ BatchtoolsParam <-
     if (length(resources)  && is.null(names(resources)))
         stop("'resources' must be a named list")
 
-    .BatchtoolsParam(
-        workers = workers, cluster = cluster, registry = .NULLRegistry(),
+    prototype <- .prototype_update(
+        .BatchtoolsParam_prototype,
+        workers = as.integer(workers), cluster = cluster,
+        registry = .NULLRegistry(),
         registryargs = registryargs, resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, stop.on.error = stop.on.error,
-        timeout = timeout, exportglobals = exportglobals,
-        RNGseed = RNGseed, template = template
+        timeout = as.integer(timeout), exportglobals = exportglobals,
+        RNGseed = as.integer(RNGseed), template = template
     )
+
+    x <- do.call(.BatchtoolsParam, prototype)
+    validObject(x)
+    x
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

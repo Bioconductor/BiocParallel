@@ -20,6 +20,12 @@ BUG FIXES
     o (v 1.15.13) bplappy,BatchtoolsParam() coerces List to list
     (https://github.com/Bioconductor/BiocParallel/issues/82)
 
+    o (v 1.15.14) implicit loading of BiocParallel when loading a third-
+    party package failed because reference class `initialize()` methods are
+    not installed correctly. This bug fix results in signficant revision
+    in the implementation, so that valid objects must be constructed through
+    the public constructors, e.g., `BatchtoolsParam()`
+
 CHANGES IN VERSION 1.14
 -----------------------
 

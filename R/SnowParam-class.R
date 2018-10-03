@@ -100,6 +100,32 @@ setOldClass(c("NULLcluster", "cluster"))
     cl
 }
 
+.SnowParam_prototype <- c(
+    list(
+        cluster = .NULLcluster(),
+        .clusterargs=list(spec=0, type="SOCK"),
+        .controlled=TRUE,
+        hostname=NA_character_, port=NA_integer_,
+        RNGseed=NULL,
+        logdir=NA_character_,
+        resultdir=NA_character_,
+        finalizer_env = new.env(parent=emptyenv())
+    ),
+    .BiocParallelParam_prototype
+)
+
+.SnowParam_add_finalizer <-
+    function(x)
+{
+    finalizer_env <- as.environment(list(self=x$.self))
+    reg.finalizer(finalizer_env, function(e) {
+        if (.controlled(e[["self"]]))
+            bpstop(e[["self"]])
+    }, onexit=TRUE)
+    x$finalizer_env <- finalizer_env
+    x
+}
+
 .SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
@@ -114,35 +140,6 @@ setOldClass(c("NULLcluster", "cluster"))
         resultdir="character",
         finalizer_env="environment"),
     methods=list(
-        initialize = function(...,
-            .clusterargs=list(spec=0, type="SOCK"),
-            .controlled=TRUE,
-            hostname=NA_character_, port=NA_character_,
-            RNGseed=NULL,
-            logdir=NA_character_,
-            resultdir=NA_character_)
-        {
-            env <- as.environment(list(self=.self))
-            reg.finalizer(env, function(e) {
-                if (.controlled(e[["self"]]))
-                    bpstop(e[["self"]])
-            }, onexit=TRUE)
-            manager.hostname <-
-                if (is.na(hostname)) {
-                    local <- (.clusterargs$type == "FORK") ||
-                        is.numeric(.clusterargs$spec)
-                    manager.hostname <- .snowHost(local)
-                } else as.character(hostname)
-            manager.port <-
-                if (is.na(port)) {
-                    .snowPort(manager.hostname)
-                } else as.integer(port)
-            callSuper(...)
-            initFields(.clusterargs=.clusterargs, .controlled=.controlled,
-                       hostname = manager.hostname, port = manager.port,
-                       RNGseed=RNGseed, logdir=logdir, resultdir=resultdir,
-                       finalizer_env=env)
-        },
         show = function() {
             callSuper()
             cat("  bpRNGseed: ", bpRNGseed(.self),
@@ -178,15 +175,38 @@ SnowParam <- function(workers=snowWorkers(type),
     if (type %in% c("MPI", "FORK") && is(workers, "character"))
         stop("'workers' must be integer(1) when 'type' is MPI or FORK")
 
-    args <- c(list(spec=workers, type=type), list(...))
-    x <- .SnowParam(.clusterargs=args, cluster=.NULLcluster(),
-                    .controlled=TRUE, workers=workers, tasks=as.integer(tasks),
-                    catch.errors=catch.errors, stop.on.error=stop.on.error,
-                    progressbar=progressbar, RNGseed=RNGseed,
-                    timeout=timeout, exportglobals=exportglobals,
-                    log=log, threshold=threshold, logdir=logdir,
-                    resultdir=resultdir, jobname=jobname,
-                    hostname=manager.hostname, port=manager.port)
+    clusterargs <- c(list(spec=workers, type=type), list(...))
+
+    manager.hostname <-
+        if (is.na(manager.hostname)) {
+            local <- (clusterargs$type == "FORK") ||
+                is.numeric(clusterargs$spec)
+            manager.hostname <- .snowHost(local)
+        } else as.character(manager.hostname)
+
+    manager.port <-
+        if (is.na(manager.port)) {
+            .snowPort(manager.hostname)
+        } else as.integer(manager.port)
+
+    if (!is.null(RNGseed))
+        RNGseed <- as.integer(RNGseed)
+
+    prototype <- .prototype_update(
+        .SnowParam_prototype,
+        .clusterargs=clusterargs,
+        .controlled=TRUE, workers=workers, tasks=as.integer(tasks),
+        catch.errors=catch.errors, stop.on.error=stop.on.error,
+        progressbar=progressbar, RNGseed=RNGseed,
+        timeout=as.integer(timeout), exportglobals=exportglobals,
+        log=log, threshold=threshold, logdir=logdir,
+        resultdir=resultdir, jobname=jobname,
+        hostname=manager.hostname, port=manager.port,
+        ...
+    )
+
+    x <- do.call(.SnowParam, prototype)
+    x <- .SnowParam_add_finalizer(x)
     validObject(x)
     x
 }
@@ -582,10 +602,20 @@ stopCluster.SOCKcluster <-
 setAs("SOCKcluster", "SnowParam",
     function(from)
 {
-    .clusterargs <- list(spec=length(from),
-        type=sub("cluster$", "", class(from)[1L]))
-    .SnowParam(.clusterargs=.clusterargs, cluster=from,
-        .controlled=FALSE, workers=length(from))
+    .clusterargs <-
+        list(spec=length(from), type=sub("cluster$", "", class(from)[1L]))
+    prototype <- .prototype_update(
+        .SnowParam_prototype,
+        .clusterargs = .clusterargs,
+        cluster = from,
+        .controlled = FALSE,
+        workers = length(from)
+    )
+
+    x <- do.call(.SnowParam, prototype)
+    x <- .SnowParam_add_finalizer(x)
+    validObject(x)
+    x
 })
 
 ### MPIcluster

@@ -6,18 +6,21 @@
 ### Constructor 
 ###
 
+.SerialParam_prototype <- c(
+    list(
+        workers = 1L,
+        threshold="INFO",
+        logdir=NA_character_
+    ),
+    .BiocParallelParam_prototype
+)
+
 .SerialParam <- setRefClass("SerialParam",
     contains="BiocParallelParam",
     fields=list(
-        logdir="character"),
+        logdir="character"
+    ),
     methods=list(
-        initialize = function(...,
-            threshold="INFO",
-            logdir=NA_character_)
-        { 
-            callSuper(...)
-            initFields(threshold=threshold, logdir=logdir)
-        },
         show = function() {
             callSuper()
             cat("  bplogdir: ", bplogdir(.self), "\n", sep="")
@@ -32,10 +35,14 @@ SerialParam <-
     if (!missing(catch.errors))
         warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
-    x <- .SerialParam(workers=1L, catch.errors=catch.errors,
-                      stop.on.error=stop.on.error,
-                      log=log, threshold=threshold, logdir=logdir,
-                      progressbar=progressbar)
+    prototype <- .prototype_update(
+        .SerialParam_prototype,
+        catch.errors=catch.errors,
+        stop.on.error=stop.on.error,
+        log=log, threshold=threshold, logdir=logdir,
+        progressbar=progressbar
+    )
+    x <- do.call(.SerialParam, prototype)
     validObject(x)
     x
 }
