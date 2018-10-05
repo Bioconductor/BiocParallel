@@ -249,7 +249,7 @@ multicoreWorkers()
   In the following code, \code{x} is a \code{MulticoreParam} object.
   \describe{
     \item{}{
-      \code{bpprogress(x)}, \code{bpprogress(x) <- value}:
+      \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:
       Get or set the value to enable text progress bar.
       \code{value} must be a \code{logical(1)}.
     }
