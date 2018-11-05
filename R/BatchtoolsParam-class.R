@@ -46,11 +46,11 @@ batchtoolsCluster <-
         socket = TRUE,
         multicore = .Platform$OS.type != "windows",
         interactive = TRUE,
-        sge = suppressWarnings(system2("qstat", stderr=NULL) != 127L),
+        sge = suppressWarnings(system2("qstat", stderr=NULL, stdout=NULL) != 127L),
         slurm = suppressWarnings(system2("squeue", stderr=NULL, stdout=NULL) != 127L),
-        lsf = suppressWarnings(system2("bjobs", stderr=NULL) != 127L),
-        openlava = suppressWarnings(system2("bjobs", stderr=NULL) != 127L),
-        torque = suppressWarnings(system2("qselect", stderr=NULL) != 127L),
+        lsf = suppressWarnings(system2("bjobs", stderr=NULL, stdout=NULL) != 127L),
+        openlava = suppressWarnings(system2("bjobs", stderr=NULL, stdout=NULL) != 127L),
+        torque = suppressWarnings(system2("qselect", stderr=NULL, stdout=NULL) != 127L),
         stop("unsupported cluster type '", cluster, "'")
     )
 }
