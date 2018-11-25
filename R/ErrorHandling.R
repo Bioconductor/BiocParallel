@@ -39,8 +39,17 @@ bptry <- function(expr, ..., bplist_error, bperror)
     force(stop.immediate)
     force(as.error)
     force(timeout)
-    if (exportglobals)
+    if (exportglobals) {
+        blacklist <- c(
+            "askpass", "asksecret", "buildtools.check",
+            "buildtools.with", "pager", "plumber.swagger.url",
+            "profvis.print", "restart", "reticulate.repl.hook",
+            "reticulate.repl.initialize", "reticulate.repl.teardown",
+            "shiny.launch.browser", "terminal.manager", "error"
+        )
         global_options <- base::options()
+        global_options <- global_options[!names(global_options) %in% blacklist]
+    }
 
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton
