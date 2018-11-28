@@ -3,8 +3,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-static boost::uuids::random_generator uuid_generator =
-    boost::uuids::random_generator();
+static boost::uuids::random_generator uuid_generator;
 
 std::string uuid_generate()
 {
