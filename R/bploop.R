@@ -6,25 +6,26 @@
 ### Derived from snow version 0.3-13 by Luke Tierney
 ### Derived from parallel version 2.16.0 by R Core Team
 
-.send_EXEC <-
-    function(node, tag, fun, args)
+.send <- function(node, ...)
+    UseMethod(".send")
+
+.recv <- function(node, ...)
+    UseMethod(".recv")
+
+.recv1 <- function(cluster, ...)
+    UseMethod(".recv1")
+
+.close <- function(node)
+    UseMethod(".close")
+
+.send.default <-
+    function(node, data)
 {
-    data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
     parallel:::sendData(node, data)
     TRUE
 }
 
-.send_VALUE <-
-    function(node, tag, value, success, time, log, sout)
-{
-    data <- list(type = "VALUE", tag = tag,
-                 value = value, success = success,
-                 time = time, log = log, sout = sout)
-    parallel:::sendData(node, data)
-    TRUE
-}
-
-.recv <- function(node, id)
+.recv.default <- function(node, id)
     tryCatch({
         suppressPackageStartupMessages({
             ## when starting workers; not supressable otherwise
@@ -35,15 +36,31 @@
         .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
     })
 
-.recv1 <- function(cluster, id)
+.recv1.default <- function(cluster, id)
     tryCatch({
         parallel:::recvOneData(cluster)
     }, error=function(e) {
         stop(.error_worker_comm(e, sprintf("'%s' receive data failed", id)))
     })
 
-.close <- function(node)
+.close.default <- function(node)
     parallel:::closeNode(node)
+
+.send_EXEC <-
+    function(node, tag, fun, args)
+{
+    data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
+    .send(node, data)
+}
+
+.send_VALUE <-
+    function(node, tag, value, success, time, log, sout)
+{
+    data <- list(type = "VALUE", tag = tag,
+                 value = value, success = success,
+                 time = time, log = log, sout = sout)
+    .send(node, data)
+}
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
