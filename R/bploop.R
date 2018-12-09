@@ -6,26 +6,26 @@
 ### Derived from snow version 0.3-13 by Luke Tierney
 ### Derived from parallel version 2.16.0 by R Core Team
 
-.send <- function(node, ...)
-    UseMethod(".send")
+.sendto <- function(node, ...)
+    UseMethod(".sendto")
 
-.recv <- function(node, ...)
+.recvfrom <- function(node, ...)
+    UseMethod(".recvfrom")
+
+.recv <- function(cluster, ...)
     UseMethod(".recv")
-
-.recv1 <- function(cluster, ...)
-    UseMethod(".recv1")
 
 .close <- function(node)
     UseMethod(".close")
 
-.send.default <-
+.sendto.default <-
     function(node, data)
 {
     parallel:::sendData(node, data)
     TRUE
 }
 
-.recv.default <- function(node, id)
+.recvfrom.default <- function(node, id)
     tryCatch({
         suppressPackageStartupMessages({
             ## when starting workers; not supressable otherwise
@@ -36,7 +36,7 @@
         .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
     })
 
-.recv1.default <- function(cluster, id)
+.recv.default <- function(cluster, id)
     tryCatch({
         parallel:::recvOneData(cluster)
     }, error=function(e) {
@@ -50,7 +50,7 @@
     function(node, tag, fun, args)
 {
     data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
-    .send(node, data)
+    .sendto(node, data)
 }
 
 .send_VALUE <-
@@ -59,7 +59,7 @@
     data <- list(type = "VALUE", tag = tag,
                  value = value, success = success,
                  time = time, log = log, sout = sout)
-    .send(node, data)
+    .sendto(node, data)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,7 +73,7 @@ bploop <- function(manager, ...)
 {
     repeat {
         tryCatch({
-            msg <- .recv(manager, "worker")
+            msg <- .recvfrom(manager, "worker")
             if (inherits(msg, "error"))
                 break                   # lost socket connection?
 
@@ -130,7 +130,7 @@ bploop.SOCK0node <- .bploop.worker
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
         while (any(running)) {
-            d <- .recv1(cl, "clear_cluster")
+            d <- .recv(cl, "clear_cluster")
             if (!is.null(result))
                 result[[d$value$tag]] <- d$value$value
             running[d$node] <- FALSE
@@ -244,7 +244,7 @@ bploop.lapply <-
 
         for (i in seq_len(n)) {
             ## collect
-            d <- .recv1(cl, "bplapply")
+            d <- .recv(cl, "bplapply")
 
             value <- d$value$value
             njob <- d$value$tag
@@ -314,7 +314,7 @@ bploop.iterate <-
             break
 
         ## collect
-        d <- .recv1(cl, "bpiterate")
+        d <- .recv(cl, "bpiterate")
         progress$step()
 
         value <- d$value$value
