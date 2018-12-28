@@ -22,7 +22,7 @@
 }
 
 \usage{
-SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
+SerialParam(stop.on.error = TRUE, log = FALSE,
     threshold = "INFO", logdir = NA_character_, progressbar = FALSE)
 }
 
@@ -30,7 +30,7 @@ SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
 
   \describe{
     \item{}{
-      \code{SerialParam(catch.errors = FALSE, log = FALSE, threshold = "INFO")}:
+      \code{SerialParam()}:
 
       Return an object to be used for serial evaluation of otherwise
       parallel functions such as \code{\link{bplapply}},
@@ -41,8 +41,6 @@ SerialParam(catch.errors = TRUE, stop.on.error = TRUE, log = FALSE,
 }
 
 \arguments{
-
-  \item{catch.errors}{DEPRECATED; see \code{\link{SnowParam}}.}
 
   \item{stop.on.error}{A \code{logical} determining behavior on error;
     see \code{\link{SnowParam}}.}

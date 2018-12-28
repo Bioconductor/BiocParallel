@@ -27,7 +27,7 @@
 ## ------------------------------------
 
 MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
-               catch.errors = TRUE, stop.on.error = TRUE,
+               stop.on.error = TRUE,
                progressbar = FALSE, RNGseed = NULL,
                timeout = 30L * 24L * 60L * 60L, exportglobals=TRUE,
                log = FALSE, threshold = "INFO", logdir = NA_character_,
@@ -71,20 +71,10 @@ multicoreWorkers()
 
   \describe{
     \item{error handling:}{
-      The \code{catch.errors} field has been deprecated.
 
       By default all computations are attempted and partial results
       are returned with any error messages.
       \itemize{
-        \item \code{catch.errors} (DEPRECATED)
-              determines whether errors are caught and
-              returned with other results. When \code{TRUE}, all computations
-              are attempted and output contains both errors and successfully
-              completed results. When \code{FALSE}, the job is terminated as
-              soon as the first error is hit and only the error message is
-              returned (no results); this is the default behavior of the
-              parent packages, e.g., \code{parallel}, \code{snow},
-              \code{foreach}.
 
         \item \code{stop.on.error} A \code{logical}. Stops all jobs as soon
               as one job fails or wait for all jobs to terminate. When
@@ -150,7 +140,7 @@ multicoreWorkers()
   \describe{
     \item{}{
       \code{MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
-                           catch.errors = TRUE, stop.on.error = FALSE,
+                           stop.on.error = FALSE,
                            tasks = 0L, progressbar = FALSE, RNGseed = NULL,
                            timeout = Inf, exportglobals=TRUE,
                            log = FALSE, threshold = "INFO",
@@ -188,10 +178,7 @@ multicoreWorkers()
     When the length of \code{X} is less than the number of workers each
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
   }
-  \item{catch.errors}{
-    DEPRECATED. \code{logical(1)} Enable the catching of errors and warnings.
-  }
-  \item{stop.on.error}{
+    \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
   }
   \item{progressbar}{
@@ -314,7 +301,6 @@ multicoreWorkers()
   In the code below \code{x} is a \code{MulticoreParam} object. See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpcatchErrors(x)}, \code{bpcatchErrors(x) <- value}}
     \item{}{\code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}}
   }
 

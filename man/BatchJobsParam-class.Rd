@@ -25,7 +25,7 @@
 }
 
 \usage{
-BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE, 
+BatchJobsParam(workers, cleanup = TRUE, 
     work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
     resources = NULL, conffile = NULL, cluster.functions = NULL, 
     progressbar = TRUE, jobname = "BPJOB",
@@ -45,13 +45,6 @@ BatchJobsParam(workers, catch.errors = TRUE, cleanup = TRUE,
         workers equals the number of tasks.  See argument
         \code{n.chunks} in \code{\link[BBmisc]{chunk}} and
         \code{\link[BatchJobs]{submitJobs}} for more information.
-
-    \item{catch.errors}{DEPRECATED. \code{logical(1)}} Flag to determine in
-        apply-like functions (see e.g. \code{\link{bplapply}}) whether
-        to quit with an error as soon as one application fails or
-        encapsulation of function calls in \code{\link[base]{try}}
-        blocks which triggers a resume mechanism (see
-        \link{bpresume}). Defaults to \code{TRUE}.
 
     \item{cleanup}{\code{logical(1)}} BatchJobs creates temporary
         directories in the \code{work.dir}. If \code{cleanup} is set to

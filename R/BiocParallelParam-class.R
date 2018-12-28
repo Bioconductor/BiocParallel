@@ -6,7 +6,6 @@
     workers=0,
     tasks=0L,
     jobname="BPJOB",
-    catch.errors=TRUE,    ## deprecated
     log=FALSE,
     threshold="INFO",
     stop.on.error=TRUE,
@@ -27,9 +26,7 @@
         threshold="character",
         stop.on.error="logical",
         timeout="integer",
-        exportglobals="logical",
-        ## deprecated
-        catch.errors="logical"
+        exportglobals="logical"
     ),
     methods=list(
         show = function() {
@@ -80,10 +77,6 @@ setValidity("BiocParallelParam", function(object)
 
     if (!.isTRUEorFALSE(bpexportglobals(object)))
         msg <- c(msg, "'bpexportglobals' must be TRUE or FALSE")
-
-    ## error handling
-    if (!.isTRUEorFALSE(bpcatchErrors(object)))
-        msg <- c(msg, "'catch.errors' must be TRUE or FALSE")
 
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog' must be logical(1)")
@@ -190,19 +183,6 @@ setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
 {
     x$stop.on.error <- value 
     validObject(x)
-    x 
-})
-
-setMethod("bpcatchErrors", "BiocParallelParam",
-    function(x)
-{
-    x$catch.errors
-})
-
-setReplaceMethod("bpcatchErrors", c("BiocParallelParam", "logical"),
-    function(x, value)
-{
-    x$catch.errors <- value 
     x 
 })
 

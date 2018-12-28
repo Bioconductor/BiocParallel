@@ -28,16 +28,12 @@
 )
 
 SerialParam <-
-    function(catch.errors=TRUE, stop.on.error = TRUE,
+    function(stop.on.error = TRUE,
              log=FALSE, threshold="INFO", logdir=NA_character_,
              progressbar=FALSE)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     prototype <- .prototype_update(
         .SerialParam_prototype,
-        catch.errors=catch.errors,
         stop.on.error=stop.on.error,
         log=log, threshold=threshold, logdir=logdir,
         progressbar=progressbar

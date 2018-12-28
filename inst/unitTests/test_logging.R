@@ -1,5 +1,5 @@
 ## This code tests 'log' and 'progressbar'. test_errorhandling.R
-## tests 'stop.on.error' and 'catch.errors'.
+## tests 'stop.on.error'
 
 test_log <- function()
 {

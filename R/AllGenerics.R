@@ -53,12 +53,6 @@ setGeneric("bpRNGseed<-",
 
 ## errors
 
-setGeneric("bpcatchErrors",
-    function(x) standardGeneric("bpcatchErrors"))
-
-setGeneric("bpcatchErrors<-",
-    function(x, value) standardGeneric("bpcatchErrors<-"))
-
 setGeneric("bpstopOnError",
     function(x) standardGeneric("bpstopOnError"))
 

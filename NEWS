@@ -1,3 +1,16 @@
+CHANGES IN VERSION 1.18
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (v. 1.17.4) removed deprecated functions bplasterror(),
+    bpresume(), bpcatchError() and field catch.error.
+
+    o (v. 1.17.4) replaced internal use of BatchJobs:::checkDir()
+    (testing existence and read / write ability of log and other
+    directories) with similar functionality but slightly changed error
+    message.
+
 CHANGES IN VERSION 1.16
 -----------------------
 
@@ -180,8 +193,6 @@ MODIFICATIONS
     o Update vignette examples, reorganize sections 
 
     o Allow 'workers' in BiocParallelParam to be character or integer
-
-    o Enhance bpresume() man page; add examples
 
     o Enhance register() man page; add examples
 

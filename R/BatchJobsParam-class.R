@@ -32,7 +32,7 @@
 )
 
 BatchJobsParam <-
-    function(workers=NA_integer_, catch.errors=TRUE, cleanup=TRUE,
+    function(workers=NA_integer_, cleanup=TRUE,
         work.dir=getwd(), stop.on.error=TRUE, seed=NULL, resources=NULL,
         conffile=NULL, cluster.functions=NULL,
         progressbar=TRUE, jobname = "BPJOB",
@@ -40,9 +40,6 @@ BatchJobsParam <-
         conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
         submit.pars=list(resources=resources), ...)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     if (!requireNamespace("BatchJobs", quietly=TRUE))
         stop("BatchJobsParam() requires the 'BatchJobs' package")
 
@@ -80,7 +77,7 @@ BatchJobsParam <-
         .BatchJobsParam_prototype,
         reg.pars=reg.pars, submit.pars=submit.pars,
         conf.pars=conf.pars, workers=workers,
-        catch.errors=catch.errors, cleanup=cleanup,
+        cleanup=cleanup,
         stop.on.error=stop.on.error,
         progressbar=progressbar, jobname=jobname
     )

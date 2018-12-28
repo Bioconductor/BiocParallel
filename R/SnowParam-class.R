@@ -155,7 +155,7 @@ setOldClass(c("NULLcluster", "cluster"))
 
 SnowParam <- function(workers=snowWorkers(type),
                       type=c("SOCK", "MPI", "FORK"), tasks=0L,
-                      catch.errors=TRUE, stop.on.error=TRUE,
+                      stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
                       timeout=30L * 24L * 60L * 60L,
                       exportglobals=TRUE,
@@ -164,9 +164,6 @@ SnowParam <- function(workers=snowWorkers(type),
                       manager.hostname=NA_character_,
                       manager.port=NA_integer_, ...)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     type <- tryCatch(match.arg(type), error=function(...) {
         stop("'type' must be one of ",
              paste(sQuote(formals("SnowParam")$type), collapse=", "))
@@ -196,7 +193,7 @@ SnowParam <- function(workers=snowWorkers(type),
         .SnowParam_prototype,
         .clusterargs=clusterargs,
         .controlled=TRUE, workers=workers, tasks=as.integer(tasks),
-        catch.errors=catch.errors, stop.on.error=stop.on.error,
+        stop.on.error=stop.on.error,
         progressbar=progressbar, RNGseed=RNGseed,
         timeout=as.integer(timeout), exportglobals=exportglobals,
         log=log, threshold=threshold, logdir=logdir,

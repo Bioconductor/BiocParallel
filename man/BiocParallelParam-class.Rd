@@ -29,10 +29,6 @@
 \alias{bptasks,BiocParallelParam-method}
 \alias{bptasks<-}
 \alias{bptasks<-,BiocParallelParam,numeric-method}
-\alias{bpcatchErrors}
-\alias{bpcatchErrors,BiocParallelParam-method}
-\alias{bpcatchErrors<-}
-\alias{bpcatchErrors<-,BiocParallelParam,logical-method}
 \alias{bpstopOnError}
 \alias{bpstopOnError,BiocParallelParam-method}
 \alias{bpstopOnError<-}
@@ -212,20 +208,6 @@
     In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
     \describe{
-      \item{}{
-        \code{bpcatchErrors(x)}, \code{bpCatchErrors(x) <- value}:
-        \code{logical()}. DEPRECATED Controls if errors are caught and
-        returned with completed results.
-
-        \code{catch.errors} determines whether errors are caught and
-        returned with other results. When \code{TRUE}, all computations 
-        are attempted and output contains both errors and successfully 
-        completed results. When \code{FALSE}, the job is terminated as 
-        soon as the first error is hit and only the error message is 
-        returned (no results); this is the default behavior of the 
-        parent packages, e.g., \code{parallel}, \code{snow}, 
-        \code{foreach}.
-      }
       \item{}{
         \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:
         \code{logical()}. Controls if the job stops when an error is hit.
