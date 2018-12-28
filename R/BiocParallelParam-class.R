@@ -7,7 +7,9 @@
     tasks=0L,
     jobname="BPJOB",
     log=FALSE,
+    logdir = NA_character_,
     threshold="INFO",
+    resultdir = NA_character_,
     stop.on.error=TRUE,
     timeout=30L * 24L * 60L * 60L, # 30 days
     exportglobals=TRUE,
@@ -23,7 +25,9 @@
         progressbar="logical",
         ## required for composeTry
         log="logical",
+        logdir = "character",
         threshold="character",
+        resultdir = "character",
         stop.on.error="logical",
         timeout="integer",
         exportglobals="logical"
@@ -44,6 +48,8 @@
                 "  bptimeout: ", bptimeout(.self),
                 "; bpprogressbar: ", bpprogressbar(.self),
                 "; bpexportglobals: ", bpexportglobals(.self),
+                "\n", .prettyPath("  bplogdir", bplogdir(.self)),
+                "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")
         })
 )
@@ -80,6 +86,25 @@ setValidity("BiocParallelParam", function(object)
 
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog' must be logical(1)")
+
+    ## log / logdir
+    dir <- bplogdir(object)
+    if (length(dir) != 1L || !is(dir, "character")) {
+        msg <- c(msg, "'logdir' must be character(1)")
+    } else if (!is.na(dir)) {
+        if (!bplog(object))
+            msg <- c(msg, "'log' must be TRUE when 'logdir' is given")
+        if (!.dir_valid_rw(dir))
+            msg <- c(msg, "'logdir' must exist with read / write permission")
+    }
+
+    ## resultdir
+    dir <- bpresultdir(object)
+    if (length(dir) != 1L || !is(dir, "character")) {
+        msg <- c(msg, "'resultdir' must be character(1)")
+    } else if (!is.na(dir) && !.dir_valid_rw(dir)) {
+        msg <- c(msg, "'resultdir' must exist with read / write permissions")
+    }
 
     levels <- c("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL")
     threshold <- bpthreshold(object)
@@ -139,10 +164,44 @@ setMethod("bplog", "BiocParallelParam",
     x$log
 })
 
+setMethod("bplogdir", "BiocParallelParam",
+    function(x)
+{
+    x$logdir
+})
+
+setReplaceMethod("bplogdir", c("BiocParallelParam", "character"),
+    function(x, value)
+{
+    if (bpisup(x))
+        stop("use 'bpstop()' before setting 'bplogdir()'")
+
+    x$logdir <- value
+    validObject(x)
+    x
+})
+
 setMethod("bpthreshold", "BiocParallelParam",
     function(x)
 {
     x$threshold
+})
+
+setMethod("bpresultdir", "BiocParallelParam",
+    function(x)
+{
+    x$resultdir
+})
+
+setReplaceMethod("bpresultdir", c("BiocParallelParam", "character"),
+    function(x, value)
+{
+    if (bpisup(x))
+        stop("use 'bpstop()' before setting 'bpresultdir()'")
+
+    x$resultdir <- value
+    validObject(x)
+    x
 })
 
 setMethod("bptimeout", "BiocParallelParam",

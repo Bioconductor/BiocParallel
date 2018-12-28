@@ -388,7 +388,8 @@ multicoreWorkers()
 
 ## Fields are modified with accessors of the same name:
 bplog(bpparam) <- TRUE
-bpresultdir(bpparam) <- "/myResults/"
+dir.create(resultdir <- tempfile())
+bpresultdir(bpparam) <- resultdir
 bpparam
 
 ## -----------------------------------------------------------------------
@@ -439,7 +440,8 @@ list.files(bplogdir(bpparam))
 ## files are saved in the directory specified by job, e.g., 'TASK1.Rda',
 ## 'TASK2.Rda', etc.
 \dontrun{
-bpparam <- MulticoreParam(2, resultdir = tempdir(), stop.on.error = FALSE)
+dir.create(resultdir <- tempfile())
+bpparam <- MulticoreParam(2, resultdir = resultdir, stop.on.error = FALSE)
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))
 }

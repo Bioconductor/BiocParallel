@@ -8,23 +8,14 @@
 
 .SerialParam_prototype <- c(
     list(
-        workers = 1L,
-        threshold="INFO",
-        logdir=NA_character_
+        workers = 1L
     ),
     .BiocParallelParam_prototype
 )
 
-.SerialParam <- setRefClass("SerialParam",
+.SerialParam <- setRefClass(
+    "SerialParam",
     contains="BiocParallelParam",
-    fields=list(
-        logdir="character"
-    ),
-    methods=list(
-        show = function() {
-            callSuper()
-            cat("  bplogdir: ", bplogdir(.self), "\n", sep="")
-        })
 )
 
 SerialParam <-
@@ -64,24 +55,6 @@ setReplaceMethod("bpthreshold", c("SerialParam", "character"),
 {
     x$threshold <- value
     x
-})
-
-setMethod("bplogdir", "SerialParam",
-    function(x)
-{
-    x$logdir
-})
-
-setReplaceMethod("bplogdir", c("SerialParam", "character"),
-    function(x, value)
-{
-    if (!length(value))
-        value <- NA_character_
-    x$logdir <- value 
-    if (is.null(msg <- .valid.SnowParam.log(x))) 
-        x
-    else 
-        stop(msg)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

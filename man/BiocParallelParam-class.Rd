@@ -40,6 +40,14 @@
 \alias{bpthreshold}
 \alias{bpthreshold<-}
 \alias{bpthreshold,BiocParallelParam-method}
+\alias{bplogdir}
+\alias{bplogdir<-}
+\alias{bplogdir,BiocParallelParam-method}
+\alias{bplogdir<-,BiocParallelParam,character-method}
+\alias{bpresultdir}
+\alias{bpresultdir<-}
+\alias{bpresultdir,BiocParallelParam-method}
+\alias{bpresultdir<-,BiocParallelParam,character-method}
 \alias{bptimeout}
 \alias{bptimeout<-}
 \alias{bptimeout,BiocParallelParam-method}
@@ -68,7 +76,7 @@
 
   The \code{BiocParallelParam} virtual class stores configuration parameters
   for parallel execution. Concrete subclasses include \code{SnowParam}, 
-  \code{MulticoreParam}, \code{BatchJobsParam}, and \code{DoparParam}
+  \code{MulticoreParam}, \code{BatchtoolsParam}, and \code{DoparParam}
   and \code{SerialParam}.
 
 }
@@ -81,7 +89,7 @@
   \describe{
       \item{}{\code{SnowParam}: distributed memory computing}
       \item{}{\code{MulticoreParam}: shared memory computing}
-      \item{}{\code{BatchJobsParam}: scheduled cluster computing}
+      \item{}{\code{BatchtoolsParam}: scheduled cluster computing}
       \item{}{\code{DoparParam}: foreach computing}
       \item{}{\code{SerialParam}: non-parallel execution}
   }
@@ -100,7 +108,7 @@
   \itemize{
     \item \code{SnowParam()}
     \item \code{MulticoreParam()}
-    \item \code{BatchJobsParam()}
+    \item \code{BatchtoolsParam()}
     \item \code{DoparParam()}
     \item \code{SerialParam()}
   }
@@ -128,7 +136,7 @@
         \code{integer(1)}. Get or set the number of tasks for a
         job. \code{value} must be a scalar integer >= 0L. This argument
         applies to \code{SnowParam} and \code{MulticoreParam} only;
-        \code{DoparParam} and \code{BatchJobsParam} have their own
+        \code{DoparParam} and \code{BatchtoolsParam} have their own
         approach to dividing a job among workers.
  
         We define a job as a single call to a function such as \code{bplapply}, 
@@ -178,6 +186,16 @@
         \code{character(1)} string of one of the levels defined in the
         \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
         \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
+      }
+      \item{}{
+        \code{bplogdir(x)}, \code{bplogdir(x) <- value}: Get or set an
+        optional directory for saving log files. The directory must
+        already exist with read / write ability.
+      }
+      \item{}{
+        \code{bpresultdir(x)}, \code{bpresultdir(x) <- value}: Get or
+        set an optional directory for saving results as 'rda' files. The
+        directory must already exist with read / write ability.
       }
       \item{}{
         \code{bptimeout(x)}, \code{bptimeout(x) <- value}:
@@ -274,7 +292,7 @@
 
     \item \code{\link{MulticoreParam}} for computing in shared memory
 
-    \item \code{\link{BatchJobsParam}} for computing with cluster schedulers
+    \item \code{\link{BatchtoolsParam}} for computing with cluster schedulers
 
     \item \code{\link{DoparParam}} for computing with foreach
 
@@ -287,7 +305,7 @@
 
 getClass("BiocParallelParam")
 
-## For examples see ?SnowParam, ?MulticoreParam, ?BatchJobsParam 
+## For examples see ?SnowParam, ?MulticoreParam, ?BatchtoolsParam 
 ## and ?SerialParam.
 }
 

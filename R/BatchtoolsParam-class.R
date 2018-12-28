@@ -116,8 +116,7 @@ setOldClass("ClusterFunctions")
         registry = .NULLRegistry(),
         registryargs = list(),
         resources = list(),
-        RNGseed = NA_integer_,
-        logdir=NA_character_
+        RNGseed = NA_integer_
     ),
     .BiocParallelParam_prototype
 )
@@ -131,8 +130,7 @@ setOldClass("ClusterFunctions")
         registry = "Registry",
         registryargs = "list",
         resources = "list",
-        RNGseed = "integer",
-        logdir = "character"
+        RNGseed = "integer"
     ),
     methods = list(
         show = function() {
@@ -142,7 +140,6 @@ setOldClass("ClusterFunctions")
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  bpRNGseed: ", bpRNGseed(.self),
-                "\n  bplogdir: ", bplogdir(.self),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
                 "\n  resources:",
@@ -183,7 +180,7 @@ BatchtoolsParam <-
         registry = .NULLRegistry(),
         registryargs = registryargs, resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
-        logdir = logdir, stop.on.error = stop.on.error,
+        logdir = logdir, resultdir = resultdir, stop.on.error = stop.on.error,
         timeout = as.integer(timeout), exportglobals = exportglobals,
         RNGseed = as.integer(RNGseed), template = template
     )
@@ -197,8 +194,6 @@ BatchtoolsParam <-
 ### Validity
 ###
 
-.valid.BatchtoolsParam.log <- .valid.SnowParam.log
-
 setValidity("BatchtoolsParam", function(object)
 {
     msg <- NULL
@@ -206,8 +201,6 @@ setValidity("BatchtoolsParam", function(object)
         types <- paste(.BATCHTOOLS_CLUSTERS, collape = ", ")
         msg <- c(msg, paste("'cluster' must be one of", types))
     }
-    if(.isTRUEorFALSE(bplog(object)))
-        msg <- c(msg, .valid.BatchtoolsParam.log(object))
 
     if (is.null(msg))
         TRUE
@@ -219,23 +212,6 @@ setValidity("BatchtoolsParam", function(object)
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control
 ###
-
-setMethod("bplogdir", "BatchtoolsParam",
-    function(x)
-{
-    x$logdir
-})
-
-setReplaceMethod("bplogdir", c("BatchtoolsParam", "character"),
-    function(x, value)
-{
-    if (bpisup(x))
-        stop("use 'bpstop()' before setting 'bplogdir()'")
-
-    x$logdir <- value
-    validObject(x)
-    x
-})
 
 setMethod("bpisup", "BatchtoolsParam",
     function(x)

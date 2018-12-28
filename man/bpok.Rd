@@ -21,13 +21,7 @@
 \arguments{
 
     \item{x}{
-      Results returned from a call to \code{bp*lapply}.
-    }
-    \item{expr}{
-      A expression to be re-evaluated. If the original error was due to 
-      input error, \code{X} should be modified. If hardware limitations
-      or failure caused the error this expression may be the same as the
-      original.
+      Results returned from a call to \code{bp*apply}.
     }
 
 }

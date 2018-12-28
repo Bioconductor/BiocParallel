@@ -6,10 +6,11 @@ USER VISIBLE CHANGES
     o (v. 1.17.4) removed deprecated functions bplasterror(),
     bpresume(), bpcatchError() and field catch.error.
 
+    o (v. 1.17.4) Make logdir, resultdir fields of BiocParallelParam.
+
     o (v. 1.17.4) replaced internal use of BatchJobs:::checkDir()
     (testing existence and read / write ability of log and other
-    directories) with similar functionality but slightly changed error
-    message.
+    directories) with BiocParallelParam validity check.
 
 CHANGES IN VERSION 1.16
 -----------------------

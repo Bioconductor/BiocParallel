@@ -107,8 +107,6 @@ setOldClass(c("NULLcluster", "cluster"))
         .controlled=TRUE,
         hostname=NA_character_, port=NA_integer_,
         RNGseed=NULL,
-        logdir=NA_character_,
-        resultdir=NA_character_,
         finalizer_env = new.env(parent=emptyenv())
     ),
     .BiocParallelParam_prototype
@@ -136,17 +134,11 @@ setOldClass(c("NULLcluster", "cluster"))
         hostname="character",
         port="integer",
         RNGseed="ANY",
-        logdir="character",
-        resultdir="character",
         finalizer_env="environment"),
     methods=list(
         show = function() {
             callSuper()
             cat("  bpRNGseed: ", bpRNGseed(.self),
-                "\n",
-                "  bplogdir: ", bplogdir(.self),
-                "\n",
-                "  bpresultdir: ", bpresultdir(.self),
                 "\n",
                 "  cluster type: ", .clusterargs$type,
                 "\n", sep="")
@@ -212,29 +204,6 @@ SnowParam <- function(workers=snowWorkers(type),
 ### Validity
 ###
 
-.valid.SnowParam.log <- function(object)
-{
-    msg <- NULL
-
-    dir <- bplogdir(object)
-    if (length(dir) > 1L || !is(dir, "character"))
-        msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
-
-    if (!is.na(dir) && !bplog(object))
-        msg <- c(msg, "'log' must be TRUE when 'logdir' is given")
-    msg
-}
-
-.valid.SnowParam.result <- function(object) {
-    msg <- NULL
-
-    dir <- bpresultdir(object)
-    if (length(dir) > 1L || !is(dir, "character"))
-        msg <- c(msg, "'bpresultdir(BPPARAM)' must be character(1)")
-
-    msg
-}
-
 setValidity("SnowParam", function(object)
 {
     msg <- NULL
@@ -245,9 +214,6 @@ setValidity("SnowParam", function(object)
         if (!all(bpworkers(object) == object$.clusterargs$spec))
             msg <- c(msg,
                 "'bpworkers(BPPARAM)' must equal BPPARAM$.clusterargs$spec")
-        msg <- c(msg,
-                 .valid.SnowParam.log(object),
-                 .valid.SnowParam.result(object))
     }
 
     if (is.null(msg)) TRUE else msg
@@ -554,37 +520,6 @@ setReplaceMethod("bpthreshold", c("SnowParam", "character"),
     x
 })
 
-setMethod("bplogdir", "SnowParam",
-    function(x)
-{
-    x$logdir
-})
-
-setReplaceMethod("bplogdir", c("SnowParam", "character"),
-    function(x, value)
-{
-    if (!length(value))
-        value <- NA_character_
-    x$logdir <- value
-    if (is.null(msg <- .valid.SnowParam.log(x)))
-        x
-    else
-        stop(msg)
-})
-
-setMethod("bpresultdir", "SnowParam",
-    function(x)
-{
-    x$resultdir
-})
-
-setReplaceMethod("bpresultdir", c("SnowParam", "character"),
-    function(x, value)
-{
-    x$resultdir <- value
-    if (is.null(msg <- .valid.SnowParam.result(x)))
-        x
-})
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Coercion methods for SOCK and MPI clusters
 ###

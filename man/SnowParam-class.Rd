@@ -26,14 +26,6 @@
 \alias{bpRNGseed<-}
 \alias{bpRNGseed,SnowParam-method}
 \alias{bpRNGseed<-,SnowParam,numeric-method}
-\alias{bplogdir}
-\alias{bplogdir<-}
-\alias{bplogdir,SnowParam-method}
-\alias{bplogdir<-,SnowParam,character-method}
-\alias{bpresultdir}
-\alias{bpresultdir<-}
-\alias{bpresultdir,SnowParam-method}
-\alias{bpresultdir<-,SnowParam,character-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}
@@ -460,7 +452,8 @@ bpparam
 
 ## Fields are modified with accessors of the same name:
 bplog(bpparam) <- TRUE
-bpresultdir(bpparam) <- "/myResults/"
+dir.create(resultdir <- tempfile())
+bpresultdir(bpparam) <- resultdir
 bpparam
 
 ## -----------------------------------------------------------------------
@@ -499,7 +492,8 @@ tryCatch({
 ## When a 'logdir' location is given the messages are redirected to a
 ## file:
 \dontrun{
-bplogdir(bpparam) <- tempdir()
+dir.create(logdir <- tempfile())
+bplogdir(bpparam) <- logdir
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bplogdir(bpparam))
 }
@@ -512,7 +506,8 @@ list.files(bplogdir(bpparam))
 ## files are saved in the directory specified by job, e.g., 'TASK1.Rda',
 ## 'TASK2.Rda', etc.
 \dontrun{
-bpparam <- SnowParam(2, resultdir = tempdir())
+dir.create(resultdir <- tempfile())
+bpparam <- SnowParam(2, resultdir = resultdir)
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))
 }

@@ -192,6 +192,7 @@ test_BatchtoolsParam_bplog <- function() {
     checkTrue(is.na(bplogdir(param)))
     ## Check if setter works
     temp_log_dir <- tempfile()
+    dir.create(temp_log_dir)
     bplogdir(param) <- temp_log_dir
     checkIdentical(temp_log_dir, bplogdir(param))
     ## test param without log and w logdir
