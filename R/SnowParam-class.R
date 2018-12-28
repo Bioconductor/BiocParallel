@@ -422,10 +422,10 @@ setMethod("bplapply", c("ANY", "SnowParam"),
     FUN <- match.fun(FUN)
 
     if (!is.na(bpresultdir(BPPARAM)))
-        BatchJobs:::checkDir(bpresultdir(BPPARAM))
+        .check_dir(bpresultdir(BPPARAM))
 
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
-        BatchJobs:::checkDir(bplogdir(BPPARAM))
+        .check_dir(bplogdir(BPPARAM))
 
     if (!length(X))
         return(list())
@@ -493,10 +493,10 @@ setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
     }
 
     if (!is.na(bpresultdir(BPPARAM)))
-        BatchJobs:::checkDir(bpresultdir(BPPARAM))
+        .check_dir(bpresultdir(BPPARAM))
 
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
-        BatchJobs:::checkDir(bplogdir(BPPARAM))
+        .check_dir(bplogdir(BPPARAM))
 
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),

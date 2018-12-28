@@ -91,3 +91,14 @@
 
     ddd
 }
+
+.check_dir <-
+    function(x)
+{
+    if (!dir.exists(x))
+        stop("directory '", x, "' does not exist")
+    if (!identical(file.access(x, 6), 0L))
+        stop("directory '", x, "' is not readable / writeable")
+
+    invisible(TRUE)
+}
