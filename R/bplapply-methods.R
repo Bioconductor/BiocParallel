@@ -1,5 +1,5 @@
 ### =========================================================================
-### bplapply methods 
+### bplapply methods
 ### -------------------------------------------------------------------------
 
 ## All params have dedicated bplapply methods.
@@ -29,3 +29,67 @@ setMethod("bplapply", c("ANY", "list"),
         } else FUN
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
+
+bplapply_impl <-
+    function(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
+{
+    ## abstract 'common' implementation using accessors only
+    ##
+    ## Required API:
+    ##
+    ## - BiocParallelParam()
+    ## - bpschedule(), bpisup(), bpstart(), bpstop()
+    ## - .sendto, .recvfrom, .recv, .close
+    FUN <- match.fun(FUN)
+
+    if (!length(X))
+        return(list())
+
+    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
+        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
+                             log=bplog(BPPARAM),
+                             threshold=bpthreshold(BPPARAM),
+                             logdir = bplogdir(BPPARAM),
+                             progressbar=bpprogressbar(BPPARAM))
+        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
+    }
+
+    idx <- .redo_index(X, BPREDO)
+    if (any(idx))
+        X <- X[idx]
+    nms <- names(X)
+
+    ## start / stop cluster
+    if (!bpisup(BPPARAM)) {
+        BPPARAM <- bpstart(BPPARAM, length(X))
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
+
+    ## FUN
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
+
+    ## split into tasks
+    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
+
+    res <- bploop(structure(list(), class="lapply"), # dispatch
+                  X, lapply, ARGFUN, BPPARAM)
+
+    if (!is.null(res)) {
+        res <- do.call(unlist, list(res, recursive=FALSE))
+        names(res) <- nms
+    }
+
+    if (any(idx)) {
+        BPREDO[idx] <- res
+        res <- BPREDO
+    }
+
+    if (!all(bpok(res)))
+        stop(.error_bplist(res))
+
+    res
+}

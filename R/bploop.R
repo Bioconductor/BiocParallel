@@ -6,11 +6,18 @@
 ### Derived from snow version 0.3-13 by Luke Tierney
 ### Derived from parallel version 2.16.0 by R Core Team
 
-.sendto <- function(cluster, node, ...)
-    UseMethod(".sendto")
+## server
 
-.recvfrom <- function(cluster, node, ...)
-    UseMethod(".recvfrom")
+.send_to <- function(cluster, node, ...)
+    UseMethod(".send_to")
+
+.recv_any <- function(cluster, ...)
+    UseMethod(".recv_any")
+
+## client
+
+.send <- function(cluster, ...)
+    UseMethod(".send")
 
 .recv <- function(cluster, ...)
     UseMethod(".recv")
@@ -18,48 +25,52 @@
 .close <- function(cluster, node)
     UseMethod(".close")
 
-.sendto.default <-
+## default implementation -- SNOW cluster
+.send_to.default <-
     function(cluster, node, data)
 {
     parallel:::sendData(cluster[[node]], data)
     TRUE
 }
 
-.recvfrom.default <- function(cluster, node, id)
-    tryCatch({
-        suppressPackageStartupMessages({
-            ## when starting workers; not supressable otherwise
-            parallel:::recvData(cluster[[node]])
-        })
-    }, error=function(e) {
-        ## capture without throwing
-        .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
-    })
-
-.recv.default <- function(cluster, id)
+.recv_any.default <- function(cluster, id)
     tryCatch({
         parallel:::recvOneData(cluster)
     }, error=function(e) {
         stop(.error_worker_comm(e, sprintf("'%s' receive data failed", id)))
     })
 
-.close.default <- function(cluster, node)
-    parallel:::closeNode(cluster[[node]])
-
-.send_EXEC <-
-    function(cluster, node, tag, fun, args)
+.send.default <-
+    function(cluster, data)
 {
-    data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
-    .sendto(cluster, node, data)
+    parallel:::sendData(cluster, data)
 }
 
-.send_VALUE <-
-    function(cluster, node, tag, value, success, time, log, sout)
+.recv.default <-
+    function(cluster, id)
 {
-    data <- list(type = "VALUE", tag = tag,
-                 value = value, success = success,
-                 time = time, log = log, sout = sout)
-    .sendto(cluster, node, data)
+    tryCatch({
+        parallel:::recvData(cluster)
+    }, error = function(e) {
+        ## indicate error, but do not stop
+        .error_worker_comm(e, sprintf("'%s' receive data failed", id))
+    })
+}
+
+.close.default <- function(cluster)
+    parallel:::closeNode(cluster)
+
+.EXEC <-
+    function(tag, fun, args)
+{
+    list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
+}
+
+.VALUE <-
+    function(tag, value, success, time, log, sout)
+{
+    list(type = "VALUE", tag = tag, value = value, success = success,
+         time = time, log = log, sout = sout)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,16 +82,15 @@ bploop <- function(manager, ...)
 
 .bploop.worker <- function(manager, ...)
 {
-    ## wrap so 'manager' is first element of cl
-    cl <- structure(list(manager), class = "bploop_manager")
     repeat {
         tryCatch({
-            msg <- .recvfrom(cl, 1, "worker")
+            msg <- .recv(manager, "worker")
             if (inherits(msg, "error"))
+                ## FIXME: try to return error to manager
                 break                   # lost socket connection?
 
             if (msg$type == "DONE") {
-                .close(cl, 1L)
+                .close(manager)
                 break
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
@@ -104,8 +114,10 @@ bploop <- function(manager, ...)
 
                 log <- .log_buffer_get()
 
-                .send_VALUE(cl, 1, msg$data$tag, value, success, t2 - t1,
-                            log, sout)
+                value <- .VALUE(
+                    msg$data$tag, value, success, t2 - t1, log, sout
+                )
+                .send(manager, value)
             }
         }, interrupt = function(e) {
             NULL
@@ -132,7 +144,7 @@ bploop.SOCK0node <- .bploop.worker
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
         while (any(running)) {
-            d <- .recv(cl, "clear_cluster")
+            d <- .recv_any(cl, "clear_cluster")
             if (!is.null(result))
                 result[[d$value$tag]] <- d$value$value
             running[d$node] <- FALSE
@@ -241,12 +253,14 @@ bploop.lapply <-
 
         ## initial load
         running <- logical(workers)
-        for (i in seq_len(min(n, workers)))
-            running[i] <- .send_EXEC(cl, i, i, FUN, ARGFUN(i))
+        for (i in seq_len(min(n, workers))) {
+            value <- .EXEC(i, FUN, ARGFUN(i))
+            running[i] <- .send_to(cl, i, value)
+        }
 
         for (i in seq_len(n)) {
             ## collect
-            d <- .recv(cl, "bplapply")
+            d <- .recv_any(cl, "bplapply")
 
             value <- d$value$value
             njob <- d$value$tag
@@ -265,8 +279,10 @@ bploop.lapply <-
 
             ## re-load
             j <- i + min(n, workers)
-            if (j <= n)
-                running[d$node] <- .send_EXEC(cl, d$node, j, FUN, ARGFUN(j))
+            if (j <= n) {
+                value <- .EXEC(j, FUN, ARGFUN(j))
+                running[d$node] <- .send_to(cl, d$node, value)
+            }
         }
     }
 
@@ -308,7 +324,8 @@ bploop.iterate <-
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        running[i] <- .send_EXEC(cl, i, i, FUN, ARGFUN(value))
+        value <- .EXEC(i, FUN, ARGFUN(value))
+        running[i] <- .send_to(cl, i, value)
     }
 
     repeat {
@@ -316,7 +333,7 @@ bploop.iterate <-
             break
 
         ## collect
-        d <- .recv(cl, "bpiterate")
+        d <- .recv_any(cl, "bpiterate")
         progress$step()
 
         value <- d$value$value
@@ -340,7 +357,8 @@ bploop.iterate <-
         value <- ITER()
         if (!is.null(value)) {
             i <- i + 1L
-            running[d$node] <- .send_EXEC(cl, d$node, i, FUN, ARGFUN(value))
+            value <- .EXEC(i, FUN, ARGFUN(value))
+            running[d$node] <- .send_to(cl, d$node, value)
         }
     }
 
