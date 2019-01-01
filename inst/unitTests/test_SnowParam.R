@@ -52,7 +52,7 @@ test_SnowParam_coerce_from_SOCK <- function()
     exp <- "'bpstart' not available; instance from outside BiocParallel?"
     checkIdentical(exp, obs)
 
-    obs <- tryCatch(bpstop(p), error=conditionMessage)
+    obs <- tryCatch(bpstop(p), warning=conditionMessage)
     exp <- "'bpstop' not available; instance from outside BiocParallel?"
     checkIdentical(exp, obs)
 
