@@ -26,6 +26,8 @@ BUG FIXES
     in the implementation, so that valid objects must be constructed through
     the public constructors, e.g., `BatchtoolsParam()`
 
+    o (v 1.16.3) do not print '>' for each terminating SnowParam() worker
+
 CHANGES IN VERSION 1.14
 -----------------------
 
