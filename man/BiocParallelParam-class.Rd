@@ -64,6 +64,10 @@
 \alias{bpjobname,BiocParallelParam-method}
 \alias{bpjobname<-}
 \alias{bpjobname<-,BiocParallelParam,character-method}
+\alias{bpRNGseed}
+\alias{bpRNGseed<-}
+\alias{bpRNGseed,BiocParallelParam-method}
+\alias{bpRNGseed<-,BiocParallelParam,numeric-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -214,6 +218,11 @@
         \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}: 
         Get or set the value to enable text progress bar. 
         \code{value} must be a \code{logical(1)}.
+      }
+      \item{}{
+        \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:
+        Get or set the seed for random number generaton. \code{value} must be a
+        \code{numeric(1)}.
       }
       \item{}{
         \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 

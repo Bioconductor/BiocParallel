@@ -115,8 +115,7 @@ setOldClass("ClusterFunctions")
         template = NA_character_,
         registry = .NULLRegistry(),
         registryargs = list(),
-        resources = list(),
-        RNGseed = NA_integer_
+        resources = list()
     ),
     .BiocParallelParam_prototype
 )
@@ -129,8 +128,7 @@ setOldClass("ClusterFunctions")
         template = "character",
         registry = "Registry",
         registryargs = "list",
-        resources = "list",
-        RNGseed = "integer"
+        resources = "list"
     ),
     methods = list(
         show = function() {
@@ -139,7 +137,6 @@ setOldClass("ClusterFunctions")
             .resources <- .bpresources(.self)
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
-                "\n  bpRNGseed: ", bpRNGseed(.self),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
                 "\n  resources:",
@@ -217,22 +214,6 @@ setMethod("bpisup", "BatchtoolsParam",
     function(x)
 {
     !is(x$registry, "NULLRegistry")
-})
-
-setMethod("bpRNGseed", "BatchtoolsParam",
-    function(x)
-{
-    x$RNGseed
-})
-
-setReplaceMethod("bpRNGseed", c("BatchtoolsParam", "numeric"),
-    function(x, value)
-{
-    if (bpisup(x))
-        stop("use 'bpstop()' before setting 'bpRNGseed()'")
-
-    x$RNGseed <- as.integer(value)
-    x
 })
 
 .bpregistryargs <-

@@ -12,7 +12,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
 
-bpiterate_impl <-
+.bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
              BPPARAM = bpparam())
 {

@@ -60,9 +60,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         ...
     )
 
-    x <- do.call(.MulticoreParam, prototype)
-    validObject(x)
-    x
+    do.call(.MulticoreParam, prototype)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

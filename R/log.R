@@ -1,4 +1,4 @@
-.log_load <- function(log, threshold)
+.log_load <- function(log, threshold, appender = FALSE)
 {
     if (!log)
         return(invisible(NULL))
@@ -9,12 +9,11 @@
             msg <- "logging requires the 'futile.logger' package"
             stop(conditionMessage(err), msg) 
         })
+    if (appender)
+        futile.logger::flog.appender(.log_buffer_append, 'ROOT')
     futile.logger::flog.threshold(threshold)
     futile.logger::flog.info("loading futile.logger package")
 }
-
-.log_appender <- function()
-    futile.logger::flog.appender(.log_buffer_append, 'ROOT')
 
 .log_warn <- function(log, fmt, ...)
 {

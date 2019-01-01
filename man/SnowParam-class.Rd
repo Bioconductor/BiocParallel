@@ -22,10 +22,6 @@
 \alias{bplog<-,SnowParam,logical-method}
 \alias{bpthreshold,SnowParam-method}
 \alias{bpthreshold<-,SnowParam,character-method}
-\alias{bpRNGseed}
-\alias{bpRNGseed<-}
-\alias{bpRNGseed,SnowParam-method}
-\alias{bpRNGseed<-,SnowParam,numeric-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}

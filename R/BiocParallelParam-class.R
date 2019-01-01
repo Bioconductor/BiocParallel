@@ -13,7 +13,8 @@
     stop.on.error=TRUE,
     timeout=30L * 24L * 60L * 60L, # 30 days
     exportglobals=TRUE,
-    progressbar=FALSE
+    progressbar=FALSE,
+    RNGseed=NULL
 )
 
 .BiocParallelParam <- setRefClass("BiocParallelParam",
@@ -30,7 +31,11 @@
         resultdir = "character",
         stop.on.error="logical",
         timeout="integer",
-        exportglobals="logical"
+        exportglobals="logical",
+        RNGseed = "ANY",
+        ## cluster management
+        .finalizer_env = "environment",
+        .uid = "character"
     ),
     methods=list(
         show = function() {
@@ -45,9 +50,11 @@
                 "; bpthreshold: ", bpthreshold(.self),
                 "; bpstopOnError: ", bpstopOnError(.self),
                 "\n",
-                "  bptimeout: ", bptimeout(.self),
+                "  bpRNGseed: ", bpRNGseed(.self),
+                "; bptimeout: ", bptimeout(.self),
                 "; bpprogressbar: ", bpprogressbar(.self),
-                "; bpexportglobals: ", bpexportglobals(.self),
+                "\n",
+                "  bpexportglobals: ", bpexportglobals(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")
@@ -257,6 +264,27 @@ setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
     x$progressbar <- value 
     x
 })
+
+setMethod("bpRNGseed", "BiocParallelParam",
+    function(x)
+{
+    x$RNGseed
+})
+
+setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
+    function(x, value)
+{
+    x$RNGseed <- as.integer(value)
+    x
+})
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Methods - evaluation
+###
+
+setMethod("bplapply", c("ANY", "BiocParallelParam"), .bplapply_impl)
+
+setMethod("bpiterate", c("ANY", "ANY", "BiocParallelParam"), .bpiterate_impl)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Helpers

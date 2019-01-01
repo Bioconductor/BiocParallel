@@ -30,7 +30,7 @@ setMethod("bplapply", c("ANY", "list"),
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
 
-bplapply_impl <-
+.bplapply_impl <-
     function(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
 {
     ## abstract 'common' implementation using accessors only
@@ -39,7 +39,7 @@ bplapply_impl <-
     ##
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
-    ## - .sendto, .recvfrom, .recv, .close
+    ## - .send_to, .recv_any, .send, .recv, .close
     FUN <- match.fun(FUN)
 
     if (!length(X))

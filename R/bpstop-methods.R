@@ -7,3 +7,13 @@ setMethod("bpstop", "missing",
     bpstop(x)
 })
 
+##
+## .bpstop_impl: common functionality after bpisup() is no longer TRUE
+##
+
+.bpstop_impl <-
+    function(x)
+{
+    .ClusterManager$drop(x$.uid)
+    invisible(x)
+}
