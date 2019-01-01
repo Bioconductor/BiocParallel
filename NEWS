@@ -28,6 +28,7 @@ BUG FIXES
 
     o (v 1.16.3) do not print '>' for each terminating SnowParam() worker
 
+    o (v 1.16.4) allow bpRNGseed() to reset seed to NULL
 CHANGES IN VERSION 1.14
 -----------------------
 
