@@ -14,6 +14,19 @@
 .recv_any <- function(cluster, ...)
     UseMethod(".recv_any")
 
+.send_all <-
+    function(cluster, value)
+{
+    for (node in seq_along(cluster))
+        .send_to(cluster, node, value)
+}
+
+.recv_all <-
+    function(cluster)
+{
+    replicate(length(cluster), .recv_any(cluster), simplify=FALSE)
+}
+
 ## client
 
 .send <- function(cluster, ...)
@@ -33,12 +46,16 @@
     TRUE
 }
 
-.recv_any.default <- function(cluster, id)
+.recv_any.default <-
+    function(cluster, id)
+{
     tryCatch({
         parallel:::recvOneData(cluster)
-    }, error=function(e) {
-        stop(.error_worker_comm(e, sprintf("'%s' receive data failed", id)))
+    }, error  = function(e) {
+        ## indicate error, but do not stop
+        .error_worker_comm(e, sprintf("'%s' receive data failed", id))
     })
+}
 
 .send.default <-
     function(cluster, data)
