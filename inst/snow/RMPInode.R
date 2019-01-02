@@ -21,4 +21,5 @@ local({
     loadNamespace("snow")
 
     BiocParallel::bprunMPIslave()
+    quit("no")
 })

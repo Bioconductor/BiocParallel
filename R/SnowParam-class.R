@@ -292,6 +292,13 @@ setMethod("bpRNGseed", "SnowParam",
     x$RNGseed
 })
 
+setReplaceMethod("bpRNGseed", c("SnowParam", "NULL"),
+    function(x, value)
+{
+    x$RNGseed <- NULL
+    x
+})
+
 setReplaceMethod("bpRNGseed", c("SnowParam", "numeric"),
     function(x, value)
 {

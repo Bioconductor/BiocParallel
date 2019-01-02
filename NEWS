@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.18
+
+BUG FIXES
+
+    o (v 1.17.4) port 1.16.3 (no '>' on SnowParam() worker end) and 1.16.4
+    (bpRNGseed<-() accepts NULL)
+
 CHANGES IN VERSION 1.16
 -----------------------
 
@@ -26,6 +33,9 @@ BUG FIXES
     in the implementation, so that valid objects must be constructed through
     the public constructors, e.g., `BatchtoolsParam()`
 
+    o (v 1.16.3) do not print '>' for each terminating SnowParam() worker
+
+    o (v 1.16.4) allow bpRNGseed() to reset seed to NULL
 CHANGES IN VERSION 1.14
 -----------------------
 

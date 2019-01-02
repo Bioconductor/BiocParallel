@@ -26,6 +26,7 @@
 \alias{bpRNGseed<-}
 \alias{bpRNGseed,SnowParam-method}
 \alias{bpRNGseed<-,SnowParam,numeric-method}
+\alias{bpRNGseed<-,SnowParam,NULL-method}
 \alias{bplogdir}
 \alias{bplogdir<-}
 \alias{bplogdir,SnowParam-method}
@@ -299,7 +300,7 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     \item{}{
       \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:
       Get or set the seed for random number generaton. \code{value} must be a
-      \code{numeric(1)}.
+      \code{numeric(1)} or \code{NULL}.
     }
     \item{}{
       \code{bplog(x)}, \code{bplog(x) <- value}:
