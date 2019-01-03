@@ -70,10 +70,7 @@
     if (type == "multicore" && .Platform$OS.type == "windows")
         return(1L)
 
-    cores <- min(
-        max(1L, parallel::detectCores() - 2L),
-        .snowCoresMax(type)
-    )
+    cores <- min(.detectCores(), .snowCoresMax(type))
     cores <- getOption("mc.cores", cores)
     if (nzchar(Sys.getenv("BBS_HOME")))
         cores <- min(4L, cores)

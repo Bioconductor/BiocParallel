@@ -1,3 +1,9 @@
+.detectCores <- function() {
+    result <- parallel::detectCores()
+    result[is.na(result)] <- 1L
+    max(1L, result - 2L)
+}
+
 .splitIndices <- function (nx, tasks)
 {
     ## derived from parallel
