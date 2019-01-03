@@ -86,8 +86,9 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   handling, logging and writing out results.
 
   The default number of workers is determined by \code{snowWorkers()}
-  which is usually the maximum of 1 and \code{parallel::detectCores() -
-  2}. Machines with 3 or fewer cores are assigned a single
+  which is usually the maximum of 1L and \code{parallel::detectCores() -
+  2}. Machines with 3 or fewer cores, or machines where number of cores
+  cannot be determined, are assigned a single
   worker. Machines with more than 127 cores are limited to the number of
   \emph{R} connections available when the workers start; this is 128 (a
   hard-coded limit in \emph{R}) minus the number of open connections as
@@ -202,9 +203,11 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 \arguments{
 
   \item{workers}{
+
     \code{integer(1)} Number of workers. Defaults to all cores available as
     determined by \code{detectCores}. For a \code{SOCK} cluster \code{workers}
     can be a \code{character()} vector of host names.
+
   }
   \item{type}{
     \code{character(1)} Type of cluster to use. Possible values are

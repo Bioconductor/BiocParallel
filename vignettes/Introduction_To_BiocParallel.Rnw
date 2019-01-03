@@ -176,7 +176,8 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
   default number of workers equals the value of the global option
   \Rcode{mc.cores} (e.g., \Rcode{getOption("mc.cores")}) or, if that
   is not set, the number of cores returned by
-  \Rcode{parallel::detectCores() - 2}.
+  \Rcode{parallel::detectCores() - 2}; when number of cores cannot be
+  determined, the default is 1.
 
   \Rcode{MulticoreParam} uses 'forked' processes with 'copy-on-change'
   semantics -- memory is only copied when it is changed. This makes it

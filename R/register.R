@@ -29,7 +29,7 @@
 .registered <- .registry$registered
 
 .registry_init <- function() {
-    multicore <- (parallel::detectCores() - 2L) > 1L
+    multicore <- .detectCores() > 1L
     tryCatch({
         if ((.Platform$OS.type == "windows") && multicore) {
             .register(getOption("SnowParam", SnowParam()), TRUE)
