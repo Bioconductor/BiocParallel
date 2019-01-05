@@ -110,3 +110,14 @@ S3method(bploop, SOCKnode)
 S3method(bploop, SOCK0node)
 S3method(bploop, lapply)
 S3method(bploop, iterate)
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Export 'developer' API for extending BiocParallelParam
+###
+
+export(
+    .BiocParallelParam_prototype, .prototype_update, .prettyPath,
+    .send_to, .recv_any, .send, .recv, .close, .send_all, .recv_all,
+    .bpstart_impl, .bpstop_impl, .bplapply_impl, .bpiterate_impl,
+    .error_worker_comm
+)

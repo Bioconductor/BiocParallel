@@ -270,6 +270,7 @@ setMethod("bpstop", "SnowParam",
         stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
     })
     bpbackend(x) <- .NULLcluster()
+
     .bpstop_impl(x)
 })
 

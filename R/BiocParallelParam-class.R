@@ -282,6 +282,10 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
 ### Methods - evaluation
 ###
 
+setMethod("bpstart", "BiocParallelParam", .bpstart_impl)
+
+setMethod("bpstop", "BiocParallelParam", .bpstop_impl)
+
 setMethod("bplapply", c("ANY", "BiocParallelParam"), .bplapply_impl)
 
 setMethod("bpiterate", c("ANY", "ANY", "BiocParallelParam"), .bpiterate_impl)

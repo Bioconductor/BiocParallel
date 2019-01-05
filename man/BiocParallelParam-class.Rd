@@ -17,9 +17,11 @@
 \alias{bpstart}
 \alias{bpstart,ANY-method}
 \alias{bpstart,missing-method}
+\alias{bpstart,BiocParallelParam-method}
 \alias{bpstop}
 \alias{bpstop,ANY-method}
 \alias{bpstop,missing-method}
+\alias{bpstop,BiocParallelParam-method}
 \alias{bpnworkers}
 \alias{bpworkers}
 \alias{bpworkers<-}
