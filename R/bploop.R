@@ -6,44 +6,18 @@
 ### Derived from snow version 0.3-13 by Luke Tierney
 ### Derived from parallel version 2.16.0 by R Core Team
 
-.send_EXEC <-
-    function(node, tag, fun, args)
+.EXEC <-
+    function(tag, fun, args)
 {
-    data <- list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
-    parallel:::sendData(node, data)
-    TRUE
+    list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
 }
 
-.send_VALUE <-
-    function(node, tag, value, success, time, log, sout)
+.VALUE <-
+    function(tag, value, success, time, log, sout)
 {
-    data <- list(type = "VALUE", tag = tag,
-                 value = value, success = success,
-                 time = time, log = log, sout = sout)
-    parallel:::sendData(node, data)
-    TRUE
+    list(type = "VALUE", tag = tag, value = value, success = success,
+         time = time, log = log, sout = sout)
 }
-
-.recv <- function(node, id)
-    tryCatch({
-        suppressPackageStartupMessages({
-            ## when starting workers; not supressable otherwise
-            parallel:::recvData(node)
-        })
-    }, error=function(e) {
-        ## capture without throwing
-        .error_worker_comm(e,  sprintf("'%s' receive data failed", id))
-    })
-
-.recv1 <- function(cluster, id)
-    tryCatch({
-        parallel:::recvOneData(cluster)
-    }, error=function(e) {
-        stop(.error_worker_comm(e, sprintf("'%s' receive data failed", id)))
-    })
-
-.close <- function(node)
-    parallel:::closeNode(node)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
@@ -56,8 +30,9 @@ bploop <- function(manager, ...)
 {
     repeat {
         tryCatch({
-            msg <- .recv(manager, "worker")
+            msg <- .recv(manager)
             if (inherits(msg, "error"))
+                ## FIXME: try to return error to manager
                 break                   # lost socket connection?
 
             if (msg$type == "DONE") {
@@ -85,8 +60,10 @@ bploop <- function(manager, ...)
 
                 log <- .log_buffer_get()
 
-                .send_VALUE(manager, msg$data$tag, value, success, t2 - t1,
-                            log, sout)
+                value <- .VALUE(
+                    msg$data$tag, value, success, t2 - t1, log, sout
+                )
+                .send(manager, value)
             }
         }, interrupt = function(e) {
             NULL
@@ -113,7 +90,7 @@ bploop.SOCK0node <- .bploop.worker
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
         while (any(running)) {
-            d <- .recv1(cl, "clear_cluster")
+            d <- .recv_any(cl)
             if (!is.null(result))
                 result[[d$value$tag]] <- d$value$value
             running[d$node] <- FALSE
@@ -222,12 +199,14 @@ bploop.lapply <-
 
         ## initial load
         running <- logical(workers)
-        for (i in seq_len(min(n, workers)))
-            running[i] <- .send_EXEC(cl[[i]], i, FUN, ARGFUN(i))
+        for (i in seq_len(min(n, workers))) {
+            value <- .EXEC(i, FUN, ARGFUN(i))
+            running[i] <- .send_to(cl, i, value)
+        }
 
         for (i in seq_len(n)) {
             ## collect
-            d <- .recv1(cl, "bplapply")
+            d <- .recv_any(cl)
 
             value <- d$value$value
             njob <- d$value$tag
@@ -246,8 +225,10 @@ bploop.lapply <-
 
             ## re-load
             j <- i + min(n, workers)
-            if (j <= n)
-                running[d$node] <- .send_EXEC(cl[[d$node]], j, FUN, ARGFUN(j))
+            if (j <= n) {
+                value <- .EXEC(j, FUN, ARGFUN(j))
+                running[d$node] <- .send_to(cl, d$node, value)
+            }
         }
     }
 
@@ -289,7 +270,8 @@ bploop.iterate <-
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        running[i] <- .send_EXEC(cl[[i]], i, FUN, ARGFUN(value))
+        value <- .EXEC(i, FUN, ARGFUN(value))
+        running[i] <- .send_to(cl, i, value)
     }
 
     repeat {
@@ -297,7 +279,7 @@ bploop.iterate <-
             break
 
         ## collect
-        d <- .recv1(cl, "bpiterate")
+        d <- .recv_any(cl)
         progress$step()
 
         value <- d$value$value
@@ -321,7 +303,8 @@ bploop.iterate <-
         value <- ITER()
         if (!is.null(value)) {
             i <- i + 1L
-            running[d$node] <- .send_EXEC(cl[[d$node]], i, FUN, ARGFUN(value))
+            value <- .EXEC(i, FUN, ARGFUN(value))
+            running[d$node] <- .send_to(cl, d$node, value)
         }
     }
 

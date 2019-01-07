@@ -97,3 +97,9 @@
 
     ddd
 }
+
+.dir_valid_rw <-
+    function(x)
+{
+    all(file.access(x, 6L) == 0L)
+}

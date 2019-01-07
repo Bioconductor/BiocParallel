@@ -1,7 +1,5 @@
 \name{bpok}
 
-\alias{bpresume}
-\alias{bplasterror}
 \alias{bpok}
 
 
@@ -12,30 +10,18 @@
   Identifies unsuccessful results returned from \code{bplapply},
   \code{bpmapply}, \code{bpvec}, \code{bpaggregate} or \code{bpvectorize}.
 
-  \code{bpresume} and \code{bplaterror} have been deprecated.
-
 }
 
 \usage{
 
   bpok(x)
 
-  ## Deprected:
-  bpresume(expr)
-  bplasterror()
-
 }
 
 \arguments{
 
     \item{x}{
-      Results returned from a call to \code{bp*lapply}.
-    }
-    \item{expr}{
-      A expression to be re-evaluated. If the original error was due to 
-      input error, \code{X} should be modified. If hardware limitations
-      or failure caused the error this expression may be the same as the
-      original.
+      Results returned from a call to \code{bp*apply}.
     }
 
 }
@@ -47,22 +33,6 @@
       Returns a \code{logical()} vector: FALSE for any jobs that resulted in
       an error. \code{x} is the result list output by \code{bplapply},
       \code{bpmapply}, \code{bpvec}, \code{bpaggregate} or \code{bpvectorize}.
-    }
-    \item{bpresume}{
-      THIS FUNCTION IS DEPRECATED.
-      The resume mechanism allows computations with errors to be re-attempted
-      and is triggered when the argument \code{catch.errors} is \code{TRUE}.
-      
-      Unsuccessful results returned from \code{bp*lapply} can be identified
-      with \code{bpok}. Failure may have been due to faulty input or hardware
-      error. Incomplete portions of the job can be reattempted  with
-      \code{bpresume}. New results are merged with the previous and returned to
-      the user.
-    }
-    \item{bplasterror}{
-      THIS FUNCTION IS DEPRECATED.
-      Use \code{attr} on the output of \code{bp*apply}
-      to see traceback. See examples.
     }
   }
 

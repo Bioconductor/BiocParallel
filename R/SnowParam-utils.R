@@ -73,29 +73,6 @@ bprunMPIslave <- function() {
 ### logs and results
 ###
 
-.initiateLogging <- function(BPPARAM) {
-    cl <- bpbackend(BPPARAM)
-
-    .bufferload <- function(i, log, threshold) {
-        tryCatch({
-            .log_load(log, threshold)
-            .log_appender()
-        }, error = identity)
-    }
-    ok <- tryCatch({
-        parallel::clusterApply(cl, seq_along(cl), .bufferload,
-                               log=bplog(BPPARAM),
-                               threshold=bpthreshold(BPPARAM))
-    }, error=function(e) {
-        stop(.error_worker_comm(e, "'.initiateLogging()' failed"))
-    })
-    if (!all(vapply(ok, is.null, logical(1)))) {
-        bpstop(cl)
-        stop(conditionMessage(ok[[1]]), 
-             "problem loading futile.logger on workers")
-    }
-}
-
 .bpwriteLog <- function(con, d) {
     .log_internal <- function() {
         message(
@@ -104,12 +81,12 @@ bprunMPIslave <- function() {
             "\nNode: ", d$node,
             "\nTimestamp: ", Sys.time(),
             "\nSuccess: ", d$value$success,
-            "\nTask duration:\n",
+            "\n\nTask duration:\n",
             paste(capture.output(d$value$time), collapse="\n"),
-            "\nMemory used:\n", paste(capture.output(gc()), collapse="\n"),
-            "\nLog messages:",
-            paste(d$value$log, collapse="\n"),
-            "\nstderr and stdout:\n",
+            "\n\nMemory used:\n", paste(capture.output(gc()), collapse="\n"),
+            "\n\nLog messages:\n",
+            paste(trimws(d$value$log), collapse="\n"),
+            "\n\nstderr and stdout:\n",
             paste(noquote(d$value$sout), collapse="\n")
         )
     }

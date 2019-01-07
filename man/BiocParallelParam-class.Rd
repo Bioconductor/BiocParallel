@@ -17,9 +17,11 @@
 \alias{bpstart}
 \alias{bpstart,ANY-method}
 \alias{bpstart,missing-method}
+\alias{bpstart,BiocParallelParam-method}
 \alias{bpstop}
 \alias{bpstop,ANY-method}
 \alias{bpstop,missing-method}
+\alias{bpstop,BiocParallelParam-method}
 \alias{bpnworkers}
 \alias{bpworkers}
 \alias{bpworkers<-}
@@ -29,10 +31,6 @@
 \alias{bptasks,BiocParallelParam-method}
 \alias{bptasks<-}
 \alias{bptasks<-,BiocParallelParam,numeric-method}
-\alias{bpcatchErrors}
-\alias{bpcatchErrors,BiocParallelParam-method}
-\alias{bpcatchErrors<-}
-\alias{bpcatchErrors<-,BiocParallelParam,logical-method}
 \alias{bpstopOnError}
 \alias{bpstopOnError,BiocParallelParam-method}
 \alias{bpstopOnError<-}
@@ -44,6 +42,14 @@
 \alias{bpthreshold}
 \alias{bpthreshold<-}
 \alias{bpthreshold,BiocParallelParam-method}
+\alias{bplogdir}
+\alias{bplogdir<-}
+\alias{bplogdir,BiocParallelParam-method}
+\alias{bplogdir<-,BiocParallelParam,character-method}
+\alias{bpresultdir}
+\alias{bpresultdir<-}
+\alias{bpresultdir,BiocParallelParam-method}
+\alias{bpresultdir<-,BiocParallelParam,character-method}
 \alias{bptimeout}
 \alias{bptimeout<-}
 \alias{bptimeout,BiocParallelParam-method}
@@ -60,6 +66,11 @@
 \alias{bpjobname,BiocParallelParam-method}
 \alias{bpjobname<-}
 \alias{bpjobname<-,BiocParallelParam,character-method}
+\alias{bpRNGseed}
+\alias{bpRNGseed<-}
+\alias{bpRNGseed,BiocParallelParam-method}
+\alias{bpRNGseed<-,BiocParallelParam,NULL-method}
+\alias{bpRNGseed<-,BiocParallelParam,numeric-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -72,7 +83,7 @@
 
   The \code{BiocParallelParam} virtual class stores configuration parameters
   for parallel execution. Concrete subclasses include \code{SnowParam}, 
-  \code{MulticoreParam}, \code{BatchJobsParam}, and \code{DoparParam}
+  \code{MulticoreParam}, \code{BatchtoolsParam}, and \code{DoparParam}
   and \code{SerialParam}.
 
 }
@@ -85,7 +96,7 @@
   \describe{
       \item{}{\code{SnowParam}: distributed memory computing}
       \item{}{\code{MulticoreParam}: shared memory computing}
-      \item{}{\code{BatchJobsParam}: scheduled cluster computing}
+      \item{}{\code{BatchtoolsParam}: scheduled cluster computing}
       \item{}{\code{DoparParam}: foreach computing}
       \item{}{\code{SerialParam}: non-parallel execution}
   }
@@ -104,7 +115,7 @@
   \itemize{
     \item \code{SnowParam()}
     \item \code{MulticoreParam()}
-    \item \code{BatchJobsParam()}
+    \item \code{BatchtoolsParam()}
     \item \code{DoparParam()}
     \item \code{SerialParam()}
   }
@@ -132,7 +143,7 @@
         \code{integer(1)}. Get or set the number of tasks for a
         job. \code{value} must be a scalar integer >= 0L. This argument
         applies to \code{SnowParam} and \code{MulticoreParam} only;
-        \code{DoparParam} and \code{BatchJobsParam} have their own
+        \code{DoparParam} and \code{BatchtoolsParam} have their own
         approach to dividing a job among workers.
  
         We define a job as a single call to a function such as \code{bplapply}, 
@@ -184,6 +195,16 @@
         \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
       }
       \item{}{
+        \code{bplogdir(x)}, \code{bplogdir(x) <- value}: Get or set an
+        optional directory for saving log files. The directory must
+        already exist with read / write ability.
+      }
+      \item{}{
+        \code{bpresultdir(x)}, \code{bpresultdir(x) <- value}: Get or
+        set an optional directory for saving results as 'rda' files. The
+        directory must already exist with read / write ability.
+      }
+      \item{}{
         \code{bptimeout(x)}, \code{bptimeout(x) <- value}:
         \code{numeric(1)} Time (in seconds) allowed for worker to
         complete a task.  This value is passed to base::setTimeLimit()
@@ -202,6 +223,11 @@
         \code{value} must be a \code{logical(1)}.
       }
       \item{}{
+        \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:
+        Get or set the seed for random number generaton. \code{value} must be a
+        \code{numeric(1)} or \code{NULL}.
+      }
+      \item{}{
         \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 
         Get or set the job name.
       }
@@ -212,20 +238,6 @@
     In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
     \describe{
-      \item{}{
-        \code{bpcatchErrors(x)}, \code{bpCatchErrors(x) <- value}:
-        \code{logical()}. DEPRECATED Controls if errors are caught and
-        returned with completed results.
-
-        \code{catch.errors} determines whether errors are caught and
-        returned with other results. When \code{TRUE}, all computations 
-        are attempted and output contains both errors and successfully 
-        completed results. When \code{FALSE}, the job is terminated as 
-        soon as the first error is hit and only the error message is 
-        returned (no results); this is the default behavior of the 
-        parent packages, e.g., \code{parallel}, \code{snow}, 
-        \code{foreach}.
-      }
       \item{}{
         \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:
         \code{logical()}. Controls if the job stops when an error is hit.
@@ -292,7 +304,7 @@
 
     \item \code{\link{MulticoreParam}} for computing in shared memory
 
-    \item \code{\link{BatchJobsParam}} for computing with cluster schedulers
+    \item \code{\link{BatchtoolsParam}} for computing with cluster schedulers
 
     \item \code{\link{DoparParam}} for computing with foreach
 
@@ -305,7 +317,7 @@
 
 getClass("BiocParallelParam")
 
-## For examples see ?SnowParam, ?MulticoreParam, ?BatchJobsParam 
+## For examples see ?SnowParam, ?MulticoreParam, ?BatchtoolsParam 
 ## and ?SerialParam.
 }
 

@@ -27,7 +27,7 @@
 }
 
 \usage{
-DoparParam(catch.errors = TRUE, stop.on.error=TRUE)
+DoparParam(stop.on.error=TRUE)
 }
 
 \details{
@@ -45,13 +45,6 @@ DoparParam(catch.errors = TRUE, stop.on.error=TRUE)
 
 \arguments{
 
-    \item{catch.errors}{DEPRECATED \code{logical(1)}} Flag to determine in
-        apply-like functions (see e.g. \code{\link{bplapply}}) whether
-        to quit with an error as soon as one application fails or
-        encapsulation of function calls in \code{\link[base]{try}}
-        blocks which triggers a resume mechanism (see
-        \link{bpresume}). Defaults to \code{TRUE}.  
-        
     \item{stop.on.error}{\code{logical(1)}} Stop all jobs as soon as one
         jobs fails (\code{stop.on.error == TRUE}) or wait for all jobs
         to terminate.  Default is \code{TRUE}.

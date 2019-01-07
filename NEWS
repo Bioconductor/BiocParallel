@@ -6,6 +6,17 @@ USER VISIBLE CHANGES
     random number seed, see
     https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014526.html
 
+    o (v. 1.17.7) removed deprecated functions bplasterror(),
+    bpresume(), bpcatchError() and field catch.error.
+
+    o (v. 1.17.7) Make logdir, resultdir fields of BiocParallelParam.
+
+    o (v. 1.17.7) replaced internal use of BatchJobs:::checkDir()
+    (testing existence and read / write ability of log and other
+    directories) with BiocParallelParam validity check.
+
+    o (v. 1.17.7) expose 'developer' interface, `?DeveloperInterface`
+
 BUG FIXES
 
     o (v 1.17.4) port 1.16.3 (no '>' on SnowParam() worker end) and 1.16.4
@@ -205,8 +216,6 @@ MODIFICATIONS
     o Update vignette examples, reorganize sections 
 
     o Allow 'workers' in BiocParallelParam to be character or integer
-
-    o Enhance bpresume() man page; add examples
 
     o Enhance register() man page; add examples
 

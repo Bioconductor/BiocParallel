@@ -8,36 +8,23 @@
 
 .SerialParam_prototype <- c(
     list(
-        workers = 1L,
-        threshold="INFO",
-        logdir=NA_character_
+        workers = 1L
     ),
     .BiocParallelParam_prototype
 )
 
-.SerialParam <- setRefClass("SerialParam",
+.SerialParam <- setRefClass(
+    "SerialParam",
     contains="BiocParallelParam",
-    fields=list(
-        logdir="character"
-    ),
-    methods=list(
-        show = function() {
-            callSuper()
-            cat("  bplogdir: ", bplogdir(.self), "\n", sep="")
-        })
 )
 
 SerialParam <-
-    function(catch.errors=TRUE, stop.on.error = TRUE,
+    function(stop.on.error = TRUE,
              log=FALSE, threshold="INFO", logdir=NA_character_,
              progressbar=FALSE)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     prototype <- .prototype_update(
         .SerialParam_prototype,
-        catch.errors=catch.errors,
         stop.on.error=stop.on.error,
         log=log, threshold=threshold, logdir=logdir,
         progressbar=progressbar
@@ -68,24 +55,6 @@ setReplaceMethod("bpthreshold", c("SerialParam", "character"),
 {
     x$threshold <- value
     x
-})
-
-setMethod("bplogdir", "SerialParam",
-    function(x)
-{
-    x$logdir
-})
-
-setReplaceMethod("bplogdir", c("SerialParam", "character"),
-    function(x, value)
-{
-    if (!length(value))
-        value <- NA_character_
-    x$logdir <- value 
-    if (is.null(msg <- .valid.SnowParam.log(x))) 
-        x
-    else 
-        stop(msg)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

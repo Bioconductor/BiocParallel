@@ -18,7 +18,7 @@ multicoreWorkers <- function()
 )
 
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
-        catch.errors=TRUE, stop.on.error=TRUE, 
+        stop.on.error=TRUE, 
         progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
@@ -27,9 +27,6 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
 {
     if (.Platform$OS.type == "windows")
         warning("MulticoreParam() not supported on Windows, use SnowParam()")
-
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
 
     clusterargs <- c(list(spec=workers, type="FORK"), list(...))
 
@@ -53,7 +50,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         .clusterargs=clusterargs, cluster=.NULLcluster(),
         .controlled=TRUE, workers=as.integer(workers), 
         tasks=as.integer(tasks),
-        catch.errors=catch.errors, stop.on.error=stop.on.error, 
+        stop.on.error=stop.on.error, 
         progressbar=progressbar, 
         RNGseed=RNGseed, timeout=as.integer(timeout),
         exportglobals=exportglobals,
@@ -63,9 +60,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         ...
     )
 
-    x <- do.call(.MulticoreParam, prototype)
-    validObject(x)
-    x
+    do.call(.MulticoreParam, prototype)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

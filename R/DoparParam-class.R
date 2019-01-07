@@ -16,11 +16,8 @@
 )
 
 DoparParam <-
-    function(catch.errors=TRUE, stop.on.error=TRUE)
+    function(stop.on.error=TRUE)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     if (!"package:foreach" %in% search()) {
         tryCatch({
             loadNamespace("foreach")
@@ -32,7 +29,7 @@ DoparParam <-
 
     prototype <- .prototype_update(
         .DoparParam_prototype,
-        catch.errors=catch.errors, stop.on.error=stop.on.error
+        stop.on.error=stop.on.error
     )
 
     x <- do.call(.DoparParam, prototype)

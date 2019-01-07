@@ -31,20 +31,17 @@ test_bpmapply_Params <- function()
         # test names and simplify
         x <- setNames(1:5, letters[1:5])
         for (param in params) {
-            for (catch.errors in c(FALSE, TRUE)) {
-                bpcatchErrors(param) <- catch.errors
-                for (SIMPLIFY in c(FALSE, TRUE)) {
-                    for (USE.NAMES in c(FALSE, TRUE)) {
-                      expected <- mapply(identity, x, 
-                                         USE.NAMES=USE.NAMES,
-                                         SIMPLIFY=SIMPLIFY)
-                      current <- quiet(bpmapply(identity, x, 
-                                                USE.NAMES=USE.NAMES,
-                                                SIMPLIFY=SIMPLIFY, 
-                                                BPPARAM=param))
-                      checkIdentical(expected, current)
-                      closeAllConnections()
-                    }
+            for (SIMPLIFY in c(FALSE, TRUE)) {
+                for (USE.NAMES in c(FALSE, TRUE)) {
+                    expected <- mapply(identity, x, 
+                                       USE.NAMES=USE.NAMES,
+                                       SIMPLIFY=SIMPLIFY)
+                    current <- quiet(bpmapply(identity, x, 
+                                              USE.NAMES=USE.NAMES,
+                                              SIMPLIFY=SIMPLIFY, 
+                                              BPPARAM=param))
+                    checkIdentical(expected, current)
+                    closeAllConnections()
                 }
             }
         }

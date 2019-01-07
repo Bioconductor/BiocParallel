@@ -2,28 +2,6 @@
 ### SnowParam objects
 ### -------------------------------------------------------------------------
 
-.SnowClusters <- local({
-    ## package-global registry of backends; use to avoid closing
-    ## socket connections of unreferenced backends during garbage
-    ## collection -- bpstart(MulticoreParam(1)); gc(); gc()
-    uid <- 0
-    env <- environment()
-    list(add = function(backend) {
-        uid <<- uid + 1L
-        cuid <- as.character(uid)
-        env[[cuid]] <- backend          # protection
-        cuid
-    }, drop = function(cuid) {
-        rm(list=cuid, envir=env)
-        invisible(NULL)
-    }, get = function(cuid) {
-        env[[cuid]]
-    }, ls = function() {
-        cuid <- setdiff(ls(env), c("uid", "env"))
-        cuid[order(as.integer(cuid))]
-    })
-})
-
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Helpers
 ###
@@ -100,59 +78,32 @@ setOldClass(c("NULLcluster", "cluster"))
 .SnowParam_prototype <- c(
     list(
         cluster = .NULLcluster(),
-        .clusterargs=list(spec=0, type="SOCK"),
-        .controlled=TRUE,
-        hostname=NA_character_, port=NA_integer_,
-        RNGseed=NULL,
-        logdir=NA_character_,
-        resultdir=NA_character_,
-        finalizer_env = new.env(parent=emptyenv())
+        .clusterargs = list(spec=0, type="SOCK"),
+        .controlled = TRUE,
+        hostname = NA_character_, port = NA_integer_
     ),
     .BiocParallelParam_prototype
 )
 
-.SnowParam_add_finalizer <-
-    function(x)
-{
-    finalizer_env <- as.environment(list(self=x$.self))
-    reg.finalizer(finalizer_env, function(e) {
-        if (.controlled(e[["self"]]))
-            bpstop(e[["self"]])
-    }, onexit=TRUE)
-    x$finalizer_env <- finalizer_env
-    x
-}
-
 .SnowParam <- setRefClass("SnowParam",
     contains="BiocParallelParam",
     fields=list(
-        cluster="cluster",
-        .clusterargs="list",
-        .controlled="logical",
-        .uid = "character",
-        hostname="character",
-        port="integer",
-        RNGseed="ANY",
-        logdir="character",
-        resultdir="character",
-        finalizer_env="environment"),
+        cluster = "cluster",
+        .clusterargs = "list",
+        .controlled = "logical",
+        hostname = "character",
+        port = "integer"
+    ),
     methods=list(
         show = function() {
             callSuper()
-            cat("  bpRNGseed: ", bpRNGseed(.self),
-                "\n",
-                "  bplogdir: ", bplogdir(.self),
-                "\n",
-                "  bpresultdir: ", bpresultdir(.self),
-                "\n",
-                "  cluster type: ", .clusterargs$type,
-                "\n", sep="")
+            cat("  cluster type: ", .clusterargs$type, "\n", sep="")
         })
 )
 
 SnowParam <- function(workers=snowWorkers(type),
                       type=c("SOCK", "MPI", "FORK"), tasks=0L,
-                      catch.errors=TRUE, stop.on.error=TRUE,
+                      stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
                       timeout=30L * 24L * 60L * 60L,
                       exportglobals=TRUE,
@@ -161,9 +112,6 @@ SnowParam <- function(workers=snowWorkers(type),
                       manager.hostname=NA_character_,
                       manager.port=NA_integer_, ...)
 {
-    if (!missing(catch.errors))
-        warning("'catch.errors' is deprecated, use 'stop.on.error'")
-
     type <- tryCatch(match.arg(type), error=function(...) {
         stop("'type' must be one of ",
              paste(sQuote(formals("SnowParam")$type), collapse=", "))
@@ -193,7 +141,7 @@ SnowParam <- function(workers=snowWorkers(type),
         .SnowParam_prototype,
         .clusterargs=clusterargs,
         .controlled=TRUE, workers=workers, tasks=as.integer(tasks),
-        catch.errors=catch.errors, stop.on.error=stop.on.error,
+        stop.on.error=stop.on.error,
         progressbar=progressbar, RNGseed=RNGseed,
         timeout=as.integer(timeout), exportglobals=exportglobals,
         log=log, threshold=threshold, logdir=logdir,
@@ -202,38 +150,12 @@ SnowParam <- function(workers=snowWorkers(type),
         ...
     )
 
-    x <- do.call(.SnowParam, prototype)
-    x <- .SnowParam_add_finalizer(x)
-    validObject(x)
-    x
+    do.call(.SnowParam, prototype)
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Validity
 ###
-
-.valid.SnowParam.log <- function(object)
-{
-    msg <- NULL
-
-    dir <- bplogdir(object)
-    if (length(dir) > 1L || !is(dir, "character"))
-        msg <- c(msg, "'bplogdir(BPPARAM)' must be character(1)")
-
-    if (!is.na(dir) && !bplog(object))
-        msg <- c(msg, "'log' must be TRUE when 'logdir' is given")
-    msg
-}
-
-.valid.SnowParam.result <- function(object) {
-    msg <- NULL
-
-    dir <- bpresultdir(object)
-    if (length(dir) > 1L || !is(dir, "character"))
-        msg <- c(msg, "'bpresultdir(BPPARAM)' must be character(1)")
-
-    msg
-}
 
 setValidity("SnowParam", function(object)
 {
@@ -245,9 +167,6 @@ setValidity("SnowParam", function(object)
         if (!all(bpworkers(object) == object$.clusterargs$spec))
             msg <- c(msg,
                 "'bpworkers(BPPARAM)' must equal BPPARAM$.clusterargs$spec")
-        msg <- c(msg,
-                 .valid.SnowParam.log(object),
-                 .valid.SnowParam.result(object))
     }
 
     if (is.null(msg)) TRUE else msg
@@ -280,26 +199,6 @@ setReplaceMethod("bpworkers", c("SnowParam", "character"),
     function(x, value)
 {
     x$workers <- x$.clusterargs$spec <- value
-    x
-})
-
-setMethod("bpRNGseed", "SnowParam",
-    function(x)
-{
-    x$RNGseed
-})
-
-setReplaceMethod("bpRNGseed", c("SnowParam", "NULL"),
-    function(x, value)
-{
-    x$RNGseed <- NULL
-    x
-})
-
-setReplaceMethod("bpRNGseed", c("SnowParam", "numeric"),
-    function(x, value)
-{
-    x$RNGseed <- as.integer(value)
     x
 })
 
@@ -346,46 +245,21 @@ setMethod("bpstart", "SnowParam",
         bpbackend(x) <- do.call(parallel::makeCluster, cargs)
     }
 
-    ## logging
-    if (bplog(x))
-        .initiateLogging(x)
-
-    ## random numbers
-    tryCatch({
-        if (!is.null(bpRNGseed(x)))
-            parallel::clusterSetRNGStream(bpbackend(x), bpRNGseed(x))
-    }, error = function(err) {
-        bpstop(x)
-        stop("setting worker RNG stream:\n  ", conditionMessage(err))
-    })
-
-    ## timeout
-    tryCatch({
-        timeout <- bptimeout(x)
-        if (is.finite(timeout)) {
-            parallel::clusterExport(bpbackend(x), "timeout", env=environment())
-        }
-    }, error = function(err) {
-        bpstop(x)
-        stop("setting worker timeout:\n  ", conditionMessage(err))
-    })
-
-    ## don't let the connections close
-    x$.uid <- .SnowClusters$add(bpbackend(x))
-
-    invisible(x)
+    .bpstart_impl(x)
 })
 
 setMethod("bpstop", "SnowParam",
     function(x)
 {
-    if (!.controlled(x))
-        stop("'bpstop' not available; instance from outside BiocParallel?")
+    if (!.controlled(x)) {
+        warning("'bpstop' not available; instance from outside BiocParallel?")
+        return(invisible(x))
+    }
     if (!bpisup(x))
         return(invisible(x))
 
     tryCatch({
-        parallel::stopCluster(bpbackend(x))
+        res <- capture.output(parallel::stopCluster(bpbackend(x)))
     }, error=function(err) {
         txt <- sprintf("failed to stop %s cluster: %s",
                        sQuote(class(bpbackend(x))[[1]]),
@@ -393,8 +267,8 @@ setMethod("bpstop", "SnowParam",
         stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
     })
     bpbackend(x) <- .NULLcluster()
-    .SnowClusters$drop(x$.uid)
-    invisible(x)
+
+    .bpstop_impl(x)
 })
 
 setMethod("bpisup", "SnowParam",
@@ -414,119 +288,6 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 {
     x$cluster <- value
     x
-})
-
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Methods - evaluation
-###
-
-setMethod("bplapply", c("ANY", "SnowParam"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
-{
-    FUN <- match.fun(FUN)
-
-    if (!is.na(bpresultdir(BPPARAM)))
-        BatchJobs:::checkDir(bpresultdir(BPPARAM))
-
-    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
-        BatchJobs:::checkDir(bplogdir(BPPARAM))
-
-    if (!length(X))
-        return(list())
-
-    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
-        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
-    }
-
-    idx <- .redo_index(X, BPREDO)
-    if (any(idx))
-        X <- X[idx]
-    nms <- names(X)
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
-    )
-
-    ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
-
-    res <- bploop(structure(list(), class="lapply"), # dispatch
-                  X, lapply, ARGFUN, BPPARAM)
-
-    if (!is.null(res)) {
-        res <- do.call(unlist, list(res, recursive=FALSE))
-        names(res) <- nms
-    }
-
-    if (any(idx)) {
-        BPREDO[idx] <- res
-        res <- BPREDO
-    }
-
-    if (!all(bpok(res)))
-        stop(.error_bplist(res))
-
-    res
-})
-
-setMethod("bpiterate", c("ANY", "ANY", "SnowParam"),
-    function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
-             BPPARAM=bpparam())
-{
-    ITER <- match.fun(ITER)
-    FUN <- match.fun(FUN)
-
-    if (missing(REDUCE)) {
-        if (reduce.in.order)
-            stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
-        if (!missing(init))
-            stop("REDUCE must be provided when 'init' is given")
-    }
-
-    if (!is.na(bpresultdir(BPPARAM)))
-        BatchJobs:::checkDir(bpresultdir(BPPARAM))
-
-    if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM)))
-        BatchJobs:::checkDir(bplogdir(BPPARAM))
-
-    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
-        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
-                         BPPARAM=param))
-    }
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
-    )
-    ARGFUN <- function(value) c(list(value), list(...))
-
-    ## FIXME: handle errors via bpok()
-    bploop(structure(list(), class="iterate"), # dispatch
-           ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order)
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -561,37 +322,6 @@ setReplaceMethod("bpthreshold", c("SnowParam", "character"),
     x
 })
 
-setMethod("bplogdir", "SnowParam",
-    function(x)
-{
-    x$logdir
-})
-
-setReplaceMethod("bplogdir", c("SnowParam", "character"),
-    function(x, value)
-{
-    if (!length(value))
-        value <- NA_character_
-    x$logdir <- value
-    if (is.null(msg <- .valid.SnowParam.log(x)))
-        x
-    else
-        stop(msg)
-})
-
-setMethod("bpresultdir", "SnowParam",
-    function(x)
-{
-    x$resultdir
-})
-
-setReplaceMethod("bpresultdir", c("SnowParam", "character"),
-    function(x, value)
-{
-    x$resultdir <- value
-    if (is.null(msg <- .valid.SnowParam.result(x)))
-        x
-})
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Coercion methods for SOCK and MPI clusters
 ###
@@ -616,10 +346,7 @@ setAs("SOCKcluster", "SnowParam",
         workers = length(from)
     )
 
-    x <- do.call(.SnowParam, prototype)
-    x <- .SnowParam_add_finalizer(x)
-    validObject(x)
-    x
+    do.call(.SnowParam, prototype)
 })
 
 ### MPIcluster

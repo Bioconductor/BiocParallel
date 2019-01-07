@@ -22,19 +22,6 @@
 \alias{bplog<-,SnowParam,logical-method}
 \alias{bpthreshold,SnowParam-method}
 \alias{bpthreshold<-,SnowParam,character-method}
-\alias{bpRNGseed}
-\alias{bpRNGseed<-}
-\alias{bpRNGseed,SnowParam-method}
-\alias{bpRNGseed<-,SnowParam,numeric-method}
-\alias{bpRNGseed<-,SnowParam,NULL-method}
-\alias{bplogdir}
-\alias{bplogdir<-}
-\alias{bplogdir,SnowParam-method}
-\alias{bplogdir<-,SnowParam,character-method}
-\alias{bpresultdir}
-\alias{bpresultdir<-}
-\alias{bpresultdir,SnowParam-method}
-\alias{bpresultdir<-,SnowParam,character-method}
 
 % Other methods
 \alias{coerce,SOCKcluster,SnowParam-method}
@@ -57,7 +44,7 @@
 ## ------------------------------------
 
 SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
-          tasks = 0L, catch.errors=TRUE, stop.on.error = TRUE,
+          tasks = 0L, stop.on.error = TRUE,
           progressbar = FALSE, RNGseed = NULL,
           timeout = 30L * 24L * 60L * 60L, exportglobals = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
@@ -99,20 +86,10 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   \describe{
     \item{error handling:}{
-      The \code{catch.errors} field has been deprecated.
 
       By default all computations are attempted and partial results
       are returned with any error messages.
       \itemize{
-        \item \code{catch.errors} (DEPRECATED)
-              determines whether errors are caught and
-              returned with other results. When \code{TRUE}, all computations
-              are attempted and output contains both errors and successfully
-              completed results. When \code{FALSE}, the job is terminated as
-              soon as the first error is hit and only the error message is
-              returned (no results); this is the default behavior of the
-              parent packages, e.g., \code{parallel}, \code{snow},
-              \code{foreach}.
 
         \item \code{stop.on.error} A \code{logical}. Stops all jobs as soon
               as one job fails or wait for all jobs to terminate. When
@@ -183,7 +160,7 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   \describe{
     \item{}{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
-                      tasks = 0L, catch.errors = TRUE, stop.on.error = FALSE,
+                      tasks = 0L, stop.on.error = FALSE,
                       progressbar = FALSE, RNGseed = NULL,
                       timeout = Inf, exportglobals = TRUE,
                       log = FALSE, threshold = "INFO", logdir = NA_character_,
@@ -229,10 +206,6 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
     When the length of \code{X} is less than the number of workers each
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
-  }
-  \item{catch.errors}{
-    DEPRECATED.
-    \code{logical(1)} Enable the catching of errors and warnings.
   }
   \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.
@@ -357,7 +330,6 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   In the code below \code{x} is a \code{SnowParam} object. See the
   ?\code{BiocParallelParam} man page for details on these accessors.
   \describe{
-    \item{}{\code{bpcatchErrors(x)}, \code{bpcatchErrors(x) <- value}}
     \item{}{\code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}}
   }
 
@@ -479,7 +451,8 @@ bpparam
 
 ## Fields are modified with accessors of the same name:
 bplog(bpparam) <- TRUE
-bpresultdir(bpparam) <- "/myResults/"
+dir.create(resultdir <- tempfile())
+bpresultdir(bpparam) <- resultdir
 bpparam
 
 ## -----------------------------------------------------------------------
@@ -518,7 +491,8 @@ tryCatch({
 ## When a 'logdir' location is given the messages are redirected to a
 ## file:
 \dontrun{
-bplogdir(bpparam) <- tempdir()
+dir.create(logdir <- tempfile())
+bplogdir(bpparam) <- logdir
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bplogdir(bpparam))
 }
@@ -531,7 +505,8 @@ list.files(bplogdir(bpparam))
 ## files are saved in the directory specified by job, e.g., 'TASK1.Rda',
 ## 'TASK2.Rda', etc.
 \dontrun{
-bpparam <- SnowParam(2, resultdir = tempdir())
+dir.create(resultdir <- tempfile())
+bpparam <- SnowParam(2, resultdir = resultdir)
 bplapply(X, fun, BPPARAM = bpparam)
 list.files(bpresultdir(bpparam))
 }

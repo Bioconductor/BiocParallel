@@ -2,14 +2,6 @@
 ### Error handling 
 ### -------------------------------------------------------------------------
 
-bplasterror <- function() {
-    .Deprecated(msg = "bplasterror has been deprecated")
-}
-
-bpresume <- function(expr) {
-    .Deprecated(msg = "bpresume has been deprecated")
-}
-
 bpok <- function(x) {
     !vapply(x, inherits, logical(1), "bperror")
 }
