@@ -1,9 +1,19 @@
 CHANGES IN VERSION 1.18
 
+USER VISIBLE CHANGES
+
+    o (v 1.17.6) Initial use of registered BPPARAM does not advance
+    random number seed, see
+    https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014526.html
+
 BUG FIXES
 
     o (v 1.17.4) port 1.16.3 (no '>' on SnowParam() worker end) and 1.16.4
     (bpRNGseed<-() accepts NULL)
+
+    o (v 1.17.5) port 1.16.4 (bpRNGseed() can reset seed to NULL),
+    1.16.5 (number of available cores defaults to 1 if cannot be
+    determined).
 
 CHANGES IN VERSION 1.16
 -----------------------

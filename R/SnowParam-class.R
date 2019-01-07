@@ -39,7 +39,7 @@
     host
 }
 
-.snowPort <- function(hostname=NULL) {
+.snowPort <- function() {
     port <- Sys.getenv("R_PARALLEL_PORT", NA_integer_)
     port <- Sys.getenv("PORT", port)
     port <- getOption("ports", port)
@@ -183,7 +183,7 @@ SnowParam <- function(workers=snowWorkers(type),
 
     manager.port <-
         if (is.na(manager.port)) {
-            .snowPort(manager.hostname)
+            .snowPort()
         } else as.integer(manager.port)
 
     if (!is.null(RNGseed))

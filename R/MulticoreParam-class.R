@@ -42,7 +42,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
 
     manager.port <-
         if (is.na(manager.port)) {
-            .snowPort(manager.hostname)
+            .snowPort()
         } else as.integer(manager.port)
 
     if (!is.null(RNGseed))
