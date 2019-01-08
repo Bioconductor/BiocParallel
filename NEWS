@@ -5,6 +5,9 @@ USER VISIBLE CHANGES
     o (v 1.17.6) Initial use of registered BPPARAM does not advance
     random number seed, see
     https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014526.html
+    
+    o (v 1.17.7) Loading package does not advance random number seed, see
+    https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014535.html
 
     o (v. 1.17.7) removed deprecated functions bplasterror(),
     bpresume(), bpcatchError() and field catch.error.
