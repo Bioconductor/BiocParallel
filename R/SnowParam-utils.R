@@ -12,7 +12,7 @@ bprunMPIslave <- function() {
     Rmpi::mpi.comm.set.errhandler(comm)
     Rmpi::mpi.comm.disconnect(intercomm)
 
-    bploop(snow::makeMPImaster(comm))
+    .bpworker_impl(snow::makeMPImaster(comm))
 
     Rmpi::mpi.comm.disconnect(comm)
     Rmpi::mpi.quit()
@@ -57,7 +57,7 @@ bprunMPIslave <- function() {
             }
         })
         node <- structure(list(con = con), class = "SOCK0node")
-        bploop(node)
+        .bpworker_impl(node)
     }, detached=TRUE)
 }
 

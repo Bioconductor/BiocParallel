@@ -17,6 +17,7 @@
 
 \alias{.bpstart_impl}
 \alias{.bpstop_impl}
+\alias{.bpworker_impl}
 \alias{.bplapply_impl}
 \alias{.bpiterate_impl}
 
@@ -34,27 +35,45 @@
 \usage{
 ## server interface
 
-.send_to(cluster, node, value)
-.recv_any(cluster)
-.send_all(cluster, value)
-.recv_all(cluster)
+.send_to(backend, node, value)
+.recv_any(backend)
+.send_all(backend, value)
+.recv_all(backend)
 
 ## client interface
 
-.send(cluster, value)
-.recv(cluster)
-.close(cluster)
+.send(worker, value)
+.recv(worker)
+.close(worker)
+
+## supporting implementations
+
+.bpstart_impl(x)
+.bpworker_impl(worker)
+.bplapply_impl(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
+.bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
+    BPPARAM = bpparam())
+.bpstop_impl(x)
 }
 
 \arguments{
 
-  \item{cluster}{
+  \item{x}{
+    A \code{BPPARAM} instance.
+  }
+
+  \item{backend}{
     An object containing information about the cluster, returned by
     \code{bpbackend(<BPPARAM>)}.
   }
 
+  \item{worker}{
+    The object to which the worker communicates via \code{.send} and
+    \code{.recv}. \code{.close} terminates the worker.
+  }
+
   \item{node}{
-    An integer value indicating the node in the cluster from which
+    An integer value indicating the node in the backend to which
     values are to be sent or received.
   }
 
@@ -62,50 +81,59 @@
     Any R object, to be sent to or from workers.
   }
 
+  \item{X, ITER, FUN, REDUCE, init, reduce.in.order, BPREDO, BPPARAM, ...}{
+    See \code{bplapply} and \code{bpiterate}.
+  }
 }
 
 \details{
 
-  New BPPARAM implementations need to implement \code{bpstart()},
-  \code{bpstop()}, \code{bplapply()}, and \code{bpiterate()}
-  methods. Each method usually performs implementation-specific
-  functionality before calling the next (BiocParallelParam) method.
+  New BPPARAM implementations need to implement \code{bpstart()} and
+  \code{bpstop()} methods; they may also need to implement,
+  \code{bplapply()} and \code{bpiterate()} methods. Each method usually
+  performs implementation-specific functionality before calling the next
+  (BiocParallelParam) method.  To avoid the intricacies of multiple
+  dispatch, the bodies of BiocParallelParam methods are available for
+  direct use as exported symbols.
 
   \itemize{
 
-    \item \code{bpstart,BiocParallelParam-method} initiates logging, random
-    number generation, and registration of finalizers to ensure that
-    started clusters are stopped.
+    \item \code{bpstart,BiocParallelParam-method}
+    (\code{.bpstart_impl()}) initiates logging, random number generation,
+    and registration of finalizers to ensure that started clusters are
+    stopped.
 
-    \item \code{bpstop,BiocParallelParam-method} ensures appropriate
-    clean-up of stopped clusters.
+    \item \code{bpstop,BiocParallelParam-method} (\code{.bpstop_impl()})
+    ensures appropriate clean-up of stopped clusters, including sending
+    the DONE semaphore. \code{bpstart()} will usually arrange for
+    workers to enter \code{.bpworker_impl()} to listen for and evaluate
+    tasks.
 
     \item \code{bplapply,ANY,BiocParallelParam-method} and
-    \code{bpiterate,ANY,BiocParallelParam-method} implement: serial
-    evaluation when there is a single core or task available;
+    \code{bpiterate,ANY,BiocParallelParam-method}
+    (\code{.bplapply_impl()}, \code{.bpiterate_impl()}) implement:
+    serial evaluation when there is a single core or task available;
     \code{BPREDO} functionality, and parallel lapply-like or iterative
     calculation.
 
   }
 
-  To avoid the intricacies of multiple dispatch, the body of these
-  methods is available for direct use as exported symbols
-  \code{.bpstart_impl()}, \code{.bpstop_impl()},
-  \code{.bplapply_impl()}, and \code{.bpiterate_impl()}.
+  Invoke \code{.bpstart_impl()}, \code{.bpstop_impl()},
+  \code{.bplapply_impl()}, and \code{.bpiterate_impl()} after any
+  BPPARAM-specific implementation details.
 
-  It is likely that new implementations will also implement
-  \code{bpisup()} and \code{bpbackend()} / \code{bpbackend<-()}; there
-  are no \code{BiocParallelParam} methods.
+  New implementations will also implement \code{bpisup()} and
+  \code{bpbackend()} / \code{bpbackend<-()}; there are no default
+  methods.
 
   The \emph{backends} (object returned by \code{bpbackend()}) of new
-  BPPARAM implementations must support \code{length()}. In addition, the
-  backends must support \code{.send_to()} and \code{.recv_any()}
-  server-side and \code{.send()}, \code{.recv()}, and \code{.close()}
-  client-side methods. Default \code{.send_all()} and \code{.recv_all()}
-  methods are implemented as simple iterations along the
-  \code{length(cluster)}, invoking \code{send_to()} or \code{recv_any()}
-  on each iteration. Starting and stopping the parallel evaluation
-  environment are implemented in \code{bpstart()} and \code{bpstop()}.
+  BPPARAM implementations must support \code{length()} (number of
+  nodes). In addition, the backends must support \code{.send_to()} and
+  \code{.recv_any()} server-side and \code{.send()}, \code{.recv()}, and
+  \code{.close()} client-side methods. Default \code{.send_all()} and
+  \code{.recv_all()} methods are implemented as simple iterations along
+  the \code{length(cluster)}, invoking \code{.send_to()} or
+  \code{.recv_any()} on each iteration.
 
 }
 

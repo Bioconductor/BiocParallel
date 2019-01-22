@@ -19,24 +19,27 @@
          time = time, log = log, sout = sout)
 }
 
+.DONE <-
+    function()
+{
+    list(type = "DONE")
+}
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
 ### .composeTry.
 
-bploop <- function(manager, ...)
-    UseMethod("bploop")
-
-.bploop.worker <- function(manager, ...)
+.bpworker_impl <- function(worker)
 {
     repeat {
         tryCatch({
-            msg <- .recv(manager)
+            msg <- .recv(worker)
             if (inherits(msg, "error"))
                 ## FIXME: try to return error to manager
                 break                   # lost socket connection?
 
             if (msg$type == "DONE") {
-                .close(manager)
+                .close(worker)
                 break
             } else if (msg$type == "EXEC") {
                 ## need local handler for worker read/send errors
@@ -63,17 +66,13 @@ bploop <- function(manager, ...)
                 value <- .VALUE(
                     msg$data$tag, value, success, t2 - t1, log, sout
                 )
-                .send(manager, value)
+                .send(worker, value)
             }
         }, interrupt = function(e) {
             NULL
         })
     }
 }
-
-bploop.MPInode <- .bploop.worker
-bploop.SOCKnode <- .bploop.worker
-bploop.SOCK0node <- .bploop.worker
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Manager loop used by SOCK, MPI and FORK
@@ -182,6 +181,9 @@ bploop.SOCK0node <- .bploop.worker
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
 ##
+
+bploop <- function(manager, ...)
+    UseMethod("bploop")
 
 bploop.lapply <-
     function(manager, X, FUN, ARGFUN, BPPARAM, ...)

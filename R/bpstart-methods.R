@@ -122,9 +122,9 @@ setMethod("bpstart", "missing",
 }
 
 .bpstart_impl <-
-    function(x, ...)
+    function(x)
 {
-    ## common actions once bpisup(x)
+    ## common actions once bpisup(backend)
     
     ## logging
     if (bplog(x))

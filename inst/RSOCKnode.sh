@@ -7,5 +7,5 @@ ${RPROG:-R} --vanilla <<EOF > ${OUT:-/dev/null} 2>&1 &
 
 loadNamespace("snow")
 options(timeout=getClusterOption("timeout"))
-BiocParallel::bploop(snow::makeSOCKmaster())
+BiocParallel::.bpworker_impl(snow::makeSOCKmaster())
 EOF

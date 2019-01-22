@@ -4,11 +4,6 @@
 % Class 
 \alias{bploop}
 
-% workers
-\alias{bploop.MPInode}
-\alias{bploop.SOCKnode}
-\alias{bploop.SOCK0node}
-
 % managers
 \alias{bploop.lapply}
 \alias{bploop.iterate}
@@ -26,12 +21,6 @@
 }
 
 \usage{
-\S3method{bploop}{SOCKnode}(manager, ...)
-
-\S3method{bploop}{SOCK0node}(manager, ...)
-
-\S3method{bploop}{MPInode}(manager, ...)
-
 \S3method{bploop}{lapply}(manager, X, FUN, ARGFUN, BPPARAM, ...)
 
 \S3method{bploop}{iterate}(manager, ITER, FUN, ARGFUN, BPPARAM,

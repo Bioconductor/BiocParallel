@@ -105,9 +105,6 @@ exportMethods(
 S3method(print, remote_error)
 S3method(print, bplist_error)
 
-S3method(bploop, MPInode)
-S3method(bploop, SOCKnode)
-S3method(bploop, SOCK0node)
 S3method(bploop, lapply)
 S3method(bploop, iterate)
 
@@ -118,6 +115,7 @@ S3method(bploop, iterate)
 export(
     .BiocParallelParam_prototype, .prototype_update, .prettyPath,
     .send_to, .recv_any, .send, .recv, .close, .send_all, .recv_all,
-    .bpstart_impl, .bpstop_impl, .bplapply_impl, .bpiterate_impl,
+    .bpstart_impl, .bpstop_impl, .bpworker_impl,
+    .bplapply_impl, .bpiterate_impl,
     .error_worker_comm
 )

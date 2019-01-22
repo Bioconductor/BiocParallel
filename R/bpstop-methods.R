@@ -11,9 +11,20 @@ setMethod("bpstop", "missing",
 ## .bpstop_impl: common functionality after bpisup() is no longer TRUE
 ##
 
+.bpstop_nodes <-
+    function(x)
+{
+    cluster <- bpbackend(x)
+    for (i in seq_along(cluster))
+        .send_to(cluster, i, .DONE())
+
+    TRUE
+}
+
 .bpstop_impl <-
     function(x)
 {
+    bpisup(x) && .bpstop_nodes(x)
     .ClusterManager$drop(x$.uid)
     invisible(x)
 }
