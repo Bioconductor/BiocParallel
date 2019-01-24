@@ -8,7 +8,10 @@
     ## don't perturb the random number stream, see
     ## https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014535.html
     oseed <- .GlobalEnv$.Random.seed
-    on.exit(.GlobalEnv$.Random.seed <- oseed)
+    on.exit({
+        if (!is.null(oseed))
+            .GlobalEnv$.Random.seed <- oseed
+    })
 
     port <- new.env(parent = emptyenv(), size = 3L)
     port[["SnowParam"]] <- .snowPort()

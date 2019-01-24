@@ -37,7 +37,6 @@
             if (inherits(msg, "error"))
                 ## FIXME: try to return error to manager
                 break                   # lost socket connection?
-
             if (msg$type == "DONE") {
                 .close(worker)
                 break
