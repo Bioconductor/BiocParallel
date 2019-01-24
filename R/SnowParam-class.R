@@ -258,17 +258,13 @@ setMethod("bpstop", "SnowParam",
     if (!bpisup(x))
         return(invisible(x))
 
-    tryCatch({
-        res <- capture.output(parallel::stopCluster(bpbackend(x)))
-    }, error=function(err) {
-        txt <- sprintf("failed to stop %s cluster: %s",
-                       sQuote(class(bpbackend(x))[[1]]),
-                       conditionMessage(err))
-        stop(paste(strwrap(txt, exdent=2), collapse="\n"), call.=FALSE)
-    })
+    x <- .bpstop_impl(x)
+    cluster <- bpbackend(x)
+    for (i in seq_along(cluster))
+        .close(cluster[[i]])
     bpbackend(x) <- .NULLcluster()
 
-    .bpstop_impl(x)
+    x
 })
 
 setMethod("bpisup", "SnowParam",

@@ -1,83 +1,84 @@
-## .BiocParallelParam_prototype, .prototype_update, .prettyPath,
-## .bpstart_impl, .bpstop_impl, .bplapply_impl, .bpiterate_impl,
-## .error_worker_comm
+##
+## see NAMESPACE section for definitive exports
+##
 
 ## server
+
 setGeneric(
     ".send_to",
-    function(cluster, node, value) standardGeneric(".send_to"),
-    signature = "cluster"
+    function(backend, node, value) standardGeneric(".send_to"),
+    signature = "backend"
 )
 
 setGeneric(
     ".recv_any",
-    function(cluster) standardGeneric(".recv_any"),
-    signature = "cluster"
+    function(backend) standardGeneric(".recv_any"),
+    signature = "backend"
 )
 
 setGeneric(
     ".send_all",
-    function(cluster, value) standardGeneric(".send_all"),
-    signature = "cluster"
+    function(backend, value) standardGeneric(".send_all"),
+    signature = "backend"
 )
 
 setGeneric(
     ".recv_all",
-    function(cluster) standardGeneric(".recv_all"),
-    signature = "cluster"
+    function(backend) standardGeneric(".recv_all"),
+    signature = "backend"
 )
 
 ## client
 
 setGeneric(
     ".send",
-    function(cluster, value) standardGeneric(".send"),
-    signature = "cluster"
+    function(worker, value) standardGeneric(".send"),
+    signature = "worker"
 )
 
 setGeneric(
     ".recv",
-    function(cluster) standardGeneric(".recv"),
-    signature = "cluster"
+    function(worker) standardGeneric(".recv"),
+    signature = "worker"
 )
 
 setGeneric(
     ".close",
-    function(cluster) standardGeneric(".close"),
-    signature = "cluster"
+    function(worker) standardGeneric(".close"),
+    signature = "worker"
 )
 
-## default implementation -- SNOW cluster
+## default implementation -- SNOW backend
 
 setMethod(
     ".send_all", "ANY",
-    function(cluster, value)
+    function(backend, value)
 {
-    for (node in seq_along(cluster))
-        .send_to(cluster, node, value)
+    for (node in seq_along(backend))
+        .send_to(backend, node, value)
 })
 
 setMethod(
     ".recv_all", "ANY",
-    function(cluster)
+    function(backend)
 {
-    replicate(length(cluster), .recv_any(cluster), simplify=FALSE)
+    replicate(length(backend), .recv_any(backend), simplify=FALSE)
 })
 
 setMethod(
     ".send_to", "ANY",
-    function(cluster, node, value)
+    function(backend, node, value)
 {
-    parallel:::sendData(cluster[[node]], value)
+    parallel:::sendData(backend[[node]], value)
     TRUE
 })
 
 setMethod(
     ".recv_any", "ANY",
-    function(cluster)
+    function(backend)
 {
     tryCatch({
-        parallel:::recvOneData(cluster)
+        parallel:::recvOneData(backend)
     }, error  = function(e) {
         ## indicate error, but do not stop
         .error_worker_comm(e, "'.recv_any()' data failed")
@@ -86,17 +87,17 @@ setMethod(
 
 setMethod(
     ".send", "ANY",
-    function(cluster, value)
+    function(worker, value)
 {
-    parallel:::sendData(cluster, value)
+    parallel:::sendData(worker, value)
 })
 
 setMethod(
     ".recv", "ANY",
-    function(cluster)
+    function(worker)
 {
     tryCatch({
-        parallel:::recvData(cluster)
+        parallel:::recvData(worker)
     }, error = function(e) {
         ## indicate error, but do not stop
         .error_worker_comm(e, "'.recv()' data failed")
@@ -105,7 +106,7 @@ setMethod(
 
 setMethod(
     ".close", "ANY",
-    function(cluster)
+    function(worker)
 {
-    parallel:::closeNode(cluster)
+    parallel:::closeNode(worker)
 })

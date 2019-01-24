@@ -25,6 +25,7 @@ local({
 
     if (port == "") port <- getClusterOption("port")
 
-    BiocParallel::bploop(snow::makeSOCKmaster(master, port))
+    BiocParallel::.bpworker_impl(snow::makeSOCKmaster(master, port))
     quit("no")
 })
+
