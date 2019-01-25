@@ -98,7 +98,8 @@ public:
 
 };
 
-#include <Rinternals.h>
+
+#include "ipcmutex.h"
 
 // internal
 
@@ -187,40 +188,4 @@ SEXP ipc_yield(SEXP id_sexp)
 {
     IpcCounter cnt = IpcCounter(ipc_id(id_sexp));
     return Rf_ScalarInteger(cnt.yield());
-}
-
-// expose to R
-
-#include <R_ext/Rdynload.h>
-
-extern "C" {
-
-    static const R_CallMethodDef callMethods[] = {
-        // uuid
-        {".ipc_uuid", (DL_FUNC) & ipc_uuid, 0},
-        // lock
-        {".ipc_lock", (DL_FUNC) & ipc_lock, 1},
-        {".ipc_try_lock", (DL_FUNC) & ipc_try_lock, 1},
-        {".ipc_unlock", (DL_FUNC) & ipc_unlock, 1},
-        {".ipc_locked", (DL_FUNC) & ipc_locked, 1},
-        // counter
-        {".ipc_yield", (DL_FUNC) & ipc_yield, 1},
-        {".ipc_value", (DL_FUNC) & ipc_value, 1},
-        {".ipc_reset", (DL_FUNC) & ipc_reset, 2},
-        // cleanup
-        {".ipc_remove", (DL_FUNC) & ipc_remove, 1},
-        {NULL, NULL, 0}
-    };
-
-    void R_init_BiocParallel(DllInfo *info)
-    {
-        R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-        R_useDynamicSymbols(info, FALSE);
-    }
-
-    void R_unload_BiocParallel(DllInfo *info)
-    {
-        (void) info;
-    }
-
 }

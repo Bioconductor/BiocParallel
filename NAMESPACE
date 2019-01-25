@@ -6,7 +6,7 @@ importFrom(stats, setNames, terms)
 
 importFrom(utils, capture.output, find, head, relist,
            setTxtProgressBar, txtProgressBar)
-importFrom(parallel, nextRNGStream)
+importFrom(parallel, mcparallel, nextRNGStream)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes
@@ -19,7 +19,8 @@ exportClass(
     DoparParam,
     SerialParam,
     BatchJobsParam,
-    BatchtoolsParam
+    BatchtoolsParam,
+    LocalParam
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +29,7 @@ exportClass(
 
 export(
     MulticoreParam, SnowParam, DoparParam, SerialParam, BatchJobsParam,
-    BatchtoolsParam,
+    BatchtoolsParam, LocalParam,
 
     ## register
     register, registered, bpparam,
