@@ -94,8 +94,11 @@
   parameter objects build. There are 5 concrete subclasses:
 
   \describe{
-      \item{}{\code{SnowParam}: distributed memory computing}
-      \item{}{\code{MulticoreParam}: shared memory computing}
+      \item{}{\code{LocalParam()}: forked (Linux, macOS) or independent
+        processes (Windows, Linux, macOS) on a single computer.}
+      \item{}{\code{SnowParam}: independent processes on one or more computers}
+      \item{}{\code{MulticoreParam}: forked processes (Linux and macOS
+        only) on a single computer}
       \item{}{\code{BatchtoolsParam}: scheduled cluster computing}
       \item{}{\code{DoparParam}: foreach computing}
       \item{}{\code{SerialParam}: non-parallel execution}
@@ -113,6 +116,7 @@
   Instances of the subclasses can be created with the following:
 
   \itemize{
+    \item \code{LocalParam()}
     \item \code{SnowParam()}
     \item \code{MulticoreParam()}
     \item \code{BatchtoolsParam()}

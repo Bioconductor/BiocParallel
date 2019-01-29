@@ -111,18 +111,8 @@ isup_local_server <-
 
 setOldClass("local_cluster")
 
-.local_cluster_cores <-
-    function()
-{
-    if (identical(.Platform$OS.type, "windows"))
-        return(1L)
-
-    cores <- max(1L, detectCores() - 2L)
-    getOption("mc.cores", cores)
-}
-
 local_cluster <-
-    function(n = .local_cluster_cores(), timeout = 30L * 24L * 60L * 60L,
+    function(n, timeout = 30L * 24L * 60L * 60L,
              client, client_id)
 {
     fields <- list(
@@ -221,19 +211,22 @@ print.local_cluster <-
 
 .LocalParam <- setRefClass(
     "LocalParam",
-    fields = list(backend = "local_cluster"),
+    fields = list(
+        backend = "local_cluster", cluster = "character"
+    ),
     contains = "BiocParallelParam"
 )
 
 .LocalParam_prototype <- c(
-    list(backend = NULL),
+    list(backend = NULL, cluster = "auto"),
     .BiocParallelParam_prototype
 )
-    
+
 LocalParam <-
-    function(workers = .local_cluster_cores(), ...)
+    function(workers = snowWorkers(), ..., cluster = c("auto", "snow"))
 {
     workers <- as.integer(workers)
+    cluster <- match.arg(cluster)
     stopifnot(
         is.integer(workers), length(workers) == 1L, workers > 0L,
         workers < 1000L
@@ -241,9 +234,15 @@ LocalParam <-
     if (.Platform$OS.type == "windows")
         stop("LocalParam() not supported on Windows, use SnowParam()")
 
+    test <- identical(.Platform$OS.type, "windows") ||
+        identical(cluster, "snow")
+    if (test)
+        .client <- .LocalParam_snowClient
+    else
+        .client <- .LocalParam_multicoreClient
     backend <- local_cluster(
         n = workers,
-        client = .LocalParam_client,
+        client = .client,
         client_id = "BiocParallel"
     )
 
@@ -251,19 +250,25 @@ LocalParam <-
         .LocalParam_prototype,
         backend = backend,
         workers = workers,
+        cluster = cluster,
         ...
     )
     do.call(.LocalParam, prototype)
 }
 
-
-.LocalParam_client <-
+.LocalParam_multicoreClient <-
     function(path)
 {
     mcparallel({
         open(con <- local_client(path)) # open.connection
         tryCatch(.bpworker_impl(con), error = warning)
     }, detached = TRUE)
+}
+
+.LocalParam_snowClient <-
+    function(path)
+{
+    stop("LocalParam 'snow' cluster not yet supported")
 }
 
 setMethod(
