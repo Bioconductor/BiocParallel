@@ -1,5 +1,8 @@
 \name{DeveloperInterface}
 
+\alias{.BiocParallelParam_prototype}
+\alias{.prototype_update}
+
 \alias{.recv_all}
 \alias{.recv_all,ANY-method}
 \alias{.recv_any}
@@ -33,14 +36,18 @@
 }
 
 \usage{
-## server interface
+## class extension
+
+.prototype_update(prototype, ...)
+
+## manager interface
 
 .send_to(backend, node, value)
 .recv_any(backend)
 .send_all(backend, value)
 .recv_all(backend)
 
-## client interface
+## worker interface
 
 .send(worker, value)
 .recv(worker)
@@ -57,6 +64,11 @@
 }
 
 \arguments{
+
+  \item{prototype}{
+    A named \code{list} of default values for reference class
+    fields.
+  }
 
   \item{x}{
     A \code{BPPARAM} instance.
@@ -81,14 +93,35 @@
     Any R object, to be sent to or from workers.
   }
 
-  \item{X, ITER, FUN, REDUCE, init, reduce.in.order, BPREDO, BPPARAM, ...}{
+  \item{X, ITER, FUN, REDUCE, init, reduce.in.order, BPREDO, BPPARAM}{
     See \code{bplapply} and \code{bpiterate}.
+  }
+
+  \item{\ldots}{
+
+    For \code{.prototype_update()}, name-value pairs to initialize
+    derived and base class fields.
+
+    For \code{.bplapply_impl()}, \code{.bpiterate_impl()}, additional
+    arguments to \code{FUN()}; see \code{bplapply} and \code{bpiterate}.
+
   }
 }
 
 \details{
 
-  New BPPARAM implementations need to implement \code{bpstart()} and
+  Start a BPPARM implementation by creating a reference class, e.g.,
+  extending the virtual class \code{BiocParallelParam}. Because of
+  idiosyncracies in reference class field initialization, an instance of
+  the class should be created by calling the generator returned by
+  \code{setRefClass()} with a list of key-value pairs providing default
+  parameteter arguments. The default values for the
+  \code{BiocParallelParam} base class is provided in a list
+  \code{.BiocParallelParam_prototype}, and the function
+  \code{.prototype_update()} updates a prototype with new values,
+  typically provided by the user. See the example below.
+
+  BPPARAM implementations need to implement \code{bpstart()} and
   \code{bpstop()} methods; they may also need to implement,
   \code{bplapply()} and \code{bpiterate()} methods. Each method usually
   performs implementation-specific functionality before calling the next
@@ -129,8 +162,8 @@
   The \emph{backends} (object returned by \code{bpbackend()}) of new
   BPPARAM implementations must support \code{length()} (number of
   nodes). In addition, the backends must support \code{.send_to()} and
-  \code{.recv_any()} server-side and \code{.send()}, \code{.recv()}, and
-  \code{.close()} client-side methods. Default \code{.send_all()} and
+  \code{.recv_any()} manager and \code{.send()}, \code{.recv()}, and
+  \code{.close()} worker methods. Default \code{.send_all()} and
   \code{.recv_all()} methods are implemented as simple iterations along
   the \code{length(cluster)}, invoking \code{.send_to()} or
   \code{.recv_any()} on each iteration.
@@ -139,7 +172,53 @@
 
 \value{
 
+  The return value of \code{.prototype_update()} is a list with elements
+  in \code{prototype} substituted with key-value pairs provided in
+  \code{\ldots}.
+
   All \code{send*} and \code{recv*} functions are endomorphic, returning a
   \code{cluster} object.
 
+}
+
+\examples{
+\donttest{
+##
+## Extend BiocParallelParam; `.A()` is not meant for the end user
+##
+
+.A <- setRefClass(
+    "A",
+    contains = "BiocParallelParam",
+    fields = list(id = "character")
+)
+
+## Use a prototype for default values, including the prototype for
+## inheritted fields
+
+.A_prototype <- c(
+    list(id = "default_id"),
+    .BiocParallelParam_prototype
+)
+
+## Provide a constructor for the user
+
+A <- function(...) {
+    prototype <- .prototype_update(.A_prototype, ...)
+    do.call(.A, prototype)
+}
+
+## Provide an R function for field access
+
+bpid <- function(x)
+    x$id
+
+## Create and use an instance, overwriting default values
+
+bpid(A())
+
+a <- A(id = "my_id", threshold = "WARN")
+bpid(a)
+bpthreshold(a)
+}
 }

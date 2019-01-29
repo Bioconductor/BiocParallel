@@ -68,7 +68,7 @@
 .prettyPath <- function(tag, filepath)
 {
     wd <- options('width')[[1]] - nchar(tag) - 6
-    if(is.na(filepath))
+    if (length(filepath) == 0 || is.na(filepath))
         return(sprintf("%s: %s", tag, NA_character_))
     if (0L == length(filepath) || nchar(filepath) < wd)
         return(sprintf("%s: %s", tag, filepath))
