@@ -25,8 +25,10 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         resultdir=NA_character_, jobname = "BPJOB",
         manager.hostname=NA_character_, manager.port=NA_integer_, ...)
 {
-    if (.Platform$OS.type == "windows")
+    if (.Platform$OS.type == "windows") {
         warning("MulticoreParam() not supported on Windows, use SnowParam()")
+        workers = 1L
+    }
 
     clusterargs <- c(list(spec=workers, type="FORK"), list(...))
 

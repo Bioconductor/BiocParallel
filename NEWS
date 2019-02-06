@@ -20,6 +20,9 @@ USER VISIBLE CHANGES
 
     o (v. 1.17.7) expose 'developer' interface, `?DeveloperInterface`
 
+    o (v. 1.17.11) on Windows, coerce `MulticoreParam(n)` to
+    `MulticoreParam(1)` == SerialParam()`
+
 BUG FIXES
 
     o (v 1.17.4) port 1.16.3 (no '>' on SnowParam() worker end) and 1.16.4
