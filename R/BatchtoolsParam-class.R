@@ -115,6 +115,7 @@ setOldClass("ClusterFunctions")
         template = NA_character_,
         registry = .NULLRegistry(),
         registryargs = list(),
+        saveregistry = FALSE,
         resources = list()
     ),
     .BiocParallelParam_prototype
@@ -128,6 +129,7 @@ setOldClass("ClusterFunctions")
         template = "character",
         registry = "Registry",
         registryargs = "list",
+        saveregistry = "logical",
         resources = "list"
     ),
     methods = list(
@@ -135,10 +137,12 @@ setOldClass("ClusterFunctions")
             callSuper()
             .registryargs <- .bpregistryargs(.self)
             .resources <- .bpresources(.self)
+            .saveregistry <- .bpsaveregistry(.self)
             cat("  cluster type: ", bpbackend(.self),
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
+                "\n", .prettyPath("  saveregistry", .saveregistry),
                 "\n  resources:",
                 if (length(.resources))
                     paste0("\n    ", names(.resources), ": ", .resources),
@@ -153,6 +157,8 @@ BatchtoolsParam <-
         ## Provide either cluster or template
         cluster = batchtoolsCluster(),
         registryargs = batchtoolsRegistryargs(),
+        ## Should always be FALSE except for when debugging
+        saveregistry = FALSE,
         resources = list(),
         template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
@@ -175,6 +181,7 @@ BatchtoolsParam <-
         .BatchtoolsParam_prototype,
         workers = as.integer(workers), cluster = cluster,
         registry = .NULLRegistry(),
+        saveregistry = saveregistry, ## This is not a good idea
         registryargs = registryargs, resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, resultdir = resultdir, stop.on.error = stop.on.error,
@@ -220,6 +227,12 @@ setMethod("bpisup", "BatchtoolsParam",
     function(x)
 {
     x$registryargs
+}
+
+.bpsaveregistry <-
+    function(x)
+{
+    x$saveregistry
 }
 
 .bpresources <-
@@ -367,6 +380,21 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         dir.create(bplogdir(BPPARAM))
         ## Recursive copy logs
         file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE, overwrite=TRUE)
+    }
+
+    ## WARNING
+    ## Save a registry in a folder with extension, _saved_registry
+    ## BatchtoolsParam('saveregistry=TRUE') option should be set only
+    ## when debugging. This can be extremely
+    if (.bpsaveregistry(BPPARAM)) {
+        message(
+            "'BatchtooParam(saveregistry = TRUE)' is being used.\n",
+            "This option can be time and space expensive, and",
+            "it should be reserved only for debugging."
+        )
+        saved_reg <- paste0(registry$file.dir, "_saved_registry")
+        dir.create(saved_reg)
+        file.copy(registry$file.dir, saved_reg, recursive=TRUE)
     }
 
     ## Clear registry
