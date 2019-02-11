@@ -293,10 +293,10 @@ setMethod("bpstart", "BatchtoolsParam",
 setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
-    registry <- x$registry
     message("cleaning registry...")
+    wait <- getOption("BIOCPARALLEL_BATCHTOOLS_REMOVE_REGISTRY_WAIT", 5)
     suppressMessages({
-        batchtools::removeRegistry(reg=registry)
+        batchtools::removeRegistry(wait = wait, reg = x$registry)
     })
 
     x$registry <- .NULLRegistry()       # toggles bpisup()
