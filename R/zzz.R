@@ -9,12 +9,13 @@
     ## https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014535.html
     oseed <- .GlobalEnv$.Random.seed
     on.exit({
-        if (!is.null(oseed))
+        if (is.null(oseed)) {
+            rm(.Random.seed, envir = .GlobalEnv)
+        } else {
             .GlobalEnv$.Random.seed <- oseed
+        }
     })
 
-    port <- new.env(parent = emptyenv(), size = 3L)
-    port[["SnowParam"]] <- .snowPort()
-    port[["MulticoreParam"]] <- .snowPort()
-    .registry_port <<- port
+    .registry_port <<-
+        list(SnowParam = .snowPort(), MulticoreParam = .snowPort())
 }
