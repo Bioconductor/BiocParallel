@@ -29,7 +29,7 @@
 }
 
 .redo_index <-
-    function(X, BPREDO, verbose=TRUE)
+    function(X, BPREDO)
 {
     idx <- !bpok(BPREDO)
     if (length(idx)) {
@@ -37,8 +37,6 @@
             stop("'length(BPREDO)' must equal 'length(X)'")
         if (!any(idx))
             stop("no previous error in 'BPREDO'")
-        if (verbose)
-            message("resuming previous calculation ... ")
     }
     idx
 }
@@ -102,4 +100,11 @@
     function(x)
 {
     all(file.access(x, 6L) == 0L)
+}
+
+.stop <- function(...) {
+    msg <- paste(
+        strwrap(paste0("\n", ...), indent = 2, exdent = 2), collapse="\n"
+    )
+    stop(msg, call. = FALSE)
 }

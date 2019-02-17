@@ -51,7 +51,11 @@ batchtoolsCluster <-
         lsf = suppressWarnings(system2("bjobs", stderr=NULL, stdout=NULL) != 127L),
         openlava = suppressWarnings(system2("bjobs", stderr=NULL, stdout=NULL) != 127L),
         torque = suppressWarnings(system2("qselect", stderr=NULL, stdout=NULL) != 127L),
-        stop("unsupported cluster type '", cluster, "'")
+        .stop(
+            "unsupported cluster type '", cluster, "'; ",
+            "supported types (when available):\n",
+            "  ", paste0("'", .BATCHTOOLS_CLUSTERS, "'", collapse = ", ")
+        )
     )
 }
 
@@ -293,7 +297,6 @@ setMethod("bpstart", "BatchtoolsParam",
 setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
-    message("cleaning registry...")
     wait <- getOption("BIOCPARALLEL_BATCHTOOLS_REMOVE_REGISTRY_WAIT", 5)
     suppressMessages({
         batchtools::removeRegistry(wait = wait, reg = x$registry)
@@ -331,12 +334,21 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         on.exit(bpstop(BPPARAM), TRUE)
     }
 
-    ## progressbar
-    prev.bp <- getOption("BBmisc.ProgressBar.style")
-    on.exit(options(BBmisc.ProgressBar.style=prev.pb), TRUE)
-
-    pb <- c("off", "text")[bpprogressbar(BPPARAM) + 1L]
-    prev.pb <- options(BBmisc.ProgressBar.style=pb)
+    ## progressbar / verbose
+    if (bpprogressbar(BPPARAM)) {
+        opts <- options(
+            BBmisc.ProgressBar.style="text", batchtools.verbose = TRUE
+        )
+        on.exit({
+            ## message("")                 # clear progress bar
+            options(opts)
+        }, TRUE)
+    } else {
+        opts <- options(
+            BBmisc.ProgressBar.style="off", batchtools.verbose = FALSE
+        )
+        on.exit(options(opts), TRUE)
+    }
 
     registry <- BPPARAM$registry
 
@@ -370,10 +382,11 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     }
 
     ## Clear registry
+    if (bpprogressbar(BPPARAM))
+        message("Clearing registry ...")
     suppressMessages({
         batchtools::clearRegistry(reg=registry)
     })
-    cat("\n")  ## terminate progress bar
 
     if (!is.null(res))
         names(res) <- nms

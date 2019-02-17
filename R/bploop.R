@@ -330,7 +330,6 @@ bploop.iterate_batchtools <-
     on.exit(progress$term(), TRUE)
     progress$init()
 
-    message("Adding jobs ...")
     def.id <- job.id <- 1L
     repeat{
         value <- ITER()
