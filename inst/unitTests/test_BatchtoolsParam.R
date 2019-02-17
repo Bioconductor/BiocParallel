@@ -7,6 +7,11 @@
     options(.old_options)
 }
 
+.n_connections <- function() {
+    gc()                                # close connections
+    nrow(showConnections())
+}
+
 test_BatchtoolsParam_constructor <- function() {
     param <- BatchtoolsParam()
     checkTrue(validObject(param))
@@ -93,11 +98,6 @@ test_BatchtoolsWorkers <- function() {
     checkException(batchtoolsWorkers("unknown"))
 }
 
-.n_connections <- function() {
-    gc()                                # close connections
-    nrow(showConnections())
-}
-
 .test_BatchtoolsParam_bpisup_start_stop <- function(param) {
     n_connections <- .n_connections()
 
@@ -130,6 +130,7 @@ test_BatchtoolsParam_bpisup_start_stop_interactive <- function() {
 test_BatchtoolsParam_bplapply <- function() {
     n_connections <- .n_connections()
     fun <- function(x) Sys.getpid()
+
     ## Check for all cluster types
     cluster <-  "interactive"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
@@ -152,12 +153,15 @@ test_BatchtoolsParam_bplapply <- function() {
 
 ## Check registry
 test_BatchtoolsParam_registry <- function() {
+    n_connections <- .n_connections()
+
     param <- BatchtoolsParam()
     checkTrue(is(param$registry, "NULLRegistry"))
     bpstart(param)
     checkTrue(!is(param$registry, "NULLRegistry"))
     checkTrue(is(param$registry, "Registry"))
     bpstop(param)
+    checkIdentical(n_connections, .n_connections())
 }
 
 ## Check bpjobname
@@ -180,6 +184,8 @@ test_BatchtoolsParam_bptimeout <- function() {
 
 ## Check bpRNGseed
 test_BatchtoolsParam_bpRNGseed <- function() {
+    n_connections <- .n_connections()
+
     ##  Check setting RNGseed
     param <- BatchtoolsParam(RNGseed=123L)
     checkEqualsNumeric(123L, bpRNGseed(param))
@@ -198,10 +204,12 @@ test_BatchtoolsParam_bpRNGseed <- function() {
     checkTrue(is.na(bpRNGseed(param)))
     ## ## Check fail
     checkException({bpRNGseed(param) <- "abc"})
+    checkIdentical(n_connections, .n_connections())
 }
 
 test_BatchtoolsParam_bplog <- function() {
     n_connections <- .n_connections()
+
     ## Test param w/o log and logdir
     checkTrue(is.na(bplogdir(BatchtoolsParam())))
     checkTrue(!bplog(BatchtoolsParam()))
@@ -294,6 +302,8 @@ test_BatchtoolsParam_template <- function() {
 
 ## Run only of SGE clusters, this will fail on other machines
 test_BatchtoolsParam_sge <- function() {
+    n_connections <- .n_connections()
+
     if (!BiocParallel:::.batchtoolsClusterAvailable("sge"))
         return()
 
@@ -313,6 +323,7 @@ test_BatchtoolsParam_sge <- function() {
     checkIdentical(2L, length(unique(unlist(result))))
 
     bpstop(param)
+    checkIdentical(n_connections, .n_connections())
 }
 
 ## TODO: write tests for other cluster types, slurm, lsf, torque, openlava
