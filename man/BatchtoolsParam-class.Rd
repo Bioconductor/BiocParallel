@@ -94,11 +94,11 @@ batchtoolsRegistryargs(...)
 	workers. \code{file.dir} uses a default setting to make a
 	registry in your working directory.
 
-   \item{saveregistry}{\code{logical(1)}} Option given to store
-       the entire registry for the job(s). This functionality should
-       only be used when debugging. The storage of the entire registry can
-       be time and space expensive on disk. The registry will be saved with
-       a suffix '_saved_registry' in the working directory.
+    \item{saveregistry}{\code{logical(1)}} Option given to store the
+	entire registry for the job(s). This functionality should only
+	be used when debugging. The storage of the entire registry can
+	be time and space expensive on disk. The registry will be saved
+	with a suffix '_saved_registry' in the working directory.
 
     \item{resources}{\code{named list()}} Arguments passed to the
 	\code{resources} argument of \code{batchtools::submitJobs}

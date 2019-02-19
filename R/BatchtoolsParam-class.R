@@ -309,7 +309,8 @@ setMethod("bpstop", "BatchtoolsParam",
     registry <- x$registry
     message("cleaning registry...")
     suppressMessages({
-        batchtools::removeRegistry(reg=registry)
+        if (!.bpsaveregistry(x))
+            batchtools::removeRegistry(reg=registry)
     })
 
     x$registry <- .NULLRegistry()       # toggles bpisup()
@@ -382,24 +383,14 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE, overwrite=TRUE)
     }
 
-    ## WARNING
-    ## Save a registry in a folder with extension, _saved_registry
-    ## BatchtoolsParam('saveregistry=TRUE') option should be set only
-    ## when debugging. This can be extremely
-    if (.bpsaveregistry(BPPARAM)) {
-        message(
-            "'BatchtooParam(saveregistry = TRUE)' is being used.\n",
-            "This option can be time and space expensive, and",
-            "it should be reserved only for debugging."
-        )
-        saved_reg <- paste0(registry$file.dir, "_saved_registry")
-        dir.create(saved_reg)
-        file.copy(registry$file.dir, saved_reg, recursive=TRUE)
-    }
-
     ## Clear registry
     suppressMessages({
-        batchtools::clearRegistry(reg=registry)
+        ## WARNING
+        ## Save a registry in a folder with extension, _saved_registry
+        ## BatchtoolsParam('saveregistry=TRUE') option should be set only
+        ## when debugging. This can be extremely
+        if (!.bpsaveregistry(BPPARAM))
+            batchtools::clearRegistry(reg=registry)
     })
     cat("\n")  ## terminate progress bar
 
