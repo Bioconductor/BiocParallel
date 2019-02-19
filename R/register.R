@@ -54,8 +54,10 @@
             .register(getOption("SerialParam", SerialParam()), TRUE)
         }
     }, error=function(err) {
-        message("'BiocParallel' did not register default ",
-                "BiocParallelParams:\n  ", conditionMessage(err))
+        message(
+            "'BiocParallel' did not register default BiocParallelParam:\n",
+            "  ", conditionMessage(err)
+        )
         NULL
     })
 }

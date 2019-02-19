@@ -2,8 +2,6 @@ quiet <- suppressWarnings
 
 test_bplapply_Params <- function()
 {
-    message("test_bplapply_Params")
-    message("  setup")
     doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
@@ -14,23 +12,18 @@ test_bplapply_Params <- function()
 
     x <- 1:10
     expected <- lapply(x, sqrt)
-    message("  sqrt")
     for (param in names(params)) {
-        message("    ", param)
         current <- quiet(bplapply(x, sqrt, BPPARAM=params[[param]]))
         checkIdentical(expected, current)
     }
 
     # test empty input
-    message("  empty input")
     for (param in names(params)) {
-        message("    ", param)
         current <- quiet(bplapply(list(), identity, BPPARAM=params[[param]]))
         checkIdentical(list(), current)
     }
 
     # unnamed args for BatchJobs -> dispatches to batchMap
-    message("  BatchJobs")
     f <- function(i, x, y, ...) { list(y, i, x) }
     current <- bplapply(2:1, f, c("A", "B"), x=10,
                         BPPARAM=BatchJobsParam(2, progressbar=FALSE))
@@ -38,18 +31,14 @@ test_bplapply_Params <- function()
     checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10))) 
 
     ## clean up
-    message("  cleanup")
     env <- foreach:::.foreachGlobals
     rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
-    message("test_bplapply_Params DONE")
 }
 
 test_bplapply_symbols <- function()
 {
-    message("test_bplapply_symbols")
-    message("  setup")
     doParallel::registerDoParallel(2)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
@@ -62,16 +51,13 @@ test_bplapply_symbols <- function()
     x <- list(as.symbol(".XYZ"))
     expected <- lapply(x, as.character)
     for (param in names(params)) {
-        message("    ", param)
         current <- quiet(bplapply(x, as.character, BPPARAM=params[[param]]))
         checkIdentical(expected, current)
     }
 
     ## clean up
-    message("  cleanup")
     env <- foreach:::.foreachGlobals
     rm(list=ls(name=env), pos=env)
     closeAllConnections()
     TRUE
-    message("test_bplapply_symbols DONE")
 }

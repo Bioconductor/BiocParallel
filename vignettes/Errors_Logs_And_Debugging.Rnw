@@ -34,10 +34,10 @@ together as part of an effective debugging routine.
 
 \BiocParallel{} provides a unified interface to the parallel infrastructure in
 several packages including \CRANpkg{snow}, \CRANpkg{parallel},
-\CRANpkg{BatchJobs} and \CRANpkg{foreach}.  When implementing error handling in
+\CRANpkg{batchtools} and \CRANpkg{foreach}.  When implementing error handling in
 \BiocParallel{} the primary goals were to enable the return of partial results
 when an error is thrown (vs just the error) and to establish logging on the
-workers. In cases where error handling existed, such as \CRANpkg{BatchJobs} and
+workers. In cases where error handling existed, such as \CRANpkg{batchtools} and
 \CRANpkg{foreach}, those behaviors were preserved.  Clusters created with
 \CRANpkg{snow} and \CRANpkg{parallel} now have flexible error handling and
 logging available through \Rcode{SnowParam} and \Rcode{MulticoreParam} objects.

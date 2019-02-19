@@ -1,3 +1,17 @@
+.old_options <- NULL
+
+.setUp <- function()
+    .old_options <<- options(BIOCPARALLEL_BATCHTOOLS_REMOVE_REGISTRY_WAIT = 1)
+
+.tearDown <- function() {
+    options(.old_options)
+}
+
+.n_connections <- function() {
+    gc()                                # close connections
+    nrow(showConnections())
+}
+
 test_BatchtoolsParam_constructor <- function() {
     param <- BatchtoolsParam()
     checkTrue(validObject(param))
@@ -65,7 +79,7 @@ test_BatchtoolsParam_constructor <- function() {
     checkException(BatchtoolsParam(cluster=cluster))
 }
 
-test_batchtoolsWorkers <- function() {
+test_BatchtoolsWorkers <- function() {
     socket <- snowWorkers()
     multicore <- multicoreWorkers()
     isWindows <- .Platform$OS.type == "windows"
@@ -84,35 +98,39 @@ test_batchtoolsWorkers <- function() {
     checkException(batchtoolsWorkers("unknown"))
 }
 
-test_BatchtoolsParam_bpisup_start_stop_default<- function() {
-    param <- BatchtoolsParam(workers=2)
+.test_BatchtoolsParam_bpisup_start_stop <- function(param) {
+    n_connections <- .n_connections()
+
     checkIdentical(FALSE, bpisup(param))
     checkIdentical(TRUE, bpisup(bpstart(param)))
     checkIdentical(FALSE, bpisup(bpstop(param)))
+    checkIdentical(n_connections, .n_connections())
+}
+
+test_BatchtoolsParam_bpisup_start_stop_default <- function() {
+
+    param <- BatchtoolsParam(workers=2)
+    .test_BatchtoolsParam_bpisup_start_stop(param)
 }
 
 test_BatchtoolsParam_bpisup_start_stop_socket <- function() {
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
-
-    checkIdentical(FALSE, bpisup(param))
-    checkIdentical(TRUE, bpisup(bpstart(param)))
-    checkIdentical(FALSE, bpisup(bpstop(param)))
+    .test_BatchtoolsParam_bpisup_start_stop(param)
 }
 
 test_BatchtoolsParam_bpisup_start_stop_interactive <- function() {
     cluster <- "interactive"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     checkIdentical(cluster, bpbackend(param))
-
-    checkIdentical(FALSE, bpisup(param))
-    checkIdentical(TRUE,bpisup( bpstart(param)))
-    checkIdentical(FALSE, bpisup(bpstop(param)))
+    .test_BatchtoolsParam_bpisup_start_stop(param)
 }
 
 test_BatchtoolsParam_bplapply <- function() {
+    n_connections <- .n_connections()
     fun <- function(x) Sys.getpid()
+
     ## Check for all cluster types
     cluster <-  "interactive"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
@@ -130,16 +148,20 @@ test_BatchtoolsParam_bplapply <- function() {
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bplapply(1:5, fun, BPPARAM=param)
     checkIdentical(2L, length(unique(unlist(result))))
+    checkIdentical(n_connections, .n_connections())
 }
 
 ## Check registry
 test_BatchtoolsParam_registry <- function() {
+    n_connections <- .n_connections()
+
     param <- BatchtoolsParam()
     checkTrue(is(param$registry, "NULLRegistry"))
     bpstart(param)
     checkTrue(!is(param$registry, "NULLRegistry"))
     checkTrue(is(param$registry, "Registry"))
     bpstop(param)
+    checkIdentical(n_connections, .n_connections())
 }
 
 ## Check bpjobname
@@ -162,6 +184,8 @@ test_BatchtoolsParam_bptimeout <- function() {
 
 ## Check bpRNGseed
 test_BatchtoolsParam_bpRNGseed <- function() {
+    n_connections <- .n_connections()
+
     ##  Check setting RNGseed
     param <- BatchtoolsParam(RNGseed=123L)
     checkEqualsNumeric(123L, bpRNGseed(param))
@@ -180,9 +204,12 @@ test_BatchtoolsParam_bpRNGseed <- function() {
     checkTrue(is.na(bpRNGseed(param)))
     ## ## Check fail
     checkException({bpRNGseed(param) <- "abc"})
+    checkIdentical(n_connections, .n_connections())
 }
 
 test_BatchtoolsParam_bplog <- function() {
+    n_connections <- .n_connections()
+
     ## Test param w/o log and logdir
     checkTrue(is.na(bplogdir(BatchtoolsParam())))
     checkTrue(!bplog(BatchtoolsParam()))
@@ -202,6 +229,7 @@ test_BatchtoolsParam_bplog <- function() {
     bplapply(1:5, sqrt, BPPARAM=param)
     checkTrue(file.exists(temp_log_dir))
     checkTrue(file.exists(file.path(temp_log_dir, "logs")))
+    checkIdentical(n_connections, .n_connections())
 }
 
 test_BatchtoolsParam_available_clusters <- function() {
@@ -274,6 +302,8 @@ test_BatchtoolsParam_template <- function() {
 
 ## Run only of SGE clusters, this will fail on other machines
 test_BatchtoolsParam_sge <- function() {
+    n_connections <- .n_connections()
+
     if (!BiocParallel:::.batchtoolsClusterAvailable("sge"))
         return()
 
@@ -293,11 +323,13 @@ test_BatchtoolsParam_sge <- function() {
     checkIdentical(2L, length(unique(unlist(result))))
 
     bpstop(param)
+    checkIdentical(n_connections, .n_connections())
 }
 
 ## TODO: write tests for other cluster types, slurm, lsf, torque, openlava
 
 test_BatchtoolsParam_bpmapply <- function() {
+    n_connections <- .n_connections()
     fun <- function(x, y, z) x + y + z
     ## Initial test
     param <- BatchtoolsParam()
@@ -324,6 +356,7 @@ test_BatchtoolsParam_bpmapply <- function() {
     result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
                        SIMPLIFY = TRUE, BPPARAM=param)
     checkIdentical(c(3,5,7), result)
+    checkIdentical(n_connections, .n_connections())
 }
 
 
@@ -364,6 +397,7 @@ test_BatchtoolsParam_bpvectorize <- function() {
 
 
 test_BatchtoolsParam_bpiterate <- function() {
+    n_connections <- .n_connections()
     ## Iterator function
     ITER <- function(n=5) {
         i <- 0L
@@ -407,4 +441,5 @@ test_BatchtoolsParam_bpiterate <- function() {
                      BPPARAM=param)
     ## Check Identical result
     checkIdentical(1535, res)
+    checkIdentical(n_connections, .n_connections())
 }
