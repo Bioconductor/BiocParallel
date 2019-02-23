@@ -55,7 +55,7 @@ bpvectorize(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
   When \code{BPPARAM} is a class for which no method is defined (e.g.,
   \code{\link{SerialParam}}), \code{FUN(X)} is used.
 
-  See \code{showMethods{bpvectorize}} for additional methods, if any.
+  See \code{methods{bpvectorize}} for additional methods, if any.
 
 }
 

@@ -180,7 +180,7 @@
       \item{}{
         \code{bpbackend(x)}, \code{bpbackend(x) <- value}: 
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
-        be retrieved; see \code{showMethods("backend")}.
+        be retrieved; see \code{methods("bpbackend")}.
       }
       \item{}{
         \code{bplog(x)}, \code{bplog(x) <- value}:

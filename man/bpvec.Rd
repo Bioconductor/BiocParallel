@@ -107,7 +107,7 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 }
 
 \examples{
-showMethods("bpvec")
+methods("bpvec")
 
 ## ten tasks (1:10), called with as many back-end elements are specified
 ## by BPPARAM.  Compare with bplapply

@@ -60,7 +60,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 
 \details{
  
-  See \code{showMethods{bpmapply}} for additional methods, e.g.,
+  See \code{methods{bpmapply}} for additional methods, e.g.,
   \code{method?bpmapply("MulticoreParam")}.
 
 }
@@ -84,7 +84,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 }
 
 \examples{
-showMethods("bpmapply")
+methods("bpmapply")
 
 fun <- function(greet, who) {
     paste(Sys.getpid(), greet, who)
