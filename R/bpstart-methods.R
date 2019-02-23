@@ -14,7 +14,8 @@
         env[[cuid]] <- cluster          # protection
         cuid
     }, drop = function(cuid) {
-        rm(list=cuid, envir=env)
+        if (cuid %in% names(env))
+            rm(list=cuid, envir=env)
         invisible(NULL)
     }, get = function(cuid) {
         env[[cuid]]
