@@ -4,6 +4,9 @@
 \alias{SerialParam-class}
 \alias{SerialParam}
 
+\alias{bpbackend,SerialParam-method}
+\alias{bpstart,SerialParam-method}
+\alias{bpstop,SerialParam-method}
 \alias{bpisup,SerialParam-method}
 \alias{bpworkers,SerialParam-method}
 \alias{bplog,SerialParam-method}
