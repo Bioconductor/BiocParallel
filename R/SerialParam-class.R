@@ -8,7 +8,7 @@
 
 .SerialParam_prototype <- c(
     list(
-        workers = 1L
+        workers = 0L
     ),
     .BiocParallelParam_prototype
 )
@@ -38,9 +38,36 @@ SerialParam <-
 ### Methods - control
 ###
 
-setMethod("bpworkers", "SerialParam", function(x) 1L)
+setMethod(
+    "bpbackend", "SerialParam",
+    function(x)
+{
+    list()
+})
 
-setMethod("bpisup", "SerialParam", function(x) TRUE)
+setMethod(
+    "bpstart", "SerialParam",
+    function(x, ...)
+{
+    x$workers <- 1L
+    .bpstart_impl(x)
+})
+
+setMethod(
+    "bpstop", "SerialParam",
+    function(x)
+{
+    x <- .bpstop_impl(x)
+    x$workers <- 0L
+    x
+})
+
+setMethod(
+    "bpisup", "SerialParam",
+    function(x)
+{
+    identical(bpworkers(x), 1L)
+})
 
 setReplaceMethod("bplog", c("SerialParam", "logical"),
     function(x, value)
@@ -50,7 +77,8 @@ setReplaceMethod("bplog", c("SerialParam", "logical"),
     x
 })
 
-setReplaceMethod("bpthreshold", c("SerialParam", "character"),
+setReplaceMethod(
+    "bpthreshold", c("SerialParam", "character"),
     function(x, value)
 {
     x$threshold <- value

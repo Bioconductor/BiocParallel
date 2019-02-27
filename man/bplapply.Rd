@@ -51,7 +51,7 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 
 \details{
 
-  See \code{showMethods{bplapply}} for additional methods, e.g.,
+  See \code{methods{bplapply}} for additional methods, e.g.,
   \code{method?bplapply("MulticoreParam")}.
 
 }
@@ -75,7 +75,7 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 }
 
 \examples{
-showMethods("bplapply")
+methods("bplapply")
 
 ## ten tasks (1:10) so ten calls to FUN default registered parallel
 ## back-end. Compare with bpvec.
