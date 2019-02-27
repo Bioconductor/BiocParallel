@@ -443,3 +443,32 @@ test_BatchtoolsParam_bpiterate <- function() {
     checkIdentical(1535, res)
     checkIdentical(n_connections, .n_connections())
 }
+
+
+test_BatchtoolsParam_bpsaveregistry <- function() {
+    tempreg <- "filetempregistry"
+
+    ## Set param with save registry
+    registry_args <- batchtoolsRegistryargs(file.dir = tempreg)
+    param <- BatchtoolsParam(saveregistry=TRUE, registryargs = registry_args)
+
+    .batchtools_registry <- BiocParallel:::.batchtools_registry
+
+    # Run zero
+    bplapply(1:5, sqrt, BPPARAM=param)
+    regdir0 <- paste0(tempreg, "-0")
+    checkIdentical(regdir0, .batchtools_registry(param))
+
+    ## First rerun with same param
+    bplapply(1:5, sqrt, BPPARAM = param)
+    regdir1 <- paste0(tempreg, "-1")
+    checkIdentical(regdir1, .batchtools_registry(param))
+
+    ## second rerun with same param
+    bplapply(1:5, sqrt, BPPARAM=param)
+    regdir2 <- paste0(tempreg, "-2")
+    checkIdentical(regdir2, .batchtools_registry(param))
+
+    ## Delete save registries
+    unlink(c(regdir0, regdir1, regdir2), recursive = TRUE)
+}
