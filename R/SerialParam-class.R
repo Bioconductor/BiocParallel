@@ -3,12 +3,12 @@
 ### -------------------------------------------------------------------------
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
 
 .SerialParam_prototype <- c(
     list(
-        workers = 0L
+        workers = list(FALSE)
     ),
     .BiocParallelParam_prototype
 )
@@ -42,14 +42,14 @@ setMethod(
     "bpbackend", "SerialParam",
     function(x)
 {
-    list()
+    bpworkers(x)
 })
 
 setMethod(
     "bpstart", "SerialParam",
     function(x, ...)
 {
-    x$workers <- 1L
+    x$workers <- list(TRUE)
     .bpstart_impl(x)
 })
 
@@ -57,22 +57,21 @@ setMethod(
     "bpstop", "SerialParam",
     function(x)
 {
-    x <- .bpstop_impl(x)
-    x$workers <- 0L
-    x
+    x$workers <- list(FALSE)
+    .bpstop_impl(x)
 })
 
 setMethod(
     "bpisup", "SerialParam",
     function(x)
 {
-    identical(bpworkers(x), 1L)
+    identical(bpbackend(x), list(TRUE))
 })
 
 setReplaceMethod("bplog", c("SerialParam", "logical"),
     function(x, value)
 {
-    x$log <- value 
+    x$log <- value
     validObject(x)
     x
 })
@@ -122,7 +121,7 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 
     if (any(idx)) {
         BPREDO[idx] <- res
-        res <- BPREDO 
+        res <- BPREDO
     }
 
     if (!all(bpok(res)))
