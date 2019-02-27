@@ -308,7 +308,7 @@ setMethod("bpstart", "BatchtoolsParam",
             .batchtools_registry_update(x, file.dir = regdir)
         } else {
             counter <- length(
-                dir(path=dirname(regdir), 
+                dir(path=dirname(regdir),
                     pattern = substr(basename(regdir), 1,6))
                 )
             regdir <- gsub("-[0-9]+$",paste0("-", counter), regdir)
@@ -318,7 +318,7 @@ setMethod("bpstart", "BatchtoolsParam",
     ## Reset registryargs with updated name
     registryargs <- batchtoolsRegistryargs(file.dir = regdir)
     }
-    
+
     registry <- do.call(batchtools::makeRegistry, registryargs)
 
     registry$cluster.functions <- switch(

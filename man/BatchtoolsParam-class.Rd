@@ -98,7 +98,10 @@ batchtoolsRegistryargs(...)
 	entire registry for the job(s). This functionality should only
 	be used when debugging. The storage of the entire registry can
 	be time and space expensive on disk. The registry will be saved
-	with a suffix '_saved_registry' in the working directory.
+	with a suffix '_saved_registry' in the working directory. The
+	saved registry will have tags additional to regular registries,
+	"-0", "-1", "-2" and so on, for each time the param with the
+	argument 'saveregistry=TRUE' is used.
 
     \item{resources}{\code{named list()}} Arguments passed to the
 	\code{resources} argument of \code{batchtools::submitJobs}
