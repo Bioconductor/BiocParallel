@@ -119,6 +119,7 @@ setOldClass("ClusterFunctions")
         template = NA_character_,
         registry = .NULLRegistry(),
         registryargs = list(),
+        saveregistry = FALSE,
         resources = list()
     ),
     .BiocParallelParam_prototype
@@ -132,6 +133,7 @@ setOldClass("ClusterFunctions")
         template = "character",
         registry = "Registry",
         registryargs = "list",
+        saveregistry = "logical",
         resources = "list"
     ),
     methods = list(
@@ -143,6 +145,7 @@ setOldClass("ClusterFunctions")
                 "\n", .prettyPath("  template", .bptemplate(.self)),
                 "\n  registryargs:",
                 paste0("\n    ", names(.registryargs), ": ", .registryargs),
+                "\n  saveregistry: ", .bpsaveregistry(.self),
                 "\n  resources:",
                 if (length(.resources))
                     paste0("\n    ", names(.resources), ": ", .resources),
@@ -157,6 +160,7 @@ BatchtoolsParam <-
         ## Provide either cluster or template
         cluster = batchtoolsCluster(),
         registryargs = batchtoolsRegistryargs(),
+        saveregistry = FALSE,
         resources = list(),
         template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
@@ -179,7 +183,9 @@ BatchtoolsParam <-
         .BatchtoolsParam_prototype,
         workers = as.integer(workers), cluster = cluster,
         registry = .NULLRegistry(),
-        registryargs = registryargs, resources = resources,
+        registryargs = registryargs,
+        saveregistry = saveregistry,
+        resources = resources,
         jobname = jobname, progressbar = progressbar, log = log,
         logdir = logdir, resultdir = resultdir, stop.on.error = stop.on.error,
         timeout = as.integer(timeout), exportglobals = exportglobals,
@@ -226,6 +232,27 @@ setMethod("bpisup", "BatchtoolsParam",
     x$registryargs
 }
 
+.bpsaveregistry <-
+    function(x)
+{
+    x$saveregistry
+}
+
+.bpsaveregistry_path <-
+    function(x)
+{
+    ## update registry location
+    pattern <- "\\-[0-9]+$"
+    file.dir <- .bpregistryargs(x)$file.dir
+    dirname <- dirname(file.dir)
+    basename <- basename(file.dir)
+    dirs <- dir(dirname, paste0(basename, pattern))
+    n <- 0L
+    if (length(dirs))
+        n <- max(as.integer(sub(".*\\-", "", dirs)))
+    file.path(dirname, paste0(basename, "-", n + 1L))
+}
+
 .bpresources <-
     function(x)
 {
@@ -270,6 +297,12 @@ setMethod("bpstart", "BatchtoolsParam",
     if (!is.na(seed))
         registryargs$seed <- seed
 
+    if (.bpsaveregistry(x)) {
+        ## the registry$file.dir gets -0, -1, -2... for each bpstart on the
+        ## same parameter
+        registryargs$file.dir <- .bpsaveregistry_path(x)
+    }
+
     registry <- do.call(batchtools::makeRegistry, registryargs)
 
     registry$cluster.functions <- switch(
@@ -298,9 +331,10 @@ setMethod("bpstop", "BatchtoolsParam",
           function(x)
 {
     wait <- getOption("BIOCPARALLEL_BATCHTOOLS_REMOVE_REGISTRY_WAIT", 5)
-    suppressMessages({
-        batchtools::removeRegistry(wait = wait, reg = x$registry)
-    })
+    if (!.bpsaveregistry(x))
+        suppressMessages({
+            batchtools::removeRegistry(wait = wait, reg = x$registry)
+        })
 
     x$registry <- .NULLRegistry()       # toggles bpisup()
     invisible(x)
@@ -384,9 +418,15 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     ## Clear registry
     if (bpprogressbar(BPPARAM))
         message("Clearing registry ...")
-    suppressMessages({
-        batchtools::clearRegistry(reg=registry)
-    })
+
+    if (!.bpsaveregistry(BPPARAM))
+        ## WARNING Save a registry in a folder with extension,
+        ## _saved_registry. BatchtoolsParam('saveregistry=TRUE') option
+        ## should be set only when debugging. This can be extremely
+        ## time and space intensive.
+        suppressMessages({
+            batchtools::clearRegistry(reg=registry)
+        })
 
     if (!is.null(res))
         names(res) <- nms

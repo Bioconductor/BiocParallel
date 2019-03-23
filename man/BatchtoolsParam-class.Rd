@@ -49,6 +49,7 @@ BatchtoolsParam(
     workers = batchtoolsWorkers(cluster),
     cluster = batchtoolsCluster(),
     registryargs = batchtoolsRegistryargs(),
+    saveregistry = FALSE,
     resources = list(),
     template = batchtoolsTemplate(cluster),
     stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
@@ -80,7 +81,7 @@ batchtoolsRegistryargs(...)
 	a \code{template} are "sge", "slurm", "lsf", "openlava", and
 	"torque". If the template is not given then a default is
 	selected from the \code{batchtools} package.
-	
+
     \item{registryargs}{\code{list()}} Arguments given to the registry
         created by \code{BatchtoolsParam} to configure the registry and
         where it's being stored. The \code{registryargs} can be
@@ -92,6 +93,16 @@ batchtoolsRegistryargs(...)
         to all the nodes on your job scheduler i.e master and
         workers. \code{file.dir} uses a default setting to make a
         registry in your working directory.
+
+    \item{saveregistry}{\code{logical(1)}} Option given to store the
+        entire registry for the job(s). This functionality should only
+        be used when debugging. The storage of the entire registry can
+        be time and space expensive on disk. The registry will be saved
+        in the directory specified by \code{file.dir} in
+        \code{registryargs}; the default locatoin is the current working
+        directory. The saved registry directories will have suffix "-1",
+        "-2" and so on, for each time the \code{BatchtoolsParam} is
+        used.
 
     \item{resources}{\code{named list()}} Arguments passed to the
         \code{resources} argument of \code{batchtools::submitJobs}
@@ -105,7 +116,7 @@ batchtoolsRegistryargs(...)
 	\code{bpbackend(BatchtoolsParam())}. The template needs to be
 	written specific to each backend. Please check the list of available
 	templates in the \code{batchtools} package.
-	
+
     \item{stop.on.error}{\code{logical(1)}} Stop all jobs as soon as one
 	jobs fails (\code{stop.on.error == TRUE}) or wait for all jobs
 	to terminate.  Default is \code{TRUE}.
@@ -113,7 +124,7 @@ batchtoolsRegistryargs(...)
     \item{progressbar}{\code{logical(1)}} Suppress the progress bar used
         in BatchtoolsParam and be less verbose.  Default is
         \code{FALSE}.
-	
+
     \item{RNGseed}{\code{integer(1)}} Set an initial seed for the RNG.
 	Default is \code{NULL} where a random seed is chosen upon
 	initialization.
@@ -211,7 +222,7 @@ param = BatchtoolsParam(workers=2)
 bpseq_along = bpvectorize(seq_along, BPPARAM=param)
 result = bpseq_along(1:10)
 
-##bpiterate
+## bpiterate
 ITER <- function(n=5) {
         i <- 0L
         function() {
@@ -224,5 +235,18 @@ ITER <- function(n=5) {
 
 param <- BatchtoolsParam()
 res <- bpiterate(ITER=ITER(), FUN=function(x,y) sum(x) + y, y=10, BPPARAM=param)
+
+## save logs
+logdir <- tempfile()
+dir.create(logdir)
+param <- BatchtoolsParam(log=TRUE, logdir=logdir)
+res <- bplapply(rep(10e5, 10), piApprox, BPPARAM=param)
+
+## save registry (should be used only for debugging)
+file.dir <- tempfile()
+registryargs <- batchtoolsRegistryargs(file.dir = file.dir)
+param <- BatchtoolsParam(saveregistry = TRUE, registryargs = registryargs)
+res <- bplapply(rep(10e5, 10), piApprox, BPPARAM=param)
+dir(dirname(file.dir), basename(file.dir))
 }
 }

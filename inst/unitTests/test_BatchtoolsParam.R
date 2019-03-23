@@ -443,3 +443,29 @@ test_BatchtoolsParam_bpiterate <- function() {
     checkIdentical(1535, res)
     checkIdentical(n_connections, .n_connections())
 }
+
+
+test_BatchtoolsParam_bpsaveregistry <- function() {
+    .bpregistryargs <- BiocParallel:::.bpregistryargs
+    .bpsaveregistry <- BiocParallel:::.bpsaveregistry
+    .bpsaveregistry_path <- BiocParallel:::.bpsaveregistry_path
+    file.dir <- tempfile()
+
+    ## Set param with save registry
+    registryargs <- batchtoolsRegistryargs(file.dir = file.dir)
+    param <- BatchtoolsParam(saveregistry=TRUE, registryargs = registryargs)
+
+    checkIdentical(.bpsaveregistry(param), TRUE)
+    checkIdentical(.bpregistryargs(param)$file.dir, file.dir)
+
+    ## increment path extension
+    checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-1"))
+    dir.create(.bpsaveregistry_path(param))
+    checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-2"))
+
+    ## create registry
+    path <- .bpsaveregistry_path(param)
+    checkTrue(!dir.exists(path))
+    res <- bplapply(1:5, sqrt, BPPARAM=param)
+    checkTrue(dir.exists(path))
+}
