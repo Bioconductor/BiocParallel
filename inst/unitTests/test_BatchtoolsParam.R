@@ -446,29 +446,26 @@ test_BatchtoolsParam_bpiterate <- function() {
 
 
 test_BatchtoolsParam_bpsaveregistry <- function() {
-    tempreg <- "filetempregistry"
+    .bpregistryargs <- BiocParallel:::.bpregistryargs
+    .bpsaveregistry <- BiocParallel:::.bpsaveregistry
+    .bpsaveregistry_path <- BiocParallel:::.bpsaveregistry_path
+    file.dir <- tempfile()
 
     ## Set param with save registry
-    registry_args <- batchtoolsRegistryargs(file.dir = tempreg)
-    param <- BatchtoolsParam(saveregistry=TRUE, registryargs = registry_args)
+    registryargs <- batchtoolsRegistryargs(file.dir = file.dir)
+    param <- BatchtoolsParam(saveregistry=TRUE, registryargs = registryargs)
 
-    .batchtools_registry <- BiocParallel:::.batchtools_registry
+    checkIdentical(.bpsaveregistry(param), TRUE)
+    checkIdentical(.bpregistryargs(param)$file.dir, file.dir)
 
-    # Run zero
-    bplapply(1:5, sqrt, BPPARAM=param)
-    regdir0 <- paste0(tempreg, "-0")
-    checkIdentical(regdir0, .batchtools_registry(param))
+    ## increment path extension
+    checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-1"))
+    dir.create(.bpsaveregistry_path(param))
+    checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-2"))
 
-    ## First rerun with same param
-    bplapply(1:5, sqrt, BPPARAM = param)
-    regdir1 <- paste0(tempreg, "-1")
-    checkIdentical(regdir1, .batchtools_registry(param))
-
-    ## second rerun with same param
-    bplapply(1:5, sqrt, BPPARAM=param)
-    regdir2 <- paste0(tempreg, "-2")
-    checkIdentical(regdir2, .batchtools_registry(param))
-
-    ## Delete save registries
-    unlink(c(regdir0, regdir1, regdir2), recursive = TRUE)
+    ## create registry
+    path <- .bpsaveregistry_path(param)
+    checkTrue(!dir.exists(path))
+    res <- bplapply(1:5, sqrt, BPPARAM=param)
+    checkTrue(dir.exists(path))
 }
