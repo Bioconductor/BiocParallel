@@ -231,15 +231,13 @@ LocalParam <-
         is.integer(workers), length(workers) == 1L, workers > 0L,
         workers < 1000L
     )
-    if (.Platform$OS.type == "windows")
-        stop("LocalParam() not supported on Windows, use SnowParam()")
 
-    test <- identical(.Platform$OS.type, "windows") ||
-        identical(cluster, "snow")
-    if (test)
-        .worker <- .LocalParam_snowWorker
+    snow <-
+        identical(.Platform$OS.type, "windows") || identical(cluster, "snow")
+    if (snow)
+        .worker <- .LocalParam_snow_worker
     else
-        .worker <- .LocalParam_multicoreWorker
+        .worker <- .LocalParam_multicore_worker
     backend <- local_cluster(
         n = workers,
         worker = .worker,
@@ -256,7 +254,7 @@ LocalParam <-
     do.call(.LocalParam, prototype)
 }
 
-.LocalParam_multicoreWorker <-
+.LocalParam_multicore_worker <-
     function(path)
 {
     mcparallel({
@@ -265,10 +263,24 @@ LocalParam <-
     }, detached = TRUE)
 }
 
-.LocalParam_snowWorker <-
+.LocalParam_snow_worker_impl <- function(path) {
+    open(con <- local_worker(path)) # open.connection
+    tryCatch(.bpworker_impl(con), error = warning)
+    quit("no")
+}
+
+.LocalParam_snow_worker <-
     function(path)
 {
-    stop("LocalParam 'snow' cluster not yet supported")
+    Rcmd <- file.path(Sys.getenv("R_HOME"), "bin", "R")
+    cmd <- sprintf(
+        "-e \"BiocParallel:::.LocalParam_snow_worker_impl('%s')\"",
+        path
+    )
+    system2(
+        Rcmd, c("--slave", cmd),
+        stdout = NULL, stderr = NULL, wait = FALSE
+    )
 }
 
 setMethod(
