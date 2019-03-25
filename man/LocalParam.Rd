@@ -1,10 +1,10 @@
 \title{Parallel evaluation on a single computer}
 \name{LocalParam-class}
 \alias{}
-\alias{.close,local_client-method}
-\alias{.recv,local_client-method}
+\alias{.close,local_worker-method}
+\alias{.recv,local_worker-method}
 \alias{.recv_any,local_cluster-method}
-\alias{.send,local_client-method}
+\alias{.send,local_worker-method}
 \alias{.send_to,local_cluster-method}
 \alias{bpbackend,LocalParam-method}
 \alias{bpisup,LocalParam-method}

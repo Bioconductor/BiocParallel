@@ -22,7 +22,7 @@
 struct skt {
     short fd, active_fd;
     int timeout;
-    /* server only */
+    /* manager only */
     fd_set active_fds;
     int backlog;
 };
@@ -33,7 +33,7 @@ struct skt * _skt(short fd, int timeout, int backlog)
 
     p->fd = p->active_fd = fd;
     p->timeout = timeout;
-    /* server only */
+    /* manager only */
     FD_ZERO(&p->active_fds);
     p->backlog = backlog;
 
@@ -73,9 +73,9 @@ size_t skt_send(const void *buf, size_t size, size_t nitems, int fd)
     return n;
 }
 
-/* server */
+/* manager */
 
-Rboolean skt_local_open_server(Rconnection ptr)
+Rboolean skt_local_open_manager(Rconnection ptr)
 {
     struct sockaddr_un hints;
     int errcode = 0, fd = 0;
@@ -86,7 +86,7 @@ Rboolean skt_local_open_server(Rconnection ptr)
 
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1)
-        Rf_error("could not create local socket server:\n  %s", strerror(fd));
+        Rf_error("could not create local socket manager:\n  %s", strerror(fd));
 
     errcode = bind(fd, (const struct sockaddr *) &hints, sizeof(hints));
     if (errcode == -1)
@@ -98,12 +98,14 @@ Rboolean skt_local_open_server(Rconnection ptr)
         Rf_error("could not 'listen' on socket:\n  %s", strerror(errno));
 
     ptr->isopen = TRUE;
+    ptr->blocking = FALSE;
+
     return TRUE;
 }
 
-/* client */
+/* worker */
 
-Rboolean skt_local_open_client(Rconnection ptr)
+Rboolean skt_local_open_worker(Rconnection ptr)
 {
     struct sockaddr_un hints;
     int errcode = 0, fd = 0;
@@ -114,7 +116,7 @@ Rboolean skt_local_open_client(Rconnection ptr)
 
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {
-        Rf_warning("could not open local socket client:\n  %s", strerror(fd));
+        Rf_warning("could not open local socket worker:\n  %s", strerror(fd));
         return FALSE;
     }
 
@@ -125,10 +127,10 @@ Rboolean skt_local_open_client(Rconnection ptr)
         return FALSE;
     }
 
-    struct skt *client = (struct skt *) ptr->private;
-    client->fd = client->active_fd = fd;
+    struct skt *worker = (struct skt *) ptr->private;
+    worker->fd = worker->active_fd = fd;
     ptr->isopen = TRUE;
-    ptr->blocking = FALSE;
+    ptr->blocking = TRUE;
 
     return TRUE;
 }
@@ -179,32 +181,32 @@ SEXP _connection_local(const char *path, const char *mode, const char *class,
     return con;
 }
 
-SEXP local_client(SEXP path, SEXP mode, SEXP timeout)
+SEXP local_worker(SEXP path, SEXP mode, SEXP timeout)
 {
     Rconnection ptr = NULL;
     SEXP con = _connection_local(
-        CHAR(STRING_ELT(path, 0)), CHAR(STRING_ELT(mode, 0)), "local_client",
+        CHAR(STRING_ELT(path, 0)), CHAR(STRING_ELT(mode, 0)), "local_worker",
         &ptr);
-    ptr->open = skt_local_open_client;
+    ptr->open = skt_local_open_worker;
     ptr->private = (void *) _skt(0, Rf_asInteger(timeout), 0);
 
     return con;
 }
 
-SEXP local_server(SEXP path, SEXP mode, SEXP timeout, SEXP backlog)
+SEXP local_manager(SEXP path, SEXP mode, SEXP timeout, SEXP backlog)
 {
     Rconnection ptr = NULL;
     SEXP con = _connection_local(
-        CHAR(STRING_ELT(path, 0)), CHAR(STRING_ELT(mode, 0)), "local_server",
+        CHAR(STRING_ELT(path, 0)), CHAR(STRING_ELT(mode, 0)), "local_manager",
         &ptr);
-    ptr->open = skt_local_open_server;
+    ptr->open = skt_local_open_manager;
     ptr->private =
         (void *) _skt(0, Rf_asInteger(timeout), Rf_asInteger(backlog));
 
     return con;
 }
 
-SEXP local_server_selectfd(SEXP con, SEXP mode)
+SEXP local_manager_selectfd(SEXP con, SEXP mode)
 {
     Rconnection ptr = R_GetConnection(con);
     struct skt *srv = (struct skt *) ptr->private;
@@ -229,35 +231,35 @@ SEXP local_server_selectfd(SEXP con, SEXP mode)
             i_rec += 1;
 
     SEXP res = PROTECT(Rf_allocVector(INTSXP, i_rec));
-    int *clients = INTEGER(res);
+    int *workers = INTEGER(res);
 
     i_rec = 0;
     for (int i = 0; i < FD_SETSIZE; ++i)
         if (FD_ISSET(i, &fds) && FD_ISSET(i, &srv->active_fds))
-            clients[i_rec++] = i;
+            workers[i_rec++] = i;
 
     UNPROTECT(1);
     return res;
 }
 
-SEXP local_server_accept(SEXP con)
+SEXP local_manager_accept(SEXP con)
 {
     Rconnection ptr = R_GetConnection(con);
     struct skt *srv = (struct skt *) ptr->private;
 
     struct sockaddr_un sockaddr;
     socklen_t len = sizeof(struct sockaddr_un);
-    int client_fd;
+    int worker_fd;
 
-    client_fd = accept(srv->fd, (struct sockaddr *) &sockaddr, &len);
-    if (client_fd < 0)
+    worker_fd = accept(srv->fd, (struct sockaddr *) &sockaddr, &len);
+    if (worker_fd < 0)
         Rf_error("could not 'accept' on socket:\n  %s", strerror(errno));
-    FD_SET(client_fd, &srv->active_fds);
+    FD_SET(worker_fd, &srv->active_fds);
 
-    return Rf_ScalarInteger(client_fd);
+    return Rf_ScalarInteger(worker_fd);
 }
 
-SEXP local_server_activefds(SEXP con)
+SEXP local_manager_activefds(SEXP con)
 {
     Rconnection ptr = R_GetConnection(con);
     struct skt *srv = (struct skt *) ptr->private;
@@ -268,18 +270,18 @@ SEXP local_server_activefds(SEXP con)
             n += 1;
 
     SEXP res = PROTECT(Rf_allocVector(INTSXP, n));
-    int *clients = INTEGER(res);
+    int *workers = INTEGER(res);
 
     n = 0;
     for (int i = 0; i < FD_SETSIZE; ++i)
         if (FD_ISSET(i, &srv->active_fds))
-            clients[n++] = i;
+            workers[n++] = i;
 
     UNPROTECT(1);
     return res;
 }
 
-SEXP local_server_set_activefd(SEXP con, SEXP fd)
+SEXP local_manager_set_activefd(SEXP con, SEXP fd)
 {
     Rconnection ptr = R_GetConnection(con);
     struct skt *skt = (struct skt *) ptr->private;

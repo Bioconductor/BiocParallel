@@ -20,13 +20,13 @@ static const R_CallMethodDef callMethods[] = {
     {".ipc_remove", (DL_FUNC) & ipc_remove, 1},
 
     /* local_param */
-    {".local_server", (DL_FUNC) &local_server, 4},
-    {".local_server_selectfd", (DL_FUNC) &local_server_selectfd, 2},
-    {".local_server_accept", (DL_FUNC) &local_server_accept, 1},
-    {".local_server_activefds", (DL_FUNC) &local_server_activefds, 1},
-    {".local_server_set_activefd", (DL_FUNC) &local_server_set_activefd, 2},
+    {".local_manager", (DL_FUNC) &local_manager, 4},
+    {".local_manager_selectfd", (DL_FUNC) &local_manager_selectfd, 2},
+    {".local_manager_accept", (DL_FUNC) &local_manager_accept, 1},
+    {".local_manager_activefds", (DL_FUNC) &local_manager_activefds, 1},
+    {".local_manager_set_activefd", (DL_FUNC) &local_manager_set_activefd, 2},
 
-    {".local_client", (DL_FUNC) &local_client, 3},
+    {".local_worker", (DL_FUNC) &local_worker, 3},
 
     {NULL, NULL, 0}
 };

@@ -33,14 +33,14 @@
 }
 
 \usage{
-## server interface
+## manager interface
 
 .send_to(backend, node, value)
 .recv_any(backend)
 .send_all(backend, value)
 .recv_all(backend)
 
-## client interface
+## worker interface
 
 .send(worker, value)
 .recv(worker)
@@ -129,8 +129,8 @@
   The \emph{backends} (object returned by \code{bpbackend()}) of new
   BPPARAM implementations must support \code{length()} (number of
   nodes). In addition, the backends must support \code{.send_to()} and
-  \code{.recv_any()} server-side and \code{.send()}, \code{.recv()}, and
-  \code{.close()} client-side methods. Default \code{.send_all()} and
+  \code{.recv_any()} manager and \code{.send()}, \code{.recv()}, and
+  \code{.close()} worker methods. Default \code{.send_all()} and
   \code{.recv_all()} methods are implemented as simple iterations along
   the \code{length(cluster)}, invoking \code{.send_to()} or
   \code{.recv_any()} on each iteration.

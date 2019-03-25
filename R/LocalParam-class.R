@@ -1,104 +1,104 @@
 ##
-## local_client
+## local_worker
 ##
 
-setOldClass("local_client")
+setOldClass("local_worker")
 
-local_client <-
+local_worker <-
     function(path, timeout = 30L)
 {
     mode <- "w+b"
-    .Call(.local_client, path, mode, timeout);
+    .Call(.local_worker, path, mode, timeout);
 }
 
 setMethod(
-    ".recv", "local_client",
+    ".recv", "local_worker",
     function(worker)
 {
     res <- tryCatch({
         unserialize(worker)
     }, error = function(e) {
-        .error_worker_comm(e, "'.recv,local_client-method' failed")
+        .error_worker_comm(e, "'.recv,local_worker-method' failed")
     })
 })
 
 setMethod(
-    ".send", "local_client",
+    ".send", "local_worker",
     function(worker, value)
 {
     serialize(value, worker, xdr = FALSE)
 })
 
 setMethod(
-    ".close", "local_client",
+    ".close", "local_worker",
     function(worker)
 {
     close(worker)                       # close.connection
 })
 
 ##
-## local_server
+## local_manager
 ##
 
-setOldClass("local_server")
+setOldClass("local_manager")
 
-local_server <-
+local_manager <-
     function(path, timeout = 30L, backlog = 5L)
 {
     mode <- "w+b"
-    .Call(.local_server, path, mode, timeout, backlog)
+    .Call(.local_manager, path, mode, timeout, backlog)
 }
 
-local_server_accept <-
+local_manager_accept <-
     function(srv)
 {
-    .Call(.local_server_accept, srv)
+    .Call(.local_manager_accept, srv)
 }
 
-local_server_selectfd <-
+local_manager_selectfd <-
     function(srv, mode = c("r", "w"))
 {
     mode <- match.arg(mode)
-    .Call(.local_server_selectfd, srv, mode)
+    .Call(.local_manager_selectfd, srv, mode)
 }
 
-local_server_activefds <-
+local_manager_activefds <-
     function(srv)
 {
-    .Call(.local_server_activefds, srv);
+    .Call(.local_manager_activefds, srv);
 }
 
-local_server_set_activefd <-
+local_manager_set_activefd <-
     function(srv, fd)
 {
-    .Call(.local_server_set_activefd, srv, fd)
+    .Call(.local_manager_set_activefd, srv, fd)
 }
 
-send_to_local_server <-
+send_to_local_manager <-
     function(x, node, value)
 {
-    fd <- local_server_activefds(x)[node]
-    local_server_set_activefd(x, fd)
+    fd <- local_manager_activefds(x)[node]
+    local_manager_set_activefd(x, fd)
     serialize(value, x, xdr = FALSE)
 }
 
 
-recv_any_local_server <-
+recv_any_local_manager <-
     function(x)
 {
-    fd <- local_server_selectfd(x)
+    fd <- local_manager_selectfd(x)
     length(fd) || stop("'recv_any()' timeout")
 
     fd <- fd[sample.int(length(fd), 1L)]
 
-    local_server_set_activefd(x, fd)
+    local_manager_set_activefd(x, fd)
     value <- unserialize(x)
 
-    node <- match(fd, local_server_activefds(x))
+    node <- match(fd, local_manager_activefds(x))
     structure(list(value = value, node = node), class = "recv_any")
 }
 
-isup_local_server <-
+isup_local_manager <-
     function(x)
 {
     status <- tryCatch(summary(x)$opened, error = function(...) NULL)
@@ -113,11 +113,11 @@ setOldClass("local_cluster")
 
 local_cluster <-
     function(n, timeout = 30L * 24L * 60L * 60L,
-             client, client_id)
+             worker, worker_id)
 {
     fields <- list(
         con = NULL, n = n, timeout = timeout,
-        client = client, client_id = client_id
+        worker = worker, worker_id = worker_id
     )
     env <- new.env(parent = emptyenv())
     structure(
@@ -138,20 +138,20 @@ local_cluster <-
 open_local_cluster <-
     function(x)
 {
-    stopifnot(!isup_local_server(.con(x)))
+    stopifnot(!isup_local_manager(.con(x)))
 
     path <- tempfile(fileext = ".skt")
     n <- x$n
     timeout <- x$timeout
 
-    x$con <- local_server(path, timeout = timeout, backlog = min(n, 128L))
+    x$con <- local_manager(path, timeout = timeout, backlog = min(n, 128L))
     open(.con(x), "w+b")                # open.connection
 
     while (n > 0L) {
         n0 <- min(n, 128L)              # maximum backlog 128
         n <- n - n0
-        replicate(n0, x$client(path), simplify = FALSE)
-        replicate(n0, local_server_accept(.con(x)), simplify = FALSE)
+        replicate(n0, x$worker(path), simplify = FALSE)
+        replicate(n0, local_manager_accept(.con(x)), simplify = FALSE)
     }
 
     invisible(x)
@@ -160,7 +160,7 @@ open_local_cluster <-
 close_local_cluster <-
     function(x)
 {
-    if (isup_local_server(.con(x))) {
+    if (isup_local_manager(.con(x))) {
         close(.con(x))                  # close.connection
         .con(x) <- NULL
     }
@@ -171,7 +171,7 @@ setMethod(
     ".send_to", "local_cluster",
     function(backend, node, value)
 {
-    send_to_local_server(.con(backend), node, value)
+    send_to_local_manager(.con(backend), node, value)
     TRUE
 })
 
@@ -180,7 +180,7 @@ setMethod(
     function(backend)
 {
     tryCatch({
-        recv_any_local_server(.con(backend))
+        recv_any_local_manager(.con(backend))
     }, error = function(e) {
         stop(.error_worker_comm(e, "'.recv_any,local_cluster-method' failed"))
     })
@@ -197,10 +197,10 @@ print.local_cluster <-
 {
     cat(
         "class: ", class(x)[1], "\n",
-        "client_id: ", x$client_id, "\n",
+        "worker_id: ", x$worker_id, "\n",
         "timeout: ", x$timeout, " seconds\n",
         "length(): ", length(x), "\n",
-        "bpisup(): ", isup_local_server(.con(x)), "\n",
+        "bpisup(): ", isup_local_manager(.con(x)), "\n",
         sep = ""
     )
 }
@@ -237,13 +237,13 @@ LocalParam <-
     test <- identical(.Platform$OS.type, "windows") ||
         identical(cluster, "snow")
     if (test)
-        .client <- .LocalParam_snowClient
+        .worker <- .LocalParam_snowWorker
     else
-        .client <- .LocalParam_multicoreClient
+        .worker <- .LocalParam_multicoreWorker
     backend <- local_cluster(
         n = workers,
-        client = .client,
-        client_id = "BiocParallel"
+        worker = .worker,
+        worker_id = "BiocParallel"
     )
 
     prototype <- .prototype_update(
@@ -256,16 +256,16 @@ LocalParam <-
     do.call(.LocalParam, prototype)
 }
 
-.LocalParam_multicoreClient <-
+.LocalParam_multicoreWorker <-
     function(path)
 {
     mcparallel({
-        open(con <- local_client(path)) # open.connection
+        open(con <- local_worker(path)) # open.connection
         tryCatch(.bpworker_impl(con), error = warning)
     }, detached = TRUE)
 }
 
-.LocalParam_snowClient <-
+.LocalParam_snowWorker <-
     function(path)
 {
     stop("LocalParam 'snow' cluster not yet supported")
@@ -289,7 +289,7 @@ setMethod(
     "bpisup", "LocalParam",
     function(x)
 {
-    isup_local_server(.con(bpbackend(x)))
+    isup_local_manager(.con(bpbackend(x)))
 })
 
 setMethod(

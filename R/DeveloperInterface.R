@@ -2,7 +2,7 @@
 ## see NAMESPACE section for definitive exports
 ##
 
-## server
+## manager
 
 setGeneric(
     ".send_to",
@@ -28,7 +28,7 @@ setGeneric(
     signature = "backend"
 )
 
-## client
+## worker
 
 setGeneric(
     ".send",
