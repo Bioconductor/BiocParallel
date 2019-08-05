@@ -6,7 +6,7 @@ importFrom(stats, setNames, terms)
 
 importFrom(utils, capture.output, find, head, relist,
            setTxtProgressBar, txtProgressBar)
-importFrom(parallel, nextRNGStream)
+importFrom(parallel, nextRNGStream, mclapply)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes
