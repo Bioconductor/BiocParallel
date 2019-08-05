@@ -244,21 +244,6 @@ bploop.lapply <-
     else result
 }
 
-bploop.mclapply <-
-    function(manager, X, FUN, ARGFUN, BPPARAM, ...)
-{
-    result <- mclapply(
-        seq_along(X),
-        function(i) {
-            msg <- .EXEC(i, FUN, ARGFUN(i))
-            .bpworker_EXEC(msg)
-        },
-        mc.cores = bpnworkers(BPPARAM)
-    )
-
-    lapply(result, `[[`, "value")
-}
-
 ##
 ## bploop.iterate():
 ##

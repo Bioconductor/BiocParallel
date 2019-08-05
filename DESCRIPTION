@@ -32,7 +32,8 @@ Collate: AllGenerics.R DeveloperInterface.R prototype.R
     BiocParallelParam-class.R
     bpmapply-methods.R bpschedule-methods.R bpvec-methods.R
     bpvectorize-methods.R bpworkers-methods.R bpaggregate-methods.R
-    bpvalidate.R SnowParam-class.R MulticoreParam-class.R register.R
+    bpvalidate.R SnowParam-class.R MulticoreParam-class.R
+    TransientMulticoreParam-class.R register.R
     SerialParam-class.R DoparParam-class.R SnowParam-utils.R
     BatchJobsParam-class.R BatchtoolsParam-class.R
     progress.R ipcmutex.R utilities.R zzz.R
