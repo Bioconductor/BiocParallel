@@ -59,24 +59,33 @@ setMethod("bplapply", c("ANY", "list"),
         X <- X[idx]
     nms <- names(X)
 
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
         timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
 
+    ## start / stop cluster
+    start <- FALSE
+    if (!bpisup(BPPARAM)) {
+        if (!is(BPPARAM, "MulticoreParam")) {
+            BPPARAM <- bpstart(BPPARAM, length(X))
+            on.exit(bpstop(BPPARAM), TRUE)
+        }
+        start <- TRUE
+    }
+
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
     ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
 
-    res <- bploop(structure(list(), class="lapply"), # dispatch
-                  X, lapply, ARGFUN, BPPARAM)
+    if (start && is(BPPARAM, "MulticoreParam")) {
+        cls <- structure(list(), class="mclapply")
+    } else {
+        cls <- structure(list(), class="lapply")
+    }
+
+    res <- bploop(cls, X, lapply, ARGFUN, BPPARAM)
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))

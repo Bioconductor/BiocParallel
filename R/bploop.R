@@ -29,6 +29,34 @@
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
 ### .composeTry.
 
+.bpworker_EXEC <- function(msg)
+{
+    ## need local handler for worker read/send errors
+    sout <- character()
+    file <- textConnection("sout", "w", local=TRUE)
+    sink(file, type="message")
+    sink(file, type="output")
+    t1 <- proc.time()
+    value <- tryCatch({
+        do.call(msg$data$fun, msg$data$args)
+    }, error=function(e) {
+        ## capture error, without throwing
+        .error_worker_comm(e, "worker evaluation failed")
+    })
+    t2 <- proc.time()
+    sink(NULL, type="message")
+    sink(NULL, type="output")
+    close(file)
+
+    success <- !(inherits(value, "bperror") || !all(bpok(value)))
+
+    log <- .log_buffer_get()
+
+    value <- .VALUE(
+        msg$data$tag, value, success, t2 - t1, log, sout
+    )
+}
+
 .bpworker_impl <- function(worker)
 {
     repeat {
@@ -41,30 +69,7 @@
                 .close(worker)
                 break
             } else if (msg$type == "EXEC") {
-                ## need local handler for worker read/send errors
-                sout <- character()
-                file <- textConnection("sout", "w", local=TRUE)
-                sink(file, type="message")
-                sink(file, type="output")
-                t1 <- proc.time()
-                value <- tryCatch({
-                    do.call(msg$data$fun, msg$data$args)
-                }, error=function(e) {
-                    ## capture error, without throwing
-                    .error_worker_comm(e, "worker evaluation failed")
-                })
-                t2 <- proc.time()
-                sink(NULL, type="message")
-                sink(NULL, type="output")
-                close(file)
-
-                success <- !(inherits(value, "bperror") || !all(bpok(value)))
-
-                log <- .log_buffer_get()
-
-                value <- .VALUE(
-                    msg$data$tag, value, success, t2 - t1, log, sout
-                )
+                value <- .bpworker_EXEC(msg)
                 .send(worker, value)
             }
         }, interrupt = function(e) {
@@ -237,6 +242,21 @@ bploop.lapply <-
     if (!is.na(bpresultdir(BPPARAM)))
         NULL
     else result
+}
+
+bploop.mclapply <-
+    function(manager, X, FUN, ARGFUN, BPPARAM, ...)
+{
+    result <- mclapply(
+        seq_along(X),
+        function(i) {
+            msg <- .EXEC(i, FUN, ARGFUN(i))
+            .bpworker_EXEC(msg)
+        },
+        mc.cores = bpnworkers(BPPARAM)
+    )
+
+    lapply(result, `[[`, "value")
 }
 
 ##
