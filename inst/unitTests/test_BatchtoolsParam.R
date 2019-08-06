@@ -459,6 +459,7 @@ test_BatchtoolsParam_bpsaveregistry <- function() {
     checkIdentical(.bpregistryargs(param)$file.dir, file.dir)
 
     ## increment path extension
+    file.dir <- file.path(dirname(file.dir), basename(file.dir))
     checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-1"))
     dir.create(.bpsaveregistry_path(param))
     checkIdentical(.bpsaveregistry_path(param), paste0(file.dir, "-2"))
