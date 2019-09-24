@@ -11,6 +11,18 @@
 \alias{bpworkers<-,MulticoreParam,numeric-method}
 \alias{show,MulticoreParam-method}
 
+%% implementation detail
+\alias{.close,TransientMulticoreParam-method}
+\alias{.recv,TransientMulticoreParam-method}
+\alias{.recv_all,TransientMulticoreParam-method}
+\alias{.recv_any,TransientMulticoreParam-method}
+\alias{.send,TransientMulticoreParam-method}
+\alias{.send_to,TransientMulticoreParam-method}
+\alias{bpbackend,TransientMulticoreParam-method}
+\alias{bpstart,TransientMulticoreParam-method}
+\alias{bpstop,TransientMulticoreParam-method}
+\alias{length,TransientMulticoreParam-method}
+
 \title{Enable multi-core parallel evaluation}
 
 \description{
