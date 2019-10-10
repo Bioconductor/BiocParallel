@@ -17,7 +17,7 @@ setMethod(
     "bpstart", "TransientMulticoreParam",
     function(x, ...)
 {
-    mccollect(wait=TRUE)
+    parallel::mccollect(wait=TRUE)
     rm(
         list=ls(envir = .TRANSIENTMULTICOREPARAM_JOBNODE),
         envir = .TRANSIENTMULTICOREPARAM_JOBNODE
@@ -66,7 +66,7 @@ setMethod(
     function(backend, node, value)
 {
     if (value$type == "EXEC") {
-        job <- mcparallel(.bpworker_EXEC(value))
+        job <- parallel::mcparallel(.bpworker_EXEC(value))
         id <- as.character(job$pid)
         .TRANSIENTMULTICOREPARAM_JOBNODE[[id]] <- node
     }
@@ -80,7 +80,7 @@ setMethod(
     .BUFF <- .TRANSIENTMULTICOREPARAM_RESULT # alias
     tryCatch({
         while (!length(.BUFF)) {
-            result <- mccollect(wait = FALSE, timeout = 1)
+            result <- parallel::mccollect(wait = FALSE, timeout = 1)
             for (id in names(result))
                 .BUFF[[id]] <- result[[id]]
         }
