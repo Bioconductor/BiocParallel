@@ -264,7 +264,7 @@ setMethod("bpstop", "SnowParam",
         .close(cluster[[i]])
     bpbackend(x) <- .NULLcluster()
 
-    x
+    invisible(x)
 })
 
 setMethod("bpisup", "SnowParam",
