@@ -46,10 +46,8 @@
 ## Catch errors: 
 ## -----------------------------------------------------------------------
 
-## By default 'stop.on.error' is TRUE in BiocParallelParam objects.
-SnowParam(workers = 2)
-
-## If 'stop.on.error' is TRUE an ill-fated bplapply() simply stops,
+## By default 'stop.on.error' is TRUE in BiocParallelParam objects.  If
+## 'stop.on.error' is TRUE an ill-fated bplapply() simply stops,
 ## displaying the error message.
 param <- SnowParam(workers = 2, stop.on.error = TRUE)
 tryCatch({
@@ -78,14 +76,8 @@ tail(attr(result[[2]], "traceback"), 5)
 ## results as 'BPREDO'. Data elements that failed are rerun and merged
 ## with previous results.
 
-## A call of sqrt() on the character "2" returns an error.
-param <- SnowParam(workers = 2, stop.on.error = FALSE)
-X <- list(1, "two", 3)
-result <- bptry(bplapply(X, sqrt, BPPARAM = param))
-
-## Fix the input data by changing the character "2" to a numeric 2:
+## A call of sqrt() on the character "2" returns an error. Fix the input
+## data by changing the character "2" to a numeric 2:
 X_mod <- list(1, 2, 3)
-
-## Repeat the original call to bplapply() with the partial results as 'BPREDO':
 bplapply(X_mod, sqrt, BPPARAM = param , BPREDO = result)
 }

@@ -125,13 +125,16 @@ ipclocked(id)
 ipcremove(id)
 
 id <- ipcid()
-result <- bplapply(1:5, function(i, id) {
-    BiocParallel::ipclock(id)
-    Sys.sleep(1)
-    time <- Sys.time()
-    BiocParallel::ipcunlock(id)
-    time
-}, id)
+system.time({
+    ## about 1s, .2s for each process instead of .2s if no lock
+    result <- bplapply(1:2, function(i, id) {
+        BiocParallel::ipclock(id)
+        Sys.sleep(.2)
+        time <- Sys.time()
+        BiocParallel::ipcunlock(id)
+        time
+    }, id)
+})
 ipcremove(id)
 diff(sort(unlist(result, use.names=FALSE)))
 
@@ -152,7 +155,7 @@ ipcyield(id)
 ipcremove(id)
 
 id <- ipcid()
-result <- bplapply(1:5, function(i, id) {
+result <- bplapply(1:2, function(i, id) {
     BiocParallel::ipcyield(id)
 }, id)
 ipcremove(id)
