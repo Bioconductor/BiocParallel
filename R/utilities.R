@@ -14,7 +14,7 @@
         list(i)
     else {
         fuzz <- min((nx - 1L)/1000, 0.4 * nx / tasks)
-        breaks <- seq(1 - fuzz, nx + fuzz, length = tasks + 1L)
+        breaks <- seq(1 - fuzz, nx + fuzz, length.out = tasks + 1L)
         si <- structure(split(i, cut(i, breaks)), names = NULL)
         si[sapply(si, length) != 0]
     }
