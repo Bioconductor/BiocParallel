@@ -190,10 +190,10 @@ A more customized call may be necessary if the R installation is not
 standard, e.g., if multiple versions of R have been installed on a
 cluster.  For example, one might use instead:
 
-<<eval=FALSE>>=
+\begin{verbatim}
 echo 'batchtools::doJobCollection("<%= uri %>")' |\
     ArbitraryRcommand --no-save --slave
-@
+\end{verbatim}
 
 If such customization is necessary, we suggest making a local copy of
 the template, modifying it as required, and then constructing a
