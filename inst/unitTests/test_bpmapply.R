@@ -93,3 +93,47 @@ test_bpmapply_symbols <- function()
     closeAllConnections()
     TRUE
 }
+
+test_bpmapply_named_list <- function()
+{
+    X <- list()
+    Y <- character()
+    checkIdentical(X, bpmapply(identity))
+    checkIdentical(X, bpmapply(identity, X))
+    checkIdentical(mapply(identity, Y), bpmapply(identity, Y))
+
+    checkIdentical(X, bpmapply(identity, USE.NAMES = FALSE))
+    checkIdentical(X, bpmapply(identity, X, USE.NAMES = FALSE))
+    checkIdentical(X, bpmapply(identity, Y, USE.NAMES = FALSE))
+
+    names(X) <- names(Y) <- character()
+    checkIdentical(X, bpmapply(identity, X))
+    checkIdentical(X, bpmapply(identity, Y))
+
+    checkIdentical(list(), bpmapply(identity, X, USE.NAMES = FALSE))
+    checkIdentical(list(), bpmapply(identity, Y, USE.NAMES = FALSE))
+
+    Y1 <- setNames(letters, letters)
+    Y2 <- setNames(letters, LETTERS)
+    checkIdentical(mapply(identity, Y1), bpmapply(identity, Y1))
+    checkIdentical(mapply(identity, Y2), bpmapply(identity, Y2))
+
+    X <- list(c(a = 1))
+    checkIdentical(X, bpmapply(identity, X, SIMPLIFY = FALSE))
+
+    X <- list(a = 1:2)
+    checkIdentical(X, bpmapply(identity, X, SIMPLIFY = FALSE))
+
+    X <- list(a = 1:2, b = 1:4)
+    checkIdentical(X, bpmapply(identity, X, SIMPLIFY = FALSE))
+
+    X <- list(A = c(a = 1:3))
+    checkIdentical(X, bpmapply(identity, X, SIMPLIFY = FALSE))
+
+    X <- list(A = c(a = 1, b=2), B = c(c = 1, d = 2))
+    checkIdentical(X, bpmapply(identity, X, SIMPLIFY = FALSE))
+
+    ## named arguments to bpmapply
+    Y <- 1:3
+    checkIdentical(Y, bpmapply(identity, x = Y))
+}

@@ -61,3 +61,33 @@ test_bplapply_symbols <- function()
     closeAllConnections()
     TRUE
 }
+
+test_bplapply_named_list <- function()
+{
+    X <- list()
+    Y <- character()
+    checkIdentical(X, bplapply(X, identity))
+    checkIdentical(X, bplapply(Y, identity))
+
+    names(X) <- names(Y) <- character()
+    checkIdentical(X, bplapply(X, identity))
+    checkIdentical(X, bplapply(Y, identity))
+
+    X <- list(a = 1:2)
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- list(c(a = 1))
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- list(A = c(a = 1:2, b = 1:3), B = c(b = 1:2))
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- list(a = 1:2, b = 3:4)
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- list(c(a = 1))
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- list(A = c(a = 1, b=2), B = c(c = 1, d = 2))
+    checkIdentical(X, bplapply(X, identity))
+}

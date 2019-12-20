@@ -43,7 +43,7 @@ setMethod("bplapply", c("ANY", "list"),
     FUN <- match.fun(FUN)
 
     if (!length(X))
-        return(list())
+        return(.rename(list(), X))
 
     if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
         param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
