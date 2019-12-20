@@ -351,7 +351,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     FUN <- match.fun(FUN)
 
     if (!length(X))
-        return(list())
+        return(.rename(list(), X))
 
     if (is(X, "List"))
         ## hack; issue 82

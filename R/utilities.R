@@ -41,16 +41,33 @@
     idx
 }
 
+## re-apply names on X of lapply(X, FUN) to the return value
 .rename <-
-    function(results, dots, USE.NAMES=FALSE)
+    function(results, X)
 {
-    if (USE.NAMES && length(dots)) {
-        if (is.null(names(dots[[1L]]))) {
-            if(is.character(dots[[1L]]))
-                names(results) <- dots[[1L]]
+    names(results) <- names(X)
+    results
+}
+
+## re-apply the names on, e.g., mapply(FUN, X) to the return value;
+## see test_mrename for many edge cases
+.mrename <-
+    function(results, dots, USE.NAMES=TRUE)
+{
+    ## dots: a list() containing one element for each ... argument
+    ## passed to mapply
+    if (USE.NAMES) {
+        ## extract the first argument; if there are no arguments, then
+        ## dots is (unnamed) list(0)
+        if (length(dots))
+            dots <- dots[[1L]]
+        if (is.character(dots) && is.null(names(dots))) {
+            names(results) <- dots
         } else {
-            names(results) <- names(dots[[1L]])
+            names(results) <- names(dots)
         }
+    } else {
+        results <- unname(results)
     }
     results
 }
@@ -59,7 +76,7 @@
     function(results, SIMPLIFY=FALSE)
 {
     if (SIMPLIFY && length(results))
-        return(simplify2array(results))
+        results <- simplify2array(results)
     results
 }
 
@@ -82,7 +99,7 @@
 {
     ddd <- list(...)
     if (!length(ddd))
-        return(list())
+        return(list(list()))
     len <- vapply(ddd, length, integer(1L))
     if (!all(len == len[1L])) {
         max.len <- max(len)

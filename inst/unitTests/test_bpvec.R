@@ -41,3 +41,14 @@ test_bpvec_invalid_FUN <- function() {
     res <- bptry(bpvec(1:2, class, BPPARAM=SerialParam()))
     checkTrue(inherits(res, "bpvec_error"))
 }
+
+test_bpvec_named_list <- function() {
+    X <- list()
+    Y <- character()
+    checkIdentical(X, bpvec(X, length))
+    checkIdentical(X, bpvec(Y, length))
+
+    names(X) <- names(Y) <- character()
+    checkIdentical(X, bpvec(X, length))
+    checkIdentical(X, bpvec(Y, length))
+}

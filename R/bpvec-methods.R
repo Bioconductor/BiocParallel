@@ -9,7 +9,7 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 {
     if (!length(X))
-        return(list())
+        return(.rename(list(), X))
 
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)

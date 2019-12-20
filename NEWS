@@ -6,6 +6,9 @@ BUG FIXES
     o (v 1.19.2) Improve efficiency of MulticoreParam() when state
     does not persist across calls to bplapply().
 
+    o (v 1.20.1) bplapply(), bpmapply(), bpvec() propagate names on arguments
+    more correctly, https://github.com/Bioconductor/BiocParallel/issues/108
+
 CHANGES IN VERSION 1.18
 -----------------------
 

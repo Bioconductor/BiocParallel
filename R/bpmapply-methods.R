@@ -11,7 +11,7 @@ setMethod("bpmapply", c("ANY", "BiocParallelParam"),
     ## re-package for lapply
     ddd <- .getDotsForMapply(...)
     if (!length(ddd) || !length(ddd[[1L]]))
-      return(list())
+        return(.mrename(list(), ddd, USE.NAMES))
 
     FUN <- match.fun(FUN)
     wrap <- function(.i, .FUN, .ddd, .MoreArgs) {
@@ -21,7 +21,7 @@ setMethod("bpmapply", c("ANY", "BiocParallelParam"),
 
     res <- bplapply(X=seq_along(ddd[[1L]]), wrap, .FUN=FUN, .ddd=ddd, 
                     .MoreArgs=MoreArgs, BPREDO=BPREDO, BPPARAM=BPPARAM)
-    .simplify(.rename(res, ddd, USE.NAMES=USE.NAMES), SIMPLIFY)
+    .simplify(.mrename(res, ddd, USE.NAMES), SIMPLIFY)
 })
 
 setMethod("bpmapply", c("ANY", "missing"),

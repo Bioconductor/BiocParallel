@@ -109,7 +109,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     FUN <- match.fun(FUN)
 
     if (!length(X))
-        return(list())
+        return(.rename(list(), X))
 
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))

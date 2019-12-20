@@ -92,7 +92,7 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     if (!length(X))
-        return(list())
+        return(.rename(list(), X))
 
     FUN <- match.fun(FUN)
 
