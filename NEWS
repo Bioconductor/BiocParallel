@@ -1,4 +1,12 @@
 CHANGES IN VERSION 1.22
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (v 1.20.2) don't advance random number stream when used 'internally'.
+    This behavior alters reproducibility of existing scripts relying
+    (probably implicitly) on the advancing stream.
+    https://github.com/Bioconductor/BiocParallel/issues/110
 
 BUG FIXES
 

@@ -22,15 +22,15 @@
     port <- Sys.getenv("PORT", port)
     port <- getOption("ports", port)
 
-    port <-
-        if (identical(tolower(port), "random")) {
-            NA_integer_
-        } else as.integer(port)
-
-    if (is.na(port)) {
+    if (identical(tolower(port), "random") || is.na(port)) {
+        octx <- .internal_rng_stream$set()
+        on.exit(.internal_rng_stream$unset(octx))
         port <- as.integer(
             11000 +
-            1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L))
+            1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L)
+        )
+    } else {
+        port <- as.integer(port)
     }
 
     port

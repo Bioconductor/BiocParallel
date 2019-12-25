@@ -28,26 +28,24 @@
 
 .registered <- .registry$registered
 
-.registry_port <- NULL                  # assigned in .onLoad
-
 .registry_init <- function() {
     multicore <- .detectCores() > 1L
     tryCatch({
         if ((.Platform$OS.type == "windows") && multicore) {
             .register(getOption(
                 "SnowParam",
-                SnowParam(manager.port = .registry_port[["SnowParam"]])
+                SnowParam()
             ), TRUE)
             .register(getOption("SerialParam", SerialParam()), FALSE)
         } else if (multicore) {
             ## linux / mac
             .register(getOption(
                 "MulticoreParam",
-                MulticoreParam(manager.port = .registry_port[["MulticoreParam"]])
+                MulticoreParam()
             ), TRUE)
             .register(getOption(
                 "SnowParam",
-                SnowParam(manager.port = .registry_port[["SnowParam"]])
+                SnowParam()
             ), FALSE)
             .register(getOption("SerialParam", SerialParam()), FALSE)
         } else {
