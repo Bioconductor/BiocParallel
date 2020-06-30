@@ -41,7 +41,9 @@ bpvalidate <- function(fun)
     inpath <- structure(list(), names=character())
     if (length(unknown)) {
         inpath <- .foundInPath(unknown)
+        inlocal <- ls(environment(fun))
         unknown <- setdiff(unknown, names(inpath))
+        unknown <- setdiff(unknown, inlocal)
         inpath <- .filterDefaultPackages(inpath)
     }
     if (length(unknown))
