@@ -11,6 +11,9 @@ test_bpvalidate_basic_ok <- function()
     checkIdentical(target, bpvalidate(function(y, x) y(x=x) ))
     checkIdentical(target, bpvalidate(function(y, ...) y(...) ))
     checkIdentical(target, bpvalidate(local({i = 2; function(y) y + i})))
+    checkIdentical(target,
+                   bpvalidate(local({i = 2; local({function(y) y + i})}))
+                  )
 }
 
 test_bpvalidate_basic_fail <- function()
