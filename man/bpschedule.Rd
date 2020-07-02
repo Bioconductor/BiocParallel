@@ -30,8 +30,6 @@ bpschedule(x)
 
   }
 
-  \item{...}{Additional arguments, perhaps used by methods.}
-
 }
 
 \details{

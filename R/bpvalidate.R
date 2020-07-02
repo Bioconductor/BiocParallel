@@ -43,9 +43,20 @@ bpvalidate <- function(fun)
         inpath <- .foundInPath(unknown)
         unknown <- setdiff(unknown, names(inpath))
         inpath <- .filterDefaultPackages(inpath)
+
+        env <- environment(fun)
+        while(!identical(env, topenv(environment(fun)))) {
+            inlocal <- ls(env, all.names = TRUE)
+            unknown <- setdiff(unknown, inlocal)
+            env <- parent.env(env)
+        }
     }
+
     if (length(unknown))
         warning("function references unknown symbol(s)")
+
+    if (any(inpath %in% ".GlobalEnv"))
+        warning("function references symbol(s) in .GlobalEnv")
 
     list(inPath=inpath, unknown=unknown)
 }
