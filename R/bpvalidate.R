@@ -45,7 +45,7 @@ bpvalidate <- function(fun)
         inpath <- .filterDefaultPackages(inpath)
 
         env <- environment(fun)
-        while(!identical( env, globalenv())) {
+        while(!identical(env, topenv(environment(fun)))) {
             inlocal <- ls(env, all.names = TRUE)
             unknown <- setdiff(unknown, inlocal)
             env <- parent.env(env)
