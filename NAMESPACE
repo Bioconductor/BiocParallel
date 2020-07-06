@@ -46,6 +46,7 @@ export(
     batchtoolsTemplate,
     bpvalidate, bpok,
     bprunMPIslave,
+    bprunMPIworker,
 
     ## ipcmutex
     ipcid, ipcremove, ipclock, ipctrylock, ipcunlock, ipclocked,

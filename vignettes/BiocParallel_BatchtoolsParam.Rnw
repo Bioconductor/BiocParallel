@@ -192,7 +192,7 @@ cluster.  For example, one might use instead:
 
 \begin{verbatim}
 echo 'batchtools::doJobCollection("<%= uri %>")' |\
-    ArbitraryRcommand --no-save --slave
+    ArbitraryRcommand --no-save --no-echo
 \end{verbatim}
 
 If such customization is necessary, we suggest making a local copy of

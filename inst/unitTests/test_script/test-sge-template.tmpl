@@ -22,7 +22,7 @@
 ## R settings
 module load R/3.4.3
 
-## Export value of DEBUGME environemnt var to slave
+## Export value of DEBUGME environemnt var to worker
 export DEBUGME=<%= Sys.getenv("DEBUGME") %>
 
 Rscript -e 'batchtools::doJobCollection("<%= uri %>")'

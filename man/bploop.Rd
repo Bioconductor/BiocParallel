@@ -9,6 +9,7 @@
 \alias{bploop.iterate}
 
 \alias{bprunMPIslave}
+\alias{bprunMPIworker}
 
 \title{Internal Functions for SNOW-style Parallel Evaluation}
 

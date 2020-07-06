@@ -20,6 +20,6 @@ local({
     loadNamespace("Rmpi")
     loadNamespace("snow")
 
-    BiocParallel::bprunMPIslave()
+    BiocParallel::bprunMPIworker()
     quit("no")
 })

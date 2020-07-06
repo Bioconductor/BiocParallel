@@ -5,6 +5,11 @@
 ###
 
 bprunMPIslave <- function() {
+    .Deprecated("bprunMPIworker")
+    bprunMPIworker()
+}
+
+bprunMPIworker <- function() {
     comm <- 1
     intercomm <- 2
     Rmpi::mpi.comm.get.parent(intercomm)
