@@ -75,11 +75,19 @@ bptry <- function(expr, ..., bplist_error, bperror)
         if (stop.on.error && ERROR_OCCURRED) {
             UNEVALUATED
         } else {
-            withCallingHandlers({
+            output <- withCallingHandlers({
                 tryCatch({
                     FUN(...)
                 }, error=handle_error)
             }, warning=handle_warning)
+
+            # Trigger garbage collection to cut down on memory usage within
+            # each worker in shared memory contexts. Otherwise, each worker is
+            # liable to think the entire heap is available (leading to each
+            # worker trying to fill said heap, causing R to exhaust memory).
+            gc(verbose=FALSE, full=FALSE)
+
+            output
         }
     }
 }
