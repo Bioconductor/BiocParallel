@@ -6,6 +6,11 @@ BUG FIXES
     o (v.1.23.1) bpvalidate() detects variables defined in parent
     environments; warns on use of global variables.
 
+    o (v.1.23.2) bplapply() runs gc() after each evaluation of `FUN()`, so
+    that workers do not accumulate excessive memory allocations (memory
+    on a per-process basis is not excessive, but cluster-wise could be). See
+    https://github.com/Bioconductor/BiocParallel/pull/124:x
+
 CHANGES IN VERSION 1.22
 -----------------------
 
