@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.23.2
+Version: 1.23.3
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
@@ -9,7 +9,8 @@ Authors@R: c(
     person("Valerie", "Obenchain", role="aut"),
     person("Michel", "Lang", email="michellang@gmail.com", role="aut"),
     person("Ryan", "Thompson", email="rct@thompsonclan.org", role="aut"),
-    person("Nitesh", "Turaga", role="aut"))
+    person("Nitesh", "Turaga", role="aut"),
+    person("Aaron", "Lun", role = "ctb"))
 Description: This package provides modified versions and novel
     implementation of functions for parallel evaluation, tailored to
     use with Bioconductor objects.
