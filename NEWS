@@ -11,6 +11,10 @@ BUG FIXES
     on a per-process basis is not excessive, but cluster-wise could be). See
     https://github.com/Bioconductor/BiocParallel/pull/124:x
 
+    o (v.1.24.1) Add 'topLevelEnvironment' to list of blocked global variable
+    exports to address performance regression introduced by testthat 3.0. See
+    https://github.com/Bioconductor/BiocParallel/issues/127
+
 CHANGES IN VERSION 1.22
 -----------------------
 
