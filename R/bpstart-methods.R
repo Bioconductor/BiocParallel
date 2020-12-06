@@ -73,25 +73,8 @@ setMethod("bpstart", "missing",
 {
     cluster <- bpbackend(x)
     rng_seed <- bpRNGseed(x)
-
-    ##
-    ## from parallel::clusterSetRNGStream
-    ##
-    oldseed <-
-        if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-            get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-        } else NULL
-    RNGkind("L'Ecuyer-CMRG")
-    if (!is.null(rng_seed))
-        set.seed(rng_seed)
     nc <- length(cluster)
-    seeds <- vector("list", nc)
-    seeds[[1L]] <- .Random.seed
-    for (i in seq_len(nc - 1L))
-        seeds[[i + 1L]] <- nextRNGStream(seeds[[i]])
-    if (!is.null(oldseed)) {
-        assign(".Random.seed", oldseed, envir = .GlobalEnv)
-    } else rm(.Random.seed, envir = .GlobalEnv)
+    seeds <- .define_seeds(rng_seed, nc)
 
     for (i in seq_along(cluster)) {
         expr <- substitute(
@@ -105,6 +88,28 @@ setMethod("bpstart", "missing",
 
     .bpstart_error_handler(x, response, "set_rng_seed")
     invisible(x)
+}
+
+.define_seeds <- function(init_seed, n) {
+    ##
+    ## from parallel::clusterSetRNGStream
+    ##
+    oldseed <-
+        if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+            get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+        } else NULL
+    RNGkind("L'Ecuyer-CMRG")
+    if (!is.null(init_seed))
+        set.seed(init_seed)
+    seeds <- vector("list", n)
+    seeds[[1L]] <- .Random.seed
+    for (i in seq_len(n - 1L))
+        seeds[[i + 1L]] <- nextRNGStream(seeds[[i]])
+    if (!is.null(oldseed)) {
+        assign(".Random.seed", oldseed, envir = .GlobalEnv)
+    } else rm(.Random.seed, envir = .GlobalEnv)
+
+    seeds
 }
 
 .bpstart_set_finalizer <-
