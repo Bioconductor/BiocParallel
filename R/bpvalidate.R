@@ -1,4 +1,3 @@
-bpvalidate <- function(fun)
 .BPValidate <- setClass(
     "BPValidate",
     slots = c(
@@ -52,6 +51,24 @@ setMethod("show", "BPValidate", function(object) {
         sep = ""
     )
 })
+
+bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
+{
+    typeof <- suppressWarnings(typeof(fun))
+    if (!typeof %in% c("closure", "builtin"))
+        stop("'fun' must be a closure or builtin")
+
+    if (is.function(signal)) {
+        ERROR_FUN <- signal
+    } else {
+        ERROR_FUN <- switch(
+            match.arg(signal),
+            warning = warning,
+            error = stop,
+            silent = capture.output
+        )
+    }
+
     unknown <- codetools::findGlobals(fun)
     f_env <- environment(fun)
 
@@ -112,8 +129,21 @@ setMethod("show", "BPValidate", function(object) {
         unknown = unknown
     )
 
-    if (any(inpath %in% ".GlobalEnv"))
-        warning("function references symbol(s) in .GlobalEnv")
+    ## error report
+    msg <- character()
+    test <- .bpvalidateEnvironment(result) %in% ".GlobalEnv"
+    if (any(test))
+        msg <- c(
+            msg, "symbol(s) in .GlobalEnv:\n  ",
+            paste(.bpvalidateSymbol(result)[test], collapse = "\n  "), "\n"
+        )
+    test <- .bpvalidateUnknown(result)
+    if (length(test))
+        msg <- c(
+            msg, "unknown symbol(s):\n  ", paste(test, collapse = "\n  "), "\n"
+        )
+    if (length(msg))
+        ERROR_FUN("\n", paste(msg, collapse = ""), call. = FALSE)
 
     result
 }

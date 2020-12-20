@@ -12,12 +12,22 @@
 }
 
 \usage{
-bpvalidate(fun)
+bpvalidate(fun, signal = c("warning", "error", "silent"))
 }
 
 \arguments{
-  \item{fun}{
-    The function to be checked.}
+
+  \item{fun}{The function to be checked. \code{typeof(fun)} must return
+    either \code{"closure"} or \code{"builtin"}.}
+
+  \item{signal}{\code{character(1)} matching \code{"warning", "error",
+    "silent"} or a function with signature \code{(..., call.)} to be
+    invoked when reporting errors. Using \code{"silent"} suppresses
+    output; \code{"warning"} and \code{"error"} emit warnings or errors
+    when \code{fun} contains references to unknown variables or
+    variables defined in the global environment (and hence not
+    serialized to workers).}
+
 }
 
 \details{
@@ -67,11 +77,19 @@ bpvalidate(fun)
 }
 
 \author{
-  Martin Morgan \url{mailto:mtmorgan@fhcrc.org} and
-  Valerie Obenchain \url{mailto:vobencha@fhcrc.org}.
+  Martin Morgan \url{mailto:mtmorgan.bioc@gmail.com} and
+  Valerie Obenchain.
 }
 
 \examples{
+
+## ---------------------------------------------------------------------
+## Interactive use
+## ---------------------------------------------------------------------
+
+fun <- function()
+    .__UNKNOWN_SYMBOL__
+bpvalidate(fun, "silent")
 
 ## ---------------------------------------------------------------------
 ## Testing package functions
@@ -100,38 +118,37 @@ bpvalidate(myPkg:::myInternalFun)
 ## In 'fun1' countBam() is flagged as unknown:
 fun1 <- function(fl, ...) 
     countBam(fl)
-bpvalidate(fun1)
+v <- bpvalidate(fun1)
 
 ## countBam() is not defined in .GlobalEnv and must be passed as
 ## an argument or made available by loading the library.
 fun2 <- function(fl, ...) {
-    library(Rsamtools)
-    countBam(fl)
+    Rsamtools::countBam(fl)
 }
-bpvalidate(fun2)
+v <- bpvalidate(fun2)
 
 ## Passing arguments:
 ## 'param' is defined in the workspace but not passed to 'fun3'. 
-## bpvalidate() flags 'param' as being found 'inPath' which means
+## bpvalidate() flags 'param' as being found '.GlobalEnv' which means
 ## it is not defined in the function environment or inside the function.
 library(Rsamtools)
 param <- ScanBamParam(flag=scanBamFlag(isMinusStrand=FALSE))
 
 fun3 <- function(fl, ...) {
-  library(Rsamtools)
-  countBam(fl, param=param)
+  Rsamtools::countBam(fl, param=param)
 }
-bpvalidate(fun3)
+v <- bpvalidate(fun3)
 
 ## 'param' is explicitly passed by adding it as a formal argument.
 fun4 <- function(fl, ..., param) {
-  library(Rsamtools)
-  countBam(fl, param=param)
+  Rsamtools::countBam(fl, param=param)
 }
 bpvalidate(fun4)
 
 ## The corresponding call to a bp* function includes 'param':
-\dontrun{bplapply(files, fun4, param=param, BPPARAM=SnowParam(2))}
+\dontrun{
+bplapply(files, fun4, param=param, BPPARAM=SnowParam(2))
+}
 
 }
 
