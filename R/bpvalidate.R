@@ -34,6 +34,8 @@ bpvalidate <- function(fun)
         if (!is.null(warn) || !is.null(err))
             stop("\nattempt to load library failed:\n    ",
                  paste(c(warn, err), collapse="\n    "))
+        if (!is.matrix(xx))
+            xx <- t(as.matrix(xx))
         unknown <- unknown[rowSums(xx) == 0L]
     }
 
