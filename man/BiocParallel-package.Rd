@@ -18,9 +18,7 @@
 }
 
 \author{
-  Author: \Sexpr{packageDescription("BiocParallel")$Author}
-
-  Maintainer: \Sexpr{packageDescription("BiocParallel")$Maintainer}
+  See \code{packageDescription("BiocParallel")}.
 }
 
 \keyword{package}

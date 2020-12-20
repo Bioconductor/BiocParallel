@@ -19,7 +19,8 @@ exportClass(
     DoparParam,
     SerialParam,
     BatchJobsParam,
-    BatchtoolsParam
+    BatchtoolsParam,
+    BPValidate
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

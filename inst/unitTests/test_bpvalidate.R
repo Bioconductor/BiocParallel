@@ -1,7 +1,8 @@
+BPValidate <- BiocParallel:::BPValidate
+
 test_bpvalidate_basic_ok <- function()
 {
-    target <- list(inPath=structure(list(), names=character()),
-                   unknown=character())
+    target <- BPValidate()
     checkIdentical(target, bpvalidate(function() {}         ))
     checkIdentical(target, bpvalidate(function(x) x         ))
     checkIdentical(target, bpvalidate(function(x) x()       ))
@@ -11,15 +12,17 @@ test_bpvalidate_basic_ok <- function()
     checkIdentical(target, bpvalidate(function(y, x) y(x=x) ))
     checkIdentical(target, bpvalidate(function(y, ...) y(...) ))
     checkIdentical(target, bpvalidate(local({i = 2; function(y) y + i})))
-    checkIdentical(target,
-                   bpvalidate(local({i = 2; local({function(y) y + i})}))
-                  )
+    checkIdentical(
+        target,
+        bpvalidate(local({i = 2; local({function(y) y + i})}))
+    )
+
+    checkIdentical(target, bpvalidate(sqrt))
 }
 
 test_bpvalidate_basic_fail <- function()
 {
-    target <- list(inPath=structure(list(), names=character()), unknown="x")
-
+    target <- BPValidate(unknown = "x")
     suppressWarnings({
         checkIdentical(target, bpvalidate(function() x            ))
         checkIdentical(target, bpvalidate(function() x()          ))
@@ -33,7 +36,7 @@ test_bpvalidate_basic_fail <- function()
 
 test_bpvalidate_search_path <- function()
 {
-    target <- list(inPath=list(x=".test_env"), unknown=character())
+    target <- BPValidate(symbol = "x", environment = ".test_env")
 
     .test_env <- new.env(parent=emptyenv())
     .test_env$x <- NULL
@@ -49,21 +52,32 @@ test_bpvalidate_search_path <- function()
     ## checkIdentical(target, bpvalidate(function() x() ))
 }
 
+test_bpvalidate_defining_environemt <- function()
+{
+    target1 <- BPValidate()
+    target2 <- BPValidate(unknown = "x")
+
+    h = function() { x <- 1; f = function() x; function() f() }
+    checkIdentical(target1, bpvalidate(h))
+
+    h = function() { f = function() x; function() f() }
+    checkIdentical(target2, bpvalidate(h, "silent"))
+}
+
 test_bpvalidate_library <- function()
 {
-    target <- list(inPath=structure(list(), names=character()),
-                   unknown=character())
+    target <- BPValidate()
 
     checkException(bpvalidate(function() library("__UNKNOWN__")), silent=TRUE)
     checkException(bpvalidate(function() require("__UNKNOWN__")), silent=TRUE)
+    checkIdentical(target, bpvalidate(function() library(BiocParallel)))
 
-    ## FIXME: internally, bpvalidate code expects a matrix but gets a vector
-    ## bpvalidate(function() library(BiocParallel))
     ## FIXME: bpvalidate expects unquoted arg to library() / require()
     ## bpvalidate(function() library("BiocParallel"))
 
-    target1 <- list(inPath=list(bpvalidate = "package:BiocParallel"),
-                    unknown = character(0))
+    target1 <- BPValidate(
+        symbol = "bpvalidate", environment = "package:BiocParallel"
+    )
     checkIdentical(target1, bpvalidate(function() bpvalidate())) # inPath
     fun <- function() { library(BiocParallel); bpvalidate() }
     checkIdentical(target, bpvalidate(fun))                      # in function
