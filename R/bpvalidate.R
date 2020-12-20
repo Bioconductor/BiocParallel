@@ -7,9 +7,10 @@ bpvalidate <- function(fun)
 
     ## 'fun' environment is NAMESPACE
     if (length(unknown) && isNamespace(f_env)) {
-        f_ls <- c(getNamespaceImports(f_env),
-                  setNames(list(ls(f_env, all.names=TRUE)),
-                           getNamespaceName(f_env)))
+        f_ls <- c(
+            getNamespaceImports(f_env),
+            setNames(list(ls(f_env, all.names=TRUE)), getNamespaceName(f_env))
+        )
         f_symbols <- unique(unlist(f_ls, use.names=FALSE))
         unknown <- unknown[!unknown %in% f_symbols]
     }
@@ -66,11 +67,14 @@ bpvalidate <- function(fun)
 
 .foundInPath <- function(symbols) {
     loc <- Map(function(elt) head(find(elt), 1), symbols)
-    Filter(function(elt) length(elt) != 0, loc)
+    loc[lengths(loc) == 1L]
 }
 
 .filterDefaultPackages <- function(symbols) {
-    defaults <- paste0("package:", c("stats", "graphics", "grDevices", 
-                       "utils", "datasets", "methods", "Autoloads", "base"))
-    Filter(function(elt) !elt %in% defaults, symbols)
+    pkgs <- c(
+        "stats", "graphics", "grDevices", "utils", "datasets",
+        "methods", "Autoloads", "base"
+    )
+    drop <- unlist(symbols, use.names = FALSE) %in% paste0("package:", pkgs)
+    symbols[!drop]
 }
