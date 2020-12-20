@@ -42,16 +42,17 @@ bpvalidate <- function(fun)
     ## look in search path
     inpath <- structure(list(), names=character())
     if (length(unknown)) {
-        inpath <- .foundInPath(unknown)
-        unknown <- setdiff(unknown, names(inpath))
-        inpath <- .filterDefaultPackages(inpath)
-
+        ## exclude variables found in defining environment(s)
         env <- environment(fun)
-        while(!identical(env, topenv(environment(fun)))) {
+        while (!identical(env, topenv(environment(fun)))) {
             inlocal <- ls(env, all.names = TRUE)
             unknown <- setdiff(unknown, inlocal)
             env <- parent.env(env)
         }
+
+        inpath <- .foundInPath(unknown)
+        unknown <- setdiff(unknown, names(inpath))
+        inpath <- .filterDefaultPackages(inpath)
     }
 
     if (length(unknown))
