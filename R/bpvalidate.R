@@ -1,7 +1,57 @@
 bpvalidate <- function(fun)
+.BPValidate <- setClass(
+    "BPValidate",
+    slots = c(
+        symbol = "character",
+        environment = "character",
+        unknown = "character"
+    )
+)
+
+BPValidate <-
+    function(symbol = character(), environment = character(),
+        unknown = character())
 {
-    if (typeof(fun) != "closure")
-        stop("'fun' must be a closure")
+    if (is.null(symbol))
+        symbol <- character()
+    if (is.null(environment))
+        environment <- character()
+    .BPValidate(symbol = symbol, environment = environment, unknown = unknown)
+}
+
+.bpvalidateSymbol <- function(x) x@symbol
+
+.bpvalidateEnvironment <- function(x) x@environment
+
+.bpvalidateUnknown <- function(x) x@unknown
+
+.show_bpvalidateSearch <- function(x)
+{
+    search <- data.frame(
+        symbol = .bpvalidateSymbol(x),
+        environment = .bpvalidateEnvironment(x),
+        row.names = NULL
+    )
+    output <- capture.output(search)
+    text <- ifelse(NROW(search), paste(output, collapse = "\n  "), "none")
+    c("symbol(s) in search() path:\n  ", text)
+}
+
+.show_bpvalidateUnknown <- function(x)
+{
+    unknown <- .bpvalidateUnknown(x)
+    text <- ifelse(length(unknown), paste(unknown, collapse = "\n  "), "none")
+    c("unknown symbol(s):\n  ", text)
+}
+
+setMethod("show", "BPValidate", function(object) {
+    cat(
+        "class: ", class(object), "\n",
+        .show_bpvalidateSearch(object), "\n\n",
+        .show_bpvalidateUnknown(object), "\n\n",
+        sep = ""
+    )
+})
     unknown <- codetools::findGlobals(fun)
     f_env <- environment(fun)
 
@@ -56,13 +106,16 @@ bpvalidate <- function(fun)
         inpath <- .filterDefaultPackages(inpath)
     }
 
-    if (length(unknown))
-        warning("function references unknown symbol(s)")
+    result <- BPValidate(
+        symbol = names(inpath),
+        environment = unlist(inpath, use.names = FALSE),
+        unknown = unknown
+    )
 
     if (any(inpath %in% ".GlobalEnv"))
         warning("function references symbol(s) in .GlobalEnv")
 
-    list(inPath=inpath, unknown=unknown)
+    result
 }
 
 .foundInPath <- function(symbols) {

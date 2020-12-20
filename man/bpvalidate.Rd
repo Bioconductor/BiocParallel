@@ -1,5 +1,7 @@
 \name{bpvalidate}
 \alias{bpvalidate}
+\alias{BPValidate-class}
+\alias{show,BPValidate-method}
 
 \title{Tools for developing functions for parallel execution in
        distributed memory}
@@ -58,19 +60,10 @@ bpvalidate(fun)
 }
 
 \value{
-  A \code{list} of length 2 with named elements `inPath` and `unknown`.
-  \itemize{
-    \item{inPath}{
-      A named list of symbols and where they were found. These symbols were
-      found on the search path instead of the function environment and 
-      should probably be imported in the NAMESPACE or otherwise defined in 
-      the package.
-    }
-    \item{unknown}{
-      A vector of symbols not found in the function environment or the
-      search path.
-    }
-  }
+  An object of class \code{BPValidate} summarizing symbols identified in
+  the global environment or search path, or undefined in the
+  enviornments the function was defined in. Details are only available
+  via `show()`.
 }
 
 \author{
