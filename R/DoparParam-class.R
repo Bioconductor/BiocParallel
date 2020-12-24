@@ -87,7 +87,10 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         txt <- "'DoparParam()' does not support partial results"
         updt <- rep(list(.error_not_available(txt)), length(X))
         msg <- conditionMessage(e)
-        i <- sub("task ([[:digit:]]+).*", "\\1", msg)
+        pattern <- "task ([[:digit:]]+).*"
+        if (!grepl(pattern, msg))
+            stop("An exceptional DoparParam + foreach() error occurred: ", msg)
+        i <- sub(pattern, "\\1", msg)
         updt[[as.integer(i)]] <- .error(msg)
         updt
     })
