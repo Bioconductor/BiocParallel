@@ -20,7 +20,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .composeTry <- function(FUN, log, stop.on.error,
                         stop.immediate = FALSE, # TRUE for SerialParam lapply
                         as.error = TRUE,        # FALSE for BatchJobs compatible
-                        timeout, exportglobals = TRUE)
+                        timeout, exportglobals = TRUE, max.vsize = NULL)
 {
     if (!stop.on.error && stop.immediate)
         stop("[internal] 'stop.on.error == FALSE' && 'stop.immediate == TRUE'")
@@ -67,6 +67,9 @@ bptry <- function(expr, ..., bplist_error, bperror)
     }
 
     function(...) {
+        if (!is.null(max.vsize) && is.finite(max.vsize)) {
+            mem.maxVSize(max.vsize)
+        }
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
 
@@ -81,12 +84,6 @@ bptry <- function(expr, ..., bplist_error, bperror)
                     FUN(...)
                 }, error=handle_error)
             }, warning=handle_warning)
-
-            # Trigger garbage collection to cut down on memory usage within
-            # each worker in shared memory contexts. Otherwise, each worker is
-            # liable to think the entire heap is available (leading to each
-            # worker trying to fill said heap, causing R to exhaust memory).
-            gc(verbose=FALSE, full=FALSE)
 
             output
         }

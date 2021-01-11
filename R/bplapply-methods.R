@@ -67,9 +67,23 @@ setMethod("bplapply", c("ANY", "list"),
         on.exit(bpstop(BPPARAM), TRUE)
     }
 
+    # Figure out the maximum allocation per child.
+    max.vsize <- mem.maxVSize()
+    if (is.finite(max.vsize)) {
+        in.use <- gc()["Vcells", "used"] * 8 / 2^20 # in MB.
+
+        # Assuming virtual memory such that 'in.use' is shared.
+        leftovers <- max.vsize - in.use
+        per.worker <- leftovers / bpnworkers(BPPARAM)
+
+        # Shaving it down a little to account for any overhead.
+        max.vsize <- in.use + per.worker * 0.9
+    }
+
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        max.vsize = max.vsize,
         timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
 
