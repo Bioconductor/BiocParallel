@@ -67,6 +67,34 @@ library(BiocParallel)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\subsection{Messages and warnings}
+
+\BiocParallel{} captures messages and warnings in each job, returning
+the output to the manager and reporting these to the user after the
+completion of the entire operation. Thus
+<<messages, eval = FALSE>>=
+res <- bplapply(1:2, function(i) { message(i); Sys.sleep(3) })
+@
+%% 
+reports messages only after the entire \Rcode{bplapply()} is
+complete.
+
+It may be desired to output messages immediatly. Do this using
+\Rcode{sink()}, as in the following example:
+<<messages-immediate, eval = FALSE>>=
+res <- bplapply(1:2, function(i) {
+    sink(NULL, type = "message")
+    message(i)
+    Sys.sleep(3)
+})
+@ 
+%%
+This could be confusing when multiple workers write messages at the
+same time --the messages will be interleaved in an arbitrary way -- or
+when the workers are not all running on the same computer (e.g., with
+\Rcode{SnowParam()} or \Rcode{BatchjobsParaam()}) so should not be
+used in package code.
+
 \subsection{Catching errors}
 
 By default, \BiocParallel{} attempts all computations and returns any warnings
