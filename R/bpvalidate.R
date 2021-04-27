@@ -1,15 +1,83 @@
-bpvalidate <- function(fun)
+.BPValidate <- setClass(
+    "BPValidate",
+    slots = c(
+        symbol = "character",
+        environment = "character",
+        unknown = "character"
+    )
+)
+
+BPValidate <-
+    function(symbol = character(), environment = character(),
+        unknown = character())
 {
-    if (typeof(fun) != "closure")
-        stop("'fun' must be a closure")
+    if (is.null(symbol))
+        symbol <- character()
+    if (is.null(environment))
+        environment <- character()
+    .BPValidate(symbol = symbol, environment = environment, unknown = unknown)
+}
+
+.bpvalidateSymbol <- function(x) x@symbol
+
+.bpvalidateEnvironment <- function(x) x@environment
+
+.bpvalidateUnknown <- function(x) x@unknown
+
+.show_bpvalidateSearch <- function(x)
+{
+    search <- data.frame(
+        symbol = .bpvalidateSymbol(x),
+        environment = .bpvalidateEnvironment(x),
+        row.names = NULL
+    )
+    output <- capture.output(search)
+    text <- ifelse(NROW(search), paste(output, collapse = "\n  "), "none")
+    c("symbol(s) in search() path:\n  ", text)
+}
+
+.show_bpvalidateUnknown <- function(x)
+{
+    unknown <- .bpvalidateUnknown(x)
+    text <- ifelse(length(unknown), paste(unknown, collapse = "\n  "), "none")
+    c("unknown symbol(s):\n  ", text)
+}
+
+setMethod("show", "BPValidate", function(object) {
+    cat(
+        "class: ", class(object), "\n",
+        .show_bpvalidateSearch(object), "\n\n",
+        .show_bpvalidateUnknown(object), "\n\n",
+        sep = ""
+    )
+})
+
+bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
+{
+    typeof <- suppressWarnings(typeof(fun))
+    if (!typeof %in% c("closure", "builtin"))
+        stop("'fun' must be a closure or builtin")
+
+    if (is.function(signal)) {
+        ERROR_FUN <- signal
+    } else {
+        ERROR_FUN <- switch(
+            match.arg(signal),
+            warning = warning,
+            error = stop,
+            silent = capture.output
+        )
+    }
+
     unknown <- codetools::findGlobals(fun)
     f_env <- environment(fun)
 
     ## 'fun' environment is NAMESPACE
     if (length(unknown) && isNamespace(f_env)) {
-        f_ls <- c(getNamespaceImports(f_env),
-                  setNames(list(ls(f_env, all.names=TRUE)),
-                           getNamespaceName(f_env)))
+        f_ls <- c(
+            getNamespaceImports(f_env),
+            setNames(list(ls(f_env, all.names=TRUE)), getNamespaceName(f_env))
+        )
         f_symbols <- unique(unlist(f_ls, use.names=FALSE))
         unknown <- unknown[!unknown %in% f_symbols]
     }
@@ -34,40 +102,62 @@ bpvalidate <- function(fun)
         if (!is.null(warn) || !is.null(err))
             stop("\nattempt to load library failed:\n    ",
                  paste(c(warn, err), collapse="\n    "))
+        if (!is.matrix(xx))
+            xx <- t(as.matrix(xx))
         unknown <- unknown[rowSums(xx) == 0L]
     }
 
     ## look in search path
     inpath <- structure(list(), names=character())
     if (length(unknown)) {
-        inpath <- .foundInPath(unknown)
-        unknown <- setdiff(unknown, names(inpath))
-        inpath <- .filterDefaultPackages(inpath)
-
+        ## exclude variables found in defining environment(s)
         env <- environment(fun)
-        while(!identical(env, topenv(environment(fun)))) {
+        while (!identical(env, topenv(environment(fun)))) {
             inlocal <- ls(env, all.names = TRUE)
             unknown <- setdiff(unknown, inlocal)
             env <- parent.env(env)
         }
+
+        inpath <- .foundInPath(unknown)
+        unknown <- setdiff(unknown, names(inpath))
+        inpath <- .filterDefaultPackages(inpath)
     }
 
-    if (length(unknown))
-        warning("function references unknown symbol(s)")
+    result <- BPValidate(
+        symbol = names(inpath),
+        environment = unlist(inpath, use.names = FALSE),
+        unknown = unknown
+    )
 
-    if (any(inpath %in% ".GlobalEnv"))
-        warning("function references symbol(s) in .GlobalEnv")
+    ## error report
+    msg <- character()
+    test <- .bpvalidateEnvironment(result) %in% ".GlobalEnv"
+    if (any(test))
+        msg <- c(
+            msg, "symbol(s) in .GlobalEnv:\n  ",
+            paste(.bpvalidateSymbol(result)[test], collapse = "\n  "), "\n"
+        )
+    test <- .bpvalidateUnknown(result)
+    if (length(test))
+        msg <- c(
+            msg, "unknown symbol(s):\n  ", paste(test, collapse = "\n  "), "\n"
+        )
+    if (length(msg))
+        ERROR_FUN("\n", paste(msg, collapse = ""), call. = FALSE)
 
-    list(inPath=inpath, unknown=unknown)
+    result
 }
 
 .foundInPath <- function(symbols) {
     loc <- Map(function(elt) head(find(elt), 1), symbols)
-    Filter(function(elt) length(elt) != 0, loc)
+    loc[lengths(loc) == 1L]
 }
 
 .filterDefaultPackages <- function(symbols) {
-    defaults <- paste0("package:", c("stats", "graphics", "grDevices", 
-                       "utils", "datasets", "methods", "Autoloads", "base"))
-    Filter(function(elt) !elt %in% defaults, symbols)
+    pkgs <- c(
+        "stats", "graphics", "grDevices", "utils", "datasets",
+        "methods", "Autoloads", "base"
+    )
+    drop <- unlist(symbols, use.names = FALSE) %in% paste0("package:", pkgs)
+    symbols[!drop]
 }

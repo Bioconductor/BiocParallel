@@ -25,7 +25,7 @@ suppressPackageStartupMessages({
 \title{Introduction to \BiocParallel}
 \author{Valerie Obenchain, Vincent Carey, Michael Lawrence,
   Martin Morgan\footnote{\url{Martin.Morgan@RoswellPark.org}}}
-\date{Edited: March 22, 2018; Compiled: \today}
+\date{Edited: January 23, 2021; Compiled: \today}
 
 \begin{document}
 
@@ -180,18 +180,26 @@ except \Rcode{MulticoreParam} which is Unix and Mac only.
 
   \Rcode{MulticoreParam} uses 'forked' processes with 'copy-on-change'
   semantics -- memory is only copied when it is changed. This makes it
-  very efficient to invoke compared to other back-ends. A subtle cost,
-  though, is that \R's garbage collector runs periodically, and
-  'marks' memory as in use. This effectively triggers a copy of the
-  marked memory. \R's generational garbage collector is triggered at
-  difficult-to-predict times; the effect in a long-running forked
-  process is that the memory is eventually copied. See
+  very efficient to invoke compared to other back-ends.
+
+  There are several important caveats to using
+  \Rcode{MulticoreParam}. Forked processes are not available on
+  Windows. Some environments, e.g., \emph{RStudio}, do not work well
+  with forked processes, assuming that \R{} code evaluation is
+  single-threaded. Some external resources, e.g., access to files or
+  data bases, maintain state in a way that assumes the resource is
+  accessed only by a single thread.  A subtle cost is that \R's
+  garbage collector runs periodically, and 'marks' memory as in
+  use. This effectively triggers a copy of the marked memory. \R's
+  generational garbage collector is triggered at difficult-to-predict
+  times; the effect in a long-running forked process is that the
+  memory is eventually copied. See
   \href{https://support.bioconductor.org/p/70196/#70509}{this post}
   for additional details.
 
-  Based on facilities originally implemented in the
-  \CRANpkg{multicore} package and subsequently the \CRANpkg{parallel}
-  package in base \R{}.
+  \Rcode{MulticoreParam} is based on facilities originally implemented
+  in the \CRANpkg{multicore} package and subsequently the
+  \CRANpkg{parallel} package in base \R{}.
 
   \item{\Rcode{SnowParam}: }
 
@@ -378,11 +386,20 @@ fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
 
 \subsection{Single machine}
 
-\subsubsection{Multi-core}
+Common approaches on a single machine are to use multiple cores in
+forked processes, or to use clusters of independent processes.
 
-There are substantial benefits, such as shared memory, to be had using
-multiple cores on a single machine. On a single non-Windows machine the
-recommended approach is multi-core, or forked processes.
+For purely \R-based computations on non-Windows computers, there are
+substantial benefits, such as shared memory, to be had using forked
+processes. However, this approach is not portable across platforms,
+and fails when code uses functionality, e.g., file or data base
+access, that assumes only a single thread is accessing the
+resource. While use of forked processes with \Rcode{MulticoreParam} is
+an attractive solution for scripts using pure \R{} functionality,
+robust and complex code often requires use of independent processes
+and \Rcode{SnowParam}.
+
+\subsubsection{Forked processes with \Rcode{MulticoreParam}}
 
 This example counts overlaps between BAM files and a defined set of ranges.
 First create a GRanges with regions of interest (in practice this could be
@@ -431,7 +448,34 @@ workers or load common packages. Note that in this code the GRanges data was
 not passed to all workers in \Rcode{bplapply} and FUN did not need to load
 \Biocpkg{GenomicAlignments} for access to the \Rcode{readGAlignments} function.
 
-\subsubsection{Clusters}
+Problems with forked processes occur when code implementating
+functionality used by the workers is not written in anticipation of
+use by forked processes. One example is the database connection
+underlying Bioconductor's \Rcode{org.*} packages. This psudoe-code
+<<db_problems, eval = FALSE>>=
+library(org.Hs.eg.db)
+FUN <- function(x, ...) {
+    ...
+    mapIds(org.Hs.eg.db, ...)
+    ...
+}
+bplapply(X, FUN, ..., BPPARAM = MulticoreParam())
+@
+%% 
+is likely to fail, because \Rcode{library(org.Hs.eg.db)} opens a
+database connection that is accessed by multiple processes. A solution
+is to ensure that the database is opened independently in each process
+<<db_solution_1, eval = FALSE>>=
+FUN <- function(x, ...) {
+    library(org.Hs.eg.db)
+    ...
+    mapIds(org.Hs.eg.db, ...)
+    ...
+}
+bplapply(X, FUN, ..., BPPARAM = MulticoreParam())
+@
+
+\subsubsection{Clusters of independent processes with \Rcode{SnowParam}}
 Both Windows and non-Windows machines can use the cluster approach to spawn
 processes. \BiocParallel{} back-end choices for clusters on a single machine
 are \Rclass{SnowParam} for configuring a Snow cluster or the \Rclass{DoparParam}
@@ -467,6 +511,21 @@ GRanges and the loading of \Biocpkg{GenomicAlignments} on each
 worker. This approach, however, has the advantage that it works on
 most platforms and does not require a coding change when switching between
 windows and non-windows machines.
+
+If several \Rcode{bplapply()} statements are likely to require the
+same resource, it often makes sense to create a cluster once using
+\Rcode{bpstart()}. The workers are re-used by each call to
+\Rcode{bplapply()}, so they do not have to re-load packages, etc.
+<<db_solution_2, eval = FALSE>>=
+register(SnowParam())  # default evaluation
+bpstart()              # start the cluster
+...
+bplapply(X, FUN1, ...)
+...
+bplapply(X, FUN2, ...)  # re-use workers
+...
+bpstop()
+@ 
 
 \subsection{\emph{Ad hoc} cluster of multiple machines}
 
@@ -767,9 +826,10 @@ that influences use of `bplapply()` and friends in all packages, not
 just their package.
 
 Developers wishing to invoke back-ends other than
-\Rcode{MulticoreParam} need to take special care to ensure that
-required packages, data, and functions are available and loaded on the
-remote nodes.
+\Rcode{MulticoreParam}, or to write code that works across Windows,
+macOS and Linux, need to take special care to ensure that required
+packages, data, and functions are available and loaded on the remote
+nodes.
 
 In \Rcode{bplapply()}, the environment of \Rcode{FUN} (other than the
 global environment) is serialized to the workers. A consequence is

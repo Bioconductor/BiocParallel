@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.26
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (v 1.25.2) bpvalidate() gains an argument to control warning /
+    error / silent signaling, and returns a 'BPValidate' object.
+
 CHANGES IN VERSION 1.24
 -----------------------
 

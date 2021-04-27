@@ -2,4 +2,12 @@ src/*o
 src/Makevars
 config.log
 config.status
-autom4te.cache
+autom4te.cachea
+.Rhistory
+*.log
+*.tex
+*.aux
+*.out
+*.pdf
+*.toc
+vignettes/*.R
