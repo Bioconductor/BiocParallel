@@ -70,7 +70,8 @@ bptry <- function(expr, ..., bplist_error, bperror)
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
 
-        RNGkind("L'Ecuyer-CMRG")
+        old <- RNGkind("L'Ecuyer-CMRG")
+        on.exit(RNGkind(old[1]))
         assign(".Random.seed", .BiocParallel.seed, envir = .GlobalEnv)
 
         if (exportglobals)

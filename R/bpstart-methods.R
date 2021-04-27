@@ -98,7 +98,8 @@ setMethod("bpstart", "missing",
         if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
             get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
         } else NULL
-    RNGkind("L'Ecuyer-CMRG")
+    old <- RNGkind("L'Ecuyer-CMRG")
+    on.exit(RNGkind(old[1]))
     if (!is.null(init_seed))
         set.seed(init_seed)
     seeds <- vector("list", n)
