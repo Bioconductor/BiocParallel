@@ -73,12 +73,16 @@ setMethod("bplapply", c("ANY", "list"),
         timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
 
+    ## manufacture seeds
+    seeds <- .define_seeds(bpRNGseed(BPPARAM), length(X))
+
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
+    seeds <- .splitX(seeds, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    ARGFUN <- function(i) c(list(X[[i]], .BiocParallel.seed=seeds[[i]]), list(FUN=FUN), list(MoreArgs=list(...), SIMPLIFY=FALSE))
 
     cls <- structure(list(), class="lapply")
-    res <- bploop(cls, X, lapply, ARGFUN, BPPARAM)
+    res <- bploop(cls, X, mapply, ARGFUN, BPPARAM)
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))

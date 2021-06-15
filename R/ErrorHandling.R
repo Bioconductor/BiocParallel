@@ -66,9 +66,13 @@ bptry <- function(expr, ..., bplist_error, bperror)
         else e
     }
 
-    function(...) {
+    function(..., .BiocParallel.seed) {
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
+
+        old <- RNGkind("L'Ecuyer-CMRG")
+        on.exit(RNGkind(old[1]))
+        assign(".Random.seed", .BiocParallel.seed, envir = .GlobalEnv)
 
         if (exportglobals)
             base::options(global_options)
