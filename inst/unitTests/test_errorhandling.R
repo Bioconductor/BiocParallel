@@ -52,9 +52,17 @@ test_SerialParam_stop.on.error <- function()
     checkIdentical(TRUE, bpstopOnError(p))
     checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
     current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
-    checkTrue(is(current, "remote_error"))
+    checkTrue(is(current, "bplist_error"))
+    target <- "BiocParallel errors\n  element index: 2, 3\n  first error: non-numeric argument to mathematical function"
+    checkIdentical(target, conditionMessage(current))
     target <- tryCatch(lapply(X, sqrt), error=identity)
-    checkIdentical(conditionMessage(target), conditionMessage(current))
+    checkIdentical(
+        conditionMessage(target),
+        conditionMessage(attr(current, "result")[[2]])
+    )
+
+    result <- bptry(bplapply(X, sqrt, BPPARAM=p)) # issue #142
+    checkIdentical(c(TRUE, FALSE, FALSE), bpok(result))
 
     ## stop.on.error=FALSE
     p <- SerialParam(stop.on.error=FALSE) #
@@ -65,6 +73,9 @@ test_SerialParam_stop.on.error <- function()
     checkIdentical(c(TRUE, FALSE, TRUE), bpok(result))
     checkTrue(is(result[[2]], "remote_error"))
     checkIdentical(list(sqrt(1), sqrt(3)), result[bpok(result)])
+
+    result <- bptry(bplapply(X, sqrt, BPPARAM=p))
+    checkIdentical(c(TRUE, FALSE, TRUE), bpok(result))
 }
 
 test_stop.on.error <- function() {

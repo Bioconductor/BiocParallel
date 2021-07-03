@@ -6,6 +6,12 @@ USER VISIBLE CHANGES
     o (v 1.25.2) bpvalidate() gains an argument to control warning /
     error / silent signaling, and returns a 'BPValidate' object.
 
+BUG FIXES
+
+    o (v 1.26.1) bptry(bplapply(X, ...)) returns a list of length X,
+    appropriately annotated, when SerialParam(stop.on.error =
+    TRUE). See https://github.com/Bioconductor/BiocParallel/issues/142
+
 CHANGES IN VERSION 1.24
 -----------------------
 
@@ -17,7 +23,7 @@ BUG FIXES
     o (v.1.23.2) bplapply() runs gc() after each evaluation of `FUN()`, so
     that workers do not accumulate excessive memory allocations (memory
     on a per-process basis is not excessive, but cluster-wise could be). See
-    https://github.com/Bioconductor/BiocParallel/pull/124:x
+    https://github.com/Bioconductor/BiocParallel/pull/124
 
     o (v.1.24.1) Add 'topLevelEnvironment' to list of blocked global variable
     exports to address performance regression introduced by testthat 3.0. See
