@@ -111,7 +111,7 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     on.exit(progress$term(), TRUE)
     progress$init(length(X))
     FUN_ <- function(...) {
-        value <- FUN(...)
+        value <- tryCatch(FUN(...), error = identity)
         progress$step()
         value
     }
