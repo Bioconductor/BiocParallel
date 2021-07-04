@@ -28,6 +28,9 @@
 \alias{coerce,spawnedMPIcluster,SnowParam-method}
 \alias{show,SnowParam-method}
 
+% Environment variables
+\alias{BIOCPARALLEL_WORKER_NUMBER}
+
 \title{Enable simple network of workstations (SNOW)-style parallel evaluation}
 
 \description{
@@ -72,17 +75,19 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   \code{parallel} packages and provides the additional features of error
   handling, logging and writing out results.
 
-  The default number of workers is determined by \code{snowWorkers()}
-  which is usually the maximum of 1L and \code{parallel::detectCores() -
-  2}. Machines with 3 or fewer cores, or machines where number of cores
-  cannot be determined, are assigned a single
-  worker. Machines with more than 127 cores are limited to the number of
-  \emph{R} connections available when the workers start; this is 128 (a
-  hard-coded limit in \emph{R}) minus the number of open connections as
-  returned by \code{nrow(showConnections(all=TRUE))}. The option
-  \code{mc.cores} can be used to specify an arbitrary number of workers,
-  e.g., \code{options(mc.cores=4L)}; the \emph{Bioconductor} build
-  system enforces a maximum of 4 workers.
+  The default number of workers is determined by \code{snowWorkers()}.
+  This is determined by an environment variable
+  \code{BIOCPARALLEL_WORKER_NUMBER} or, if that is not set, the maximum
+  of 1 and \code{parallel::detectCores() - 2}. Machines with 3 or fewer
+  cores, or machines where number of cores cannot be determined, are
+  assigned a single worker. Machines with more than 127 cores are
+  limited to the number of \emph{R} connections available when the
+  workers start; this is 128 (a hard-coded limit in \emph{R}) minus the
+  number of open connections as returned by
+  \code{nrow(showConnections(all=TRUE))}. The option \code{mc.cores} can
+  be used to specify an arbitrary number of workers, e.g.,
+  \code{options(mc.cores=4L)}; the \emph{Bioconductor} build system
+  enforces a maximum of 4 workers.
 
   \describe{
     \item{error handling:}{
@@ -395,7 +400,8 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
 \section{Global Options}{
 
-  The global option \code{mc.cores} influences the number of workers
+  The environment variable \code{BIOCPARALLEL_WORKER_NUMBER} and the the
+  global option \code{mc.cores} influences the number of workers
   determined by \code{snowWorkers()} (described above) or
   \code{multicoreWorkers()} (see \code{\link{multicoreWorkers}}).
 

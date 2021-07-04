@@ -1,7 +1,26 @@
 .detectCores <- function() {
-    result <- parallel::detectCores()
-    result[is.na(result)] <- 1L
-    max(1L, result - 2L)
+    result <- Sys.getenv("BIOCPARALLEL_WORKER_NUMBER")
+    result <- withCallingHandlers({
+        as.integer(result)
+    }, warning = function(w) {
+        .warning(
+            "Trying to coercing the environment variable 'BIOCPARALLEL_WORKER_NUMBER' to an integer caused the following warning: ",
+            conditionMessage(w)
+        )
+        invokeRestart("muffleWarning")
+    })
+    if (is.na(result)) {
+        result <- parallel::detectCores()
+        if (is.na(result))
+            result <- 1L
+        result <- max(1L, result - 2L)
+    } else if (result <= 0L)
+        .stop(
+            "The environment variable 'BIOCPARALLEL_WORKER_NUMBER' must be > 0. The value was: '",
+            result,
+            "'"
+        )
+    result
 }
 
 .splitIndices <- function (nx, tasks)
@@ -117,6 +136,13 @@
     function(x)
 {
     all(file.access(x, 6L) == 0L)
+}
+
+.warning <- function(...) {
+    msg <- paste(
+        strwrap(paste0("\n", ...), indent = 2, exdent = 2), collapse="\n"
+    )
+    warning(msg, call. = FALSE)
 }
 
 .stop <- function(...) {
