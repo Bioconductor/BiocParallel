@@ -15,8 +15,7 @@ setMethod("bpstop", "missing",
     function(x)
 {
     cluster <- bpbackend(x)
-    for (i in seq_along(cluster))
-        .send_to(cluster, i, .DONE())
+    .send_all(cluster, .DONE())
 
     TRUE
 }
