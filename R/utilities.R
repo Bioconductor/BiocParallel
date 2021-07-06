@@ -1,25 +1,38 @@
-.detectCores <- function() {
-    result <- Sys.getenv("BIOCPARALLEL_WORKER_NUMBER")
+.getEnvironmentVariable <-
+    function(variable, default = NA_integer_)
+{
     result <- withCallingHandlers({
-        as.integer(result)
+        value <- Sys.getenv(variable, default)
+        as.integer(value)
     }, warning = function(w) {
-        .warning(
-            "Trying to coercing the environment variable 'BIOCPARALLEL_WORKER_NUMBER' to an integer caused the following warning: ",
-            conditionMessage(w)
+        txt <- sprintf(
+            "Trying to coercing the environment variable '%s' to an integer caused a warning. The value of the environment variable was '%s'. The warning was: %s",
+            variable, value, conditionMessage(w)
         )
+        .warning(txt)
         invokeRestart("muffleWarning")
     })
+
+    if (!is.na(result) && (result <= 0L)) {
+        txt <- sprintf(
+            "The environment variable '%s' must be > 0. The value was '%d'.",
+            variable, result
+        )
+        .stop(txt)
+    }
+
+    result
+}
+
+.detectCores <- function() {
+    result <- .getEnvironmentVariable("R_PARALLELLY_AVAILABLECORES_FALLBACK")
+    result <- .getEnvironmentVariable("BIOCPARALLEL_WORKER_NUMBER", result)
     if (is.na(result)) {
         result <- parallel::detectCores()
         if (is.na(result))
             result <- 1L
         result <- max(1L, result - 2L)
-    } else if (result <= 0L)
-        .stop(
-            "The environment variable 'BIOCPARALLEL_WORKER_NUMBER' must be > 0. The value was: '",
-            result,
-            "'"
-        )
+    }
     result
 }
 
