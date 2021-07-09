@@ -25,14 +25,27 @@
 }
 
 .detectCores <- function() {
+    ## environment variables; least to most compelling
     result <- .getEnvironmentVariable("R_PARALLELLY_AVAILABLECORES_FALLBACK")
     result <- .getEnvironmentVariable("BIOCPARALLEL_WORKER_NUMBER", result)
+
+    ## fall back to detectCores() if necessary
     if (is.na(result)) {
         result <- parallel::detectCores()
         if (is.na(result))
             result <- 1L
         result <- max(1L, result - 2L)
     }
+
+    ## respect 'mc.cores', overriding env. variables an detectCores()
+    result <- getOption("mc.cores", result)
+
+    ## override user settings by build-system configurations
+    if (nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_")))
+        result <- min(result, 2L)
+    if (nzchar(Sys.getenv("BBS_HOME")))
+        result <- min(result, 4L)
+
     result
 }
 

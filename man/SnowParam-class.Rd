@@ -89,7 +89,9 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   \code{nrow(showConnections(all=TRUE))}. The option \code{mc.cores} can
   be used to specify an arbitrary number of workers, e.g.,
   \code{options(mc.cores=4L)}; the \emph{Bioconductor} build system
-  enforces a maximum of 4 workers.
+  enforces a maximum of 4 workers. The environment variable
+  \code{_R_CHECK_LIMIT_CORES_} (as on CRAN) enforces a maximum of 2
+  workers.
 
   \describe{
     \item{error handling:}{

@@ -73,8 +73,10 @@ multicoreWorkers()
   \emph{R}) minus the number of open connections as returned by
   \code{nrow(showConnections(all=TRUE))}. The option \code{mc.cores} can
   be used to specify an arbitrary number of workers, e.g.,
-  \code{options(mc.cores=4L)}; the \emph{Bioconductor} build system
-  enforces a maximum of 4 workers.
+  \code{options(mc.cores=4L)}. The \emph{Bioconductor} build system
+  enforces a maximum of 4 workers. The environment variable
+  \code{_R_CHECK_LIMIT_CORES_} (as on CRAN) enforces a maximum of 2
+  workers.
 
   A FORK transport starts workers with the \code{mcfork} function and
   communicates between master and workers using socket connections.

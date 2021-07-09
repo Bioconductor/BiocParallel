@@ -48,12 +48,7 @@
     if (type == "multicore" && .Platform$OS.type == "windows")
         return(1L)
 
-    cores <- min(.detectCores(), .snowCoresMax(type))
-    cores <- getOption("mc.cores", cores)
-    if (nzchar(Sys.getenv("BBS_HOME")))
-        cores <- min(4L, cores)
-
-    cores
+    min(.detectCores(), .snowCoresMax(type))
 }
 
 snowWorkers <- function(type = c("SOCK", "MPI", "FORK")) {
