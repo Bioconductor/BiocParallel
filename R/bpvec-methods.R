@@ -19,7 +19,9 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
                BPPARAM=SerialParam()))
 
     si <- .splitX(seq_along(X), bpnworkers(BPPARAM), bptasks(BPPARAM))
-    bptasks(BPPARAM) <- 0
+    otasks <- bptasks(BPPARAM)
+    bptasks(BPPARAM) <- 0L
+    on.exit(bptasks(BPPARAM) <- otasks)
 
     idx <- .redo_index(si, BPREDO)
     if (any(idx))

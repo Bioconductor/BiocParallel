@@ -67,8 +67,11 @@
 
 .splitX <- function(X, workers, tasks) 
 {
-    if (tasks == 0L)
+    if (tasks == 0L) {
         tasks <- workers
+    } else {
+        tasks <- min(length(X), tasks)
+    }
     idx <- .splitIndices(length(X), tasks)
     relist(X, idx)
 }

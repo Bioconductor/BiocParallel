@@ -152,9 +152,11 @@
         \code{X} is divided by the number of workers. This approach distributes
         \code{X} in (approximately) equal chunks.
  
-        A \code{tasks} value of > 0 dictates the total number of tasks. Values
-        can range from 1 (all of \code{X} to a single worker) to the length of
-        \code{X} (each element of \code{X} to a different worker). 
+        A \code{tasks} value of > 0 dictates the total number of
+        tasks. Values can range from 1 (all of \code{X} to a single
+        worker) to the length of \code{X} (each element of \code{X}
+        to a different worker); values greater than \code{length(X)}
+        (e.g., \code{.Machine$integer.max}) are rounded to \code{length(X)}.
  
         When the length of \code{X} is less than the number of workers each
         element of \code{X} is sent to a worker and \code{tasks} is ignored.

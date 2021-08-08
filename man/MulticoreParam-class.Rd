@@ -194,6 +194,9 @@ multicoreWorkers()
 
     When the length of \code{X} is less than the number of workers each
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
+
+    When the length of \code{X} is less than \code{tasks}, \code{tasks}
+    is treated as \code{length(X)}.
   }
     \item{stop.on.error}{
     \code{logical(1)} Enable stop on error.

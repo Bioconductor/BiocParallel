@@ -79,7 +79,7 @@ setValidity("BiocParallelParam", function(object)
     if (!is.numeric(tasks))
         msg <- c(msg, "bptasks(BPPARAM) must be an integer")
     if (length(tasks) > 1L)
-        msg <- c(msg, "length(bpwtasks(BPPARAM)) must be == 1") 
+        msg <- c(msg, "length(bptasks(BPPARAM)) must be == 1")
 
     if (is.character(workers)) {
         if (length(workers) < 1L)
