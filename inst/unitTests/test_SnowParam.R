@@ -105,3 +105,10 @@ test_SnowParam_workers <- function()
     checkException(SnowParam("host", "MPI"), silent=TRUE)
     checkException(SnowParam("host", "FORK"), silent=TRUE)
 }
+
+test_SnowParam_progressbar <- function()
+{
+    checkIdentical(bptasks(SnowParam()), 0L)
+    checkIdentical(bptasks(SnowParam(tasks = 0L, progressbar = TRUE)), 0L)
+    checkIdentical(bptasks(SnowParam(progressbar = TRUE)), .Machine$integer.max)
+}

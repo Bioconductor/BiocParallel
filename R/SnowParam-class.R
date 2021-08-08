@@ -115,6 +115,9 @@ SnowParam <- function(workers=snowWorkers(type),
     if (type %in% c("MPI", "FORK") && is(workers, "character"))
         stop("'workers' must be integer(1) when 'type' is MPI or FORK")
 
+    if (progressbar && missing(tasks))
+        tasks <- .Machine$integer.max
+
     clusterargs <- c(list(spec=workers, type=type), list(...))
 
     manager.hostname <-

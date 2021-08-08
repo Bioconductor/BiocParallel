@@ -30,6 +30,9 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         workers = 1L
     }
 
+    if (progressbar && missing(tasks))
+        tasks <- .Machine$integer.max
+
     clusterargs <- c(list(spec=workers, type="FORK"), list(...))
 
     manager.hostname <-

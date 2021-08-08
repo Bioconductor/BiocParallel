@@ -185,12 +185,16 @@ multicoreWorkers()
 
     In this documentation a job is defined as a single call to a function, such
     as \code{bplapply}, \code{bpmapply} etc. A task is the division of the
-    \code{X} argument into chunks. When \code{tasks == 0} (default), \code{X}
-    is divided as evenly as possible over the number of workers.
+    \code{X} argument into chunks.
 
-    A \code{tasks} value of > 0 specifies the exact number of tasks. Values
-    can range from 1 (all of \code{X} to a single worker) to the length of
-    \code{X} (each element of \code{X} to a different worker).
+    When \code{tasks == 0} (default, except when \code{progressbar =
+    TRUE}), \code{X} is divided as evenly as possible over the number of
+    workers.
+
+    A \code{tasks} value of > 0 specifies the exact number of
+    tasks. Values can range from 1 (all of \code{X} to a single worker)
+    to the length of \code{X} (each element of \code{X} to a different
+    worker).
 
     When the length of \code{X} is less than the number of workers each
     element of \code{X} is sent to a worker and \code{tasks} is ignored.
@@ -202,7 +206,10 @@ multicoreWorkers()
     \code{logical(1)} Enable stop on error.
   }
   \item{progressbar}{
-    \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
+    \code{logical(1)} Enable progress bar (based on
+    plyr:::progress_text). Enabling the progress bar changes the
+    \emph{default} value of \code{tasks} to \code{.Machine$integer.max}, so
+    that progress is reported for each element of \code{X}.
   }
   \item{RNGseed}{
     \code{integer(1)} Seed for random number generation. When not \code{NULL},

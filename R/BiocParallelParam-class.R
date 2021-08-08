@@ -261,7 +261,7 @@ setMethod("bpprogressbar", "BiocParallelParam",
 setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
     function(x, value)
 {
-    x$progressbar <- value 
+    x$progressbar <- value
     x
 })
 
