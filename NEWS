@@ -1,3 +1,17 @@
+CHANGES IN VERSION 1.28
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (v 1.27.3) Setting `progressbar = TRUE` for SnowParam() or
+    MulticoreParam() changes the default value of `tasks` from 0 to
+    `.Machine$integer.max`, so that progress on each element of `X` is
+    reported.
+
+    o (v 1.27.3) `tasks` greater than `length(X)` are set to
+    `length(X)`. Thus `.Machine$integer.max`, for instance, assures
+    that each element of `X` is a separate task.
+
 CHANGES IN VERSION 1.26
 -----------------------
 
