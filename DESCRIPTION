@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.27.4
+Version: 1.27.4.1
 Authors@R: c(
     person("Bioconductor Package Maintainer",
         email="maintainer@bioconductor.org", role="cre"),
@@ -37,6 +37,6 @@ Collate: AllGenerics.R DeveloperInterface.R prototype.R
     TransientMulticoreParam-class.R register.R
     SerialParam-class.R DoparParam-class.R SnowParam-utils.R
     BatchJobsParam-class.R BatchtoolsParam-class.R
-    progress.R ipcmutex.R utilities.R internal_rng_stream.R
+    progress.R ipcmutex.R utilities.R rng.R
 LinkingTo: BH
 VignetteBuilder: knitr

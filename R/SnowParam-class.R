@@ -23,8 +23,8 @@
     port <- getOption("ports", port)
 
     if (identical(tolower(port), "random") || is.na(port)) {
-        octx <- .internal_rng_stream$set()
-        on.exit(.internal_rng_stream$unset(octx))
+        .rng_internal_stream$set()
+        on.exit(.rng_internal_stream$reset())
         port <- as.integer(
             11000 +
             1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L)

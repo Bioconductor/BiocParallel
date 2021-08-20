@@ -21,13 +21,16 @@
 SerialParam <-
     function(stop.on.error = TRUE,
              log=FALSE, threshold="INFO", logdir=NA_character_,
-             progressbar=FALSE)
+             progressbar=FALSE, RNGseed = NULL)
 {
+    if (!is.null(RNGseed))
+        RNGseed <- as.integer(RNGseed)
+
     prototype <- .prototype_update(
         .SerialParam_prototype,
         stop.on.error=stop.on.error,
         log=log, threshold=threshold, logdir=logdir,
-        progressbar=progressbar
+        progressbar=progressbar, RNGseed = RNGseed
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
@@ -115,7 +118,8 @@ setMethod("bplapply", c("ANY", "SerialParam"),
         progress$step()
         value
     }
-    res <- lapply(X, FUN_, ...)
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, length(X))[[1]]
+    res <- .rng_lapply(X, FUN_, ..., BPRNGSEED = BPRNGSEED)
 
     names(res) <- names(X)
 

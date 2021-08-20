@@ -75,10 +75,15 @@ setMethod("bplapply", c("ANY", "list"),
 
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
+    BPRNGSEEDS <- .rng_seeds_by_task(BPPARAM, lengths(X))
+    ARGFUN <- function(i)
+        c(
+            list(X=X[[i]]), list(FUN=FUN), list(...),
+            list(BPRNGSEED = BPRNGSEEDS[[i]])
+        )
 
     cls <- structure(list(), class="lapply")
-    res <- bploop(cls, X, lapply, ARGFUN, BPPARAM)
+    res <- bploop(cls, X, .rng_lapply, ARGFUN, BPPARAM)
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
