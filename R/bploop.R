@@ -268,8 +268,6 @@ bploop.iterate <-
     on.exit(progress$term(), TRUE)
     progress$init()
 
-    state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
     BPRNGSEED <- .rng_seeds_by_task(BPPARAM, 1L)[[1]] # first stream seed
 
     ## initial load

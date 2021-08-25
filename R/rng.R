@@ -45,9 +45,9 @@
 .rng_next_stream <-
     function(seed)
 {
-    seed <- nextRNGStream(seed)
-    assign(".Random.seed", seed, envir = .GlobalEnv)
-    seed
+    ## `nextRNGStream()` does not require that the current stream is
+    ## L'Ecuyer-CMRG
+    nextRNGStream(seed)
 }
 
 ## a random number stream independent of the stream used by R. Use for
@@ -80,9 +80,7 @@
     function(BPPARAM, task_lengths)
 {
     state <- .rng_get_generator()
-    on.exit({
-        .rng_reset_generator(state$kind, state$seed)
-    })
+    on.exit(.rng_reset_generator(state$kind, state$seed))
 
     seed <- .rng_set_generator("L'Ecuyer-CMRG", bpRNGseed(BPPARAM))
     task_seeds <- rep(list(integer()), length(task_lengths))

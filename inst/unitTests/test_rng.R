@@ -3,9 +3,26 @@ test_rng_state_restored_after_evaluation <- function()
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_seeds_by_task <- BiocParallel:::.rng_seeds_by_task
 
-    state <- .rng_get_generator()
+    target <- .rng_get_generator()
     obs <- .rng_seeds_by_task(SnowParam(2), c(2, 3))
-    checkIdentical(.rng_get_generator(), state)
+    checkIdentical(target, .rng_get_generator(), ".rng_seeds_by_task()")
+
+    bpstop(bpstart(SerialParam()))
+    checkIdentical(target, .rng_get_generator(), "SerialParam()")
+    bpstop(bpstart(SerialParam(RNGseed = 123)))
+    checkIdentical(target, .rng_get_generator(), "SerialParam(RNGseed=)")
+
+    bpstop(bpstart(SnowParam(2)))
+    checkIdentical(target, .rng_get_generator(), "SnowParam()")
+    bpstop(bpstart(SnowParam(2, RNGseed = 123)))
+    checkIdentical(target, .rng_get_generator(), "SnowParam(RNGseed=)")
+
+    if (identical(.Platform$OS.type, "unix")) {
+        bpstop(bpstart(MulticoreParam(2)))
+        checkIdentical(target, .rng_get_generator(), "MulticoreParam()")
+        bpstop(bpstart(MulticoreParam(2, RNGseed = 123)))
+        checkIdentical(target, .rng_get_generator(), "MulticoreParam(RNGseed=)")
+    }
 }
 
 test_rng_geometry <- function()
@@ -34,7 +51,7 @@ test_rng_geometry <- function()
     obs <- .rng_seeds_by_task(param, c(2, 0, 3))
     checkIdentical(obs, list(target[[1]], integer(), target[[3]]))
 
-    checkIdentical(.rng_get_generator(), state)
+    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_fun_advances_generator <- function()
@@ -81,6 +98,7 @@ test_rng_lapply <- function()
         .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED),
         .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED)
     )
+    checkIdentical(state, .rng_get_generator())
 
     SEED1 <- .rng_seeds_by_task(SnowParam(2), 1L)[[1]]
     SEED2 <- .rng_next_stream(SEED1)
@@ -89,7 +107,7 @@ test_rng_lapply <- function()
         .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED1),
         .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED2)
     )
-    checkIdentical(obs, target)
+    checkIdentical(target, obs)
 }
 
 test_rng_bplapply <- function()
@@ -117,6 +135,8 @@ test_rng_bplapply <- function()
         p4 <- MulticoreParam(5, RNGseed = 123)
         checkIdentical(bplapply(1:11, FUN, BPPARAM = p4), target)
     }
+
+    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_bpiterate <- function()

@@ -214,6 +214,12 @@ setMethod("bpstart", "SnowParam",
     if (bpnworkers(x) == 0 && lenX <= 0)
         stop("cluster not started; no workers specified")
 
+    ## set internal stream to avoid iterating global random number
+    ## stream in `parallel::makeCluster()`. Use the internal stream so
+    ## that the random number generator advances on each call.
+    state <- .rng_internal_stream$set()
+    on.exit(.rng_internal_stream$reset())
+
     nnodes <- min(bpnworkers(x), lenX)
     if (x$.clusterargs$type != "MPI" &&
         (nnodes > 128L - nrow(showConnections(all=TRUE))))
