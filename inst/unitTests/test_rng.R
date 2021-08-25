@@ -119,3 +119,43 @@ test_rng_bplapply <- function()
     }
 }
 
+test_rng_bpiterate <- function()
+{
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    p1 <- SerialParam(RNGseed = 123)
+    p2 <- SnowParam(3, RNGseed = 123)
+    p3 <- SnowParam(5, RNGseed = 123)
+    FUN <- function(i) rnorm(2)
+
+    ITER_factory <- function() {
+        x <- 1:11
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > length(x))
+                return(NULL)
+            x[[i]]
+        }
+    }
+
+    target <- bplapply(1:11, FUN, BPPARAM = p1)
+    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p1), "p1")
+    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p2), "p2")
+    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p3), "p3")
+
+    if (identical(.Platform$OS.type, "unix")) {
+        ## SerialParam / MulticoreParam same results
+        p4 <- MulticoreParam(5, RNGseed = 123)
+        checkIdentical(
+            target, bpiterate(ITER_factory(), FUN, BPPARAM = p4),
+            "p4"
+        )
+    }
+
+    checkIdentical(state, .rng_get_generator())
+}

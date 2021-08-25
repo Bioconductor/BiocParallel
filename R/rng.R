@@ -104,10 +104,19 @@
 .rng_job_fun_factory <-
     function(FUN, SEED)
 {
+    ## 'on.exit' is of .rng_job_fun_factory(), not when the anonymous
+    ## function goes out of scope
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
     force(FUN)
     SEED <- .rng_reset_generator("L'Ecuyer-CMRG", SEED)$seed
 
     function(...) {
+        ## get / reset the stream each time the function is evaluated
+        state <- .rng_get_generator()
+        on.exit(.rng_reset_generator(state$kind, state$seed))
+
         .rng_reset_generator("L'Ecuyer-CMRG", SEED)
         result <- FUN(...)
         SEED <<- .rng_next_stream(SEED)

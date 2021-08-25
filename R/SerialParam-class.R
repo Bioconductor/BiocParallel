@@ -173,5 +173,8 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
         value
     }
 
-    .bpiterate_serial(ITER, FUN_, ..., REDUCE = REDUCE, init = init)
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, 1L)[[1]]
+    FUN__ <- .rng_job_fun_factory(FUN_, BPRNGSEED)
+
+    .bpiterate_serial(ITER, FUN__, ..., REDUCE = REDUCE, init = init)
 })
