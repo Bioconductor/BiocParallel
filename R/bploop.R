@@ -268,7 +268,7 @@ bploop.iterate <-
     on.exit(progress$term(), TRUE)
     progress$init()
 
-    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, 1L)[[1]] # first stream seed
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, TRUE, 1L)[[1]]
 
     ## initial load
     for (i in seq_len(workers)) {

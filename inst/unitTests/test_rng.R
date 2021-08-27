@@ -4,7 +4,7 @@ test_rng_state_restored_after_evaluation <- function()
     .rng_seeds_by_task <- BiocParallel:::.rng_seeds_by_task
 
     target <- .rng_get_generator()
-    obs <- .rng_seeds_by_task(bpstart(SerialParam()), c(2, 3))
+    obs <- .rng_seeds_by_task(bpstart(SerialParam()), !logical(5), c(2, 3))
     checkIdentical(target, .rng_get_generator(), ".rng_seeds_by_task()")
 
     bpstop(bpstart(SerialParam()))
@@ -37,18 +37,22 @@ test_rng_geometry <- function()
     param <- SerialParam(RNGseed = 123)
 
     ## five independent streams
-    target <- .rng_seeds_by_task(bpstart(param), rep(1, 5)); bpstop(param)
+    target <- .rng_seeds_by_task(bpstart(param), !logical(5), rep(1, 5))
+    bpstop(param)
 
     ## 2 tasks of 2 + 3 jobs
-    obs <- .rng_seeds_by_task(bpstart(param), c(2, 3)); bpstop(param)
+    obs <- .rng_seeds_by_task(bpstart(param), !logical(5), c(2, 3))
+    bpstop(param)
     checkIdentical(obs, target[c(1, 3)])
 
     ## 2 tasks of 3 + 2 jobs
-    obs <- .rng_seeds_by_task(bpstart(param), c(3, 2)); bpstop(param)
+    obs <- .rng_seeds_by_task(bpstart(param), !logical(5), c(3, 2))
+    bpstop(param)
     checkIdentical(obs, target[c(1, 4)])
 
     ## 0 tasks
-    obs <- .rng_seeds_by_task(bpstart(param), c(2, 0, 3)); bpstop(param)
+    obs <- .rng_seeds_by_task(bpstart(param), !logical(5), c(2, 0, 3))
+    bpstop(param)
     checkIdentical(obs, list(target[[1]], integer(), target[[3]]))
 
     checkIdentical(state, .rng_get_generator())
@@ -64,14 +68,14 @@ test_rng_fun_advances_generator <- function()
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), TRUE, 1L)[[1]]
     checkIdentical(
         ## independently invoked with same seed --> same result
         .rng_job_fun_factory(function(i) rnorm(i), SEED)(2),
         .rng_job_fun_factory(function(i) rnorm(i), SEED)(2)
     )
 
-    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), TRUE, 1L)[[1]]
     FUN <- .rng_job_fun_factory(function(i) rnorm(i), SEED)
     target <- FUN(2) # two numbers from same stream
 
@@ -92,7 +96,7 @@ test_rng_lapply <- function()
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), TRUE, 1L)[[1]]
     checkIdentical(
         ## same sequence of random number streams
         .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED),
@@ -100,7 +104,7 @@ test_rng_lapply <- function()
     )
     checkIdentical(state, .rng_get_generator())
 
-    SEED1 <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
+    SEED1 <- .rng_seeds_by_task(bpstart(SerialParam()), TRUE, 1L)[[1]]
     SEED2 <- .rng_next_substream(SEED1)
     target <- .rng_lapply(1:2, function(i) rnorm(2), BPRNGSEED = SEED1)
     obs <- c(
@@ -237,4 +241,45 @@ test_rng_bpstart <- function()
     result4 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
     checkIdentical(result3, result1)
     checkIdentical(result4, result2)
+}
+
+.test_rng_bpredo_impl <- function(param) {
+    FUN <- function(i) rnorm(1)
+    target <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+
+    FUN0 <- function(i) {
+        if (identical(i, 7L)) {
+            stop("i == 7")
+        } else rnorm(1)
+    }
+    result <- bptry(bplapply(1:11, FUN0, BPPARAM = param))
+    checkIdentical(unlist(result[-7]), target[-7])
+    checkTrue(inherits(result[[7]], "remote_error"))
+
+    FUN1 <- function(i) {
+        if (identical(i, 7L)) {
+            ## the random number stream should be in the same state as the
+            ## first time through the loop, and rnorm(1) should return
+            ## same result as FUN
+            rnorm(1)
+        } else {
+            ## if this branch is used, then we are incorrectly updating
+            ## already calculated elements -- '0' in the output would
+            ## indicate this error
+            0
+        }
+    }
+    result <- unlist(bplapply(1:11, FUN1, BPREDO = result, BPPARAM = param))
+    checkIdentical(result, target)
+}
+
+test_rng_bpredo <- function()
+{
+    param <- SerialParam(RNGseed = 123, stop.on.error = FALSE)
+    .test_rng_bpredo_impl(param)
+
+    if (identical(.Platform$OS.type, "unix")) {
+        param <- MulticoreParam(3, RNGseed = 123, stop.on.error = FALSE)
+        .test_rng_bpredo_impl(param)
+    }
 }

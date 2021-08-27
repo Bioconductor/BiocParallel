@@ -99,9 +99,13 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 
     FUN <- match.fun(FUN)
 
-    idx <- .redo_index(X, BPREDO)
-    if (any(idx))
-        X <- X[idx]
+    redo_index <- .redo_index(X, BPREDO)
+    if (any(redo_index)) {
+        X <- X[redo_index]
+        compute_element <- redo_index
+    } else {
+        compute_element <- rep(TRUE, length(X))
+    }
 
     if (!bpisup(BPPARAM)) {
         bpstart(BPPARAM)
@@ -123,13 +127,13 @@ setMethod("bplapply", c("ANY", "SerialParam"),
         progress$step()
         value
     }
-    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, length(X))[[1]]
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, compute_element, length(X))[[1]]
     res <- .rng_lapply(X, FUN_, ..., BPRNGSEED = BPRNGSEED)
 
     names(res) <- names(X)
 
-    if (any(idx)) {
-        BPREDO[idx] <- res
+    if (any(redo_index)) {
+        BPREDO[redo_index] <- res
         res <- BPREDO
     }
 
@@ -182,7 +186,7 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
         value
     }
 
-    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, 1L)[[1]]
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, TRUE, 1L)[[1]]
     FUN__ <- .rng_job_fun_factory(FUN_, BPRNGSEED)
 
     .bpiterate_serial(ITER, FUN__, ..., REDUCE = REDUCE, init = init)
