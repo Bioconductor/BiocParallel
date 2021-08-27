@@ -279,7 +279,7 @@ bploop.iterate <-
             break
         }
         FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
-        BPRNGSEED <- .rng_next_stream(BPRNGSEED)
+        BPRNGSEED <- .rng_next_substream(BPRNGSEED)
         value <- .EXEC(i, FUN_, ARGFUN(value))
         running[i] <- .send_to(cl, i, value)
     }
@@ -314,7 +314,7 @@ bploop.iterate <-
         if (!is.null(value)) {
             i <- i + 1L
             FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
-            BPRNGSEED <- .rng_next_stream(BPRNGSEED)
+            BPRNGSEED <- .rng_next_substream(BPRNGSEED)
             value <- .EXEC(i, FUN_, ARGFUN(value))
             running[d$node] <- .send_to(cl, d$node, value)
         }

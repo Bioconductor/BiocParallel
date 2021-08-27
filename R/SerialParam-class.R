@@ -103,6 +103,11 @@ setMethod("bplapply", c("ANY", "SerialParam"),
     if (any(idx))
         X <- X[idx]
 
+    if (!bpisup(BPPARAM)) {
+        bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
+
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
     FUN <- .composeTry(
@@ -158,6 +163,10 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
+    if (!bpisup(BPPARAM)) {
+        bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
     FUN <- .composeTry(

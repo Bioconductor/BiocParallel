@@ -55,6 +55,16 @@ setMethod("bpstart", "missing",
     }
 }
 
+.bpstart_set_rng_stream <-
+    function(x)
+{
+    ## initialize the random number stream; increment the stream only
+    ## in bpstart_impl
+    .RNGstream(x) <- .rng_init_stream(bpRNGseed(x))
+
+    invisible(.RNGstream(x))
+}
+
 .bpstart_set_logging <-
     function(x)
 {
@@ -87,7 +97,10 @@ setMethod("bpstart", "missing",
     function(x)
 {
     ## common actions once bpisup(backend)
-    
+
+    ## initialize the random number stream
+    .bpstart_set_rng_stream(x)
+
     ## logging
     if (bplog(x))
         .bpstart_set_logging(x)

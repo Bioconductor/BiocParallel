@@ -4,7 +4,7 @@ test_rng_state_restored_after_evaluation <- function()
     .rng_seeds_by_task <- BiocParallel:::.rng_seeds_by_task
 
     target <- .rng_get_generator()
-    obs <- .rng_seeds_by_task(SnowParam(2), c(2, 3))
+    obs <- .rng_seeds_by_task(bpstart(SerialParam()), c(2, 3))
     checkIdentical(target, .rng_get_generator(), ".rng_seeds_by_task()")
 
     bpstop(bpstart(SerialParam()))
@@ -34,21 +34,21 @@ test_rng_geometry <- function()
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    param <- SnowParam(2, RNGseed = 123)
+    param <- SerialParam(RNGseed = 123)
 
     ## five independent streams
-    target <- .rng_seeds_by_task(param, rep(1, 5))
+    target <- .rng_seeds_by_task(bpstart(param), rep(1, 5)); bpstop(param)
 
     ## 2 tasks of 2 + 3 jobs
-    obs <- .rng_seeds_by_task(param, c(2, 3))
+    obs <- .rng_seeds_by_task(bpstart(param), c(2, 3)); bpstop(param)
     checkIdentical(obs, target[c(1, 3)])
 
     ## 2 tasks of 3 + 2 jobs
-    obs <- .rng_seeds_by_task(param, c(3, 2))
+    obs <- .rng_seeds_by_task(bpstart(param), c(3, 2)); bpstop(param)
     checkIdentical(obs, target[c(1, 4)])
 
     ## 0 tasks
-    obs <- .rng_seeds_by_task(param, c(2, 0, 3))
+    obs <- .rng_seeds_by_task(bpstart(param), c(2, 0, 3)); bpstop(param)
     checkIdentical(obs, list(target[[1]], integer(), target[[3]]))
 
     checkIdentical(state, .rng_get_generator())
@@ -64,14 +64,14 @@ test_rng_fun_advances_generator <- function()
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    SEED <- .rng_seeds_by_task(SnowParam(2), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
     checkIdentical(
         ## independently invoked with same seed --> same result
         .rng_job_fun_factory(function(i) rnorm(i), SEED)(2),
         .rng_job_fun_factory(function(i) rnorm(i), SEED)(2)
     )
 
-    SEED <- .rng_seeds_by_task(SnowParam(2), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
     FUN <- .rng_job_fun_factory(function(i) rnorm(i), SEED)
     target <- FUN(2) # two numbers from same stream
 
@@ -87,12 +87,12 @@ test_rng_lapply <- function()
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
     .rng_seeds_by_task <- BiocParallel:::.rng_seeds_by_task
     .rng_lapply <- BiocParallel:::.rng_lapply
-    .rng_next_stream <- BiocParallel:::.rng_next_stream
+    .rng_next_substream <- BiocParallel:::.rng_next_substream
 
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    SEED <- .rng_seeds_by_task(SnowParam(2), 1L)[[1]]
+    SEED <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
     checkIdentical(
         ## same sequence of random number streams
         .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED),
@@ -100,8 +100,8 @@ test_rng_lapply <- function()
     )
     checkIdentical(state, .rng_get_generator())
 
-    SEED1 <- .rng_seeds_by_task(SnowParam(2), 1L)[[1]]
-    SEED2 <- .rng_next_stream(SEED1)
+    SEED1 <- .rng_seeds_by_task(bpstart(SerialParam()), 1L)[[1]]
+    SEED2 <- .rng_next_substream(SEED1)
     target <- .rng_lapply(1:2, function(i) rnorm(2), BPRNGSEED = SEED1)
     obs <- c(
         .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED1),
@@ -114,9 +114,7 @@ test_rng_bplapply <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
-
     state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
 
     p1 <- SerialParam(RNGseed = 123)
     p2 <- SnowParam(3, RNGseed = 123)
@@ -143,13 +141,8 @@ test_rng_bpiterate <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
-
     state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    p1 <- SerialParam(RNGseed = 123)
-    p2 <- SnowParam(3, RNGseed = 123)
-    p3 <- SnowParam(5, RNGseed = 123)
     FUN <- function(i) rnorm(2)
 
     ITER_factory <- function() {
@@ -162,6 +155,10 @@ test_rng_bpiterate <- function()
             x[[i]]
         }
     }
+
+    p1 <- SerialParam(RNGseed = 123)
+    p2 <- SnowParam(3, RNGseed = 123)
+    p3 <- SnowParam(5, RNGseed = 123)
 
     target <- bplapply(1:11, FUN, BPPARAM = p1)
     checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p1), "p1")
@@ -178,4 +175,66 @@ test_rng_bpiterate <- function()
     }
 
     checkIdentical(state, .rng_get_generator())
+}
+
+test_rng_bpstart <- function()
+{
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+    state <- .rng_get_generator()
+
+    FUN <- function(i) rnorm(2)
+
+    ITER_factory <- function() {
+        x <- 1:11
+        i <- 0L
+        function() {
+            i <<- i + 1L
+            if (i > length(x))
+                return(NULL)
+            x[[i]]
+        }
+    }
+
+    ## bplapply
+    p0 <- bpstart(SerialParam()) # random seed
+    result1 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    result2 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    checkTrue(!any(result1 %in% result2))
+
+    bpstart(bpstop(p0)) # different random seed
+    result3 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    checkTrue(!any(result3 %in% result1))
+
+    p0 <- bpstart(SerialParam(RNGseed = 123)) # set seed
+    result1 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    result2 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    checkTrue(!any(result1 %in% result2))
+
+    bpstart(bpstop(p0)) # reset seed, same stream
+    result3 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    result4 <- unlist(bplapply(1:11, FUN, BPPARAM = p0))
+    checkIdentical(result3, result1)
+    checkIdentical(result4, result2)
+
+    ## bpiterate
+    p0 <- bpstart(SerialParam()) # random seed
+    result1 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    result2 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    checkTrue(!any(result1 %in% result2))
+
+    bpstart(bpstop(p0)) # different random seed
+    result3 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    checkTrue(!any(result3 %in% result1))
+
+    p0 <- bpstart(SerialParam(RNGseed = 123)) # set seed
+    result1 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    result2 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    checkTrue(!any(result1 %in% result2))
+
+    bpstart(bpstop(p0)) # reset seed, same stream
+    result3 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    result4 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
+    checkIdentical(result3, result1)
+    checkIdentical(result4, result2)
 }

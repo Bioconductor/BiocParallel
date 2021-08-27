@@ -41,13 +41,31 @@
     get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
 }
 
+.rng_init_stream <-
+    function(seed)
+{
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+    .rng_set_generator("L'Ecuyer-CMRG", seed)
+}
+
 ## .rng_next_stream(): return the next stream for a parallel job
 .rng_next_stream <-
     function(seed)
 {
     ## `nextRNGStream()` does not require that the current stream is
     ## L'Ecuyer-CMRG
+    if (is.null(seed))
+        seed <- .rng_init_stream(seed)
     nextRNGStream(seed)
+}
+
+.rng_next_substream <-
+    function(seed)
+{
+    if (is.null(seed))
+        seed <- .rng_init_stream(seed)
+    nextRNGSubStream(seed)
 }
 
 ## a random number stream independent of the stream used by R. Use for
@@ -55,8 +73,8 @@
 ## number sequence of users.
 .rng_internal_stream <- local({
     state <- .rng_get_generator()
-    RNGkind("L'Ecuyer-CMRG")
-    internal_seed <- nextRNGStream(.Random.seed)
+    RNGkind("L'Ecuyer-CMRG") # sets .Random.seed to non-NULL value
+    internal_seed <- .Random.seed
     .rng_reset_generator(state$kind, state$seed)
 
     list(set = function() {
@@ -82,15 +100,16 @@
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    seed <- .rng_set_generator("L'Ecuyer-CMRG", bpRNGseed(BPPARAM))
+    stream_seed <- .bpnextRNGstream(BPPARAM)
+    SEED <- .rng_reset_generator("L'Ecuyer-CMRG", stream_seed)$seed
     task_seeds <- rep(list(integer()), length(task_lengths))
     for (i in seq_along(task_lengths))
         for (j in seq_len(task_lengths[[i]])) {
             ## each job uses a new stream...
-            seed <- .rng_next_stream(seed)
+            SEED <- .rng_next_substream(SEED)
             if (j == 1L)
                 ## ...but we only record seeds for each task
-                task_seeds[[i]] <- seed
+                task_seeds[[i]] <- SEED
     }
 
     task_seeds
@@ -117,7 +136,7 @@
 
         .rng_reset_generator("L'Ecuyer-CMRG", SEED)
         result <- FUN(...)
-        SEED <<- .rng_next_stream(SEED)
+        SEED <<- .rng_next_substream(SEED)
         result
     }
 }

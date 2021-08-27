@@ -14,7 +14,8 @@
     timeout=30L * 24L * 60L * 60L, # 30 days
     exportglobals=TRUE,
     progressbar=FALSE,
-    RNGseed=NULL
+    RNGseed=NULL,
+    RNGstream = NULL
 )
 
 .BiocParallelParam <- setRefClass("BiocParallelParam",
@@ -32,7 +33,8 @@
         stop.on.error="logical",
         timeout="integer",
         exportglobals="logical",
-        RNGseed = "ANY",
+        RNGseed = "ANY",        # NULL or integer(1)
+        RNGstream = "ANY",      # NULL or integer(); internal use only
         ## cluster management
         .finalizer_env = "environment",
         .uid = "character"
@@ -284,6 +286,30 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
     x$RNGseed <- as.integer(value)
     x
 })
+
+.RNGstream <-
+    function(x)
+{
+    x$RNGstream
+}
+
+`.RNGstream<-` <-
+    function(x, value)
+{
+    value <- as.integer(value)
+    if (anyNA(value))
+        stop("[internal] RNGstream value could not be coerced to integer")
+    x$RNGstream <- value
+    x
+}
+
+.bpnextRNGstream <-
+    function(x)
+{
+    ## initialize or get the next random number stream; increment the
+    ## stream only in bpstart_impl
+    .RNGstream(x) <- .rng_next_stream(.RNGstream(x))
+}
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
