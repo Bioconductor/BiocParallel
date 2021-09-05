@@ -27,26 +27,26 @@
     list(kind = kind, seed = seed)
 }
 
-## .rng_set_generator(): set the generator to a new kind, optionally
-## using `set.seed()` to set the seed for the the
-## generator. `set.seed()` coerces the seed to the appropriate format
-## for the generator, and assigns the seed in .Random.seed.
-.rng_set_generator <-
-    function(kind, seed)
-{
-    RNGkind(kind[[1]])
-    ## coerces seed to appropriate format for RNGkind; NULL seed
-    ## generates random seed
-    set.seed(seed, kind[[1]])
-    get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-}
-
+## .rng_init_stream(): initialize the generator to a new kind,
+## optionally using `set.seed()` to set the seed for the the
+## generator.
 .rng_init_stream <-
     function(seed)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
-    .rng_set_generator("L'Ecuyer-CMRG", seed)
+
+    ## coerces seed to appropriate format for RNGkind; NULL seed (from
+    ## bpRNGseed()) uses the global random number stream.
+    if (!is.null(seed))
+        set.seed(seed)
+
+    ## change kind
+    kind <- "L'Ecuyer-CMRG"
+    RNGkind(kind)
+
+    ## .Random.seed always exists after RNGkind()
+    get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
 }
 
 ## .rng_next_stream(): return the next stream for a parallel job

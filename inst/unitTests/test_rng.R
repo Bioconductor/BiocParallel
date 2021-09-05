@@ -1,4 +1,4 @@
-test_rng_state_restored_after_evaluation <- function()
+test_rng_seeds_by_task <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_seeds_by_task <- BiocParallel:::.rng_seeds_by_task
@@ -6,23 +6,6 @@ test_rng_state_restored_after_evaluation <- function()
     target <- .rng_get_generator()
     obs <- .rng_seeds_by_task(bpstart(SerialParam()), !logical(5), c(2, 3))
     checkIdentical(target, .rng_get_generator(), ".rng_seeds_by_task()")
-
-    bpstop(bpstart(SerialParam()))
-    checkIdentical(target, .rng_get_generator(), "SerialParam()")
-    bpstop(bpstart(SerialParam(RNGseed = 123)))
-    checkIdentical(target, .rng_get_generator(), "SerialParam(RNGseed=)")
-
-    bpstop(bpstart(SnowParam(2)))
-    checkIdentical(target, .rng_get_generator(), "SnowParam()")
-    bpstop(bpstart(SnowParam(2, RNGseed = 123)))
-    checkIdentical(target, .rng_get_generator(), "SnowParam(RNGseed=)")
-
-    if (identical(.Platform$OS.type, "unix")) {
-        bpstop(bpstart(MulticoreParam(2)))
-        checkIdentical(target, .rng_get_generator(), "MulticoreParam()")
-        bpstop(bpstart(MulticoreParam(2, RNGseed = 123)))
-        checkIdentical(target, .rng_get_generator(), "MulticoreParam(RNGseed=)")
-    }
 }
 
 test_rng_geometry <- function()
@@ -118,7 +101,9 @@ test_rng_bplapply <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
     state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
 
     p1 <- SerialParam(RNGseed = 123)
     p2 <- SnowParam(3, RNGseed = 123)
@@ -137,15 +122,15 @@ test_rng_bplapply <- function()
         p4 <- MulticoreParam(5, RNGseed = 123)
         checkIdentical(bplapply(1:11, FUN, BPPARAM = p4), target)
     }
-
-    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_bpiterate <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
     state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
 
     FUN <- function(i) rnorm(2)
 
@@ -177,8 +162,6 @@ test_rng_bpiterate <- function()
             "p4"
         )
     }
-
-    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_bpstart <- function()
@@ -243,6 +226,63 @@ test_rng_bpstart <- function()
     checkIdentical(result4, result2)
 }
 
+.test_rng_bpstart_iterates_rng_seed <- function(param) {
+    set.seed(123L)
+    target <- runif(2L)[2L]
+
+    ## bpstart() should increment the random number seed by exactly one call
+    set.seed(123L)
+    bpstart(param)
+    checkIdentical(target, runif(1L))
+    bpstop(param)
+
+    set.seed(123)
+    result <- bplapply(1:3, runif, BPPARAM = param)
+    checkIdentical(target, runif(1L))
+    checkTrue(!identical(result, bplapply(1:3, runif, BPPARAM = param)))
+
+    set.seed(123)
+    checkIdentical(result, bplapply(1:3, runif, BPPARAM = param))
+    checkIdentical(target, runif(1L))
+}
+
+test_rng_bpstart_iterates_rng_seed <- function() {
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    .test_rng_bpstart_iterates_rng_seed(SerialParam())
+    .test_rng_bpstart_iterates_rng_seed(SnowParam(2))
+    if (identical(.Platform$OS.type, "unix"))
+        .test_rng_bpstart_iterates_rng_seed(MulticoreParam(2))
+}
+
+.test_rng_global_and_RNGseed_identical <- function(param_fun) {
+    set.seed(123)
+    target <- bplapply(1:3, runif, BPPARAM = param_fun())
+    current <- bplapply(1:3, runif, BPPARAM = param_fun(RNGseed = 123))
+    checkIdentical(target, current)
+
+    set.seed(123)
+    current <- bplapply(1:3, runif, BPPARAM = param_fun(RNGseed = 124))
+    checkTrue(!identical(target, current))
+}
+
+test_rng_global_and_RNGseed_identical <- function() {
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    .test_rng_global_and_RNGseed_identical(SerialParam)
+    .test_rng_global_and_RNGseed_identical(SnowParam)
+    if (identical(.Platform$OS.type, "unix"))
+        .test_rng_global_and_RNGseed_identical(MulticoreParam)
+}
+
 .test_rng_bpredo_impl <- function(param) {
     FUN <- function(i) rnorm(1)
     target <- unlist(bplapply(1:11, FUN, BPPARAM = param))
@@ -275,6 +315,12 @@ test_rng_bpstart <- function()
 
 test_rng_bpredo <- function()
 {
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
     param <- SerialParam(RNGseed = 123, stop.on.error = FALSE)
     .test_rng_bpredo_impl(param)
 
