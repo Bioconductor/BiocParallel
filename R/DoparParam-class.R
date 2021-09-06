@@ -84,12 +84,15 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     res <- tryCatch({
         foreach::foreach(X=X, .errorhandling=handle) %dopar% FUN(X, ...)
     }, error=function(e) {
-        txt <- "'DoparParam()' does not support partial results"
-        updt <- rep(list(.error_not_available(txt)), length(X))
         msg <- conditionMessage(e)
         pattern <- "task ([[:digit:]]+).*"
         if (!grepl(pattern, msg))
-            stop("An exceptional DoparParam + foreach() error occurred: ", msg)
+            stop(
+                "'DoparParam()' foreach() error occurred: ", msg,
+                call. = FALSE
+            )
+        txt <- "'DoparParam()' does not support partial results"
+        updt <- rep(list(.error_not_available(txt)), length(X))
         i <- sub(pattern, "\\1", msg)
         updt[[as.integer(i)]] <- .error(msg)
         updt
