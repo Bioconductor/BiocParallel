@@ -134,19 +134,20 @@ multicoreWorkers()
       \code{bplogdir} and \code{bpresultdir}.
     }
     \item{random number generation:}{
-      \code{MulticoreParam} and \code{SnowParam} use the random number
-      generation support from the parallel package. These params are
-      snow-derived clusters so the arguments for multicore-derived functions
-      such as \code{mc.set.seed} and \code{mc.reset.stream} do not apply.
+      For \code{MulticoreParam}, \code{SnowParam}, and
+      \code{SerialParam}, random number generation is controlled through
+      the \code{RNGseed = } argument. BiocParallel uses the
+      L'Ecuyer-CMRG random number generator described in the parallel
+      package to generate independent random number streams. One stream
+      is associated with each element of \code{X}, and used to seed the
+      random number stream for the application of \code{FUN()} to
+      \code{X[[i]]}. Thus setting \code{RNGseed = } ensures
+      reproducibility across \code{MulticoreParam()},
+      \code{SnowParam()}, and \code{SerialParam()}, regardless of worker
+      or task number. The default value \code{RNGseed = NULL} means that
+      each evaluation of \code{bplapply} proceeds independently.
 
-      Random number generation is controlled through the param argument,
-      \code{RNGseed} which is passed to parallel::clusterSetRNGStream.
-      \code{clusterSetRNGStream} uses the L'Ecuyer-CMRG random number
-      generator and distributes streams to the members of a cluster. If
-      \code{RNGseed} is not NULL it serves as the seed to the streams,
-      otherwise the streams are set from the current seed of the master process
-      after selecting the L'Ecuyer generator. See ?\code{clusterSetRNGStream}
-      for more details.
+      For details of the L'Ecuyer generator, see ?\code{clusterSetRNGStream}.
     }
   }
 
@@ -212,9 +213,12 @@ multicoreWorkers()
     that progress is reported for each element of \code{X}.
   }
   \item{RNGseed}{
-    \code{integer(1)} Seed for random number generation. When not \code{NULL},
-    this value is passed to parallel::clusterSetRNGStream to generate
-    random number streams on each worker.
+    \code{integer(1)} Seed for random number generation. The seed is
+    used to set a new, independent random number stream for each
+    element of \code{X}. The ith element recieves the same stream seed,
+    regardless of use of \code{SerialParam()}, \code{SnowParam()}, or
+    \code{MulticoreParam()}, and regardless of worker or task
+    number. When \code{RNGseed = NULL}, a random seed is used.
   }
   \item{timeout}{
     \code{numeric(1)} Time (in seconds) allowed for worker to complete a task.

@@ -23,8 +23,8 @@
     port <- getOption("ports", port)
 
     if (identical(tolower(port), "random") || is.na(port)) {
-        octx <- .internal_rng_stream$set()
-        on.exit(.internal_rng_stream$unset(octx))
+        .rng_internal_stream$set()
+        on.exit(.rng_internal_stream$reset())
         port <- as.integer(
             11000 +
             1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L)
@@ -204,6 +204,17 @@ setReplaceMethod("bpworkers", c("SnowParam", "character"),
 ### Methods - control
 ###
 
+.bpstart_makeCluster <-
+    function(cargs)
+{
+    ## set internal stream to avoid iterating global random number
+    ## stream in `parallel::makeCluster()`. Use the internal stream so
+    ## that the random number generator advances on each call.
+    state <- .rng_internal_stream$set()
+    on.exit(.rng_internal_stream$reset())
+    do.call(parallel::makeCluster, cargs)
+}
+
 setMethod("bpstart", "SnowParam",
     function(x, lenX = bpnworkers(x))
 {
@@ -240,7 +251,7 @@ setMethod("bpstart", "SnowParam",
             cargs$port <- .port(x)
         }
 
-        bpbackend(x) <- do.call(parallel::makeCluster, cargs)
+        bpbackend(x) <- .bpstart_makeCluster(cargs)
     }
 
     .bpstart_impl(x)

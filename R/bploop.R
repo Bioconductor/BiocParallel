@@ -268,6 +268,8 @@ bploop.iterate <-
     on.exit(progress$term(), TRUE)
     progress$init()
 
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, TRUE, 1L)[[1]]
+
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
@@ -276,7 +278,9 @@ bploop.iterate <-
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        value <- .EXEC(i, FUN, ARGFUN(value))
+        FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
+        BPRNGSEED <- .rng_next_substream(BPRNGSEED)
+        value <- .EXEC(i, FUN_, ARGFUN(value))
         running[i] <- .send_to(cl, i, value)
     }
 
@@ -309,7 +313,9 @@ bploop.iterate <-
         value <- ITER()
         if (!is.null(value)) {
             i <- i + 1L
-            value <- .EXEC(i, FUN, ARGFUN(value))
+            FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
+            BPRNGSEED <- .rng_next_substream(BPRNGSEED)
+            value <- .EXEC(i, FUN_, ARGFUN(value))
             running[d$node] <- .send_to(cl, d$node, value)
         }
     }

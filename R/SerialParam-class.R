@@ -21,13 +21,16 @@
 SerialParam <-
     function(stop.on.error = TRUE,
              log=FALSE, threshold="INFO", logdir=NA_character_,
-             progressbar=FALSE)
+             progressbar=FALSE, RNGseed = NULL)
 {
+    if (!is.null(RNGseed))
+        RNGseed <- as.integer(RNGseed)
+
     prototype <- .prototype_update(
         .SerialParam_prototype,
         stop.on.error=stop.on.error,
         log=log, threshold=threshold, logdir=logdir,
-        progressbar=progressbar
+        progressbar=progressbar, RNGseed = RNGseed
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
@@ -96,9 +99,18 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 
     FUN <- match.fun(FUN)
 
-    idx <- .redo_index(X, BPREDO)
-    if (any(idx))
-        X <- X[idx]
+    redo_index <- .redo_index(X, BPREDO)
+    if (any(redo_index)) {
+        X <- X[redo_index]
+        compute_element <- redo_index
+    } else {
+        compute_element <- rep(TRUE, length(X))
+    }
+
+    if (!bpisup(BPPARAM)) {
+        bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
 
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
@@ -115,12 +127,13 @@ setMethod("bplapply", c("ANY", "SerialParam"),
         progress$step()
         value
     }
-    res <- lapply(X, FUN_, ...)
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, compute_element, length(X))[[1]]
+    res <- .rng_lapply(X, FUN_, ..., BPRNGSEED = BPRNGSEED)
 
     names(res) <- names(X)
 
-    if (any(idx)) {
-        BPREDO[idx] <- res
+    if (any(redo_index)) {
+        BPREDO[redo_index] <- res
         res <- BPREDO
     }
 
@@ -154,6 +167,10 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
+    if (!bpisup(BPPARAM)) {
+        bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
     .log_load(bplog(BPPARAM), bpthreshold(BPPARAM))
 
     FUN <- .composeTry(
@@ -169,5 +186,8 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
         value
     }
 
-    .bpiterate_serial(ITER, FUN_, ..., REDUCE = REDUCE, init = init)
+    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, TRUE, 1L)[[1]]
+    FUN__ <- .rng_job_fun_factory(FUN_, BPRNGSEED)
+
+    .bpiterate_serial(ITER, FUN__, ..., REDUCE = REDUCE, init = init)
 })

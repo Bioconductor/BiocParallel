@@ -2,11 +2,11 @@ useDynLib("BiocParallel", .registration = TRUE)
 
 import(methods)
 
-importFrom(stats, setNames, terms)
+importFrom(stats, setNames, terms, runif)
 
 importFrom(utils, capture.output, find, head, relist,
            setTxtProgressBar, txtProgressBar)
-importFrom(parallel, nextRNGStream)
+importFrom(parallel, nextRNGStream, nextRNGSubStream)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes

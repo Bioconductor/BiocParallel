@@ -3,6 +3,13 @@ CHANGES IN VERSION 1.28
 
 USER VISIBLE CHANGES
 
+    o (v 1.27.5) Use of random numbers is robust to the distribution
+    of jobs across tasks for SerialParam(), SnowParam(), and
+    MulticoreParam(), for both bplapply() and bpiterate(), using the
+    RNGseed= argument to each *Param(). The change is NOT backward
+    compatible -- users wishing to exactly reproduce earlier results
+    should use a previous version of the package.
+
     o (v 1.27.3) Setting `progressbar = TRUE` for SnowParam() or
     MulticoreParam() changes the default value of `tasks` from 0 to
     `.Machine$integer.max`, so that progress on each element of `X` is

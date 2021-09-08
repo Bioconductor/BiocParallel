@@ -54,9 +54,14 @@ setMethod("bplapply", c("ANY", "list"),
         return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
     }
 
-    idx <- .redo_index(X, BPREDO)
-    if (any(idx))
-        X <- X[idx]
+    ## which need to be redone?
+    redo_index <- .redo_index(X, BPREDO)
+    if (any(redo_index)) {
+        X <- X[redo_index]
+        compute_element <- redo_index
+    } else {
+        compute_element <- rep(TRUE, length(X))
+    }
     nms <- names(X)
 
     ## start / stop cluster
@@ -75,18 +80,23 @@ setMethod("bplapply", c("ANY", "list"),
 
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    ARGFUN <- function(i) c(list(X=X[[i]]), list(FUN=FUN), list(...))
+    BPRNGSEEDS <- .rng_seeds_by_task(BPPARAM, compute_element, lengths(X))
+    ARGFUN <- function(i)
+        c(
+            list(X=X[[i]]), list(FUN=FUN), list(...),
+            list(BPRNGSEED = BPRNGSEEDS[[i]])
+        )
 
     cls <- structure(list(), class="lapply")
-    res <- bploop(cls, X, lapply, ARGFUN, BPPARAM)
+    res <- bploop(cls, X, .rng_lapply, ARGFUN, BPPARAM)
 
     if (!is.null(res)) {
         res <- do.call(unlist, list(res, recursive=FALSE))
         names(res) <- nms
     }
 
-    if (any(idx)) {
-        BPREDO[idx] <- res
+    if (any(redo_index)) {
+        BPREDO[redo_index] <- res
         res <- BPREDO
     }
 
