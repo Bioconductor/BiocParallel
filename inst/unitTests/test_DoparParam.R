@@ -4,6 +4,10 @@ test_DoparParam_orchestration_error <- function() {
         requireNamespace("doParallel", quietly = TRUE)
     if (!test)
         DEACTIVATED("'foreach' or 'doParallel' not available")
+
+    if (identical(.Platform$OS.type, "windows"))
+        DEACTIVATED("'DoparParam' orchestration error test not run on Windows")
+
     old_warn <- options(warn = 2)
     on.exit(options(old_warn))
     y <- tryCatch({

@@ -27,9 +27,7 @@ suppressPackageStartupMessages({
 
 \tableofcontents
 
-\section{Essentials}
-
-\subsection{Scope}
+\section{Scope}
 
 \BiocParallel{} enables use of random number streams in a reproducible
 manner. This document applies to the following \Rcode{*Param()}:
@@ -45,7 +43,7 @@ manner. This document applies to the following \Rcode{*Param()}:
 The \Rcode{*Param()} can be used for evaluation with:
 
 \begin{itemize}
-\item \Rcode{bplapply()}: \Rcode{lapply}-like application of a
+\item \Rcode{bplapply()}: \Rcode{lapply()}-like application of a
   user-supplied function \Rcode{FUN} to a vector or list of elements
   \Rcode{X}.
 \item \Rcode{bpiterate()}: apply a user-supplied function \Rcode{FUN} to
@@ -61,9 +59,11 @@ The reproducible random number implementation also supports:
   \Rcode{FUN}).
 \end{itemize}
 
+\section{Essentials}
+
 \subsection{Use of \Rcode{bplapply()} and \Rcode{RNGseed=}}
 
-Attach \BiocParallel{} and ensure that the version is greater than 1.27.6
+Attach \BiocParallel{} and ensure that the version is greater than 1.27.5
 
 <<load>>=
 library(BiocParallel)
@@ -72,7 +72,7 @@ stopifnot(
 )
 @
 
-For reproducible calculation, use the \Rcode{RNGseed=} argument to each
+For reproducible calculation, use the \Rcode{RNGseed=} argument in any
 of the \Rcode{*Param()} constructors.
 
 <<basic-use>>=
@@ -116,7 +116,7 @@ if (!identical(.Platform$OS.type, "windows")) {
 Parallel backends can adjust the number of \Rcode{workers} (processes
 performing the evaluation) and \Rcode{tasks} (how elements of \Rcode{X}
 are distributed between workers). Results are invariant to these
-parameters; this is illustrated with \Rcode{SnowParam()}, but applies
+parameters. This is illustrated with \Rcode{SnowParam()}, but applies
 also to \Rcode{MulticoreParam()}.
 
 <<different-workers-tasks>>=
@@ -137,7 +137,7 @@ Subsequent sections illustrate results with \Rcode{SerialParam()}, but
 identical results are obtained with \Rcode{SnowParam()} and
 \Rcode{MulticoreParam()}.
 
-\subsection{Use with \Rcode{bpiterate()} and \Rcode{bptry()}}
+\subsection{Use with \Rcode{bpiterate()}}
 
 \Rcode{bpiterate()} allows parallel processing of a 'stream' of data as
 a series of tasks, with a task consisting of a portion of the overall
@@ -160,8 +160,8 @@ ITER_FUN_FACTORY <- function() {
 }
 @ 
 
-This function is used to create a function that, on each invocation,
-returns the next task (here, an element of \Rcode{X}, in a real
+\Rcode{ITER\_FUN\_FACTORY()} is used to create a function that, on each invocation,
+returns the next task (here, an element of \Rcode{x}; in a real
 example, perhaps 100000 records from a BAM file). When there are no
 more tasks, the function returns \Rcode{NULL}
 
@@ -173,6 +173,11 @@ ITER()
 ITER()
 @ 
 
+In our simple example, \Rcode{bpiterate()} is performing the same
+computations as \Rcode{bplapply()} so the results, including the
+random number streams used by each task in \Rcode{bpiterate()}, are
+the same
+
 <<bpiterate>>=
 result9 <- bpiterate(
     ITER_FUN_FACTORY(), runif,
@@ -183,10 +188,14 @@ stopifnot(
 )
 @ 
 
+\subsection{Use with \Rcode{bptry()}}
+
 \Rcode{bptry()} in conjunction with the \Rcode{BPREDO=} argument to
-\Rcode{bplapply()} or \Rcode{bpiterate()} allows for the possibility for
-graceful recovery from errors. Here a buggy \Rcode{FUN1()} produces an
-error for the second element. This is shown in the result.
+\Rcode{bplapply()} or \Rcode{bpiterate()} allows for graceful recovery
+from errors. Here a buggy \Rcode{FUN1()} produces an error for the
+second element. \Rcode{bptry()} allows evaluation to continue for
+other elements of \Rcode{X}, despite the error. This is shown in the
+result.
 
 <<bptry>>=
 FUN1 <- function(i) {
@@ -213,9 +222,9 @@ identical to the original stream.
 FUN2 <- function(i) {
     if (identical(i, 2L)) {
         ## the random number stream should be in the same state as the
-        ## first time through the loop, and rnorm(1) should return
+        ## first time through the loop, and rnorm(i) should return
         ## same result as FUN
-        runif(2)
+        runif(i)
     } else {
         ## if this branch is used, then we are incorrectly updating
         ## already calculated elements -- '0' in the output would
@@ -282,12 +291,14 @@ stopifnot(
 
 In all of the examples so far \Rcode{*Param()} objects are passed to
 \Rcode{bplapply()} or \Rcode{bpiterate()} in the 'stopped'
-state. Internally, \Rcode{bplapply()} invokes \Rcode{bpstart()} to
-establish the computational environment. \Rcode{bpstart()} can be
+state. Internally, \Rcode{bplapply()} and \Rcode{bpiterate()} invoke
+\Rcode{bpstart()} to establish the computational environment (e.g.,
+starting workers for \Rcode{SnowParam()}). \Rcode{bpstart()} can be
 called explicitly, e.g., to allow workers to be used across calls to
 \Rcode{bplapply()}.
 
-The cluster random number stream is initiated with \Rcode{bpstart()}. Thus
+The cluster random number stream is initiated with
+\Rcode{bpstart()}. Thus
 
 <<bpstart-basic>>=
 param <- bpstart(SerialParam(RNGseed = 100))
@@ -309,7 +320,8 @@ result16 <- bplapply(1:3, runif, BPPARAM = param)
 result17 <- bplapply(1:3, runif, BPPARAM = param)
 bpstop(param)
 stopifnot(
-    !identical(result16, result17)
+    identical(result1, result16),
+    !identical(result1, result17)
 )
 @ 
 
@@ -335,8 +347,8 @@ stopifnot(
 
 \subsection{Relationship between \Rcode{bplapply()} and \Rcode{lapply()}}
 
-The results from \Rcode{lapply()} are different from the results from
-\Rcode{bplapply()}, even with the same random number seed. This is
+The results from \Rcode{bplapply()} are different from the results from
+\Rcode{lapply()}, even with the same random number seed. This is
 because correctly implemented parallel random streams require use of a
 particular random number generator invoked in specific ways for each
 element of \Rcode{X}, as outlined in the Implementation notes section.
@@ -353,20 +365,19 @@ stopifnot(
 
 The implementation uses the L'Ecuyer-CMRG random number generator (see
 \Rcode{?RNGkind} and \Rcode{?parallel::clusterSetRNGStream} for
-additional details. This random number generator is useful because it
-can be used to generate independent streams and substreams of random
-numbers. In \BiocParallel{}, each call to \Rcode{bpstart()} creates a
-new stream from the L'Ecuyer-CMRG generator. Each element in
-\Rcode{bplapply()} or \Rcode{bpiterate()} creates a new substream. Each
-application of \Rcode{FUN} is therefore using the L'Ecuyer-CMRG random
-number generator, with a substream that is independent of the
-substreams of all other elements.
+additional details). This random number generates independent streams
+and substreams of random numbers. In \BiocParallel{}, each call to
+\Rcode{bpstart()} creates a new stream from the L'Ecuyer-CMRG
+generator. Each element in \Rcode{bplapply()} or \Rcode{bpiterate()}
+creates a new substream. Each application of \Rcode{FUN} is therefore
+using the L'Ecuyer-CMRG random number generator, with a substream that
+is independent of the substreams of all other elements.
 
 Within the user-supplied \Rcode{FUN} of \Rcode{bplapply()} or
-\Rcode{bpiterate()}, it is a mistake for the user to use
-\Rcode{RNGkind()} to set a different random number generator, or to
-use \Rcode{set.seed()}. This would in principle compromise the
-independence of the streams across elements.
+\Rcode{bpiterate()}, it is a mistake to use \Rcode{RNGkind()} to set a
+different random number generator, or to use \Rcode{set.seed()}. This
+would in principle compromise the independence of the streams across
+elements.
 
 \section{\Rcode{sessionInfo()}}
 
