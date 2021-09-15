@@ -19,6 +19,11 @@ test_rng_geometry <- function()
 
     param <- SerialParam(RNGseed = 123)
 
+    ## 0 tasks
+    target <- .rng_seeds_by_task(bpstart(param), logical(), integer())
+    bpstop(param)
+    checkIdentical(list(), target)
+
     ## five independent streams
     target <- .rng_seeds_by_task(bpstart(param), !logical(5), rep(1, 5))
     bpstop(param)

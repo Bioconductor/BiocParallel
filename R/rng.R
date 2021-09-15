@@ -117,10 +117,12 @@
     for (i in seq_len(n)) {
         ## generate a seed for each element of X
         SEED <- .rng_next_substream(SEED)
-        if (i %in% keep) {
+        if (i == keep[ith_task]) {
             ## keep only the first element of each task
             task_seeds[[ith_task]] <- SEED
             ith_task <- ith_task + 1L
+            if (ith_task > length(keep))
+                break
         }
     }
 
