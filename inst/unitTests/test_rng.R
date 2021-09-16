@@ -127,6 +127,10 @@ test_rng_bplapply <- function()
         p4 <- MulticoreParam(5, RNGseed = 123)
         checkIdentical(bplapply(1:11, FUN, BPPARAM = p4), target)
     }
+
+    ## single worker coerced to SerialParam
+    p5 <- SnowParam(1, RNGseed = 123)
+    checkIdentical(bplapply(1:11, FUN, BPPARAM = p5), target, "p5")
 }
 
 test_rng_bpiterate <- function()

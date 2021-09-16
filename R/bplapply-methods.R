@@ -46,11 +46,7 @@ setMethod("bplapply", c("ANY", "list"),
         return(.rename(list(), X))
 
     if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             logdir = bplogdir(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
+        param <- as(BPPARAM, "SerialParam")
         return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
     }
 

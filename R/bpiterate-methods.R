@@ -32,11 +32,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     }
 
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             logdir = bplogdir(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
+        param <- as(BPPARAM, "SerailParam")
         return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
                          BPPARAM=param))
     }

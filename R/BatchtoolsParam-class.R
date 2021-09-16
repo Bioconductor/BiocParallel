@@ -458,12 +458,10 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     }
 
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
-        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
-                         BPPARAM=param))
+        param <- as(BPPARAM, "SerialParam")
+        return(
+            bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init, BPPARAM=param)
+        )
     }
 
     ## start / stop cluster

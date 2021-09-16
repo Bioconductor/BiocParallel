@@ -25,9 +25,17 @@
 }
 
 \usage{
-SerialParam(stop.on.error = TRUE, log = FALSE,
-    threshold = "INFO", logdir = NA_character_, progressbar = FALSE,
-    RNGseed = NULL)
+SerialParam(
+    stop.on.error = TRUE,
+    progressbar = FALSE,
+    RNGseed = NULL,
+    timeout = 30L * 24L * 60L * 60L,
+    log = FALSE,
+    threshold = "INFO",
+    logdir = NA_character_,
+    resultdir = NA_character_,
+    jobname = "BPJOB"
+)
 }
 \details{
 
@@ -80,8 +88,9 @@ SerialParam(stop.on.error = TRUE, log = FALSE,
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
       the workspace. Writing to files is done from the master as each task
-      completes. Options can be set with the \code{logdir}
-      field in the constructor or with the accessor \code{bplogdir}.
+      completes. Options can be set with the \code{logdir} and
+      \code{resultdir} fields in the constructor or with the accessors,
+      \code{bplogdir} and \code{bpresultdir}.
     }
     \item{random number generation:}{
       For \code{MulticoreParam}, \code{SnowParam}, and
@@ -119,26 +128,12 @@ SerialParam(stop.on.error = TRUE, log = FALSE,
 
 \arguments{
 
-  \item{stop.on.error}{A \code{logical} determining behavior on error;
-    see \code{\link{SnowParam}}.}
-
-  \item{log}{
-    \code{logical(1)} Enable logging; see \code{\link{SnowParam}}.
+  \item{stop.on.error}{
+    \code{logical(1)} Enable stop on error.
   }
-
-  \item{threshold}{
-    \code{character(1)} Logging threshold; see \code{\link{SnowParam}}.
-  }
-
-  \item{logdir}{
-    \code{character(1)} Log files directory. When not provided, log
-    messages are returned to stdout.
-  }
-
   \item{progressbar}{
     \code{logical(1)} Enable progress bar (based on plyr:::progress_text).
   }
-
   \item{RNGseed}{
     \code{integer(1)} Seed for random number generation. The seed is
     used to set a new, independent random number stream for each
@@ -146,6 +141,30 @@ SerialParam(stop.on.error = TRUE, log = FALSE,
     regardless of use of \code{SerialParam()}, \code{SnowParam()}, or
     \code{MulticoreParam()}, and regardless of worker or task
     number. When \code{RNGseed = NULL}, a random seed is used.
+  }
+  \item{timeout}{
+    \code{numeric(1)} Time (in seconds) allowed for worker to complete a task.
+    This value is passed to base::setTimeLimit() as both the \code{cpu} and
+    \code{elapsed} arguments. If the computation exceeds \code{timeout} an
+    error is thrown with message 'reached elapsed time limit'.
+  }
+  \item{log}{
+    \code{logical(1)} Enable logging.
+  }
+  \item{threshold}{
+    \code{character(1)} Logging threshold as defined in \code{futile.logger}.
+  }
+  \item{logdir}{
+    \code{character(1)} Log files directory. When not provided, log
+    messages are returned to stdout.
+  }
+  \item{resultdir}{
+    \code{character(1)} Job results directory. When not provided, results
+    are returned as an \R{} object (list) to the workspace.
+  }
+  \item{jobname}{
+    \code{character(1)} Job name that is prepended to log and result files.
+    Default is "BPJOB".
   }
 
 }
