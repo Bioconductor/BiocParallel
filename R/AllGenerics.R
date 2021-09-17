@@ -51,6 +51,12 @@ setGeneric("bpRNGseed",
 setGeneric("bpRNGseed<-",
     function(x, value) standardGeneric("bpRNGseed<-"))
 
+setGeneric("bpforceGC",
+    function(x) standardGeneric("bpforceGC"))
+
+setGeneric("bpforceGC<-",
+    function(x, value) standardGeneric("bpforceGC<-"))
+
 ## errors
 
 setGeneric("bpstopOnError",

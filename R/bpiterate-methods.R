@@ -46,7 +46,8 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM),
+        force.GC = bpforceGC(BPPARAM)
     )
     ARGFUN <- function(value) c(list(value), list(...))
 

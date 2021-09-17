@@ -15,7 +15,8 @@
     exportglobals=TRUE,
     progressbar=FALSE,
     RNGseed=NULL,
-    RNGstream = NULL
+    RNGstream = NULL,
+    force.GC = FALSE
 )
 
 .BiocParallelParam <- setRefClass("BiocParallelParam",
@@ -35,6 +36,7 @@
         exportglobals="logical",
         RNGseed = "ANY",        # NULL or integer(1)
         RNGstream = "ANY",      # NULL or integer(); internal use only
+        force.GC = "logical",
         ## cluster management
         .finalizer_env = "environment",
         .uid = "character"
@@ -57,6 +59,7 @@
                 "; bpprogressbar: ", bpprogressbar(.self),
                 "\n",
                 "  bpexportglobals: ", bpexportglobals(.self),
+                "; bpforceGC: ", bpforceGC(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")
@@ -127,6 +130,9 @@ setValidity("BiocParallelParam", function(object)
 
     if (!.isTRUEorFALSE(bpstopOnError(object)))
         msg <- c(msg, "'bpstopOnError' must be logical(1)")
+
+    if (length(bpforceGC(object)) != 1L)
+        msg <- c(msg, "'force.GC' must coerce to logical(1)")
 
     if (is.null(msg)) TRUE else msg
 })
@@ -264,6 +270,7 @@ setReplaceMethod("bpprogressbar", c("BiocParallelParam", "logical"),
     function(x, value)
 {
     x$progressbar <- value
+    validObject(x)
     x
 })
 
@@ -277,6 +284,7 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "NULL"),
     function(x, value)
 {
     x$RNGseed <- NULL
+    validObject(x)
     x
 })
 
@@ -284,6 +292,7 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
     function(x, value)
 {
     x$RNGseed <- as.integer(value)
+    validObject(x)
     x
 })
 
@@ -310,6 +319,20 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
     ## stream only in bpstart_impl
     .RNGstream(x) <- .rng_next_stream(.RNGstream(x))
 }
+
+setMethod("bpforceGC", "BiocParallelParam",
+    function(x)
+{
+    x$force.GC
+})
+
+setReplaceMethod("bpforceGC", c("BiocParallelParam", "numeric"),
+    function(x, value)
+{
+    x$force.GC <- as.logical(value)
+    validObject(x)
+    x
+})
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation

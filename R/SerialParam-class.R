@@ -25,7 +25,8 @@ SerialParam <-
              timeout = 30L * 24L * 60L * 60L,
              log=FALSE, threshold="INFO", logdir=NA_character_,
              resultdir = NA_character_,
-             jobname = "BPJOB")
+             jobname = "BPJOB",
+             force.GC = FALSE)
 {
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
@@ -35,6 +36,9 @@ SerialParam <-
     } else {
         tasks <- 0L
     }
+
+    if (length(force.GC) == 1L && is.na(force.GC))
+        force.GC <- FALSE
 
     prototype <- .prototype_update(
         .SerialParam_prototype,
@@ -47,7 +51,8 @@ SerialParam <-
         threshold=threshold,
         logdir=logdir,
         resultdir = resultdir,
-        jobname = jobname
+        jobname = jobname,
+        force.GC = as.logical(force.GC)
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
@@ -55,6 +60,10 @@ SerialParam <-
 }
 
 setAs("BiocParallelParam", "SerialParam", function(from) {
+    force.GC <- bpforceGC(from)
+    if (is.na(force.GC))
+        force.GC <- FALSE
+
     SerialParam(
         stop.on.error = bpstopOnError(from),
         progressbar = bpprogressbar(from),
@@ -64,7 +73,8 @@ setAs("BiocParallelParam", "SerialParam", function(from) {
         threshold = bpthreshold(from),
         logdir = bplogdir(from),
         resultdir = bpresultdir(from),
-        jobname = bpjobname(from)
+        jobname = bpjobname(from),
+        force.GC = force.GC
     )
 })
 
@@ -147,7 +157,8 @@ setMethod("bplapply", c("ANY", "SerialParam"),
 
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=FALSE
+        timeout=bptimeout(BPPARAM), exportglobals=FALSE,
+        force.GC = bpforceGC(BPPARAM)
     )
 
     progress <- .progress(active=bpprogressbar(BPPARAM))
@@ -206,7 +217,8 @@ setMethod("bpiterate", c("ANY", "ANY", "SerialParam"),
 
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=FALSE
+        timeout=bptimeout(BPPARAM), exportglobals=FALSE,
+        force.GC = bpforceGC(BPPARAM)
     )
     progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
     on.exit(progress$term(), TRUE)
