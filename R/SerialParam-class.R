@@ -20,22 +20,53 @@
 
 SerialParam <-
     function(stop.on.error = TRUE,
+             progressbar=FALSE,
+             RNGseed = NULL,
+             timeout = 30L * 24L * 60L * 60L,
              log=FALSE, threshold="INFO", logdir=NA_character_,
-             progressbar=FALSE, RNGseed = NULL)
+             resultdir = NA_character_,
+             jobname = "BPJOB")
 {
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
 
+    if (progressbar) {
+        tasks <- .Machine$integer.max
+    } else {
+        tasks <- 0L
+    }
+
     prototype <- .prototype_update(
         .SerialParam_prototype,
+        tasks = tasks,
         stop.on.error=stop.on.error,
-        log=log, threshold=threshold, logdir=logdir,
-        progressbar=progressbar, RNGseed = RNGseed
+        progressbar=progressbar,
+        RNGseed = RNGseed,
+        timeout = as.integer(timeout),
+        log=log,
+        threshold=threshold,
+        logdir=logdir,
+        resultdir = resultdir,
+        jobname = jobname
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
     x
 }
+
+setAs("BiocParallelParam", "SerialParam", function(from) {
+    SerialParam(
+        stop.on.error = bpstopOnError(from),
+        progressbar = bpprogressbar(from),
+        RNGseed = bpRNGseed(from),
+        timeout = bptimeout(from),
+        log = bplog(from),
+        threshold = bpthreshold(from),
+        logdir = bplogdir(from),
+        resultdir = bpresultdir(from),
+        jobname = bpjobname(from)
+    )
+})
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - control

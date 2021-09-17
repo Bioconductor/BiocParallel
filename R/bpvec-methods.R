@@ -14,9 +14,14 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
 
-    if (!bpschedule(BPPARAM))
-        return(bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
-               BPPARAM=SerialParam()))
+    if (!bpschedule(BPPARAM)) {
+        param <- as(BPPARAM, "SerialParam")
+        return(
+            bpvec(
+                X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM = param
+            )
+        )
+    }
 
     si <- .splitX(seq_along(X), bpnworkers(BPPARAM), bptasks(BPPARAM))
     otasks <- bptasks(BPPARAM)
