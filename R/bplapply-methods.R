@@ -30,6 +30,19 @@ setMethod("bplapply", c("ANY", "list"),
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
 
+.dummy_ITER <- function(X, redo_index){
+    i <- 0L
+    n <- length(redo_index)
+    function(){
+        if (i < n) {
+            i <<- i + 1L
+            X[[redo_index[i]]]
+        }else{
+            NULL
+        }
+    }
+}
+
 .bplapply_impl <-
     function(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
 {
@@ -40,68 +53,37 @@ setMethod("bplapply", c("ANY", "list"),
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .send_to, .recv_any, .send, .recv, .close
-    FUN <- match.fun(FUN)
 
-    if (!length(X))
-        return(.rename(list(), X))
-
-    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
-        param <- SerialParam(stop.on.error=bpstopOnError(BPPARAM),
-                             log=bplog(BPPARAM),
-                             threshold=bpthreshold(BPPARAM),
-                             logdir = bplogdir(BPPARAM),
-                             progressbar=bpprogressbar(BPPARAM))
-        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
-    }
 
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
     if (any(redo_index)) {
-        X <- X[redo_index]
-        compute_element <- redo_index
+        redo_index <- which(redo_index)
     } else {
-        compute_element <- rep(TRUE, length(X))
-    }
-    nms <- names(X)
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        if (is(BPPARAM, "MulticoreParam"))
-            BPPARAM <- TransientMulticoreParam(BPPARAM)
-        BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM), TRUE)
+        redo_index <- seq_along(X)
     }
 
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
-    )
+    ## iterator for X
+    ITER <- .dummy_ITER(X, redo_index)
 
-    ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    BPRNGSEEDS <- .rng_seeds_by_task(BPPARAM, compute_element, lengths(X))
-    ARGFUN <- function(i)
-        c(
-            list(X=X[[i]]), list(FUN=FUN), list(...),
-            list(BPRNGSEED = BPRNGSEEDS[[i]])
-        )
+    res <- .bpiterate_impl(ITER = ITER,
+                           FUN = FUN,
+                           ...,
+                           init = list(),
+                           REDUCE = function(x, y) append(x, list(y)),
+                           reduce.in.order = TRUE,
+                           BPPARAM = BPPARAM,
+                           value.index = redo_index)
 
-    cls <- structure(list(), class="lapply")
-    res <- bploop(cls, X, .rng_lapply, ARGFUN, BPPARAM)
+    # if (!is.null(res)) {
+    #     res <- do.call(unlist, list(res, recursive=FALSE))
+    #     names(res) <- nms
+    # }
 
-    if (!is.null(res)) {
-        res <- do.call(unlist, list(res, recursive=FALSE))
-        names(res) <- nms
-    }
-
-    if (any(redo_index)) {
+    if (length(redo_index)) {
         BPREDO[redo_index] <- res
         res <- BPREDO
     }
-
-    if (!all(bpok(res)))
-        stop(.error_bplist(res))
 
     res
 }

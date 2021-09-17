@@ -14,7 +14,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
 
 .bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-             BPPARAM = bpparam())
+             BPPARAM = bpparam(), value.index = NULL)
 {
     ## Required API
     ##
@@ -55,6 +55,17 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ARGFUN <- function(value) c(list(value), list(...))
 
     ## FIXME: handle errors via bpok()
-    bploop(structure(list(), class="iterate"), # dispatch
+    res <- bploop(structure(list(), class="iterate"), # dispatch
            ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order)
+
+
+    if (!all(bpok(res)) && bpstopOnError(BPPARAM)){
+        if(!is.null(value.index)){
+            error_res <- res
+            res <- vector("list", value.index[length(res)])
+            res[value.index[seq_along(error_res)]] <- error_res
+        }
+        stop(.error_bplist(res))
+    }
+    res
 }
