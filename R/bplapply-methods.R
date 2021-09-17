@@ -71,7 +71,8 @@ setMethod("bplapply", c("ANY", "list"),
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM),
+        force.GC = bpforceGC(BPPARAM)
     )
 
     ## split into tasks

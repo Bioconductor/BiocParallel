@@ -71,6 +71,10 @@
 \alias{bpRNGseed,BiocParallelParam-method}
 \alias{bpRNGseed<-,BiocParallelParam,NULL-method}
 \alias{bpRNGseed<-,BiocParallelParam,numeric-method}
+\alias{bpforceGC}
+\alias{bpforceGC,BiocParallelParam-method}
+\alias{bpforceGC<-}
+\alias{bpforceGC<-,BiocParallelParam,numeric-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -232,6 +236,11 @@
       \item{}{
         \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 
         Get or set the job name.
+      }
+      \item{}{
+        \code{bpforceGC(x)}, \code{bpforceGC(x) <- value}:
+        Get or set whether 'garbage collection' should be invoked at the
+        end of each call to \code{FUN}.
       }
     }
   }

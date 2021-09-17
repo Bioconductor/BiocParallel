@@ -10,3 +10,14 @@ test_MulticoreParam_progressbar <- function()
         .Machine$integer.max
     )
 }
+
+test_MulticoreParam_bpforceGC <- function() {
+    if (.Platform$OS.type == "windows")
+        return()
+
+    checkIdentical(TRUE, bpforceGC(MulticoreParam()))
+    checkIdentical(FALSE, bpforceGC(MulticoreParam(force.GC = FALSE)))
+    checkIdentical(TRUE, bpforceGC(MulticoreParam(force.GC = TRUE)))
+    checkException(MulticoreParam(force.GC = NA), silent = TRUE)
+    checkException(MulticoreParam(force.GC = 1:2), silent = TRUE)
+}

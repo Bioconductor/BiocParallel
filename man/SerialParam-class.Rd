@@ -34,7 +34,8 @@ SerialParam(
     threshold = "INFO",
     logdir = NA_character_,
     resultdir = NA_character_,
-    jobname = "BPJOB"
+    jobname = "BPJOB",
+    force.GC = FALSE
 )
 }
 \details{
@@ -165,6 +166,11 @@ SerialParam(
   \item{jobname}{
     \code{character(1)} Job name that is prepended to log and result files.
     Default is "BPJOB".
+  }
+  \item{force.GC}{
+    \code{logical(1)} Whether to invoke the garbage collector after each
+    call to \code{FUN}. The default (\code{FALSE}, do not explicitly
+    call the garbage collection) rarely needs to be changed.
   }
 
 }
