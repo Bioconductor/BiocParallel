@@ -58,23 +58,6 @@ setMethod("bplapply", c("ANY", "list"),
     if (!length(X))
         return(.rename(list(), X))
 
-    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
-        param <- as(BPPARAM, "SerialParam")
-        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
-    }
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
-    )
-
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
     if (any(redo_index)) {
@@ -93,23 +76,15 @@ setMethod("bplapply", c("ANY", "list"),
 
     ARGS <- list(...)
 
-    cls <- structure(list(), class="iterate")
-    res <- bploop(cls, # dispatch
-           ITER, FUN, ARGS, BPPARAM,
-           init = list(),
-           REDUCE = c,
-           reduce.in.order = TRUE)
-
-    # res <- bpinit(X = X,
-    #               FUN = FUN,
-    #               ARGS = ARGS,
-    #               BPPARAM = BPPARAM,
-    #        init = list(),
-    #        REDUCE = c,
-    #        reduce.in.order = TRUE
-    #        )
-
-
+    res <- bpinit(
+        ITER = ITER,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM,
+        init = list(),
+        REDUCE = c,
+        reduce.in.order = TRUE
+    )
 
 
     if (!is.null(res)) {

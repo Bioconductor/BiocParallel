@@ -22,10 +22,12 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .sendto, .recvfrom, .recv, .close
+
+    FUN <- match.fun(FUN)
+
     ITER_ <- function(){
         list(ITER())
     }
-    FUN <- match.fun(FUN)
 
     if (missing(REDUCE)) {
         if (reduce.in.order)
@@ -41,33 +43,17 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
             init <- list()
     }
 
-    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- as(BPPARAM, "SerailParam")
-        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
-                         BPPARAM=param))
-    }
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
-    )
     ARGS <- list(...)
 
-    ## FIXME: handle errors via bpok()
-    cls <- structure(list(), class="iterate")
-    res <- bploop(cls, # dispatch
-                  ITER_, FUN, ARGS, BPPARAM,
-                  init = init,
-                  REDUCE = REDUCE_,
-                  reduce.in.order = reduce.in.order)
-
+    res <- bpinit(
+        ITER = ITER_,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM,
+        init = init,
+        REDUCE = REDUCE_,
+        reduce.in.order = reduce.in.order
+    )
 
     if (!all(bpok(res)) && bpstopOnError(BPPARAM)){
         stop(.error_bplist(res))
