@@ -30,7 +30,7 @@ setMethod("bplapply", c("ANY", "list"),
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
 
-.dummy_ITER <- function(X){
+.dummy_iter <- function(X){
     i <- 0L
     n <- length(X)
     function(){
@@ -61,18 +61,18 @@ setMethod("bplapply", c("ANY", "list"),
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
     if (any(redo_index)) {
-        X <- X[redo_index]
         compute_element <- which(redo_index)
+        X <- X[compute_element]
     } else {
-        compute_element <- seq_along(X)
+        compute_element <- NULL
     }
     nms <- names(X)
 
     ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM), redo_index)
 
     ## iterator for X
-    ITER <- .dummy_ITER(X)
+    ITER <- .dummy_iter(X)
 
     ARGS <- list(...)
 
@@ -81,21 +81,21 @@ setMethod("bplapply", c("ANY", "list"),
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM = BPPARAM,
-        init = list(),
         REDUCE = c,
         reduce.in.order = TRUE
     )
-
-
-    if (!is.null(res)) {
-        # res <- do.call(unlist, list(res, recursive=FALSE))
-        names(res) <- nms
-    }
 
     if (length(compute_element)) {
         BPREDO[compute_element] <- res
         res <- BPREDO
     }
+
+    if (!is.null(res)) {
+        names(res) <- nms
+    }
+
+    if (!all(bpok(res)) && bpstopOnError(BPPARAM))
+        stop(.error_bplist(res))
 
     res
 }

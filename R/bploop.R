@@ -104,6 +104,24 @@
     result
 }
 
+.wait_results <- function(cl, running, reducer)
+{
+    tryCatch({
+        setTimeLimit(30, 30, TRUE)
+        on.exit(setTimeLimit(Inf, Inf, FALSE))
+        while (any(running)) {
+            d <- .recv_any(cl)
+            njob <- d$value$tag
+            value <- d$value$value
+            reducer$add(njob, value)
+            running[d$node] <- FALSE
+        }
+    }, error=function(e) {
+        warning(.error_worker_comm(e, "stop worker failed"))
+    })
+    reducer
+}
+
 .manager_log <- function(BPPARAM, njob, d) {
     if (bplog(BPPARAM)) {
         con <- NULL
@@ -244,6 +262,12 @@ bploop.lapply <-
     else result
 }
 
+
+.iterate_seed <- function(seed, n){
+    for(k in seq_len(n))
+        seed <- .rng_next_substream(seed)
+    seed
+}
 ##
 ## bploop.iterate():
 ##
@@ -252,41 +276,12 @@ bploop.lapply <-
 ## - length of 'X' is unknown (defined by ITER())
 ## - results not pre-allocated; list grows each iteration if no REDUCE
 ## - args wrapped in arglist with different chunks from ITER()
-##
-
-
-.rng_seed <- function(BPPARAM){
-    state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
-
-    seed <- .bpnextRNGstream(BPPARAM)
-    seed <- .rng_reset_generator("L'Ecuyer-CMRG", stream_seed)$seed
-    seed
-    # seed <- .rng_next_substream(seed)
-    # function(){
-    #     old_seed <- seed
-    #     for(k in seq_len(task.size.iter()))
-    #         seed <- .rng_next_substream(seed)
-    #     old_seed
-    # }
-}
-
-.vectorize_FUN <- function(FUN){
-    FUN <- match.fun(FUN)
-    function(X, ...){
-        lapply(X, FUN, ...)
-    }
-}
-
-.rng_task_fun_factory <- function(FUN, SEED){
-
-}
-
-
-## ITER: Return a list where each list element will be passed to FUN,
-## if nothing to proceed, it should return list(NULL)
-## FUN: A function that accepts a scalar X
-## REDUCE(x, y): combine x and y where y is a list with each element returned by FUN
+## Arguments
+## - ITER: Return a list where each list element will be passed to FUN,
+##   if nothing to proceed, it should return list(NULL)
+## - FUN: A function that accepts a scalar X
+## - REDUCE(x, y): combine x and y where y is a list with each element
+##   returned by FUN
 bploop.iterate <-
     function(manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order)
 {
@@ -311,6 +306,10 @@ bploop.iterate <-
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
+        if (inherits(value, "rng_iter")) {
+            seed <- .iterate_seed(seed, value)
+            value <- ITER()
+        }
         if (is.null(value[[1]])) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
@@ -318,8 +317,7 @@ bploop.iterate <-
         }
         value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
         running[i] <- .send_to(cl, i, value_)
-        for(k in seq_along(value))
-            seed <- .rng_next_substream(seed)
+        seed <- .iterate_seed(seed, length(value))
     }
 
     repeat {
@@ -343,18 +341,21 @@ bploop.iterate <-
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             ## stop on error; let running jobs finish, do not re-load
             ## FIXME: harvest assigned jobs
-            .clear_cluster(cl, running)
+            reducer <- .wait_results(cl, running, reducer)
             break
         }
 
         ## re-load
         value <- ITER()
+        if (inherits(value, "rng_iter")) {
+            seed <- .iterate_seed(seed, value)
+            value <- ITER()
+        }
         if (!is.null(value[[1]])) {
             i <- i + 1L
             value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
             running[d$node] <- .send_to(cl, d$node, value_)
-            for(k in seq_along(value))
-                seed <- .rng_next_substream(seed)
+            seed <- .iterate_seed(seed, length(value))
         }
     }
 

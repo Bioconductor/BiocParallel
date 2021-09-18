@@ -12,7 +12,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
 
-
+## TODO: support BPREDO
 .bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
              BPPARAM = bpparam())
@@ -29,17 +29,24 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         list(ITER())
     }
 
+    missing.init <- missing(init)
     if (missing(REDUCE)) {
         if (reduce.in.order)
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
-        if (!missing(init))
+        if (!missing.init)
             stop("REDUCE must be provided when 'init' is given")
         REDUCE_ <- c
     }else{
+        REDUCE <- match.fun(REDUCE)
         REDUCE_ <- function(x, y){
-            REDUCE(x, y[[1]])
+            if(missing.init){
+                missing.init <<- FALSE
+                y[[1]]
+            }else{
+                REDUCE(x, y[[1]])
+            }
         }
-        if (missing(init))
+        if(missing.init)
             init <- list()
     }
 

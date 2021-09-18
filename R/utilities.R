@@ -65,15 +65,71 @@
     }
 }
 
-.splitX <- function(X, workers, tasks) 
+.divideTask <- function(start_idx, nworks, works_per_task){
+    if(nworks > works_per_task){
+        task_sizes <- rep(works_per_task, nworks%/%works_per_task)
+        if(nworks%%works_per_task != 0)
+            task_sizes <- c(task_sizes, nworks%%works_per_task)
+    }else{
+        task_sizes <- nworks
+    }
+    task_idx <- cumsum(c(start_idx, task_sizes))[seq_along(task_sizes)]
+    data.frame(idx = task_idx, nworks = task_sizes)
+}
+
+
+.splitX <- function(X, workers, tasks, redo_index = NULL)
 {
     if (tasks == 0L) {
         tasks <- workers
     } else {
         tasks <- min(length(X), tasks)
     }
-    idx <- .splitIndices(length(X), tasks)
-    relist(X, idx)
+    ## If redo index presents, split X based on the index while
+    ## try it best to respect `tasks` setting
+    if (length(redo_index)){
+        works_per_task <- ceiling(length(X)/max(tasks, 1L))
+        rles <- rle(redo_index)
+        tasks <- which(rles$values)
+        start_idx <- cumsum(c(1, rles$lengths))[tasks]
+        lengthes <- rles$lengths[tasks]
+
+        task_division <- lapply(seq_along(lengthes),
+                                function(i) .divideTask(start_idx[i],
+                                                        lengthes[i],
+                                                        works_per_task)
+        )
+        task_division <- do.call(rbind, task_division)
+        ## The total number of tasks + seed iteration being generated
+        ntasks <- nrow(task_division) + sum(!head(rles$values, -1))
+
+        ## X is just the partial X which needs to compute, not the full X
+        ## Given the index of the full X, we need to map it
+        ## back to the index of the partial X
+        X_idx <- rep(0, length(redo_index))
+        X_idx[redo_index] <- seq_len(sum(redo_index))
+        Xlist <- rep(list(NULL), ntasks)
+        work_i <- 1L
+        task_i <- 1L
+        Xlist_i <- 1L
+        for(Xlist_i in seq_len(ntasks)){
+            task_start_idx <- task_division$idx[task_i]
+            if(work_i != task_start_idx){
+                Xlist[[Xlist_i]] <- .rng_iter(task_start_idx - work_i)
+                work_i <- task_start_idx
+            }else{
+                task_size <- task_division$nworks[task_i]
+                Xlist[[Xlist_i]] <- X[X_idx[seq.int(from = task_start_idx, length.out = task_size)]]
+                work_i <- work_i + task_size
+                task_i <- task_i + 1
+            }
+        }
+        Xlist
+    }else{
+        idx <- .splitIndices(length(X), tasks)
+        relist(X, idx)
+    }
+
 }
 
 .redo_index <-

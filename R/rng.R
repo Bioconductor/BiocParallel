@@ -1,3 +1,8 @@
+## Force bploop to iterate the seed stream n times
+.rng_iter <- function(n) {
+    structure(n, class = c("rng_iter"))
+}
+
 ## .rng_get_generator(): get the current generator kind and seed
 .rng_get_generator <-
     function()
