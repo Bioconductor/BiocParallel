@@ -37,9 +37,6 @@ SerialParam <-
         tasks <- 0L
     }
 
-    if (length(force.GC) == 1L && is.na(force.GC))
-        force.GC <- FALSE
-
     prototype <- .prototype_update(
         .SerialParam_prototype,
         tasks = tasks,
@@ -52,7 +49,7 @@ SerialParam <-
         logdir=logdir,
         resultdir = resultdir,
         jobname = jobname,
-        force.GC = as.logical(force.GC)
+        force.GC = force.GC
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
@@ -60,10 +57,6 @@ SerialParam <-
 }
 
 setAs("BiocParallelParam", "SerialParam", function(from) {
-    force.GC <- bpforceGC(from)
-    if (is.na(force.GC))
-        force.GC <- FALSE
-
     SerialParam(
         stop.on.error = bpstopOnError(from),
         progressbar = bpprogressbar(from),
@@ -74,7 +67,7 @@ setAs("BiocParallelParam", "SerialParam", function(from) {
         logdir = bplogdir(from),
         resultdir = bpresultdir(from),
         jobname = bpjobname(from),
-        force.GC = force.GC
+        force.GC = bpforceGC(from)
     )
 })
 

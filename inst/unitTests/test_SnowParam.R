@@ -115,8 +115,8 @@ test_SnowParam_progressbar <- function()
 
 test_SnowParam_bpforceGC <- function() {
     checkIdentical(FALSE, bpforceGC(SnowParam()))
-    checkIdentical(FALSE, bpforceGC(SnowParam(force.GC = NA)))
     checkIdentical(FALSE, bpforceGC(SnowParam(force.GC = FALSE)))
     checkIdentical(TRUE, bpforceGC(SnowParam(force.GC = TRUE)))
+    checkException(SnowParam(force.GC = NA), silent = TRUE)
     checkException(SnowParam(force.GC = 1:2), silent = TRUE)
 }

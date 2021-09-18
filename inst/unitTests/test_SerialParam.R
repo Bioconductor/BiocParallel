@@ -12,9 +12,9 @@ test_SerialParam_bpbackend <- function() {
 
 test_SerialParam_bpforceGC <- function() {
     checkIdentical(FALSE, bpforceGC(SerialParam()))
-    checkIdentical(FALSE, bpforceGC(SerialParam(force.GC = NA)))
     checkIdentical(FALSE, bpforceGC(SerialParam(force.GC = FALSE)))
     checkIdentical(TRUE, bpforceGC(SerialParam(force.GC = TRUE)))
+    checkException(SerialParam(force.GC = NA), silent = TRUE)
     checkException(SerialParam(force.GC = 1:2), silent = TRUE)
 }
 

@@ -16,8 +16,8 @@ test_MulticoreParam_bpforceGC <- function() {
         return()
 
     checkIdentical(TRUE, bpforceGC(MulticoreParam()))
-    checkIdentical(TRUE, bpforceGC(MulticoreParam(force.GC = NA)))
     checkIdentical(FALSE, bpforceGC(MulticoreParam(force.GC = FALSE)))
     checkIdentical(TRUE, bpforceGC(MulticoreParam(force.GC = TRUE)))
+    checkException(MulticoreParam(force.GC = NA), silent = TRUE)
     checkException(MulticoreParam(force.GC = 1:2), silent = TRUE)
 }

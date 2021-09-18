@@ -129,10 +129,10 @@ setValidity("BiocParallelParam", function(object)
     }
 
     if (!.isTRUEorFALSE(bpstopOnError(object)))
-        msg <- c(msg, "'bpstopOnError' must be logical(1)")
+        msg <- c(msg, "'bpstopOnError' must be TRUE or FALSE")
 
-    if (length(bpforceGC(object)) != 1L)
-        msg <- c(msg, "'force.GC' must coerce to logical(1)")
+    if (!.isTRUEorFALSE(bpforceGC(object)))
+        msg <- c(msg, "'force.GC' must be TRUE or FALSE")
 
     if (is.null(msg)) TRUE else msg
 })

@@ -136,9 +136,6 @@ SnowParam <- function(workers=snowWorkers(type),
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
 
-    if (length(force.GC) == 1L && is.na(force.GC))
-        force.GC = FALSE
-
     prototype <- .prototype_update(
         .SnowParam_prototype,
         .clusterargs=clusterargs,
@@ -148,7 +145,7 @@ SnowParam <- function(workers=snowWorkers(type),
         timeout=as.integer(timeout), exportglobals=exportglobals,
         log=log, threshold=threshold, logdir=logdir,
         resultdir=resultdir, jobname=jobname,
-        force.GC = as.logical(force.GC),
+        force.GC = force.GC,
         hostname=manager.hostname, port=manager.port,
         ...
     )

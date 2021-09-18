@@ -51,9 +51,6 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
 
-    if (length(force.GC) == 1L && is.na(force.GC))
-        force.GC <- TRUE
-
     prototype <- .prototype_update(
         .MulticoreParam_prototype,
         .clusterargs=clusterargs, cluster=.NULLcluster(),
@@ -65,7 +62,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         exportglobals=exportglobals,
         log=log, threshold=threshold,
         logdir=logdir, resultdir=resultdir, jobname=jobname,
-        force.GC = as.logical(force.GC),
+        force.GC = force.GC,
         hostname=manager.hostname, port=manager.port,
         ...
     )
