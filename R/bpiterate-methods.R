@@ -12,16 +12,19 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
 
+
 .bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-             BPPARAM = bpparam(), value.index = NULL)
+             BPPARAM = bpparam())
 {
     ## Required API
     ##
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .sendto, .recvfrom, .recv, .close
-    ITER <- match.fun(ITER)
+    ITER_ <- function(){
+        list(ITER())
+    }
     FUN <- match.fun(FUN)
 
     if (missing(REDUCE)) {
@@ -29,6 +32,13 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
         if (!missing(init))
             stop("REDUCE must be provided when 'init' is given")
+        REDUCE_ <- c
+    }else{
+        REDUCE_ <- function(x, y){
+            REDUCE(x, y[[1]])
+        }
+        if (missing(init))
+            init <- list()
     }
 
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
@@ -48,19 +58,18 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
         timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
-    ARGFUN <- function(value) c(list(value), list(...))
+    ARGS <- list(...)
 
     ## FIXME: handle errors via bpok()
-    res <- bploop(structure(list(), class="iterate"), # dispatch
-           ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order)
+    cls <- structure(list(), class="iterate")
+    res <- bploop(cls, # dispatch
+                  ITER_, FUN, ARGS, BPPARAM,
+                  init = init,
+                  REDUCE = REDUCE_,
+                  reduce.in.order = reduce.in.order)
 
 
     if (!all(bpok(res)) && bpstopOnError(BPPARAM)){
-        if(!is.null(value.index)){
-            error_res <- res
-            res <- vector("list", value.index[length(res)])
-            res[value.index[seq_along(error_res)]] <- error_res
-        }
         stop(.error_bplist(res))
     }
     res

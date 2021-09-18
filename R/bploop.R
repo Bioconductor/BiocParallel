@@ -254,11 +254,46 @@ bploop.lapply <-
 ## - args wrapped in arglist with different chunks from ITER()
 ##
 
+
+.rng_seed <- function(BPPARAM){
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    seed <- .bpnextRNGstream(BPPARAM)
+    seed <- .rng_reset_generator("L'Ecuyer-CMRG", stream_seed)$seed
+    seed
+    # seed <- .rng_next_substream(seed)
+    # function(){
+    #     old_seed <- seed
+    #     for(k in seq_len(task.size.iter()))
+    #         seed <- .rng_next_substream(seed)
+    #     old_seed
+    # }
+}
+
+.vectorize_FUN <- function(FUN){
+    FUN <- match.fun(FUN)
+    function(X, ...){
+        lapply(X, FUN, ...)
+    }
+}
+
+.rng_task_fun_factory <- function(FUN, SEED){
+
+}
+
+
+## ITER: Return a list where each list element will be passed to FUN,
+## if nothing to proceed, it should return list(NULL)
+## FUN: A function that accepts a scalar X
+## REDUCE(x, y): combine x and y where y is a list with each element returned by FUN
 bploop.iterate <-
-    function(manager, ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order,
-             ...)
+    function(manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order)
 {
     cl <- bpbackend(BPPARAM)
+
+    seed <- .bpnextRNGstream(BPPARAM)
+    seed <- .rng_next_substream(seed)
 
     workers <- length(cl)
     running <- logical(workers)
@@ -268,20 +303,23 @@ bploop.iterate <-
     on.exit(progress$term(), TRUE)
     progress$init()
 
-    BPRNGSEED <- .rng_seeds_by_task(BPPARAM, TRUE, 1L)[[1]]
-
+    ARGFUN <- function(X, seed)
+        c(
+            list(X=X), list(FUN=FUN), ARGS,
+            list(BPRNGSEED = seed)
+        )
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
-        if (is.null(value)) {
+        if (is.null(value[[1]])) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
             break
         }
-        FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
-        BPRNGSEED <- .rng_next_substream(BPRNGSEED)
-        value <- .EXEC(i, FUN_, ARGFUN(value))
-        running[i] <- .send_to(cl, i, value)
+        value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
+        running[i] <- .send_to(cl, i, value_)
+        for(k in seq_along(value))
+            seed <- .rng_next_substream(seed)
     }
 
     repeat {
@@ -311,12 +349,12 @@ bploop.iterate <-
 
         ## re-load
         value <- ITER()
-        if (!is.null(value)) {
+        if (!is.null(value[[1]])) {
             i <- i + 1L
-            FUN_ <- .rng_job_fun_factory(FUN, BPRNGSEED)
-            BPRNGSEED <- .rng_next_substream(BPRNGSEED)
-            value <- .EXEC(i, FUN_, ARGFUN(value))
-            running[d$node] <- .send_to(cl, d$node, value)
+            value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
+            running[d$node] <- .send_to(cl, d$node, value_)
+            for(k in seq_along(value))
+                seed <- .rng_next_substream(seed)
         }
     }
 

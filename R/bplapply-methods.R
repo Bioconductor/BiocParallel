@@ -30,13 +30,13 @@ setMethod("bplapply", c("ANY", "list"),
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
 
-.dummy_ITER <- function(X, redo_index){
+.dummy_ITER <- function(X){
     i <- 0L
-    n <- length(redo_index)
+    n <- length(X)
     function(){
         if (i < n) {
             i <<- i + 1L
-            X[[redo_index[i]]]
+            X[[i]]
         }else{
             NULL
         }
@@ -53,35 +53,72 @@ setMethod("bplapply", c("ANY", "list"),
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .send_to, .recv_any, .send, .recv, .close
+    FUN <- match.fun(FUN)
 
+    if (!length(X))
+        return(.rename(list(), X))
+
+    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
+        param <- as(BPPARAM, "SerialParam")
+        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
+    }
+
+    ## start / stop cluster
+    if (!bpisup(BPPARAM)) {
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE)
+    }
+
+    ## FUN
+    FUN <- .composeTry(
+        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+    )
 
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
     if (any(redo_index)) {
-        redo_index <- which(redo_index)
+        X <- X[redo_index]
+        compute_element <- which(redo_index)
     } else {
-        redo_index <- seq_along(X)
+        compute_element <- seq_along(X)
     }
+    nms <- names(X)
+
+    ## split into tasks
+    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
 
     ## iterator for X
-    ITER <- .dummy_ITER(X, redo_index)
+    ITER <- .dummy_ITER(X)
 
-    res <- .bpiterate_impl(ITER = ITER,
-                           FUN = FUN,
-                           ...,
-                           init = list(),
-                           REDUCE = function(x, y) append(x, list(y)),
-                           reduce.in.order = TRUE,
-                           BPPARAM = BPPARAM,
-                           value.index = redo_index)
+    ARGS <- list(...)
 
-    # if (!is.null(res)) {
-    #     res <- do.call(unlist, list(res, recursive=FALSE))
-    #     names(res) <- nms
-    # }
+    cls <- structure(list(), class="iterate")
+    res <- bploop(cls, # dispatch
+           ITER, FUN, ARGS, BPPARAM,
+           init = list(),
+           REDUCE = c,
+           reduce.in.order = TRUE)
 
-    if (length(redo_index)) {
-        BPREDO[redo_index] <- res
+    # res <- bpinit(X = X,
+    #               FUN = FUN,
+    #               ARGS = ARGS,
+    #               BPPARAM = BPPARAM,
+    #        init = list(),
+    #        REDUCE = c,
+    #        reduce.in.order = TRUE
+    #        )
+
+
+
+
+    if (!is.null(res)) {
+        # res <- do.call(unlist, list(res, recursive=FALSE))
+        names(res) <- nms
+    }
+
+    if (length(compute_element)) {
+        BPREDO[compute_element] <- res
         res <- BPREDO
     }
 
