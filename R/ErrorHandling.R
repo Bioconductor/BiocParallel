@@ -1,5 +1,5 @@
 ### =========================================================================
-### Error handling 
+### Error handling
 ### -------------------------------------------------------------------------
 
 bpok <- function(x) {
@@ -96,7 +96,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .condition_remote <- function(x, call) {
     ## BatchJobs does not return errors
     structure(x, class = c("remote_error", "bperror", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error <- function(msg, class=NULL) {
@@ -106,7 +106,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
 .error_remote <- function(x, call) {
     structure(x, class = c("remote_error", "bperror", "error", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error_unevaluated <- function()
@@ -129,7 +129,8 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
 .error_bplist <- function(result) {
     idx <- which(!bpok(result) &
-                  !vapply(result, inherits, logical(1), "not_available_error"))
+                  !vapply(result, inherits, logical(1), "not_available_error")&
+                  !vapply(result, inherits, logical(1), "unevaluated_error"))
     err <- structure(list(
         message=sprintf(
             "BiocParallel errors\n  element index: %s%s\n  first error: %s",
