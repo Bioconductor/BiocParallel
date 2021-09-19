@@ -25,7 +25,8 @@ SerialParam <-
              timeout = 30L * 24L * 60L * 60L,
              log=FALSE, threshold="INFO", logdir=NA_character_,
              resultdir = NA_character_,
-             jobname = "BPJOB")
+             jobname = "BPJOB",
+             force.GC = FALSE)
 {
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
@@ -47,7 +48,8 @@ SerialParam <-
         threshold=threshold,
         logdir=logdir,
         resultdir = resultdir,
-        jobname = jobname
+        jobname = jobname,
+        force.GC = force.GC
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
@@ -64,7 +66,8 @@ setAs("BiocParallelParam", "SerialParam", function(from) {
         threshold = bpthreshold(from),
         logdir = bplogdir(from),
         resultdir = bpresultdir(from),
-        jobname = bpjobname(from)
+        jobname = bpjobname(from),
+        force.GC = bpforceGC(from)
     )
 })
 

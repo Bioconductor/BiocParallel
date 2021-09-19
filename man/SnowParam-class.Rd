@@ -53,6 +53,7 @@ SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           timeout = 30L * 24L * 60L * 60L, exportglobals = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
           resultdir = NA_character_, jobname = "BPJOB",
+          force.GC = FALSE,
           manager.hostname = NA_character_, manager.port = NA_integer_,
           ...)
 
@@ -258,6 +259,11 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   \item{jobname}{
     \code{character(1)} Job name that is prepended to log and result files.
     Default is "BPJOB".
+  }
+  \item{force.GC}{
+    \code{logical(1)} Whether to invoke the garbage collector after each
+    call to \code{FUN}. The default (\code{FALSE}, do not explicitly
+    call the garbage collection) rarely needs to be changed.
   }
   \item{manager.hostname}{
     \code{character(1)} Host name of manager node. See 'Global Options',

@@ -14,7 +14,8 @@ bpinit <- function(manager, FUN, BPPARAM, ...){
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM),
+        force.GC = bpforceGC(BPPARAM)
     )
 
     res <- bploop(manager, # dispatch

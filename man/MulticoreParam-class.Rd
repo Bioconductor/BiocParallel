@@ -44,6 +44,7 @@ MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
                timeout = 30L * 24L * 60L * 60L, exportglobals=TRUE,
                log = FALSE, threshold = "INFO", logdir = NA_character_,
                resultdir = NA_character_, jobname = "BPJOB",
+               force.GC = TRUE,
                manager.hostname = NA_character_, manager.port = NA_integer_,
                ...)
 
@@ -247,6 +248,14 @@ multicoreWorkers()
   \item{jobname}{
     \code{character(1)} Job name that is prepended to log and result files.
     Default is "BPJOB".
+  }
+  \item{force.GC}{
+    \code{logical(1)} Whether to invoke the garbage collector after each
+    call to \code{FUN}. The default (\code{TRUE}, explicitly
+    call the garbage collection) can slow parallel computation, but is
+    necessary when each call to \code{FUN} allocates a 'large' amount of
+    memory. If \code{FUN} allocates little memory, then considerable
+    performance improvements are gained by setting \code{force.GC = FALSE}.
   }
   \item{manager.hostname}{
     \code{character(1)} Host name of manager node. See 'Global Options',

@@ -20,7 +20,9 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .composeTry <- function(FUN, log, stop.on.error,
                         stop.immediate = FALSE, # TRUE for SerialParam lapply
                         as.error = TRUE,        # FALSE for BatchJobs compatible
-                        timeout, exportglobals = TRUE)
+                        timeout,
+                        exportglobals = TRUE,
+                        force.GC = FALSE)
 {
     if (!stop.on.error && stop.immediate)
         stop("[internal] 'stop.on.error == FALSE' && 'stop.immediate == TRUE'")
@@ -31,6 +33,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
     force(stop.immediate)
     force(as.error)
     force(timeout)
+    force(force.GC)
     if (exportglobals) {
         blocklist <- c(
             "askpass", "asksecret", "buildtools.check",
@@ -82,11 +85,12 @@ bptry <- function(expr, ..., bplist_error, bperror)
                 }, error=handle_error)
             }, warning=handle_warning)
 
-            # Trigger garbage collection to cut down on memory usage within
-            # each worker in shared memory contexts. Otherwise, each worker is
-            # liable to think the entire heap is available (leading to each
-            # worker trying to fill said heap, causing R to exhaust memory).
-            gc(verbose=FALSE, full=FALSE)
+            ## Trigger garbage collection to cut down on memory usage within
+            ## each worker in shared memory contexts. Otherwise, each worker is
+            ## liable to think the entire heap is available (leading to each
+            ## worker trying to fill said heap, causing R to exhaust memory).
+            if (force.GC)
+                gc(verbose=FALSE, full=FALSE)
 
             output
         }

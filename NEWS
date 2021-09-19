@@ -24,6 +24,12 @@ USER VISIBLE CHANGES
     (e.g., SnowParam(), MulticoreParam()) to SerialParam() with
     as(., "SerialParam").
 
+    o (v. 1.27.9) By defualt, do _not_ only run garbage collection
+    after every call to FUN(), except under MulticoreParam(). R's
+    garbage collection algorithm only fails to do well when forked
+    processes (i.e., MulticoreParam) assume that they are the only
+    consumers of process memory.
+
 CHANGES IN VERSION 1.26
 -----------------------
 
