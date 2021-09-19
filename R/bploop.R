@@ -207,7 +207,8 @@
 bploop <- function(manager, ...)
     UseMethod("bploop")
 
-
+## X: the loop value after division
+## ARGS: The function arguments for `FUN`
 bploop.lapply <-
     function(manager, X, FUN, ARGS, BPPARAM)
 {
@@ -233,8 +234,10 @@ bploop.lapply <-
 ## - results not pre-allocated; list grows each iteration if no REDUCE
 ## - args wrapped in arglist with different chunks from ITER()
 ## Arguments
-## - ITER: Return a list where each list element will be passed to FUN,
-##   if nothing to proceed, it should return list(NULL)
+## - ITER: Return a list where each list element will be passed to FUN
+##   1. if nothing to proceed, it should return list(NULL)
+##   2. if the task is iterate the seed stream only, it should return
+##      an object from .rng_iter()
 ## - FUN: A function that accepts a scalar X
 ## - REDUCE(x, y): combine x and y where y is a list with each element
 ##   returned by FUN
