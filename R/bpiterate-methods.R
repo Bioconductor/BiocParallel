@@ -38,13 +38,29 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         REDUCE_ <- c
     }else{
         REDUCE <- match.fun(REDUCE)
+        errorValue <- NULL
         REDUCE_ <- function(x, y){
+            ## initial value
             if(missing.init){
                 missing.init <<- FALSE
-                y[[1]]
+                return(y[[1]])
+            }
+            ## when error occurs and cannot auto combine
+            if(!is.null(errorValue))
+                return(errorValue)
+
+            ## check if the error can be combined with the results
+            if(inherits(y[[1]], "bperror")){
+                if(missing.init || !identical(init, list()) || !identical(REDUCE, c)){
+                    errorValue <<- y[[1]]
+                    return(errorValue)
+                }else{
+                    REDUCE(x, y)
+                }
             }else{
                 REDUCE(x, y[[1]])
             }
+
         }
         if(missing.init)
             init <- list()
