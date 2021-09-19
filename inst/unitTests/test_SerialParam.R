@@ -5,9 +5,11 @@ test_SerialParam_bpnworkers <- function() {
 }
 
 test_SerialParam_bpbackend <- function() {
-    checkIdentical(list(FALSE), bpbackend(SerialParam()))
-    checkIdentical(list(TRUE), bpbackend(bpstart(SerialParam())))
-    checkIdentical(list(FALSE), bpbackend(bpstop(bpstart(SerialParam()))))
+    .SerialBackend <- BiocParallel:::.SerialBackend
+
+    checkIdentical(NULL, bpbackend(SerialParam()))
+    checkIdentical(.SerialBackend, bpbackend(bpstart(SerialParam())))
+    checkIdentical(NULL, bpbackend(bpstop(bpstart(SerialParam()))))
 }
 
 test_SerialParam_bpforceGC <- function() {

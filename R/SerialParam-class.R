@@ -8,13 +8,15 @@
 
 .SerialParam_prototype <- c(
     list(
-        workers = list(FALSE)
+        workers = 1,
+        backend = NULL
     ),
     .BiocParallelParam_prototype
 )
 
 .SerialParam <- setRefClass(
     "SerialParam",
+    fields=list(backend = "ANY"),
     contains="BiocParallelParam",
 )
 
@@ -79,14 +81,14 @@ setMethod(
     "bpbackend", "SerialParam",
     function(x)
 {
-    bpworkers(x)
+    x$backend
 })
 
 setMethod(
     "bpstart", "SerialParam",
     function(x, ...)
 {
-    x$workers <- .SerialBackend()
+    x$backend <- .SerialBackend()
     .bpstart_impl(x)
 })
 
@@ -94,7 +96,7 @@ setMethod(
     "bpstop", "SerialParam",
     function(x)
 {
-    x$workers <- NULL
+    x$backend <- NULL
     .bpstop_impl(x)
 })
 
