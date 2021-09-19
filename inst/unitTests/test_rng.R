@@ -242,6 +242,8 @@ test_rng_bpstart <- function()
 }
 
 .test_rng_bpstart_iterates_rng_seed <- function(param) {
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+
     state <- .rng_get_generator()
     set.seed(123L)
     target <- runif(2L)[2L]
