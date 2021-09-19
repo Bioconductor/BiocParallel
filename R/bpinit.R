@@ -1,6 +1,8 @@
 bpinit <- function(FUN, BPPARAM, ...){
-    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        BPPARAM <- as(BPPARAM, "SerialParam")
+    if(!inherits(BPPARAM, "SerialParam")){
+        if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
+            BPPARAM <- as(BPPARAM, "SerialParam")
+        }
     }
 
     ## start / stop cluster
