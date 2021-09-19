@@ -159,15 +159,15 @@ test_rng_bpiterate <- function()
     p3 <- SnowParam(5, RNGseed = 123)
 
     target <- bplapply(1:11, FUN, BPPARAM = p1)
-    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p1), "p1")
-    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p2), "p2")
-    checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p3), "p3")
+
+    checkTrue(setequal(target, bpiterate(ITER_factory(), FUN, BPPARAM = p1)), "p1")
+    checkTrue(setequal(target, bpiterate(ITER_factory(), FUN, BPPARAM = p2)), "p2")
+    checkTrue(setequal(target, bpiterate(ITER_factory(), FUN, BPPARAM = p3)), "p3")
 
     if (identical(.Platform$OS.type, "unix")) {
         ## SerialParam / MulticoreParam same results
         p4 <- MulticoreParam(5, RNGseed = 123)
-        checkIdentical(
-            target, bpiterate(ITER_factory(), FUN, BPPARAM = p4),
+        checkTrue(setequal(target, bpiterate(ITER_factory(), FUN, BPPARAM = p4)),
             "p4"
         )
     }

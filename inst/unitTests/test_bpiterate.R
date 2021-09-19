@@ -24,7 +24,7 @@ test_bpiterate_Params <- function()
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkIdentical(expected, res)
+        checkTrue(setequal(expected, res))
     }
 
     ## chunks less than number of workers
@@ -39,7 +39,7 @@ test_bpiterate_Params <- function()
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkIdentical(expected, res)
+        checkTrue(setequal(expected, res))
     }
 
     doParallel::registerDoParallel(2)
@@ -62,7 +62,7 @@ test_bpiterate_REDUCE <- function() {
     params <- list(snow=SnowParam(ncount))
     ## On Windows MulticoreParam dispatches to SerialParam where
     ## 'reduce.in.order' does not apply (always TRUE)
-    if (.Platform$OS.type != "windows") 
+    if (.Platform$OS.type != "windows")
         params <- c(params, multi=MulticoreParam(ncount))
 
     for (p in params) {
@@ -86,23 +86,23 @@ test_bpiterate_REDUCE <- function() {
         }
         ## 'reduce.in.order' FALSE
         ITER <- .lazyCount(ncount)
-        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
+        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          reduce.in.order=FALSE)
         checkIdentical("321", res)
 
         ITER <- .lazyCount(ncount)
-        res <- quiet(bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, init=0, 
+        res <- quiet(bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, init=0,
                                reduce.in.order=FALSE))
         checkIdentical("0321", res)
 
-        ## 'reduce.in.order' TRUE 
+        ## 'reduce.in.order' TRUE
         ITER <- .lazyCount(ncount)
-        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
+        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          reduce.in.order=TRUE)
         checkIdentical("123", res)
 
         ITER <- .lazyCount(ncount)
-        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, 
+        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          init=0, reduce.in.order=TRUE)
         checkIdentical("0123", res)
     }
