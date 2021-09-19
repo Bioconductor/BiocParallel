@@ -71,6 +71,7 @@ test_rng_fun_advances_generator <- function()
     obs <- c(FUN(1), FUN(1)) # two numbers from separate streams
     checkIdentical(obs[[1]], target[[1]])
     checkTrue(obs[[2]] != target[[2]])
+    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_lapply <- function()
@@ -100,6 +101,7 @@ test_rng_lapply <- function()
         .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED2)
     )
     checkIdentical(target, obs)
+    checkIdentical(state, .rng_get_generator())
 }
 
 test_rng_bplapply <- function()
@@ -131,6 +133,7 @@ test_rng_bplapply <- function()
     ## single worker coerced to SerialParam
     p5 <- SnowParam(1, RNGseed = 123)
     checkIdentical(bplapply(1:11, FUN, BPPARAM = p5), target, "p5")
+    checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
 test_rng_bpiterate <- function()
@@ -171,6 +174,7 @@ test_rng_bpiterate <- function()
             "p4"
         )
     }
+    checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
 test_rng_bpstart <- function()
@@ -233,9 +237,12 @@ test_rng_bpstart <- function()
     result4 <- unlist(bpiterate(ITER_factory(), FUN, BPPARAM = p0))
     checkIdentical(result3, result1)
     checkIdentical(result4, result2)
+
+    checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
 .test_rng_bpstart_iterates_rng_seed <- function(param) {
+    state <- .rng_get_generator()
     set.seed(123L)
     target <- runif(2L)[2L]
 
@@ -253,6 +260,8 @@ test_rng_bpstart <- function()
     set.seed(123)
     checkIdentical(result, bplapply(1:3, runif, BPPARAM = param))
     checkIdentical(target, runif(1L))
+
+    checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
 test_rng_bpstart_iterates_rng_seed <- function() {
