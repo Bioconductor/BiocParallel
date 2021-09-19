@@ -1,4 +1,4 @@
-bpinit <- function(FUN, BPPARAM, ...){
+bpinit <- function(manager, FUN, BPPARAM, ...){
     if(!inherits(BPPARAM, "SerialParam")){
         if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
             BPPARAM <- as(BPPARAM, "SerialParam")
@@ -17,8 +17,7 @@ bpinit <- function(FUN, BPPARAM, ...){
         timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
     )
 
-    cls <- structure(list(), class="iterate")
-    res <- bploop(cls, # dispatch
+    res <- bploop(manager, # dispatch
                   FUN = FUN,
                   BPPARAM = BPPARAM,
                   ...)

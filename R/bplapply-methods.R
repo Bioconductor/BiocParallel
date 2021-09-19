@@ -76,13 +76,13 @@ setMethod("bplapply", c("ANY", "list"),
 
     ARGS <- list(...)
 
+    manager <- structure(list(), class="lapply") # dispatch
     res <- bpinit(
-        ITER = ITER,
+        manager = manager,
+        X = X,
         FUN = FUN,
         ARGS = ARGS,
-        BPPARAM = BPPARAM,
-        REDUCE = c,
-        reduce.in.order = TRUE
+        BPPARAM = BPPARAM
     )
 
     if (length(compute_element)) {

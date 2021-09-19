@@ -52,7 +52,9 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
 
     ARGS <- list(...)
 
+    manager <- structure(list(), class="iterate") # dispatch
     res <- bpinit(
+        manager = manager,
         ITER = ITER_,
         FUN = FUN,
         ARGS = ARGS,

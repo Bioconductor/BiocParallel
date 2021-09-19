@@ -200,74 +200,30 @@
     })
 }
 
+
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
 ##
-
 bploop <- function(manager, ...)
     UseMethod("bploop")
 
+
 bploop.lapply <-
-    function(manager, X, FUN, ARGFUN, BPPARAM, ...)
+    function(manager, X, FUN, ARGS, BPPARAM)
 {
-    cl <- bpbackend(BPPARAM)
-
-    n <- length(X)
-    workers <- length(cl)
-    result <- vector("list", n)
-
-    if (n > 0 && workers > 0) {
-        progress <- .progress(active=bpprogressbar(BPPARAM))
-        on.exit(progress$term(), TRUE)
-        progress$init(n)
-
-        ## initial load
-        running <- logical(workers)
-        for (i in seq_len(min(n, workers))) {
-            value <- .EXEC(i, FUN, ARGFUN(i))
-            running[i] <- .send_to(cl, i, value)
-        }
-
-        for (i in seq_len(n)) {
-            ## collect
-            d <- .recv_any(cl)
-
-            value <- d$value$value
-            njob <- d$value$tag
-            result[[njob]] <- value
-            running[d$node] <- FALSE
-
-            progress$step()
-            .manager_log(BPPARAM, njob, d)
-            .manager_result_save(BPPARAM, njob, value)
-
-            if (bpstopOnError(BPPARAM) && !d$value$success) {
-                ## let running jobs finish, don't re-load
-                result <- .clear_cluster(cl, running, result)
-                break
-            }
-
-            ## re-load
-            j <- i + min(n, workers)
-            if (j <= n) {
-                value <- .EXEC(j, FUN, ARGFUN(j))
-                running[d$node] <- .send_to(cl, d$node, value)
-            }
-        }
-    }
-
-    ## return results
-    if (!is.na(bpresultdir(BPPARAM)))
-        NULL
-    else result
+        ITER <- .dummy_iter(X)
+        manager <- structure(list(), class="iterate") # dispatch
+        bploop(
+            manager = manager,
+            ITER = ITER,
+            FUN = FUN,
+            ARGS = ARGS,
+            BPPARAM =BPPARAM,
+            REDUCE = c,
+            reduce.in.order = TRUE)
 }
 
 
-.iterate_seed <- function(seed, n){
-    for(k in seq_len(n))
-        seed <- .rng_next_substream(seed)
-    seed
-}
 ##
 ## bploop.iterate():
 ##
@@ -307,7 +263,7 @@ bploop.iterate <-
     for (i in seq_len(workers)) {
         value <- ITER()
         if (inherits(value, "rng_iter")) {
-            seed <- .iterate_seed(seed, value)
+            seed <- .rng_iterate_stream(seed, value)
             value <- ITER()
         }
         if (is.null(value[[1]])) {
@@ -317,7 +273,7 @@ bploop.iterate <-
         }
         value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
         running[i] <- .send_to(cl, i, value_)
-        seed <- .iterate_seed(seed, length(value))
+        seed <- .rng_iterate_stream(seed, length(value))
     }
 
     repeat {
@@ -348,14 +304,14 @@ bploop.iterate <-
         ## re-load
         value <- ITER()
         if (inherits(value, "rng_iter")) {
-            seed <- .iterate_seed(seed, value)
+            seed <- .rng_iterate_stream(seed, value)
             value <- ITER()
         }
         if (!is.null(value[[1]])) {
             i <- i + 1L
             value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
             running[d$node] <- .send_to(cl, d$node, value_)
-            seed <- .iterate_seed(seed, length(value))
+            seed <- .rng_iterate_stream(seed, length(value))
         }
     }
 

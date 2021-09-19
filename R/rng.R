@@ -3,6 +3,13 @@
     structure(n, class = c("rng_iter"))
 }
 
+## iterate the seed stream n times
+.rng_iterate_stream <- function(seed, n){
+    for(k in seq_len(n))
+        seed <- .rng_next_substream(seed)
+    seed
+}
+
 ## .rng_get_generator(): get the current generator kind and seed
 .rng_get_generator <-
     function()
