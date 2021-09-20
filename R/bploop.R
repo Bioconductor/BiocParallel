@@ -228,7 +228,7 @@ bploop.lapply <-
 ## - ITER: Return a list where each list element will be passed to FUN
 ##   1. if nothing to proceed, it should return list(NULL)
 ##   2. if the task is iterate the seed stream only, it should return
-##      an object from .rng_iter()
+##      an object from .rng_bploop_iter()
 ## - FUN: A function that accepts a scalar X
 ## - REDUCE(x, y): combine x and y where y is a list with each element
 ##   returned by FUN
@@ -256,7 +256,7 @@ bploop.iterate <-
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
-        if (inherits(value, "rng_iter")) {
+        if (inherits(value, ".rng_bploop_iter")) {
             seed <- .rng_iterate_stream(seed, value)
             value <- ITER()
         }

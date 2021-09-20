@@ -1,6 +1,6 @@
 ## Force bploop to iterate the seed stream n times
-.rng_iter <- function(n) {
-    structure(n, class = c("rng_iter"))
+.rng_bploop_iter <- function(n) {
+    structure(n, class = c(".rng_bploop_iter"))
 }
 
 ## iterate the seed stream n times

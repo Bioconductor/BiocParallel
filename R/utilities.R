@@ -65,18 +65,45 @@
     }
 }
 
-.divideTask <- function(start_idx, nworks, works_per_task){
-    if(nworks > works_per_task){
-        task_sizes <- rep(works_per_task, nworks%/%works_per_task)
-        if(nworks%%works_per_task != 0)
-            task_sizes <- c(task_sizes, nworks%%works_per_task)
-    }else{
-        task_sizes <- nworks
+.split_X_redo <- function(X, redo_index, works_per_task, n){
+    # browser()
+    prealloc <- missing(n)
+    redo_index <- c(redo_index, !tail(redo_index, 1))
+    splittedX <- vector("list", ifelse(prealloc, 0L, n))
+    skip_num <- NA
+    last_redo_status <- redo_index[[1]]
+    task_i <- 1L
+    x_start <- 1L
+    x_len <- 0L
+    for(i in seq_along(redo_index)){
+        redo <- redo_index[[i]]
+        is_switch <- xor(last_redo_status, redo)
+        is_switch <- ifelse(is_switch || !redo, is_switch, x_len >= works_per_task)
+        if(!prealloc && is_switch){
+            if(last_redo_status){
+                splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
+            }else{
+                splittedX[[task_i]] <- .rng_bploop_iter(x_len)
+            }
+        }
+        ## do the switch
+        if(is_switch){
+            last_redo_status <- redo
+            task_i <- task_i + 1L
+            x_start <- ifelse(redo, x_start, x_start + x_len)
+            x_len <- 1L
+        }else{
+            x_len <- x_len + 1
+        }
+        if(!prealloc && task_i > n)
+            break
     }
-    task_idx <- cumsum(c(start_idx, task_sizes))[seq_along(task_sizes)]
-    data.frame(idx = task_idx, nworks = task_sizes)
+    if(prealloc){
+        task_i - tail(redo_index, 1) - 1L
+    }else{
+        splittedX
+    }
 }
-
 
 .splitX <- function(X, workers, tasks, redo_index = NULL)
 {
@@ -86,45 +113,15 @@
         tasks <- min(length(X), tasks)
     }
     ## If redo index presents, split X based on the index while
-    ## try it best to respect `tasks` setting
+    ## preserving the correct rng stream.
+    ## it will respect `tasks` value
     if (length(redo_index)){
+        ## Two-pass algorithm, the first pass calculate
+        ## the required list size to allocate, then do
+        ## the real allocation
         works_per_task <- ceiling(length(X)/max(tasks, 1L))
-        rles <- rle(redo_index)
-        tasks <- which(rles$values)
-        start_idx <- cumsum(c(1, rles$lengths))[tasks]
-        lengthes <- rles$lengths[tasks]
-
-        task_division <- lapply(seq_along(lengthes),
-                                function(i) .divideTask(start_idx[i],
-                                                        lengthes[i],
-                                                        works_per_task)
-        )
-        task_division <- do.call(rbind, task_division)
-        ## The total number of tasks + seed iteration being generated
-        ntasks <- nrow(task_division) + sum(!head(rles$values, -1))
-
-        ## X is just the partial X which needs to compute, not the full X
-        ## Given the index of the full X, we need to map it
-        ## back to the index of the partial X
-        X_idx <- rep(0, length(redo_index))
-        X_idx[redo_index] <- seq_len(sum(redo_index))
-        Xlist <- rep(list(NULL), ntasks)
-        work_i <- 1L
-        task_i <- 1L
-        Xlist_i <- 1L
-        for(Xlist_i in seq_len(ntasks)){
-            task_start_idx <- task_division$idx[task_i]
-            if(work_i != task_start_idx){
-                Xlist[[Xlist_i]] <- .rng_iter(task_start_idx - work_i)
-                work_i <- task_start_idx
-            }else{
-                task_size <- task_division$nworks[task_i]
-                Xlist[[Xlist_i]] <- X[X_idx[seq.int(from = task_start_idx, length.out = task_size)]]
-                work_i <- work_i + task_size
-                task_i <- task_i + 1
-            }
-        }
-        Xlist
+        n <- .split_X_redo(X, redo_index, works_per_task)
+        .split_X_redo(X, redo_index, works_per_task, n)
     }else{
         idx <- .splitIndices(length(X), tasks)
         relist(X, idx)
