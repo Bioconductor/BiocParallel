@@ -86,25 +86,7 @@
 ## files and 'stop on error'. The 'cl' argument is an active cluster;
 ## starting and stopping of 'cl' is done outside these functions, eg,
 ## bplapply, bpmapply etc..
-
-.clear_cluster <- function(cl, running, result=NULL)
-{
-    tryCatch({
-        setTimeLimit(30, 30, TRUE)
-        on.exit(setTimeLimit(Inf, Inf, FALSE))
-        while (any(running)) {
-            d <- .recv_any(cl)
-            if (!is.null(result))
-                result[[d$value$tag]] <- d$value$value
-            running[d$node] <- FALSE
-        }
-    }, error=function(e) {
-        warning(.error_worker_comm(e, "stop worker failed"))
-    })
-    result
-}
-
-.wait_results <- function(cl, running, reducer)
+.clear_cluster <- function(cl, running, reducer)
 {
     tryCatch({
         setTimeLimit(30, 30, TRUE)
@@ -300,7 +282,7 @@ bploop.iterate <-
         if (bpstopOnError(BPPARAM) && !d$value$success) {
             ## stop on error; let running jobs finish, do not re-load
             ## FIXME: harvest assigned jobs
-            reducer <- .wait_results(cl, running, reducer)
+            reducer <- .clear_cluster(cl, running, reducer)
             break
         }
 
