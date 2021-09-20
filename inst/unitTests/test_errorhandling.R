@@ -252,7 +252,7 @@ test_bpiterate_errors <- function()
     for (p in params) {
         ITER <- .lazyCount(3)
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkTrue(is(res[[2]], "condition"))
+        checkTrue(any(sapply(res, function(x) is(x, "remote_error"))))
         closeAllConnections()
     }
 
