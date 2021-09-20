@@ -8,7 +8,7 @@
 
 .SerialParam_prototype <- c(
     list(
-        workers = 1,
+        workers = 1L,
         backend = NULL
     ),
     .BiocParallelParam_prototype

@@ -5,10 +5,8 @@ test_SerialParam_bpnworkers <- function() {
 }
 
 test_SerialParam_bpbackend <- function() {
-    .SerialBackend <- BiocParallel:::.SerialBackend
-
     checkIdentical(NULL, bpbackend(SerialParam()))
-    checkIdentical(.SerialBackend, bpbackend(bpstart(SerialParam())))
+    checkTrue(is(bpbackend(bpstart(SerialParam())), "SerialBackend"))
     checkIdentical(NULL, bpbackend(bpstop(bpstart(SerialParam()))))
 }
 
