@@ -35,26 +35,6 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         if (!missing(init))
             stop("REDUCE must be provided when 'init' is given")
         REDUCE <- substitute()
-    }else{
-        REDUCE <- match.fun(REDUCE)
-        errorValue <- NULL
-        REDUCE_ <- function(x, y){
-            ## when error occurs and cannot auto combine
-            if(!is.null(errorValue))
-                return(errorValue)
-
-            ## check if the error can be combined with the results
-            if(inherits(y[[1]], "bperror")){
-                if(missing.init || !identical(init, list()) || !identical(REDUCE, c)){
-                    errorValue <<- y[[1]]
-                    return(errorValue)
-                }else{
-                    REDUCE(x, y)
-                }
-            }else{
-                REDUCE(x, y[[1]])
-            }
-        }
     }
 
     if(missing(init))
