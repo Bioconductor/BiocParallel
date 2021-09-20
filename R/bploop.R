@@ -141,10 +141,16 @@
 
     reduce_one <- function(idx) {
         if (env[["reduce"]]) {
-            env[["value"]] <- if (!env[["init"]] && (env[["index"]] == 1L)) {
-                env[[idx]]
+            if (!env[["init"]] && (env[["index"]] == 1L)) {
+                env[["value"]] <- env[[idx]][[1]]
+                skip_idx <- 1L
             } else {
-                REDUCE(env[["value"]], env[[idx]])
+                skip_idx <- 0L
+            }
+            for(i in seq_along(env[[idx]])){
+                if(i == skip_idx)
+                    next
+                env[["value"]] <- REDUCE(env[["value"]], env[[idx]][[i]])
             }
             rm(list=idx, envir=env)
         }
@@ -177,7 +183,11 @@
         else {
             lst <- as.list(env)
             idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
-            unname(lst[idx[order(as.integer(idx))]])
+            if(length(idx)){
+                as.list(do.call(c, unname(lst[idx[order(as.integer(idx))]])))
+            }else{
+                list()
+            }
         }
     })
 }
@@ -202,7 +212,6 @@ bploop.lapply <-
             FUN = FUN,
             ARGS = ARGS,
             BPPARAM =BPPARAM,
-            REDUCE = c,
             reduce.in.order = TRUE)
 }
 
@@ -370,7 +379,7 @@ bploop.iterate_batchtools <-
     ## reduce in order
     for (job.id in ids$job.id) {
         value <- batchtools::loadResult(id = job.id, reg=BPPARAM$registry)
-        reducer$add(job.id, value)
+        reducer$add(job.id, list(value))
     }
 
     ## return reducer value

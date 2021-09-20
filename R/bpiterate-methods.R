@@ -29,22 +29,16 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         list(ITER())
     }
 
-    missing.init <- missing(init)
     if (missing(REDUCE)) {
         if (reduce.in.order)
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
-        if (!missing.init)
+        if (!missing(init))
             stop("REDUCE must be provided when 'init' is given")
-        REDUCE_ <- c
+        REDUCE <- substitute()
     }else{
         REDUCE <- match.fun(REDUCE)
         errorValue <- NULL
         REDUCE_ <- function(x, y){
-            ## initial value
-            if(missing.init){
-                missing.init <<- FALSE
-                return(y[[1]])
-            }
             ## when error occurs and cannot auto combine
             if(!is.null(errorValue))
                 return(errorValue)
@@ -60,11 +54,11 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
             }else{
                 REDUCE(x, y[[1]])
             }
-
         }
-        if(missing.init)
-            init <- list()
     }
+
+    if(missing(init))
+        init <- substitute()
 
     ARGS <- list(...)
 
@@ -76,7 +70,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         ARGS = ARGS,
         BPPARAM = BPPARAM,
         init = init,
-        REDUCE = REDUCE_,
+        REDUCE = REDUCE,
         reduce.in.order = reduce.in.order
     )
 

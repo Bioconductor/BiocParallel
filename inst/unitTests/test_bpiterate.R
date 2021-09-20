@@ -24,7 +24,7 @@ test_bpiterate_Params <- function()
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkTrue(setequal(expected, res))
+        checkIdentical(expected, res)
     }
 
     ## chunks less than number of workers
@@ -39,7 +39,7 @@ test_bpiterate_Params <- function()
     for (p in params) {
         ITER <- .lazyCount(length(x))
         quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkTrue(setequal(expected, res))
+        checkIdentical(expected, res)
     }
 
     doParallel::registerDoParallel(2)
