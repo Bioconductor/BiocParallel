@@ -30,19 +30,6 @@ setMethod("bplapply", c("ANY", "list"),
     bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
 })
 
-.dummy_iter <- function(X){
-    i <- 0L
-    n <- length(X)
-    function(){
-        if (i < n) {
-            i <<- i + 1L
-            X[[i]]
-        }else{
-            NULL
-        }
-    }
-}
-
 .bplapply_impl <-
     function(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
 {
@@ -70,9 +57,6 @@ setMethod("bplapply", c("ANY", "list"),
 
     ## split into tasks
     X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM), redo_index)
-
-    ## iterator for X
-    ITER <- .dummy_iter(X)
 
     ARGS <- list(...)
 

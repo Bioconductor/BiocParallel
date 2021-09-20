@@ -229,9 +229,8 @@ bploop.lapply <-
 ##   1. if nothing to proceed, it should return list(NULL)
 ##   2. if the task is iterate the seed stream only, it should return
 ##      an object from .rng_bploop_iter()
-## - FUN: A function that accepts a scalar X
-## - REDUCE(x, y): combine x and y where y is a list with each element
-##   returned by FUN
+## - FUN: A function that will be evaluated in the worker
+## - ARGS: the arguments to FUN
 bploop.iterate <-
     function(manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order)
 {

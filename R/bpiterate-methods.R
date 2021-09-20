@@ -22,7 +22,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .sendto, .recvfrom, .recv, .close
-
+    ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
     ITER_ <- function(){
