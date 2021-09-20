@@ -13,10 +13,8 @@ test_log <- function()
     }
 
     for (param in params) {
-        res <- suppressMessages(tryCatch({
-            bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-        }, error=identity))
-        checkTrue(is(res, "bplist_error"))
+        res <- suppressMessages(bplapply(list(1, "2", 3), sqrt, BPPARAM=param))
+        checkTrue(is(res[[2]], "remote_error"))
         result <- attr(res, "result")
         checkTrue(length(result) == 3L)
         msg <- "non-numeric argument to mathematical function"

@@ -1,5 +1,5 @@
 ## NOTE: On Windows, MulticoreParam() throws a warning and instantiates
-##       a single FORK worker using scripts from parallel. No logging or 
+##       a single FORK worker using scripts from parallel. No logging or
 ##       error catching is implemented.
 
 checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
@@ -105,7 +105,7 @@ test_catching_errors <- function()
             res <- tryCatch({
                 bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
             }, error=identity)
-            checkTrue(is(res, "bplist_error"))
+            checkTrue(is(res[[2]], "remote_error"))
             result <- attr(res, "result")
             checkTrue(length(result) == 3L)
             msg <- "non-numeric argument to mathematical function"
@@ -125,8 +125,8 @@ test_BPREDO <- function()
 {
     if (.Platform$OS.type != "windows") {
         f = sqrt
-        x = list(1, "2", 3) 
-        x.fix = list(1, 2, 3) 
+        x = list(1, "2", 3)
+        x.fix = list(1, 2, 3)
 
         doParallel::registerDoParallel(2)
         params <- list(
@@ -226,13 +226,13 @@ test_bpiterate_errors <- function()
     .lazyCount <- function(count) {
         count <- count
         i <- 0L
- 
+
         function() {
             if (i >= count)
                 return(NULL)
             else
                 i <<- i + 1L
- 
+
             if (i == 2)
                 "2"
             else
@@ -243,7 +243,7 @@ test_bpiterate_errors <- function()
     FUN <- function(count, ...) {
         if (count == 2)
             stop("hit error")
-        else count 
+        else count
     }
     params <- list(snow=SnowParam(2, stop.on.error=FALSE))
     if (.Platform$OS.type != "windows")
