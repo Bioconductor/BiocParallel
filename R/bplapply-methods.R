@@ -94,7 +94,7 @@ setMethod("bplapply", c("ANY", "list"),
         names(res) <- nms
     }
 
-    if (!all(bpok(res)) && bpstopOnError(BPPARAM))
+    if (!all(bpok(res)))
         stop(.error_bplist(res))
 
     res

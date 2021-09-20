@@ -80,8 +80,8 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
         reduce.in.order = reduce.in.order
     )
 
-    if (!all(bpok(res)) && bpstopOnError(BPPARAM)){
-        stop(.error_bplist(res))
-    }
+    # if (!all(bpok(res)) && bpstopOnError(BPPARAM)){
+    #     stop(.error_bplist(res))
+    # }
     res
 }
