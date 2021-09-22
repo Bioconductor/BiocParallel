@@ -204,15 +204,15 @@ bploop <- function(manager, ...)
 bploop.lapply <-
     function(manager, X, FUN, ARGS, BPPARAM)
 {
-        ITER <- .dummy_iter(X)
-        manager <- structure(list(), class="iterate") # dispatch
-        bploop(
-            manager = manager,
-            ITER = ITER,
-            FUN = FUN,
-            ARGS = ARGS,
-            BPPARAM =BPPARAM,
-            reduce.in.order = TRUE)
+    ITER <- .dummy_iter(X)
+    manager <- structure(list(), class="iterate") # dispatch
+    bploop(
+        manager = manager,
+        ITER = ITER,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM =BPPARAM,
+        reduce.in.order = TRUE)
 }
 
 
