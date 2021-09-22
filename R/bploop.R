@@ -184,7 +184,8 @@
             lst <- as.list(env)
             idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
             if(length(idx)){
-                as.list(do.call(c, unname(lst[idx[order(as.integer(idx))]])))
+                lst <- unname(lst[idx[order(as.integer(idx))]])
+                unlist(lst, recursive=FALSE)
             }else{
                 list()
             }
