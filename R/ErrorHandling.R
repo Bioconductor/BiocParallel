@@ -134,7 +134,6 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .error_bplist <- function(result) {
     idx <- which(!bpok(result) &
                   !vapply(result, inherits, logical(1), "not_available_error"))
-        # !vapply(result, inherits, logical(1), "unevaluated_error")
     err <- structure(list(
         message=sprintf(
             "BiocParallel errors\n  element index: %s%s\n  first error: %s",
