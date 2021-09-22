@@ -269,6 +269,10 @@ bploop.iterate <-
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
+        ## If the value is of the class .rng_bploop_iter, we merely iterate
+        ## the seed stream `value` times and obtain the next value. There must
+        ## be no two consecutive .rng_bploop_iter objects in the iterator, so
+        ## we can proceed without checking the class again.
         if (inherits(value, ".rng_bploop_iter")) {
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
