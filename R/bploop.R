@@ -256,7 +256,7 @@ bploop.iterate <-
     for (i in seq_len(workers)) {
         value <- ITER()
         if (inherits(value, ".rng_bploop_iter")) {
-            seed <- .rng_iterate_stream(seed, value)
+            seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
         if (is.null(value[[1]])) {
@@ -266,7 +266,7 @@ bploop.iterate <-
         }
         value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
         running[i] <- .send_to(cl, i, value_)
-        seed <- .rng_iterate_stream(seed, length(value))
+        seed <- .rng_iterate_substream(seed, length(value))
     }
 
     repeat {
@@ -297,14 +297,14 @@ bploop.iterate <-
         ## re-load
         value <- ITER()
         if (inherits(value, "rng_iter")) {
-            seed <- .rng_iterate_stream(seed, value)
+            seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
         if (!is.null(value[[1]])) {
             i <- i + 1L
             value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
             running[d$node] <- .send_to(cl, d$node, value_)
-            seed <- .rng_iterate_stream(seed, length(value))
+            seed <- .rng_iterate_substream(seed, length(value))
         }
     }
 
