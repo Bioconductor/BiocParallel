@@ -34,11 +34,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
         if (!missing(init))
             stop("REDUCE must be provided when 'init' is given")
-        REDUCE <- substitute()
     }
-
-    if(missing(init))
-        init <- substitute()
 
     ARGS <- list(...)
 
