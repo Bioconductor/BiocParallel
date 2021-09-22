@@ -91,3 +91,15 @@ test_bplapply_named_list <- function()
     X <- list(A = c(a = 1, b=2), B = c(c = 1, d = 2))
     checkIdentical(X, bplapply(X, identity))
 }
+
+test_bplapply_named_list_with_REDO <- function(){
+    X = setNames(1:3, letters[1:3])
+    param = SerialParam(stop.on.error = FALSE)
+    FUN1 = function(i) if (i == 2) stop() else i
+    result <- bptry(bplapply(X, FUN1, BPPARAM = param))
+    checkIdentical(names(result), names(X))
+
+    FUN2 = function(i) 0
+    redo <- bplapply(X, FUN2, BPREDO = result, BPPARAM = param)
+    checkIdentical(names(redo), names(X))
+}

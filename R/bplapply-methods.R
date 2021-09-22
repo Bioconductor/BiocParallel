@@ -75,7 +75,9 @@ setMethod("bplapply", c("ANY", "list"),
     }
 
     if (!is.null(res)) {
-        names(res) <- nms
+        if (is.null(compute_element))
+            compute_element <- seq_along(res)
+        names(res)[compute_element] <- nms
     }
 
     if (!all(bpok(res)))
