@@ -192,6 +192,19 @@
     })
 }
 
+## A dummy iterator for bploop.lapply
+.bploop_lapply_iter <- function(X){
+    i <- 0L
+    n <- length(X)
+    function(){
+        if (i < n) {
+            i <<- i + 1L
+            X[[i]]
+        } else {
+            NULL
+        }
+    }
+}
 
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
@@ -204,7 +217,7 @@ bploop <- function(manager, ...)
 bploop.lapply <-
     function(manager, X, FUN, ARGS, BPPARAM)
 {
-    ITER <- .dummy_iter(X)
+    ITER <- .bploop_lapply_iter(X)
     manager <- structure(list(), class="iterate") # dispatch
     bploop(
         manager = manager,

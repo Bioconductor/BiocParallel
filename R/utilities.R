@@ -233,16 +233,3 @@
     )
     stop(msg, call. = FALSE)
 }
-
-.dummy_iter <- function(X){
-    i <- 0L
-    n <- length(X)
-    function(){
-        if (i < n) {
-            i <<- i + 1L
-            X[[i]]
-        }else{
-            NULL
-        }
-    }
-}
