@@ -250,8 +250,8 @@ bploop.iterate <-
 {
     cl <- bpbackend(BPPARAM)
 
-    seed <- .bpnextRNGstream(BPPARAM)
-    # seed <- .rng_next_substream(seed)
+    seed <- .RNGstream(BPPARAM)
+    on.exit(.RNGstream(BPPARAM) <- seed)
 
     workers <- length(cl)
     running <- logical(workers)

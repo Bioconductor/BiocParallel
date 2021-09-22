@@ -349,3 +349,24 @@ test_rng_bpredo <- function()
         .test_rng_bpredo_impl(param)
     }
 }
+
+test_rng_fallback_SerialParam <- function()
+{
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    FUN <- function(i) rnorm(1)
+    param <- SerialParam(RNGseed = 123, stop.on.error = FALSE)
+    target <- unlist(bplapply(1:2, FUN, BPPARAM = param))
+
+    param2 <- SnowParam(RNGseed = 123, workers = 1L)
+    checkIdentical(unlist(bplapply(1:2, FUN, BPPARAM = param2)), target)
+
+    bpstart(param2)
+    checkIdentical(bplapply(1, FUN, BPPARAM = param2)[[1]], target[1])
+    checkIdentical(bplapply(1, FUN, BPPARAM = param2)[[1]], target[2])
+    bpstop(param2)
+}
