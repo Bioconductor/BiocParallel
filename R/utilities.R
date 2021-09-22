@@ -65,7 +65,7 @@
     }
 }
 
-.split_X_redo <- function(X, redo_index, works_per_task, n){
+.split_X_redo <- function(X, redo_index, elements_per_task, n){
     # browser()
     prealloc <- missing(n)
     redo_index <- c(redo_index, !tail(redo_index, 1))
@@ -78,7 +78,7 @@
     for(i in seq_along(redo_index)){
         redo <- redo_index[[i]]
         is_switch <- xor(last_redo_status, redo)
-        is_switch <- ifelse(is_switch || !redo, is_switch, x_len >= works_per_task)
+        is_switch <- ifelse(is_switch || !redo, is_switch, x_len >= elements_per_task)
         if(!prealloc && is_switch){
             if(last_redo_status){
                 splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
@@ -119,9 +119,9 @@
         ## Two-pass algorithm, the first pass calculate
         ## the required list size to allocate, then do
         ## the real allocation
-        works_per_task <- ceiling(length(X)/max(tasks, 1L))
-        n <- .split_X_redo(X, redo_index, works_per_task)
-        .split_X_redo(X, redo_index, works_per_task, n)
+        elements_per_task <- ceiling(length(X)/max(tasks, 1L))
+        n <- .split_X_redo(X, redo_index, elements_per_task)
+        .split_X_redo(X, redo_index, elements_per_task, n)
     }else{
         idx <- .splitIndices(length(X), tasks)
         relist(X, idx)
