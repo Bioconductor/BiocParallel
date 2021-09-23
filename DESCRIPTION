@@ -38,6 +38,6 @@ Collate: AllGenerics.R DeveloperInterface.R prototype.R
     TransientMulticoreParam-class.R register.R
     SerialParam-class.R DoparParam-class.R SnowParam-utils.R
     BatchJobsParam-class.R BatchtoolsParam-class.R
-    progress.R ipcmutex.R utilities.R rng.R
+    progress.R ipcmutex.R utilities.R rng.R bpinit.R
 LinkingTo: BH
 VignetteBuilder: knitr
