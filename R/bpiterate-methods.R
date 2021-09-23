@@ -32,7 +32,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     }
 
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- as(BPPARAM, "SerailParam")
+        param <- as(BPPARAM, "SerialParam")
         return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
                          BPPARAM=param))
     }
