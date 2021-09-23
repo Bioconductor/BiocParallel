@@ -1,9 +1,9 @@
 bpinit <- function(manager, FUN, BPPARAM, ...){
-    fallback_PARAM <- FALSE
+    fallback <- FALSE
     if (!inherits(BPPARAM, "SerialParam")) {
         if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-            fallback_PARAM <- TRUE
-            BPPARAM_old <- BPPARAM
+            fallback <- TRUE
+            oldParam <- BPPARAM
             BPPARAM <- as(BPPARAM, "SerialParam")
         }
     }
@@ -11,14 +11,15 @@ bpinit <- function(manager, FUN, BPPARAM, ...){
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {
         BPPARAM <- bpstart(BPPARAM)
-        ## the fallback SerialParam must inherit the seed stream from BPPARAM
-        if (fallback_PARAM && bpisup(BPPARAM_old))
-            .RNGstream(BPPARAM) <- .RNGstream(BPPARAM_old)
+        ## the fallback SerialParam must inherit
+        ## the seed stream from BPPARAM
+        if (fallback && bpisup(oldParam))
+            .RNGstream(BPPARAM) <- .RNGstream(oldParam)
 
         on.exit({
             bpstop(BPPARAM)
-            if (fallback_PARAM)
-                .RNGstream(BPPARAM_old) <- .RNGstream(BPPARAM)
+            if (fallback)
+                .RNGstream(oldParam) <- .RNGstream(BPPARAM)
         }, TRUE)
     }
 

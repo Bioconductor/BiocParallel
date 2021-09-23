@@ -207,6 +207,12 @@
     }
 }
 
+## This class object can force bploop.iterator to iterate
+## the seed stream n times
+.bploop_rng_iter <- function(n) {
+    structure(as.integer(n), class = c(".bploop_rng_iter"))
+}
+
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
 ##
@@ -242,7 +248,7 @@ bploop.lapply <-
 ## - ITER: Return a list where each list element will be passed to FUN
 ##   1. if nothing to proceed, it should return list(NULL)
 ##   2. if the task is iterate the seed stream only, it should return
-##      an object from .rng_bploop_iter()
+##      an object from .bploop_rng_iter()
 ## - FUN: A function that will be evaluated in the worker
 ## - ARGS: the arguments to FUN
 bploop.iterate <-
@@ -269,11 +275,11 @@ bploop.iterate <-
     ## initial load
     for (i in seq_len(workers)) {
         value <- ITER()
-        ## If the value is of the class .rng_bploop_iter, we merely iterate
+        ## If the value is of the class .bploop_rng_iter, we merely iterate
         ## the seed stream `value` times and obtain the next value. There must
-        ## be no two consecutive .rng_bploop_iter objects in the iterator, so
+        ## be no two consecutive .bploop_rng_iter objects in the iterator, so
         ## we can proceed without checking the class again.
-        if (inherits(value, ".rng_bploop_iter")) {
+        if (inherits(value, ".bploop_rng_iter")) {
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }

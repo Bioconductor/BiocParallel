@@ -86,12 +86,12 @@
         )
         ## If we want to split X at this position and
         ## it is not in the preallocation stage, we create
-        ## a subset of X or .rng_bploop_iter based on the previous redo value
+        ## a subset of X or .bploop_rng_iter based on the previous redo value
         if (!prealloc && is_switch) {
             if (last_redo_status)
                 splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
             else
-                splittedX[[task_i]] <- .rng_bploop_iter(x_len)
+                splittedX[[task_i]] <- .bploop_rng_iter(x_len)
         }
         ## if we split X, record the next redo status, start index,
         ## add task index by 1 and reset the length, otherwise we
