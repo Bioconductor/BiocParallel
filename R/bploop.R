@@ -147,8 +147,8 @@
             } else {
                 skip_idx <- 0L
             }
-            for(i in seq_along(env[[idx]])){
-                if(i == skip_idx)
+            for (i in seq_along(env[[idx]])) {
+                if (i == skip_idx)
                     next
                 env[["value"]] <- REDUCE(env[["value"]], env[[idx]][[i]])
             }
@@ -183,10 +183,10 @@
         else {
             lst <- as.list(env)
             idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
-            if(length(idx)){
+            if (length(idx)) {
                 lst <- unname(lst[idx[order(as.integer(idx))]])
                 unlist(lst, recursive=FALSE)
-            }else{
+            } else {
                 list()
             }
         }

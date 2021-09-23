@@ -1,6 +1,6 @@
 bpinit <- function(manager, FUN, BPPARAM, ...){
     fallback_PARAM <- FALSE
-    if(!inherits(BPPARAM, "SerialParam")){
+    if (!inherits(BPPARAM, "SerialParam")) {
         if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
             fallback_PARAM <- TRUE
             BPPARAM_old <- BPPARAM

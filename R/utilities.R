@@ -65,42 +65,44 @@
     }
 }
 
-.split_X_redo <- function(X, redo_index, elements_per_task, n){
-    # browser()
+.split_X_redo <-
+    function(X, redo_index, elements_per_task, n)
+{
     prealloc <- missing(n)
     redo_index <- c(redo_index, !tail(redo_index, 1))
     splittedX <- vector("list", ifelse(prealloc, 0L, n))
-    skip_num <- NA
     last_redo_status <- redo_index[[1]]
     task_i <- 1L
     x_start <- 1L
     x_len <- 0L
-    for(i in seq_along(redo_index)){
+    for (i in seq_along(redo_index)) {
         redo <- redo_index[[i]]
         is_switch <- xor(last_redo_status, redo)
-        is_switch <- ifelse(is_switch || !redo, is_switch, x_len >= elements_per_task)
-        if(!prealloc && is_switch){
-            if(last_redo_status){
+        is_switch <- ifelse(
+            is_switch || !redo, is_switch, x_len >= elements_per_task
+        )
+        if (!prealloc && is_switch) {
+            if (last_redo_status) {
                 splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
-            }else{
+            } else {
                 splittedX[[task_i]] <- .rng_bploop_iter(x_len)
             }
         }
         ## do the switch
-        if(is_switch){
+        if (is_switch) {
             last_redo_status <- redo
             task_i <- task_i + 1L
             x_start <- ifelse(redo, x_start, x_start + x_len)
             x_len <- 1L
-        }else{
+        } else {
             x_len <- x_len + 1
         }
-        if(!prealloc && task_i > n)
+        if (!prealloc && task_i > n)
             break
     }
-    if(prealloc){
+    if (prealloc) {
         task_i - tail(redo_index, 1) - 1L
-    }else{
+    } else {
         splittedX
     }
 }
