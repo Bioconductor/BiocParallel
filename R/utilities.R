@@ -68,8 +68,8 @@
 .split_X_redo <-
     function(X, redo_index, elements_per_task, n)
 {
+    ## Whether we need to calculate n?
     prealloc <- missing(n)
-    redo_index <- c(redo_index, !tail(redo_index, 1))
     splittedX <- vector("list", ifelse(prealloc, 0L, n))
     last_redo_status <- redo_index[[1]]
     task_i <- 1L
@@ -77,31 +77,43 @@
     x_len <- 0L
     for (i in seq_along(redo_index)) {
         redo <- redo_index[[i]]
+        ## The task division depends on two factors:
+        ## 1. Whether the current redo is different from the previous one?
+        ## 2. Whether the elements number in a task will exceed `elements_per_task` limit
         is_switch <- xor(last_redo_status, redo)
         is_switch <- ifelse(
             is_switch || !redo, is_switch, x_len >= elements_per_task
         )
+        ## If we want to split X at this position and
+        ## it is not in the preallocation stage, we create
+        ## a subset of X or .rng_bploop_iter based on the previous redo value
         if (!prealloc && is_switch) {
-            if (last_redo_status) {
+            if (last_redo_status)
                 splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
-            } else {
+            else
                 splittedX[[task_i]] <- .rng_bploop_iter(x_len)
-            }
         }
-        ## do the switch
+        ## if we split X, record the next redo status, start index,
+        ## add task index by 1 and reset the length, otherwise we
+        ## just add the length by 1
         if (is_switch) {
+            x_start <- ifelse(last_redo_status, x_start + x_len, x_start)
             last_redo_status <- redo
             task_i <- task_i + 1L
-            x_start <- ifelse(redo, x_start, x_start + x_len)
             x_len <- 1L
         } else {
             x_len <- x_len + 1
         }
-        if (!prealloc && task_i > n)
+        if (!prealloc && task_i >= n)
             break
     }
+    ## The last task does not have the "switch" so we need to manually add it
+    if (!prealloc && last_redo_status) {
+        splittedX[[task_i]] <- X[seq.int(x_start, length(X))]
+    }
+
     if (prealloc) {
-        task_i - tail(redo_index, 1) - 1L
+        task_i - !last_redo_status
     } else {
         splittedX
     }
