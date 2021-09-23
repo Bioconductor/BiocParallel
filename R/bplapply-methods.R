@@ -45,56 +45,39 @@ setMethod("bplapply", c("ANY", "list"),
     if (!length(X))
         return(.rename(list(), X))
 
-    if (!bpschedule(BPPARAM) || length(X) == 1L || bpnworkers(BPPARAM) == 1L) {
-        param <- as(BPPARAM, "SerialParam")
-        return(bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=param))
-    }
-
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
     if (any(redo_index)) {
-        X <- X[redo_index]
-        compute_element <- redo_index
+        compute_element <- which(redo_index)
+        X <- X[compute_element]
     } else {
-        compute_element <- rep(TRUE, length(X))
+        compute_element <- NULL
     }
     nms <- names(X)
 
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        if (is(BPPARAM, "MulticoreParam"))
-            BPPARAM <- TransientMulticoreParam(BPPARAM)
-        BPPARAM <- bpstart(BPPARAM, length(X))
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
+    ## split into tasks
+    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM), redo_index)
 
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM),
-        force.GC = bpforceGC(BPPARAM)
+    ARGS <- list(...)
+
+    manager <- structure(list(), class="lapply") # dispatch
+    res <- bpinit(
+        manager = manager,
+        X = X,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM
     )
 
-    ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-    BPRNGSEEDS <- .rng_seeds_by_task(BPPARAM, compute_element, lengths(X))
-    ARGFUN <- function(i)
-        c(
-            list(X=X[[i]]), list(FUN=FUN), list(...),
-            list(BPRNGSEED = BPRNGSEEDS[[i]])
-        )
-
-    cls <- structure(list(), class="lapply")
-    res <- bploop(cls, X, .rng_lapply, ARGFUN, BPPARAM)
-
-    if (!is.null(res)) {
-        res <- do.call(unlist, list(res, recursive=FALSE))
-        names(res) <- nms
+    if (length(compute_element)) {
+        BPREDO[compute_element] <- res
+        res <- BPREDO
     }
 
-    if (any(redo_index)) {
-        BPREDO[redo_index] <- res
-        res <- BPREDO
+    if (!is.null(res)) {
+        if (is.null(compute_element))
+            compute_element <- seq_along(res)
+        names(res)[compute_element] <- nms
     }
 
     if (!all(bpok(res)))

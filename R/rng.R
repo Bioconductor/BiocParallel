@@ -68,6 +68,13 @@
     nextRNGSubStream(seed)
 }
 
+## iterate the seed stream n times
+.rng_iterate_substream <- function(seed, n){
+    for (k in seq_len(n))
+        seed <- .rng_next_substream(seed)
+    seed
+}
+
 ## a random number stream independent of the stream used by R. Use for
 ## port and other 'internal' assignments without changing the random
 ## number sequence of users.
@@ -86,60 +93,9 @@
     })
 })
 
-## .rng_seeds_by_task(): generate seeds for random number streams for
-## each task, taking into account the number of jobs in a task. Save
-## only the stream seed for each task, rather than for each job, and
-## use .rng_job_fun_factory() to iterate through the job seeds. In
-## this way, the 'geometry' of task / job partitioning does not
-## influence the streams used by each job -- each of jobs J1-J5 in T1:
-## J1, J2; T2: J3, J4, J5 have the same streams as T1: J1, J2; T2: J3,
-## J4; T3: J5.
-##
-## compute_element is a vector equal in length to the original number
-## of elements. TRUE values of compute_element represent elements that
-## are included in the task_lengths.
-.rng_seeds_by_task <-
-    function(BPPARAM, compute_element, task_lengths)
-{
-    state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
-
-    n <- length(compute_element)     # how many values to generate?
-    n_keep <- sum(task_lengths > 0L) # how many values to keep?
-    keep0 <- which(compute_element)
-    keep <- keep0[head(cumsum(c(1L, task_lengths[task_lengths > 0L])), -1L)]
-
-    stream_seed <- .bpnextRNGstream(BPPARAM)
-    SEED <- .rng_reset_generator("L'Ecuyer-CMRG", stream_seed)$seed
-
-    task_seeds <- rep(list(integer()), length(task_lengths))
-    ith_task <- 1L
-    for (i in seq_len(n)) {
-        ## generate a seed for each element of X
-        SEED <- .rng_next_substream(SEED)
-        if (i == keep[ith_task]) {
-            ## keep only the first element of each task
-            task_seeds[[ith_task]] <- SEED
-            ith_task <- ith_task + 1L
-            if (ith_task > length(keep))
-                break
-        }
-    }
-
-    ## task_seeds were generated without 'gaps', e.g., when
-    ## task_lengths = c(2, 0, 1), the first two elements of task_seeds
-    ## have been filled in, but we want the first and third. The next
-    ## two lines rearrange the generated task_seeds, and set the
-    ## 0-length seeds to integer(0)
-    task_seeds[task_lengths > 0L] <- task_seeds[lengths(task_seeds) > 0L]
-    task_seeds[task_lengths == 0L] <- list(integer())
-
-    task_seeds
-}
-
 ## .rng_job_fun_factory(): use in conjunction with
-## .rng_seeds_by_task() and .rng_lapply() to coordinate streams across
-## jobs, independent of how jobs are organized into tasks.
+## .rng_lapply() to coordinate streams across tasks in a job,
+## independent of how the job are organized into tasks.
 .rng_job_fun_factory <-
     function(FUN, SEED)
 {

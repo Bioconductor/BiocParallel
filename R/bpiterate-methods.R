@@ -12,6 +12,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     bpiterate(ITER, FUN, ..., BPPARAM=BPPARAM)
 })
 
+## TODO: support BPREDO
 .bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
              BPPARAM = bpparam())
@@ -24,6 +25,10 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
+    ITER_ <- function(){
+        list(ITER())
+    }
+
     if (missing(REDUCE)) {
         if (reduce.in.order)
             stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
@@ -31,27 +36,21 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
             stop("REDUCE must be provided when 'init' is given")
     }
 
-    if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-        param <- as(BPPARAM, "SerialParam")
-        return(bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
-                         BPPARAM=param))
-    }
+    ARGS <- list(...)
 
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        on.exit(bpstop(BPPARAM), TRUE)
-    }
-
-    ## FUN
-    FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM),
-        force.GC = bpforceGC(BPPARAM)
+    manager <- structure(list(), class="iterate") # dispatch
+    res <- bpinit(
+        manager = manager,
+        ITER = ITER_,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM,
+        init = init,
+        REDUCE = REDUCE,
+        reduce.in.order = reduce.in.order
     )
-    ARGFUN <- function(value) c(list(value), list(...))
 
-    ## FIXME: handle errors via bpok()
-    bploop(structure(list(), class="iterate"), # dispatch
-           ITER, FUN, ARGFUN, BPPARAM, REDUCE, init, reduce.in.order)
+    ## TODO: handle the error in res
+
+    res
 }
