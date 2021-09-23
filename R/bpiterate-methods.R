@@ -25,7 +25,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
 
-    ITER_ <- function(){
+    ITER_ <- function() {
         list(ITER())
     }
 
@@ -39,7 +39,7 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     ARGS <- list(...)
 
     manager <- structure(list(), class="iterate") # dispatch
-    res <- bpinit(
+    res <- .bpinit(
         manager = manager,
         ITER = ITER_,
         FUN = FUN,

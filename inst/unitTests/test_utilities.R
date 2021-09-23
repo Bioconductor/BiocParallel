@@ -38,6 +38,87 @@ test_splitX <- function()
     checkIdentical(as.list(X),               .splitX(X, 2, 4))
 }
 
+test_splitX_with_redo <- function(){
+    .split_X_redo <- BiocParallel:::.split_X_redo
+    .bploop_rng_iter <- BiocParallel:::.bploop_rng_iter
+
+    N <- 6
+    X <- 1:N
+
+
+    task_size <- 1L
+    redo_index <- rep(TRUE, N)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(splittedX, as.list(X))
+
+    task_size <- 4L
+    redo_index <- rep(TRUE, N)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(splittedX, list(1:4, 5:6))
+
+    task_size <- 1L
+    redo_index <- c(TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(1L, .bploop_rng_iter(1L),
+             3L, 4L, 5L)
+    )
+
+    task_size <- 2L
+    redo_index <- c(TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(1L, .bploop_rng_iter(1L),
+             3L:4L, 5L)
+    )
+
+    task_size <- 10L
+    redo_index <- c(TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(1L, .bploop_rng_iter(1L),
+             3L:5L)
+    )
+
+    task_size <- 1L
+    redo_index <- c(FALSE, FALSE, TRUE, FALSE, FALSE, FALSE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(.bploop_rng_iter(2L),
+             3L)
+    )
+
+    task_size <- 1L
+    redo_index <- c(FALSE, FALSE, TRUE, TRUE, TRUE, TRUE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(.bploop_rng_iter(2L),
+             3L, 4L, 5L, 6L)
+    )
+
+    task_size <- 3L
+    redo_index <- c(FALSE, FALSE, TRUE, TRUE, TRUE, TRUE)
+    n <- .split_X_redo(X[redo_index], redo_index, task_size)
+    splittedX <- .split_X_redo(X[redo_index], redo_index, task_size, n)
+    checkIdentical(
+        splittedX,
+        list(.bploop_rng_iter(2L),
+             3:5, 6L)
+    )
+}
+
 test_redo_index <- function() {
     .redo_index <- BiocParallel:::.redo_index
     err <- BiocParallel:::.error("")

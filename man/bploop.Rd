@@ -22,9 +22,9 @@
 }
 
 \usage{
-\S3method{bploop}{lapply}(manager, X, FUN, ARGFUN, BPPARAM, ...)
+\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, ...)
 
-\S3method{bploop}{iterate}(manager, ITER, FUN, ARGFUN, BPPARAM,
+\S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
        REDUCE, init, reduce.in.order, ...)
 }
 
@@ -38,9 +38,7 @@
 
   \item{FUN}{A function to apply to each job.}
 
-  \item{ARGFUN}{A function accepting an integer value indicating the
-    job number, and returning the job-specific arguments to
-    \code{FUN}.}
+  \item{ARGS}{A list of arguments to be passed to \code{FUN}.}
 
   \item{BPPARAM}{An instance of a \code{BiocParallelParam} class.}
 

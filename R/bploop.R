@@ -194,10 +194,12 @@
 }
 
 ## A dummy iterator for bploop.lapply
-.bploop_lapply_iter <- function(X){
+.bploop_lapply_iter <-
+    function(X)
+{
     i <- 0L
     n <- length(X)
-    function(){
+    function() {
         if (i < n) {
             i <<- i + 1L
             X[[i]]
@@ -222,7 +224,7 @@ bploop <- function(manager, ...)
 ## X: the loop value after division
 ## ARGS: The function arguments for `FUN`
 bploop.lapply <-
-    function(manager, X, FUN, ARGS, BPPARAM)
+    function(manager, X, FUN, ARGS, BPPARAM, ...)
 {
     ITER <- .bploop_lapply_iter(X)
     manager <- structure(list(), class="iterate") # dispatch
@@ -232,7 +234,8 @@ bploop.lapply <-
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM =BPPARAM,
-        reduce.in.order = TRUE)
+        reduce.in.order = TRUE
+    )
 }
 
 
@@ -252,7 +255,9 @@ bploop.lapply <-
 ## - FUN: A function that will be evaluated in the worker
 ## - ARGS: the arguments to FUN
 bploop.iterate <-
-    function(manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order)
+    function(
+        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order, ...
+    )
 {
     cl <- bpbackend(BPPARAM)
 
@@ -341,7 +346,7 @@ bploop.iterate <-
 }
 
 bploop.iterate_batchtools <-
-    function(manager, ITER, FUN, BPPARAM, REDUCE, init, reduce.in.order,...)
+    function(manager, ITER, FUN, BPPARAM, REDUCE, init, reduce.in.order, ...)
 {
     ## get number of workers
     workers <- bpnworkers(BPPARAM)

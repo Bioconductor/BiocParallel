@@ -14,6 +14,7 @@
 \alias{bplog<-,SerialParam,logical-method}
 \alias{bpthreshold<-,SerialParam,character-method}
 \alias{bplogdir<-,SerialParam,character-method}
+\alias{length,SerialBackend-method}
 
 \title{Enable serial evaluation}
 

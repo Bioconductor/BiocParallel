@@ -61,7 +61,7 @@ setMethod("bplapply", c("ANY", "list"),
     ARGS <- list(...)
 
     manager <- structure(list(), class="lapply") # dispatch
-    res <- bpinit(
+    res <- .bpinit(
         manager = manager,
         X = X,
         FUN = FUN,

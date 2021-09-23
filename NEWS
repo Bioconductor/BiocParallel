@@ -30,6 +30,13 @@ USER VISIBLE CHANGES
     processes (i.e., MulticoreParam) assume that they are the only
     consumers of process memory.
 
+    o (v 1.27.11) Developer-oriented functions bploop.*() arguments changed.
+
+BUG FIXES
+
+    o (v 1.27.10) Typo in coercion to SerialParam when only a single worker
+    specified. https://github.com/Bioconductor/BiocParallel/issues/151
+
 CHANGES IN VERSION 1.26
 -----------------------
 

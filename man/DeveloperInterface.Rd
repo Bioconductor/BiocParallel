@@ -7,10 +7,12 @@
 \alias{.recv_all,ANY-method}
 \alias{.recv_any}
 \alias{.recv_any,ANY-method}
+\alias{.recv_any,SerialBackend-method}
 \alias{.send_all}
 \alias{.send_all,ANY-method}
 \alias{.send_to}
 \alias{.send_to,ANY-method}
+\alias{.send_to,SerialBackend-method}
 \alias{.send}
 \alias{.send,ANY-method}
 \alias{.recv}

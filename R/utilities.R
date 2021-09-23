@@ -79,14 +79,15 @@
         redo <- redo_index[[i]]
         ## The task division depends on two factors:
         ## 1. Whether the current redo is different from the previous one?
-        ## 2. Whether the elements number in a task will exceed `elements_per_task` limit
+        ## 2. Whether the elements number in a task will exceed
+        ##    `elements_per_task` limit
         is_switch <- xor(last_redo_status, redo)
         is_switch <- ifelse(
             is_switch || !redo, is_switch, x_len >= elements_per_task
         )
-        ## If we want to split X at this position and
-        ## it is not in the preallocation stage, we create
-        ## a subset of X or .bploop_rng_iter based on the previous redo value
+        ## If we want to split X at this position and it is not in the
+        ## preallocation stage, we create a subset of X or
+        ## .bploop_rng_iter based on the previous redo value
         if (!prealloc && is_switch) {
             if (last_redo_status)
                 splittedX[[task_i]] <- X[seq.int(x_start, length.out = x_len)]
@@ -94,8 +95,8 @@
                 splittedX[[task_i]] <- .bploop_rng_iter(x_len)
         }
         ## if we split X, record the next redo status, start index,
-        ## add task index by 1 and reset the length, otherwise we
-        ## just add the length by 1
+        ## add task index by 1 and reset the length, otherwise we just
+        ## add the length by 1
         if (is_switch) {
             x_start <- ifelse(last_redo_status, x_start + x_len, x_start)
             last_redo_status <- redo
@@ -119,7 +120,8 @@
     }
 }
 
-.splitX <- function(X, workers, tasks, redo_index = NULL)
+.splitX <-
+    function(X, workers, tasks, redo_index = NULL)
 {
     if (tasks == 0L) {
         tasks <- workers
@@ -127,16 +129,15 @@
         tasks <- min(length(X), tasks)
     }
     ## If redo index presents, split X based on the index while
-    ## preserving the correct rng stream.
-    ## it will respect `tasks` value
-    if (length(redo_index)){
-        ## Two-pass algorithm, the first pass calculate
-        ## the required list size to allocate, then do
-        ## the real allocation
-        elements_per_task <- ceiling(length(X)/max(tasks, 1L))
+    ## preserving the correct rng stream.  it will respect `tasks`
+    ## value
+    if (length(redo_index)) {
+        ## Two-pass algorithm, the first pass calculate the required
+        ## list size to allocate, then do the real allocation
+        elements_per_task <- ceiling(length(X) / max(tasks, 1L))
         n <- .split_X_redo(X, redo_index, elements_per_task)
         .split_X_redo(X, redo_index, elements_per_task, n)
-    }else{
+    } else {
         idx <- .splitIndices(length(X), tasks)
         relist(X, idx)
     }
