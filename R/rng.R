@@ -38,15 +38,24 @@
 
     ## coerces seed to appropriate format for RNGkind; NULL seed (from
     ## bpRNGseed()) uses the global random number stream.
-    if (!is.null(seed))
+    if (!is.null(seed)) {
         set.seed(seed)
 
-    ## change kind
-    kind <- "L'Ecuyer-CMRG"
-    RNGkind(kind)
+        ## change kind
+        kind <- "L'Ecuyer-CMRG"
+        RNGkind(kind)
 
-    ## .Random.seed always exists after RNGkind()
-    get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+        ## .Random.seed always exists after RNGkind()
+        seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    } else {
+        .rng_internal_stream$set()
+        seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+        ## advance internal stream by 1
+        runif(1)
+        .rng_internal_stream$reset()
+    }
+
+    seed
 }
 
 ## .rng_next_stream(): return the next stream for a parallel job

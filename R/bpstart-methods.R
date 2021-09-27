@@ -61,7 +61,6 @@ setMethod("bpstart", "missing",
     ## initialize the random number stream; increment the stream only
     ## in bpstart_impl
     .RNGstream(x) <- .rng_init_stream(bpRNGseed(x))
-    runif(1L) # increment stream exactly once on start
 
     invisible(.RNGstream(x))
 }

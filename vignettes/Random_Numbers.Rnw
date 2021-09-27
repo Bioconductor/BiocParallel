@@ -244,48 +244,36 @@ stopifnot(
 
 \subsection{Relationship between \Rcode{RNGseed=} and \Rcode{set.seed()}}
 
-When \Rcode{RNGseed=} is used, the global random number stream is ignored.
+The global random number stream (influenced by \Rcode{set.seed()}) is
+ignored by \BiocParallel{}, and \BiocParallel{} does NOT increment the
+global stream.
 
 <<RNGseed-and-set-seed>>=
 set.seed(200)
+value <- runif(1)
+
+set.seed(200)
 result12 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
 stopifnot(
-    identical(result1, result12)
+    identical(result1, result12),
+    identical(value, runif(1))
 )
 @
 
-When \Rcode{RNGseed=} is not used, the global random number stream is
-used, and the results for a given seed are the same as if
-\Rcode{RNGseed=} had been used.
+When \Rcode{RNGseed=} is not used, an internal stream (not accessible
+to the user) is used and \BiocParallel{} does NOT increment the global stream.
 
 <<not-RNGseed-and-set-seed>>=
 set.seed(100)
+value <- runif(1)
+
+set.seed(100)
 result13 <- bplapply(1:3, runif, BPPARAM = SerialParam())
 stopifnot(
-    identical(result1, result13)
+    !identical(result1, result13),
+    identical(value, runif(1))
 )
 @
-
-Regardless of whether \Rcode{RNGseed=} is used (or whether \Rcode{FUN}
-uses a random number stream), the global random number stream behaves
-as though it had been called once.
-
-<<set-seed-increment>>=
-set.seed(100)
-second_element <- runif(2)[2]
-
-set.seed(100)
-result14 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 200))
-stopifnot(
-    identical(second_element, runif(1))
-)
-
-set.seed(100)
-result15 <- bplapply(1:3, runif, BPPARAM = SerialParam())
-stopifnot(
-    identical(second_element, runif(1))
-)
-@ 
 
 \subsection{\Rcode{bpstart()} and random number streams}
 
@@ -324,26 +312,6 @@ stopifnot(
     !identical(result1, result17)
 )
 @ 
-
-The interplay between \Rcode{bpstart()} and \Rcode{set.seed()} needs to
-be considered carefully when \Rcode{RNGseed=} is not used, and for this
-reason the recommended practice is to always use \Rcode{RNGseed=}.
-
-<<set.seed-and-bpstart>>=
-set.seed(200)
-param <- SerialParam()  # RNGseed = NULL by default; global stream ignored
-
-set.seed(100)
-param <- bpstart(param) # use global stream to seed parallel streams
-result18 <- bplapply(1:3, runif, BPPARAM = param)
-result19 <- bplapply(1:3, runif, BPPARAM = param)
-bpstop(param)
-
-stopifnot(
-    identical(result1, result18),
-    !identical(result1, result19)
-)
-@
 
 \subsection{Relationship between \Rcode{bplapply()} and \Rcode{lapply()}}
 

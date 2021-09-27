@@ -23,13 +23,15 @@ test_rng_fun_advances_generator <- function()
     obs <- c(FUN(1), FUN(1)) # two numbers from separate streams
     checkIdentical(obs[[1]], target[[1]])
     checkTrue(obs[[2]] != target[[2]])
-    checkTrue(!identical(state, .rng_get_generator()))
+
+    checkTrue(identical(state, .rng_get_generator()))
 }
 
 test_rng_lapply <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
     .RNGstream <- BiocParallel:::.RNGstream
     .rng_lapply <- BiocParallel:::.rng_lapply
     .rng_next_substream <- BiocParallel:::.rng_next_substream
@@ -52,7 +54,8 @@ test_rng_lapply <- function()
         .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED2)
     )
     checkIdentical(target, obs)
-    checkTrue(!identical(state, .rng_get_generator()))
+
+    checkTrue(identical(state, .rng_get_generator()))
 }
 
 test_rng_bplapply <- function()
@@ -192,66 +195,68 @@ test_rng_bpstart <- function()
     checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
-.test_rng_bpstart_iterates_rng_seed <- function(param) {
+.test_rng_bpstart_does_not_iterate_rng_seed <- function(param) {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
 
     state <- .rng_get_generator()
     set.seed(123L)
-    target <- runif(2L)[2L]
+    target <- runif(1L)
 
-    ## bpstart() should increment the random number seed by exactly one call
+    ## bpstart() should not increment the random number seed
     set.seed(123L)
     bpstart(param)
     checkIdentical(target, runif(1L))
     bpstop(param)
 
+    ## bplapply does not increment stream
     set.seed(123)
     result <- bplapply(1:3, runif, BPPARAM = param)
     checkIdentical(target, runif(1L))
-    checkTrue(!identical(result, bplapply(1:3, runif, BPPARAM = param)))
 
+    ## bplapply uses internal stream
     set.seed(123)
-    checkIdentical(result, bplapply(1:3, runif, BPPARAM = param))
+    result <- bplapply(1:3, runif, BPPARAM = param)
+    checkTrue(!identical(result, bplapply(1:3, runif, BPPARAM = param)))
     checkIdentical(target, runif(1L))
+    target1 <- lapply(1:3, runif)
+    checkTrue(!identical(result, target1))
 
     checkIdentical(state$kind, .rng_get_generator()$kind)
 }
 
-test_rng_bpstart_iterates_rng_seed <- function() {
+test_rng_bpstart_does_not_iterate_rng_seed <- function() {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+    TEST_FUN <- .test_rng_bpstart_does_not_iterate_rng_seed
 
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    .test_rng_bpstart_iterates_rng_seed(SerialParam())
-    .test_rng_bpstart_iterates_rng_seed(SnowParam(2))
+    TEST_FUN(SerialParam())
+    TEST_FUN(SnowParam(2))
     if (identical(.Platform$OS.type, "unix"))
-        .test_rng_bpstart_iterates_rng_seed(MulticoreParam(2))
+        TEST_FUN(MulticoreParam(2))
 }
 
-.test_rng_global_and_RNGseed_identical <- function(param_fun) {
+.test_rng_global_and_RNGseed_indepenent <- function(param_fun) {
     set.seed(123)
     target <- bplapply(1:3, runif, BPPARAM = param_fun())
     current <- bplapply(1:3, runif, BPPARAM = param_fun(RNGseed = 123))
-    checkIdentical(target, current)
-
-    set.seed(123)
-    current <- bplapply(1:3, runif, BPPARAM = param_fun(RNGseed = 124))
     checkTrue(!identical(target, current))
 }
 
-test_rng_global_and_RNGseed_identical <- function() {
+test_rng_global_and_RNGseed_independent <- function() {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+    TEST_FUN <- .test_rng_global_and_RNGseed_indepenent
 
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
-    .test_rng_global_and_RNGseed_identical(SerialParam)
-    .test_rng_global_and_RNGseed_identical(SnowParam)
+    TEST_FUN(SerialParam)
+    TEST_FUN(SnowParam)
     if (identical(.Platform$OS.type, "unix"))
-        .test_rng_global_and_RNGseed_identical(MulticoreParam)
+        TEST_FUN(MulticoreParam)
 }
 
 .test_rng_bpredo_impl <- function(param) {

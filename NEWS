@@ -32,6 +32,10 @@ USER VISIBLE CHANGES
 
     o (v 1.27.11) Developer-oriented functions bploop.*() arguments changed.
 
+    o (v 1.27.12) ignore set.seed() and do never increment the global random
+    number stream. This reverts a side-effect of behavior introduced in v.
+    1.27.5 to behavior more consistent with version 1.26.
+
 BUG FIXES
 
     o (v 1.27.10) Typo in coercion to SerialParam when only a single worker
