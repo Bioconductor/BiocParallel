@@ -2,8 +2,11 @@
 ### Error handling 
 ### -------------------------------------------------------------------------
 
-bpok <- function(x) {
-    !vapply(x, inherits, logical(1), "bperror")
+bpok <-
+    function(x, type = bperrorTypes())
+{
+    type <- match.arg(type)
+    !vapply(x, inherits, logical(1), type)
 }
 
 bptry <- function(expr, ..., bplist_error, bperror)
@@ -131,15 +134,40 @@ bptry <- function(expr, ..., bplist_error, bperror)
               class=c("worker_comm_error", "bperror", "error", "condition"))
 }
 
+bperrorTypes <-
+    function()
+{
+    subclasses <- paste0(
+        c("remote", "unevaluated", "not_available", "worker_comm"),
+        "_error"
+    )
+    c("bperror", subclasses)
+}
+
 .error_bplist <- function(result) {
-    idx <- which(!bpok(result) &
-                  !vapply(result, inherits, logical(1), "not_available_error"))
-    err <- structure(list(
-        message=sprintf(
-            "BiocParallel errors\n  element index: %s%s\n  first error: %s",
-            paste(head(idx), collapse=", "),
-            if (length(idx) > 6) ", ..." else "",
-            conditionMessage(result[[idx[1]]]))),
+    remote_error <- !bpok(result, "remote_error")
+    idx <- which(remote_error)
+    n_remote_error <- sum(remote_error)
+    n_other_error <- sum(!bpok(result)) - n_remote_error
+
+    fmt = paste(
+        "BiocParallel errors",
+        "%d remote errors, element index: %s%s",
+        "%d unevaluated and other errors",
+        "first remote error: %s",
+        sep = "\n  "
+    )
+    message <- sprintf(
+        fmt,
+        n_remote_error,
+        paste(head(idx), collapse = ", "),
+        ifelse(length(idx) > 6, ", ...", ""),
+        n_other_error,
+        conditionMessage(result[[idx[[1]]]])
+    )
+
+    err <- structure(
+        list(message=message),
         result=result,
         class = c("bplist_error", "bperror", "error", "condition"))
 }

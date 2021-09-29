@@ -1,6 +1,7 @@
 \name{bpok}
 
 \alias{bpok}
+\alias{bperrorTypes}
 
 
 \title{Resume computation with partial results}
@@ -14,7 +15,9 @@
 
 \usage{
 
-  bpok(x)
+  bpok(x, type = bperrorTypes())
+
+  bperrorTypes()
 
 }
 
@@ -24,16 +27,45 @@
       Results returned from a call to \code{bp*apply}.
     }
 
+    \item{type}{
+      A character(1) error type, from the vector returned by
+      \code{bperrorTypes()} and described below
+    }
+
 }
 
 \details{
 
+  \code{bpok()} returns a \code{logical()} vector: FALSE for any jobs
+  that resulted in an error. \code{x} is the result list output by
+  \code{bplapply}, \code{bpmapply}, \code{bpvec}, \code{bpaggregate} or
+  \code{bpvectorize}.
+
+  \code{bperrorTypes()} returns a character() vector of possible error
+  types generated during parallel evaluation. Types are:
+
   \itemize{
-    \item{bpok}{
-      Returns a \code{logical()} vector: FALSE for any jobs that resulted in
-      an error. \code{x} is the result list output by \code{bplapply},
-      \code{bpmapply}, \code{bpvec}, \code{bpaggregate} or \code{bpvectorize}.
-    }
+    \item{\code{bperror}: Any of the following errors. This is the
+      default value for \code{bpok()}.}
+
+    \item{\code{remote_error}: An \emph{R} error occurring while
+      evaluating \code{FUN()}, e.g., taking the square root of a
+      character vector, \code{sqrt("One")}.}
+
+    \item{\code{unevaluated_error}: When \code{*Param(stop.on.error =
+        TRUE)} (default), a remote error halts evaluation of other
+        tasks assigned to the same worker. The return value for these
+        unevaluated elements is an error of type
+        \code{unevaluated_error}.}
+
+    \item{\code{not_available_error}: Only produced by
+      \code{DoparParam()} when a remote error occurs during evaluation
+      of an element of \code{X} -- \code{DoparParam()} sets all values
+      after the remote error to this class.}
+
+    \item{\code{worker_comm_error}: An error occurring while trying to
+      communicate with workers, e.g., when a worker quits unexpectedly.}
+
   }
 
 }

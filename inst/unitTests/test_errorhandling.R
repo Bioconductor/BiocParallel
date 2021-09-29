@@ -53,7 +53,7 @@ test_SerialParam_stop.on.error <- function()
     checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
     current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
     checkTrue(is(current, "bplist_error"))
-    target <- "BiocParallel errors\n  element index: 2, 3\n  first error: non-numeric argument to mathematical function"
+    target <- "BiocParallel errors\n  1 remote errors, element index: 2\n  1 unevaluated and other errors\n  first remote error: non-numeric argument to mathematical function"
     checkIdentical(target, conditionMessage(current))
     target <- tryCatch(lapply(X, sqrt), error=identity)
     checkIdentical(

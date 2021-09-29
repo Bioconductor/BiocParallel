@@ -45,7 +45,7 @@ export(
     multicoreWorkers, snowWorkers,
     batchtoolsWorkers, batchtoolsCluster, batchtoolsRegistryargs,
     batchtoolsTemplate,
-    bpvalidate, bpok,
+    bpvalidate, bpok, bperrorTypes,
     bprunMPIslave,
     bprunMPIworker,
 
