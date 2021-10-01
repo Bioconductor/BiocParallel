@@ -195,16 +195,42 @@
 
 ## A dummy iterator for bploop.lapply
 .bploop_lapply_iter <-
-    function(X)
+    function(X, redo_index, elements_per_task)
 {
-    i <- 0L
+    if (missing(redo_index))
+        redo_index <- NULL
+    i <- 1L
     n <- length(X)
     function() {
-        if (i < n) {
-            i <<- i + 1L
-            X[[i]]
+        if (i <= n) {
+            ## If length(redo_index)==0, we always redo
+            redo <- !length(redo_index) || redo_index[i]
+            len <- 1L
+            ## We try to maximize `len` such that
+            ## - 1. X[i + len] is not out-of-bound
+            ## - 2. If `redo_index` is not empty, all elements in
+            ## -    redo_index[i:(i+len)] have the same value
+            ## - 3. If redo == TRUE, `len` is not larger than `elements_per_task`
+            while (i + len <= n &&
+                  (!length(redo_index) || redo_index[i + len] == redo) &&
+                  (!redo || len < elements_per_task)) {
+                len <- len + 1L
+            }
+            if (redo) {
+                value <- X[seq.int(i, length.out = len)]
+            } else {
+                value <- .bploop_rng_iter(len)
+            }
+            i <<- i + len
+            ## Do not return the last seed iterator
+            ## if no more redo element
+            if (i > n && !redo) {
+                list(NULL)
+            } else {
+                value
+            }
         } else {
-            NULL
+            list(NULL)
         }
     }
 }
@@ -224,9 +250,11 @@ bploop <- function(manager, ...)
 ## X: the loop value after division
 ## ARGS: The function arguments for `FUN`
 bploop.lapply <-
-    function(manager, X, FUN, ARGS, BPPARAM, ...)
+    function(manager, X, FUN, ARGS, BPPARAM, BPREDOIDX, ...)
 {
-    ITER <- .bploop_lapply_iter(X)
+    ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    elements_per_task <- length(X)/ntask
+    ITER <- .bploop_lapply_iter(X, BPREDOIDX, elements_per_task)
     manager <- structure(list(), class="iterate") # dispatch
     bploop(
         manager = manager,
@@ -274,7 +302,8 @@ bploop.iterate <-
 
     ARGFUN <- function(X, seed)
         c(
-            list(X=X), list(FUN=FUN), ARGS,
+            list(X=X, BPELEMENTS = length(X)),
+            list(FUN=FUN), ARGS,
             list(BPRNGSEED = seed)
         )
     ## initial load
@@ -288,7 +317,7 @@ bploop.iterate <-
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
-        if (is.null(value[[1]])) {
+        if (identical(value, list(NULL))) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
             break
@@ -329,7 +358,7 @@ bploop.iterate <-
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
-        if (!is.null(value[[1]])) {
+        if (!identical(value, list(NULL))) {
             i <- i + 1L
             value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
             running[d$node] <- .send_to(cl, d$node, value_)

@@ -22,7 +22,7 @@
 }
 
 \usage{
-\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, ...)
+\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, BPREDOIDX, ...)
 
 \S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
        REDUCE, init, reduce.in.order, ...)
@@ -54,6 +54,10 @@
     reduction must occur in the order jobs are dispatched
     (\code{TRUE}) or that reduction can occur in the order jobs are
     completed (\code{FALSE}).}
+
+  \item{BPREDOIDX}{(Optional) A logical vector with each element
+    corresponds to an element in \code{X} indicating whether the
+    element of \code{X} needs to be included in the parallel execution.}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
 

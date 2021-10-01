@@ -47,16 +47,8 @@ setMethod("bplapply", c("ANY", "list"),
 
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
-    if (any(redo_index)) {
-        compute_element <- which(redo_index)
-        X <- X[compute_element]
-    } else {
-        compute_element <- NULL
-    }
+    compute_element <- which(redo_index)
     nms <- names(X)
-
-    ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM), redo_index)
 
     ARGS <- list(...)
 
@@ -66,7 +58,8 @@ setMethod("bplapply", c("ANY", "list"),
         X = X,
         FUN = FUN,
         ARGS = ARGS,
-        BPPARAM = BPPARAM
+        BPPARAM = BPPARAM,
+        BPREDOIDX = redo_index
     )
 
     if (length(compute_element)) {
@@ -75,9 +68,9 @@ setMethod("bplapply", c("ANY", "list"),
     }
 
     if (!is.null(res)) {
-        if (is.null(compute_element))
+        if (!length(compute_element))
             compute_element <- seq_along(res)
-        names(res)[compute_element] <- nms
+        names(res)[compute_element] <- nms[compute_element]
     }
 
     if (!all(bpok(res)))
