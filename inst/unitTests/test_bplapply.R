@@ -103,3 +103,25 @@ test_bplapply_named_list_with_REDO <- function(){
     redo <- bplapply(X, FUN2, BPREDO = result, BPPARAM = param)
     checkIdentical(names(redo), names(X))
 }
+
+test_bplapply_custom_subsetting <- function(){
+    ## We have a class A in the previous unit test
+    .B <- setClass("B", slots = c(b = "integer"))
+    setMethod("[", "B", function(x, i, j, ...) initialize(x, b = x@b[i]))
+    setMethod("length", "B", function(x) length(x@b))
+    as.list.B <<- function(x, ...) lapply(seq_along(x), function(i) x[i])
+
+    x <- .B(b = 1:3)
+    expected <- lapply(x, function(elt) elt@b)
+    current <- quiet(bplapply(x, function(elt) elt@b, BPPARAM=SerialParam()))
+    checkIdentical(expected, current)
+
+    ## Remote worker does not have the definition of the class B
+    res <- tryCatch(
+        bplapply(x, function(elt) elt@b, BPPARAM=SnowParam(workers = 2)),
+        error = identity
+    )
+    checkTrue(is(res, "bplist_error"))
+
+    rm(as.list.B, inherits = TRUE)
+}

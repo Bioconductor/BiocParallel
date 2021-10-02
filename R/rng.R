@@ -133,11 +133,23 @@
 ## lapply, but with 'FUN()' wrapped so that each call uses a new
 ## random number stream
 .rng_lapply <-
-    function(X, FUN, ..., BPRNGSEED)
+    function(X, FUN, ..., BPRNGSEED, BPELEMENTS)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
     FUN <- .rng_job_fun_factory(FUN, BPRNGSEED)
-    lapply(X, FUN, ...)
+    tryCatch(
+        lapply(X, FUN, ...),
+        error = function(e) {
+            call <- sapply(sys.calls(), deparse, nlines=3)
+            if (BPELEMENTS == 0) {
+                list()
+            } else if (BPELEMENTS == 1 ) {
+                list(.error_remote(e, call))
+            } else {
+                c(list(.error_remote(e, call)), rep(list(.error_unevaluated()), BPELEMENTS - 1L))
+            }
+        }
+    )
 }

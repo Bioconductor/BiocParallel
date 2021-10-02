@@ -204,7 +204,7 @@
             i <<- i + 1L
             X[[i]]
         } else {
-            NULL
+            list(NULL)
         }
     }
 }
@@ -274,7 +274,8 @@ bploop.iterate <-
 
     ARGFUN <- function(X, seed)
         c(
-            list(X=X), list(FUN=FUN), ARGS,
+            list(X=X, BPELEMENTS = length(X)),
+            list(FUN=FUN), ARGS,
             list(BPRNGSEED = seed)
         )
     ## initial load
@@ -288,7 +289,7 @@ bploop.iterate <-
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
-        if (is.null(value[[1]])) {
+        if (identical(value, list(NULL))) {
             if (i == 1L)
                 warning("first invocation of 'ITER()' returned NULL")
             break
@@ -329,7 +330,7 @@ bploop.iterate <-
             seed <- .rng_iterate_substream(seed, value)
             value <- ITER()
         }
-        if (!is.null(value[[1]])) {
+        if (!identical(value, list(NULL))) {
             i <- i + 1L
             value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
             running[d$node] <- .send_to(cl, d$node, value_)
