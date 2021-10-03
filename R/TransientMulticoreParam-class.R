@@ -17,9 +17,7 @@ setMethod(
     "bpstart", "TransientMulticoreParam",
     function(x, ...)
 {
-    .rng_internal_stream$set()
     parallel::mccollect(wait=TRUE)
-    .rng_internal_stream$reset()
 
     rm(
         list=ls(envir = .TRANSIENTMULTICOREPARAM_JOBNODE),
@@ -87,9 +85,7 @@ setMethod(
             for (id in names(result))
                 .BUFF[[id]] <- result[[id]]
         }
-        .rng_internal_stream$set()
-        id <- sample(names(.BUFF), 1L)
-        .rng_internal_stream$reset()
+        id <- head(names(.BUFF), 1L)
 
         value <- .BUFF[[id]]
         rm(list = id, envir = .BUFF)

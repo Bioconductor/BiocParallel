@@ -79,9 +79,13 @@ test_rng_bplapply <- function()
     checkIdentical(bplapply(1:11, FUN, BPPARAM = p3), target)
 
     if (identical(.Platform$OS.type, "unix")) {
+        ## SerialParam / TransientMulticoreParam same results
+        p4a <- MulticoreParam(5, RNGseed = 123)
+        checkIdentical(bplapply(1:11, FUN, BPPARAM = p4a), target)
         ## SerialParam / MulticoreParam same results
-        p4 <- MulticoreParam(5, RNGseed = 123)
-        checkIdentical(bplapply(1:11, FUN, BPPARAM = p4), target)
+        p4b <- bpstart(MulticoreParam(5, RNGseed = 123))
+        checkIdentical(bplapply(1:11, FUN, BPPARAM = p4b), target)
+        bpstop(p4b)
     }
 
     ## single worker coerced to SerialParam
@@ -121,12 +125,19 @@ test_rng_bpiterate <- function()
     checkIdentical(target, bpiterate(ITER_factory(), FUN, BPPARAM = p3), "p3")
 
     if (identical(.Platform$OS.type, "unix")) {
-        ## SerialParam / MulticoreParam same results
-        p4 <- MulticoreParam(5, RNGseed = 123)
+        ## SerialParam / TransientMulticoreParam same results
+        p4a <- MulticoreParam(5, RNGseed = 123)
         checkIdentical(
-            target, bpiterate(ITER_factory(), FUN, BPPARAM = p4),
-            "p4"
+            target, bpiterate(ITER_factory(), FUN, BPPARAM = p4a),
+            "p4a"
         )
+        ## SerialParam / MulticoreParam same results
+        p4b <- bpstart(MulticoreParam(5, RNGseed = 123))
+        checkIdentical(
+            target, bpiterate(ITER_factory(), FUN, BPPARAM = p4b),
+            "p4b"
+        )
+        bpstop(p4b)
     }
     checkIdentical(state$kind, .rng_get_generator()$kind)
 }

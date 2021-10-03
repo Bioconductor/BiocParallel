@@ -1,28 +1,33 @@
 .bpinit <-
     function(manager, FUN, BPPARAM, ...)
 {
-    fallback <- FALSE
-    if (!inherits(BPPARAM, "SerialParam")) {
-        if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
-            fallback <- TRUE
+    if (!bpisup(BPPARAM)) {
+        ## start cluster.
+
+        ## These conditions avoid cost of serializing data to workers
+        ## when not necessary
+        if (!inherits(BPPARAM, "SerialParam") &&
+            (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L)) {
+            ## use SerialParam when only one worker
             oldParam <- BPPARAM
             BPPARAM <- as(BPPARAM, "SerialParam")
-        }
-    }
-
-    ## start / stop cluster
-    if (!bpisup(BPPARAM)) {
-        BPPARAM <- bpstart(BPPARAM)
-        ## the fallback SerialParam must inherit the seed stream from
-        ## BPPARAM
-        if (fallback && bpisup(oldParam))
-            .RNGstream(BPPARAM) <- .RNGstream(oldParam)
-
-        on.exit({
-            bpstop(BPPARAM)
-            if (fallback)
+            on.exit({
                 .RNGstream(oldParam) <- .RNGstream(BPPARAM)
-        }, TRUE)
+            }, TRUE, FALSE) # add = TRUE, last = FALSE --> last in,
+                            # first out order
+        } else if (is(BPPARAM, "MulticoreParam")) {
+            ## use TransientMulticoreParam when MulticoreParam has not
+            ## started
+            oldParam <- BPPARAM
+            BPPARAM <- as(BPPARAM, "TransientMulticoreParam")
+            on.exit({
+                .RNGstream(oldParam) <- .RNGstream(BPPARAM)
+            }, TRUE, FALSE)
+        }
+
+        ## start / stop cluster
+        BPPARAM <- bpstart(BPPARAM)
+        on.exit(bpstop(BPPARAM), TRUE, FALSE)
     }
 
     ## FUN
@@ -32,6 +37,7 @@
         force.GC = bpforceGC(BPPARAM)
     )
 
+    ## iteration
     res <- bploop(
         manager, # dispatch
         FUN = FUN,
