@@ -40,8 +40,8 @@
     value <- tryCatch({
         do.call(msg$data$fun, msg$data$args)
     }, error=function(e) {
-        ## capture error, without throwing
-        .error_worker_comm(e, "worker evaluation failed")
+        ## return as 'list()' because msg$data$fun has lapply semantics
+        list(.error_worker_comm(e, "worker evaluation failed"))
     })
     t2 <- proc.time()
     sink(NULL, type="message")
@@ -274,8 +274,7 @@ bploop.iterate <-
 
     ARGFUN <- function(X, seed)
         c(
-            list(X=X, BPELEMENTS = length(X)),
-            list(FUN=FUN), ARGS,
+            list(X=X), list(FUN=FUN), ARGS,
             list(BPRNGSEED = seed)
         )
     ## initial load

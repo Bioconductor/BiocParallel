@@ -64,7 +64,10 @@
       after the remote error to this class.}
 
     \item{\code{worker_comm_error}: An error occurring while trying to
-      communicate with workers, e.g., when a worker quits unexpectedly.}
+      communicate with workers, e.g., when a worker quits unexpectedly.
+      when this type of error occurs, the length of the result may
+      differ from the length of the input \code{X}.
+    }
 
   }
 

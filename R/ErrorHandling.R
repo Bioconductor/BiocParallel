@@ -145,7 +145,9 @@ bperrorTypes <-
 }
 
 .error_bplist <- function(result) {
-    remote_error <- !bpok(result, "remote_error")
+    remote_error <-
+        !bpok(result, "remote_error") |
+        !bpok(result, "worker_comm_error")
     idx <- which(remote_error)
     n_remote_error <- sum(remote_error)
     n_other_error <- sum(!bpok(result)) - n_remote_error
