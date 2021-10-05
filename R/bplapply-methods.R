@@ -53,7 +53,7 @@ setMethod("bplapply", c("ANY", "list"),
         compute_element <- which(redo_index)
         X <- X[compute_element]
     } else {
-        compute_element <- NULL
+        compute_element <- seq_along(X)
     }
     nms <- names(X)
 
@@ -68,19 +68,12 @@ setMethod("bplapply", c("ANY", "list"),
         X = X,
         FUN = FUN,
         ARGS = ARGS,
-        BPPARAM = BPPARAM
+        BPPARAM = BPPARAM,
+        BPREDO = BPREDO
     )
 
-    if (length(compute_element)) {
-        BPREDO[compute_element] <- res
-        res <- BPREDO
-    }
-
-    if (!is.null(res)) {
-        if (is.null(compute_element))
-            compute_element <- seq_along(res)
+    if (!is.null(res))
         names(res)[compute_element] <- nms
-    }
 
     if (!all(bpok(res)))
         stop(.error_bplist(res))
