@@ -298,6 +298,24 @@ test_rng_global_and_RNGseed_independent <- function() {
     }
     result <- unlist(bplapply(1:11, FUN1, BPREDO = result, BPPARAM = param))
     checkIdentical(result, target)
+
+
+    bpstart(param)
+    target1 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    target2 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    target3 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    bpstop(param)
+
+    bpstart(param)
+    result1 <- bptry(bplapply(1:11, FUN0, BPPARAM = param))
+    result1_redo1 <- unlist(bplapply(1:11, FUN1, BPREDO = result1, BPPARAM = param))
+    result2 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    result1_redo2 <- unlist(bplapply(1:11, FUN1, BPREDO = result1, BPPARAM = param))
+    result3 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    checkIdentical(target1, result1_redo1)
+    checkIdentical(target1, result1_redo2)
+    checkIdentical(target2, result2)
+    checkIdentical(target3, result3)
 }
 
 test_rng_bpredo <- function()

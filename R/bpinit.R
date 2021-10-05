@@ -1,5 +1,5 @@
 .bpinit <-
-    function(manager, FUN, BPPARAM, ...)
+    function(manager, FUN, BPPARAM, BPREDO = list(), ...)
 {
     ## Conditions for starting a cluster, or falling back to (and
     ## starting) a SerialParam
@@ -37,6 +37,19 @@
         on.exit(bpstop(BPPARAM), TRUE, FALSE)
     }
 
+    ## record the initial seed used by the BPPARAM
+    BPREDOSEED <- .RNGstream(BPPARAM)
+
+    ## If BPREDO present and contains a seed, we need to
+    ## 1. use the seed from BPREDO
+    ## 2. recover the old seed after computing the result
+    if (length(BPREDO) && !is.null(attr(BPREDO, "BPREDOSEED"))) {
+        .RNGstream(BPPARAM) <- attr(BPREDO, "BPREDOSEED")
+        on.exit({
+            .RNGstream(BPPARAM) <- BPREDOSEED
+        }, TRUE, after = FALSE)
+    }
+
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
@@ -51,6 +64,20 @@
         BPPARAM = BPPARAM,
         ...
     )
+
+    if (length(BPREDO)) {
+        redo_idx <- which(!bpok(BPREDO))
+        if (length(redo_idx))
+            BPREDO[redo_idx] <- res
+        res <- BPREDO
+    }
+
+    if (!all(bpok(res))) {
+        attr(res, "BPREDOSEED") <- BPREDOSEED
+    } else {
+        attr(res, "BPREDOSEED") <- NULL
+    }
+
     res
 }
 
