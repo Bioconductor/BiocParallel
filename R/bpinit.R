@@ -73,7 +73,8 @@
     }
 
     if (!all(bpok(res))) {
-        attr(res, "BPREDOSEED") <- BPREDOSEED
+        if(is.null(attr(res, "BPREDOSEED")))
+            attr(res, "BPREDOSEED") <- BPREDOSEED
     } else {
         attr(res, "BPREDOSEED") <- NULL
     }
