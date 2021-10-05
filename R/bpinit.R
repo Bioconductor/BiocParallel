@@ -1,14 +1,21 @@
 .bpinit <-
     function(manager, FUN, BPPARAM, ...)
 {
-    if (!bpisup(BPPARAM)) {
-        ## start cluster.
-
-        ## These conditions avoid cost of serializing data to workers
-        ## when not necessary
-        if (!inherits(BPPARAM, "SerialParam") &&
-            (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L)) {
-            ## use SerialParam when only one worker
+    ## Conditions for starting a cluster, or falling back to (and
+    ## starting) a SerialParam
+    nworkers <- bpnworkers(BPPARAM) # cache in case this requires a netowrk call
+    fallback_condition <-
+        !inherits(BPPARAM, "SerialParam") &&
+        nworkers == 0L ||    # e.g., in dynamic cluster like RedisParam
+        !bpschedule(BPPARAM) # e.g., in nested parallel call
+    if (!bpisup(BPPARAM) || fallback_condition) {
+        if (fallback_condition || nworkers == 1L) {
+            ## use SerialParam when zero workers (e.g., in a dynaamic
+            ## cluster like RedisParam, where there are no registered
+            ## workers), or when bpschedule() is FALSE (e.g,. because
+            ## we are already in a parallel job), or when there is
+            ## only one worker (when the cost of serialization to a
+            ## remote worker can be avoided).
             oldParam <- BPPARAM
             BPPARAM <- as(BPPARAM, "SerialParam")
             on.exit({
