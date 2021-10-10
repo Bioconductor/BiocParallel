@@ -73,7 +73,9 @@
     }
 
     if (!all(bpok(res))) {
-        attr(res, "BPREDOSEED") <- BPREDOSEED
+        ## attach the seed only when no BPREDO presents
+        if (!length(BPREDO))
+            attr(res, "BPREDOSEED") <- BPREDOSEED
     } else {
         attr(res, "BPREDOSEED") <- NULL
     }
