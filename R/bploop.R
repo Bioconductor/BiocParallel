@@ -195,14 +195,40 @@
 
 ## A dummy iterator for bploop.lapply
 .bploop_lapply_iter <-
-    function(X)
+    function(X, redo_index, elements_per_task)
 {
-    i <- 0L
-    n <- length(X)
+    redo_n <- length(redo_index)
+    redo_i <- 1L
+    x_n <- length(X)
+    x_i <- 1L
     function() {
-        if (i < n) {
-            i <<- i + 1L
-            X[[i]]
+        if (redo_i <= redo_n && x_i <= x_n) {
+            redo <- redo_index[redo_i] == x_i
+            if (redo) {
+                ## Maximize `len` such that
+                ## - 1. all elements in X[x_i:(x_i + len)] should be redone
+                ## - 2. the number of elements in the task must be
+                ##      limited by `elements_per_task`
+                len <- 1L
+                while (redo_i + len <= redo_n &&
+                       redo_index[redo_i + len] == x_i + len &&
+                       len < elements_per_task) {
+                    len <- len + 1L
+                }
+                redo_i <<- redo_i + len
+                value <- X[seq.int(x_i, length.out = len)]
+            } else {
+                len <- redo_index[redo_i] - x_i
+                value <- .bploop_rng_iter(len)
+            }
+            x_i <<- x_i + len
+            ## Do not return the last seed iterator
+            ## if no more redo element
+            if (x_i > x_n && !redo) {
+                list(NULL)
+            } else {
+                value
+            }
         } else {
             list(NULL)
         }
@@ -224,11 +250,19 @@ bploop <- function(manager, ...)
 ## X: the loop value after division
 ## ARGS: The function arguments for `FUN`
 bploop.lapply <-
-    function(manager, X, FUN, ARGS, BPPARAM, ...)
+    function(manager, X, FUN, ARGS, BPPARAM, BPREDO = list(), ...)
 {
-    ITER <- .bploop_lapply_iter(X)
+    ## which need to be redone?
+    redo_index <- .redo_index(X, BPREDO)
+
+    ## How many elements in a task?
+    ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    elements_per_task <- ceiling(length(redo_index)/ntask)
+
+    ITER <- .bploop_lapply_iter(X, redo_index, elements_per_task)
+
     manager <- structure(list(), class="iterate") # dispatch
-    bploop(
+    res <- bploop(
         manager = manager,
         ITER = ITER,
         FUN = FUN,
@@ -236,8 +270,18 @@ bploop.lapply <-
         BPPARAM =BPPARAM,
         reduce.in.order = TRUE
     )
-}
 
+    if (length(BPREDO)) {
+        BPREDO[redo_index] <- res
+        res <- BPREDO
+    }
+
+    if (all(bpok(res))) {
+        names(res) <- names(X)
+    }
+
+    res
+}
 
 ##
 ## bploop.iterate():

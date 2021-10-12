@@ -115,7 +115,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     idx <- .redo_index(X, BPREDO)
-    if (any(idx))
+    if (length(idx))
         X <- X[idx]
     nms <- names(X)
 
@@ -168,7 +168,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     ## post-process
     names(res) <- nms
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO
     }

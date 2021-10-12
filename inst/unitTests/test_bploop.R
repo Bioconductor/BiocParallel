@@ -47,3 +47,34 @@ test_reducer_5 <- function() {
     checkIdentical(10, { r$add(3, list(3)); r$value() })
     checkIdentical(TRUE, r$isComplete())
 }
+
+test_bploop_lapply_iter  <- function() {
+    .bploop_lapply_iter <- BiocParallel:::.bploop_lapply_iter
+    .bploop_rng_iter <- BiocParallel:::.bploop_rng_iter
+
+    X <- 1:10
+    redo_index <- c(1:2,6:8)
+    iter <- .bploop_lapply_iter(X, redo_index, 10)
+    checkIdentical(iter(), 1:2)
+    checkIdentical(iter(), .bploop_rng_iter(3L))
+    checkIdentical(iter(), 6:8)
+    checkIdentical(iter(), list(NULL))
+    checkIdentical(iter(), list(NULL))
+
+    iter <- .bploop_lapply_iter(X, redo_index, 2)
+    checkIdentical(iter(), 1:2)
+    checkIdentical(iter(), .bploop_rng_iter(3L))
+    checkIdentical(iter(), 6:7)
+    checkIdentical(iter(), 8L)
+    checkIdentical(iter(), list(NULL))
+    checkIdentical(iter(), list(NULL))
+
+    redo_index <- 6:8
+    iter <- .bploop_lapply_iter(X, redo_index, 1)
+    checkIdentical(iter(), .bploop_rng_iter(5L))
+    checkIdentical(iter(), 6L)
+    checkIdentical(iter(), 7L)
+    checkIdentical(iter(), 8L)
+    checkIdentical(iter(), list(NULL))
+    checkIdentical(iter(), list(NULL))
+}

@@ -358,7 +358,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         X <- as.list(X)
 
     idx <- .redo_index(X, BPREDO)
-    if (any(idx))
+    if (length(idx))
         X <- X[idx]
     nms <- names(X)
 
@@ -431,7 +431,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     if (!is.null(res))
         names(res) <- nms
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO
     }

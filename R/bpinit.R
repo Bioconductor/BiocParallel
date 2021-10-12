@@ -62,15 +62,9 @@
         manager, # dispatch
         FUN = FUN,
         BPPARAM = BPPARAM,
+        BPREDO = BPREDO,
         ...
     )
-
-    if (length(BPREDO)) {
-        redo_idx <- which(!bpok(BPREDO))
-        if (length(redo_idx))
-            BPREDO[redo_idx] <- res
-        res <- BPREDO
-    }
 
     if (!all(bpok(res))) {
         ## attach the seed only when no BPREDO presents

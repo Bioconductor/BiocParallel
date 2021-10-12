@@ -70,7 +70,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     FUN <- match.fun(FUN)
 
     idx <- .redo_index(X, BPREDO)
-    if (any(idx))
+    if (length(idx))
         X <- X[idx]
 
     FUN <- .composeTry(
@@ -100,9 +100,9 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 
     names(res) <- names(X)
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
-        res <- BPREDO 
+        res <- BPREDO
     }
 
     if (!all(bpok(res)))

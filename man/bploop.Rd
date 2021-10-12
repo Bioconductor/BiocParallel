@@ -1,7 +1,7 @@
 \name{bploop}
 \Rdversion{1.1}
 
-% Class 
+% Class
 \alias{bploop}
 
 % managers
@@ -22,7 +22,7 @@
 }
 
 \usage{
-\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, ...)
+\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, BPREDO, ...)
 
 \S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
        REDUCE, init, reduce.in.order, ...)
@@ -54,6 +54,9 @@
     reduction must occur in the order jobs are dispatched
     (\code{TRUE}) or that reduction can occur in the order jobs are
     completed (\code{FALSE}).}
+
+  \item{BPREDO}{(Optional) A \code{list} of output from \code{bplapply}
+   or \code{bpiterate} with one or more failed elements.}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
 
