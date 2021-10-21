@@ -48,6 +48,43 @@ setGeneric(
     signature = "worker"
 )
 
+## task manager
+setGeneric(
+    ".manager",
+    function(backend) standardGeneric(".manager"),
+    signature = "backend"
+)
+
+setGeneric(
+    ".manager_send",
+    function(manager, value) standardGeneric(".manager_send"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_recv",
+    function(manager) standardGeneric(".manager_recv"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_capacity",
+    function(manager) standardGeneric(".manager_capacity"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_flush",
+    function(manager) standardGeneric(".manager_flush"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_cleanup",
+    function(manager) standardGeneric(".manager_cleanup"),
+    signature = "manager"
+)
+
 ## default implementation -- SNOW backend
 
 setMethod(
@@ -110,3 +147,59 @@ setMethod(
 {
     parallel:::closeNode(worker)
 })
+
+
+setMethod(
+    ".close", "ANY",
+    function(worker)
+{
+    parallel:::closeNode(worker)
+})
+
+## default task manager implementation
+setMethod(
+    ".manager", "ANY",
+    function(backend)
+{
+    manager <- new.env(parent = emptyenv())
+    manager$backend <- backend
+    manager$availableWorker <- new.env(parent = emptyenv())
+    lapply(seq_along(manager$backend),
+           function(x) manager$availableWorker[[as.character(x)]] <- x)
+    manager
+})
+
+setMethod(
+    ".manager_send", "ANY",
+    function(manager, value)
+{
+    workerIdx <- names(manager$availableWorker)[1]
+    rm(list = workerIdx, envir = manager$availableWorker)
+    .send_to(manager$backend, as.integer(workerIdx), value)
+})
+
+setMethod(
+    ".manager_recv", "ANY",
+    function(manager)
+{
+    result <- .recv_any(manager$backend)
+    manager$availableWorker[[as.character(result$node)]] <- result$node
+    list(result)
+})
+
+setMethod(
+    ".manager_capacity", "ANY",
+    function(manager)
+{
+    length(manager$backend)
+})
+
+setMethod(
+    ".manager_flush", "ANY",
+    function(manager) manager
+)
+
+setMethod(
+    ".manager_cleanup", "ANY",
+    function(manager) manager
+)

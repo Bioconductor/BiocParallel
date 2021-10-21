@@ -20,6 +20,20 @@
 \alias{.close}
 \alias{.close,ANY-method}
 
+
+\alias{.manager}
+\alias{.manager,ANY-method}
+\alias{.manager_send}
+\alias{.manager_send,ANY-method}
+\alias{.manager_recv}
+\alias{.manager_recv,ANY-method}
+\alias{.manager_flush}
+\alias{.manager_flush,ANY-method}
+\alias{.manager_cleanup}
+\alias{.manager_cleanup,ANY-method}
+\alias{.manager_capacity}
+\alias{.manager_capacity,ANY-method}
+
 \alias{.bpstart_impl}
 \alias{.bpstop_impl}
 \alias{.bpworker_impl}
@@ -55,6 +69,14 @@
 .recv(worker)
 .close(worker)
 
+## optional task manager
+.manager(backend)
+.manager_send(manager, value)
+.manager_recv(manager)
+.manager_capacity(manager)
+.manager_flush(manager)
+.manager_cleanup(manager)
+
 ## supporting implementations
 
 .bpstart_impl(x)
@@ -79,6 +101,10 @@
   \item{backend}{
     An object containing information about the cluster, returned by
     \code{bpbackend(<BPPARAM>)}.
+  }
+
+  \item{manager}{
+    An object returned by \code{.manager()}
   }
 
   \item{worker}{
@@ -170,6 +196,16 @@
   the \code{length(cluster)}, invoking \code{.send_to()} or
   \code{.recv_any()} on each iteration.
 
+  The task manager is an optional interface for the backend who wants
+  to have a control over the task dispatching process.
+  \code{.manager_send()} sends the task value to a worker, \code{.manager_recv()}
+  returns a list with each element being a result received from a worker.
+  \code{.manager_capacity()} instructs how many
+  tasks values can be processed simultaneously by the cluster. \code{.manager_flush()}
+  flushes all the cached tasks(if any) immediately. \code{.manager_cleanup()} performs
+  the cleanup after the job is finished. The default methods for
+  \code{.manager_flush()} and \code{.manager_cleanup()} are no-op.
+
 }
 
 \value{
@@ -181,6 +217,9 @@
   All \code{send*} and \code{recv*} functions are endomorphic, returning a
   \code{cluster} object.
 
+  The return value of \code{.manager_recv()} is a list with each element being
+  a result received from a worker, \code{.manager_capacity()} is
+  an integer. The return values of the other \code{.manager_*()} are not restricted
 }
 
 \examples{
