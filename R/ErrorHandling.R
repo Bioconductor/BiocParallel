@@ -1,10 +1,11 @@
 ### =========================================================================
-### Error handling 
+### Error handling
 ### -------------------------------------------------------------------------
 
 bpok <-
     function(x, type = bperrorTypes())
 {
+    x <- bperror(x)
     type <- match.arg(type)
     !vapply(x, inherits, logical(1), type)
 }
@@ -12,12 +13,18 @@ bpok <-
 bptry <- function(expr, ..., bplist_error, bperror)
 {
     if (missing(bplist_error))
-        bplist_error <- function(err)
-            attr(err, "result")
+        bplist_error <- BiocParallel::bperror
 
     if (missing(bperror))
         bperror <- identity
     tryCatch(expr, ..., bplist_error=bplist_error, bperror=bperror)
+}
+
+bperror <- function(x)
+{
+    if (is(x, "bplist_error"))
+        x <- attr(x, "result")
+    x
 }
 
 .composeTry <- function(FUN, log, stop.on.error,
@@ -103,7 +110,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .condition_remote <- function(x, call) {
     ## BatchJobs does not return errors
     structure(x, class = c("remote_error", "bperror", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error <- function(msg, class=NULL) {
@@ -113,7 +120,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
 .error_remote <- function(x, call) {
     structure(x, class = c("remote_error", "bperror", "error", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error_unevaluated <- function()

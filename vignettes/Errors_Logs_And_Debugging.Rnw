@@ -75,7 +75,7 @@ completion of the entire operation. Thus
 <<messages, eval = FALSE>>=
 res <- bplapply(1:2, function(i) { message(i); Sys.sleep(3) })
 @
-%% 
+%%
 reports messages only after the entire \Rcode{bplapply()} is
 complete.
 
@@ -87,7 +87,7 @@ res <- bplapply(1:2, function(i) {
     message(i)
     Sys.sleep(3)
 })
-@ 
+@
 %%
 This could be confusing when multiple workers write messages at the
 same time --the messages will be interleaved in an arbitrary way -- or
@@ -131,8 +131,8 @@ param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
 
 Tasks 1, 2, and 3 are assigned to the three workers, and are
 evaluated. Task 2 fails, stopping further computation. All
-successfully completed tasks are returned as the `result'
-attribute. Usually, this means that the results of tasks 1, 2, and 3
+successfully completed tasks are returned and can be accessed by `bperror`.
+Usually, this means that the results of tasks 1, 2, and 3
 will be returned.
 
 <<errors_6tasksA_stopOnError_output>>=
@@ -140,7 +140,7 @@ res <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
 }, error=identity)
 res
-attr(res, "result")
+bperror(res)
 @
 
 Using \Rcode{stop.on.error=FALSE}, all tasks are evaluated.
@@ -152,7 +152,7 @@ res <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
 }, error=identity)
 res
-attr(res, "result")
+bperror(res)
 @
 
 \Rcode{bptry()} is a convenient way of trying to evaluate a

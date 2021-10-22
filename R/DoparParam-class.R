@@ -4,7 +4,7 @@
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
 
 .DoparParam_prototype <- .BiocParallelParam_prototype
@@ -69,6 +69,8 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 
     FUN <- match.fun(FUN)
 
+    BPREDO <- bperror(BPREDO)
+
     idx <- .redo_index(X, BPREDO)
     if (any(idx))
         X <- X[idx]
@@ -102,7 +104,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 
     if (any(idx)) {
         BPREDO[idx] <- res
-        res <- BPREDO 
+        res <- BPREDO
     }
 
     if (!all(bpok(res)))

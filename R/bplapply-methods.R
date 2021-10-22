@@ -42,6 +42,8 @@ setMethod("bplapply", c("ANY", "list"),
     ## - .send_to, .recv_any, .send, .recv, .close
     FUN <- match.fun(FUN)
 
+    BPREDO <- bperror(BPREDO)
+
     if (!length(X))
         return(.rename(list(), X))
 
