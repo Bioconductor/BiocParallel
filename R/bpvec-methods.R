@@ -1,5 +1,5 @@
 ### =========================================================================
-### bpvec methods 
+### bpvec methods
 ### -------------------------------------------------------------------------
 
 ## bpvec() dispatches to bplapply() where errors and logging are
@@ -13,6 +13,8 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
 
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
+
+    BPREDO <- bperror(BPREDO)
 
     if (!bpschedule(BPPARAM)) {
         param <- as(BPPARAM, "SerialParam")

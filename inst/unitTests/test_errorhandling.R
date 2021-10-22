@@ -148,7 +148,7 @@ test_BPREDO <- function()
 
             ## data not fixed
             res2 <- tryCatch({
-                bplapply(x, f, BPPARAM=param, BPREDO=result)
+                bplapply(x, f, BPPARAM=param, BPREDO=res)
             }, error=identity)
             checkTrue(is(res2, "bplist_error"))
             result <- attr(res2, "result")
@@ -159,7 +159,7 @@ test_BPREDO <- function()
             Sys.sleep(0.25)
 
             ## data fixed
-            res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=result)
+            res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=res2)
             checkIdentical(as.list(sqrt(1:3)), res3)
             closeAllConnections()
             Sys.sleep(0.25)
@@ -196,7 +196,7 @@ test_bpvec_BPREDO <- function()
             Sys.sleep(0.25)
 
             ## data not fixed
-            res2 <- bptry(bpvec(x, f, BPPARAM=param, BPREDO=result),
+            res2 <- bptry(bpvec(x, f, BPPARAM=param, BPREDO=res),
                           bplist_error=identity)
             checkTrue(is(res2, "bplist_error"))
             result <- attr(res2, "result")
@@ -206,7 +206,7 @@ test_bpvec_BPREDO <- function()
             Sys.sleep(0.25)
 
             ## data fixed
-            res3 <- bpvec(x, sqrt, BPPARAM=param, BPREDO=result)
+            res3 <- bpvec(x, sqrt, BPPARAM=param, BPREDO=res2)
             checkIdentical(sqrt(x), res3)
             closeAllConnections()
             Sys.sleep(0.25)

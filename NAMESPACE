@@ -40,6 +40,9 @@ export(
     ## error handlers
     bptry,
 
+    ## accessor for the errors
+    bperror,
+
     ## helpers
     bploop,                             # worker, manager loops
     multicoreWorkers, snowWorkers,
