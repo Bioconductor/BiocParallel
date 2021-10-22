@@ -108,6 +108,8 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 {
     FUN <- match.fun(FUN)
 
+    BPREDO <- bperror(BPREDO)
+
     if (!length(X))
         return(.rename(list(), X))
 
