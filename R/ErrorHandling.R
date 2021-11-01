@@ -163,16 +163,19 @@ bperrorTypes <-
         "BiocParallel errors",
         "%d remote errors, element index: %s%s",
         "%d unevaluated and other errors",
-        "first remote error: %s",
+        "first remote error:\n%s",
         sep = "\n  "
     )
+    first_error <- result[[idx[[1]]]]
+    class(first_error) <- tail(class(first_error), 2L)
+    first_error_message <- as.character(first_error)
     message <- sprintf(
         fmt,
         n_remote_error,
         paste(head(idx), collapse = ", "),
         ifelse(length(idx) > 6, ", ...", ""),
         n_other_error,
-        conditionMessage(result[[idx[[1]]]])
+        as.character(result[[idx[[1]]]])
     )
 
     err <- structure(
