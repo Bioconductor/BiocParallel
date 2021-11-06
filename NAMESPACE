@@ -4,7 +4,7 @@ import(methods)
 
 importFrom(stats, setNames, terms, runif)
 
-importFrom(utils, capture.output, find, head, relist,
+importFrom(utils, capture.output, find, head, tail, relist,
            setTxtProgressBar, txtProgressBar)
 importFrom(parallel, nextRNGStream, nextRNGSubStream)
 
