@@ -5,7 +5,7 @@
 bpok <-
     function(x, type = bperrorTypes())
 {
-    x <- bperror(x)
+    x <- bpresult(x)
     type <- match.arg(type)
     !vapply(x, inherits, logical(1), type)
 }
@@ -13,18 +13,41 @@ bpok <-
 bptry <- function(expr, ..., bplist_error, bperror)
 {
     if (missing(bplist_error))
-        bplist_error <- BiocParallel::bperror
+        bplist_error <- function(err)
+            attr(err, "result")
 
     if (missing(bperror))
         bperror <- identity
+
     tryCatch(expr, ..., bplist_error=bplist_error, bperror=bperror)
 }
 
-bperror <- function(x)
+bpresult <- function(x)
 {
-    if (is(x, "bplist_error"))
-        x <- attr(x, "result")
-    x
+    if (missing(x)) {
+        structure(list(), class = c("bpresult", "list"))
+    } else if (inherits(x, "bplist_error")) {
+        attr(x, "result")
+    } else if (inherits(x, "bpresult")) {
+        x
+    } else if (inherits(x, "list")) {
+        class(x) <- unique(c("bpresult", class(x)))
+        x
+    } else if (is.null(x)) {
+        x
+    } else {
+        ## bpok() can be called on individual elements, which may not be lists
+        ## stop("'x' must be a 'list', 'bpresult', or 'bplist_error'")
+        class(x) <- unique(c("bpresult", class(x)))
+        x
+    }
+}
+
+`print.bpresult` <-
+    function(x, ...)
+{
+    attributes(x) <- NULL
+    NextMethod(x)
 }
 
 .composeTry <- function(FUN, log, stop.on.error,
@@ -190,6 +213,9 @@ print.remote_error <- function(x, ...) {
 }
 
 `print.bplist_error` <- function(x, ...) {
-    NextMethod(x)
-    cat("results and errors available as 'attr(x, \"result\")'\n")
+    cat(
+        "results and errors available as 'attr(x, \"result\")'\n",
+        conditionMessage(x),
+        sep = ""
+    )
 }

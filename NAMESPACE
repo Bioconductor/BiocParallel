@@ -38,10 +38,7 @@ export(
     bpnworkers,
 
     ## error handlers
-    bptry,
-
-    ## accessor for the errors
-    bperror,
+    bptry, bpresult,
 
     ## helpers
     bploop,                             # worker, manager loops
@@ -110,6 +107,7 @@ exportMethods(
 
 S3method(print, remote_error)
 S3method(print, bplist_error)
+S3method(print, bpresult)
 
 S3method(bploop, lapply)
 S3method(bploop, iterate)

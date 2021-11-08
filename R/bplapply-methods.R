@@ -41,11 +41,10 @@ setMethod("bplapply", c("ANY", "list"),
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .send_to, .recv_any, .send, .recv, .close
     FUN <- match.fun(FUN)
-
-    BPREDO <- bperror(BPREDO)
+    BPREDO <- bpresult(BPREDO)
 
     if (!length(X))
-        return(.rename(list(), X))
+        return(bpresult(.rename(list(), X)))
 
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
@@ -78,5 +77,5 @@ setMethod("bplapply", c("ANY", "list"),
     if (!all(bpok(res)))
         stop(.error_bplist(res))
 
-    res
+    bpresult(res)
 }

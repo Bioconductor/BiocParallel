@@ -107,11 +107,10 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
-
-    BPREDO <- bperror(BPREDO)
+    BPREDO <- bpresult(BPREDO)
 
     if (!length(X))
-        return(.rename(list(), X))
+        return(bpresult(.rename(list(), X)))
 
     if (!bpschedule(BPPARAM))
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
@@ -185,7 +184,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         stop(.error_bplist(res))
     }
 
-    res
+    bpresult(res)
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),

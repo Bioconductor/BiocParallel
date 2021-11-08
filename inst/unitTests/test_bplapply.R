@@ -11,16 +11,17 @@ test_bplapply_Params <- function()
         params$mc <- MulticoreParam(2)
 
     x <- 1:10
-    expected <- lapply(x, sqrt)
+    expected <- bpresult(lapply(x, sqrt))
     for (param in names(params)) {
         current <- quiet(bplapply(x, sqrt, BPPARAM=params[[param]]))
         checkIdentical(expected, current)
     }
 
-    # test empty input
+    ## test empty input
+    expected <- bpresult()
     for (param in names(params)) {
         current <- quiet(bplapply(list(), identity, BPPARAM=params[[param]]))
-        checkIdentical(list(), current)
+        checkIdentical(expected, current)
     }
 
     # unnamed args for BatchJobs -> dispatches to batchMap
@@ -49,7 +50,7 @@ test_bplapply_symbols <- function()
         params$mc <- MulticoreParam(2)
 
     x <- list(as.symbol(".XYZ"))
-    expected <- lapply(x, as.character)
+    expected <- bpresult(lapply(x, as.character))
     for (param in names(params)) {
         current <- quiet(bplapply(x, as.character, BPPARAM=params[[param]]))
         checkIdentical(expected, current)
@@ -66,29 +67,29 @@ test_bplapply_named_list <- function()
 {
     X <- list()
     Y <- character()
-    checkIdentical(X, bplapply(X, identity))
-    checkIdentical(X, bplapply(Y, identity))
+    checkIdentical(bpresult(X), bplapply(X, identity))
+    checkIdentical(bpresult(X), bplapply(Y, identity))
 
     names(X) <- names(Y) <- character()
-    checkIdentical(X, bplapply(X, identity))
-    checkIdentical(X, bplapply(Y, identity))
+    checkIdentical(bpresult(X), bplapply(X, identity))
+    checkIdentical(bpresult(X), bplapply(Y, identity))
 
-    X <- list(a = 1:2)
-    checkIdentical(X, bplapply(X, identity))
-
-    X <- list(c(a = 1))
+    X <- bpresult(list(a = 1:2))
     checkIdentical(X, bplapply(X, identity))
 
-    X <- list(A = c(a = 1:2, b = 1:3), B = c(b = 1:2))
+    X <- bpresult(list(c(a = 1)))
     checkIdentical(X, bplapply(X, identity))
 
-    X <- list(a = 1:2, b = 3:4)
+    X <- bpresult(list(A = c(a = 1:2, b = 1:3), B = c(b = 1:2)))
     checkIdentical(X, bplapply(X, identity))
 
-    X <- list(c(a = 1))
+    X <- bpresult(list(a = 1:2, b = 3:4))
     checkIdentical(X, bplapply(X, identity))
 
-    X <- list(A = c(a = 1, b=2), B = c(c = 1, d = 2))
+    X <- bpresult(list(c(a = 1)))
+    checkIdentical(X, bplapply(X, identity))
+
+    X <- bpresult(list(A = c(a = 1, b=2), B = c(c = 1, d = 2)))
     checkIdentical(X, bplapply(X, identity))
 }
 
@@ -114,7 +115,7 @@ test_bplapply_custom_subsetting <- function(){
     x <- .B(b = 1:3)
     expected <- lapply(x, function(elt) elt@b)
     current <- quiet(bplapply(x, function(elt) elt@b, BPPARAM=SerialParam()))
-    checkIdentical(expected, current)
+    checkIdentical(bpresult(expected), current)
 
     ## Remote worker does not have the definition of the class B
     res <- tryCatch(

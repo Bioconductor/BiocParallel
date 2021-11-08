@@ -65,11 +65,10 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     if (!length(X))
-        return(.rename(list(), X))
+        return(bpresult(.rename(list(), X)))
 
     FUN <- match.fun(FUN)
-
-    BPREDO <- bperror(BPREDO)
+    BPREDO <- bpresult(BPREDO)
 
     idx <- .redo_index(X, BPREDO)
     if (any(idx))
@@ -110,7 +109,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     if (!all(bpok(res)))
         stop(.error_bplist(res))
 
-    res
+    bpresult(res)
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),

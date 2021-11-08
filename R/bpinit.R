@@ -80,6 +80,7 @@
         attr(res, "BPREDOSEED") <- NULL
     }
 
+    class(res) <- unique(c("bpresult", class(res)))
     res
 }
 

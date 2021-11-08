@@ -332,30 +332,31 @@ test_BatchtoolsParam_bpmapply <- function() {
     n_connections <- .n_connections()
     fun <- function(x, y, z) x + y + z
     ## Initial test
+    expected <- bpresult(c(3, 5, 7))
     param <- BatchtoolsParam()
     result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
              SIMPLIFY = TRUE, BPPARAM = param)
-    checkIdentical(c(3,5,7), result)
+    checkIdentical(expected, result)
 
     cluster <-  "interactive"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
                        SIMPLIFY = TRUE, BPPARAM=param)
-    checkIdentical(c(3,5,7), result)
+    checkIdentical(expected, result)
 
     cluster <- "multicore"
     if (BiocParallel:::.batchtoolsClusterAvailable(cluster)) {
         param <- BatchtoolsParam(workers=2, cluster=cluster)
         result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
                            SIMPLIFY = TRUE, BPPARAM=param)
-    checkIdentical(c(3,5,7), result)
+    checkIdentical(expected, result)
     }
 
     cluster <- "socket"
     param <- BatchtoolsParam(workers=2, cluster=cluster)
     result <- bpmapply(fun, x = 1:3, y = 1:3, MoreArgs = list(z = 1),
                        SIMPLIFY = TRUE, BPPARAM=param)
-    checkIdentical(c(3,5,7), result)
+    checkIdentical(expected, result)
     checkIdentical(n_connections, .n_connections())
 }
 

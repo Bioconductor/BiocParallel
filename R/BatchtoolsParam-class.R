@@ -351,7 +351,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     FUN <- match.fun(FUN)
 
     if (!length(X))
-        return(.rename(list(), X))
+        return(bpresult(.rename(list(), X)))
 
     if (is(X, "List"))
         ## hack; issue 82
@@ -439,7 +439,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     if (!all(bpok(res)))
         stop(.error_bplist(res))
 
-    res
+    bpresult(res)
 })
 
 

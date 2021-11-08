@@ -14,7 +14,7 @@ test_bpiterate_Params <- function()
 {
     ## chunks greater than number of workers
     x <- 1:5
-    expected <- lapply(x, sqrt)
+    expected <- bpresult(lapply(x, sqrt))
     FUN <- function(count, ...) sqrt(count)
 
     params <- list(serial=SerialParam(),
@@ -29,7 +29,7 @@ test_bpiterate_Params <- function()
 
     ## chunks less than number of workers
     x <- 1:2
-    expected <- lapply(x, sqrt)
+    expected <- bpresult(lapply(x, sqrt))
     FUN <- function(count, ...) sqrt(count)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(3))
@@ -71,14 +71,14 @@ test_bpiterate_REDUCE <- function() {
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p)
         checkTrue(length(res) == ncount)
-        expected <- list(rep(1L, 10), rep(2L, 10), rep(3L, 10))
+        expected <- bpresult(list(rep(1L, 10), rep(2L, 10), rep(3L, 10)))
         checkIdentical(expected, res)
 
         ## REDUCE
         FUN <- function(count, ...) rep(count, 10)
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-        checkIdentical(rep(6L, 10), res)
+        checkIdentical(bpresult(rep(6L, 10)), res)
 
         FUN <- function(count, ...) {
             Sys.sleep(3 - count)
@@ -88,23 +88,23 @@ test_bpiterate_REDUCE <- function() {
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          reduce.in.order=FALSE)
-        checkIdentical("321", res)
+        checkIdentical(bpresult("321"), res)
 
         ITER <- .lazyCount(ncount)
         res <- quiet(bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0, init=0,
                                reduce.in.order=FALSE))
-        checkIdentical("0321", res)
+        checkIdentical(bpresult("0321"), res)
 
         ## 'reduce.in.order' TRUE
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          reduce.in.order=TRUE)
-        checkIdentical("123", res)
+        checkIdentical(bpresult("123"), res)
 
         ITER <- .lazyCount(ncount)
         res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=paste0,
                          init=0, reduce.in.order=TRUE)
-        checkIdentical("0123", res)
+        checkIdentical(bpresult("0123"), res)
     }
 
     ## clean up
@@ -119,26 +119,26 @@ test_bpiterate_REDUCE_SerialParam <- function() {
     ## REDUCE missing, concatenate
     ITER <- .lazyCount(0)
     res <- bpiterate(ITER, FUN, BPPARAM=p)
-    checkIdentical(list(), res)
+    checkIdentical(bpresult(), res)
 
     ITER <- .lazyCount(1)
     res <- bpiterate(ITER, FUN, BPPARAM=p)
-    checkIdentical(list(1L), res)
+    checkIdentical(bpresult(list(1L)), res)
 
     ITER <- .lazyCount(5)
     res <- bpiterate(ITER, FUN, BPPARAM=p)
-    checkIdentical(as.list(1:5), res)
+    checkIdentical(bpresult(as.list(1:5)), res)
 
     ## REDUCE == `+`
     ITER <- .lazyCount(0)
     res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-    checkIdentical(list(), res)
+    checkIdentical(bpresult(), res)
 
     ITER <- .lazyCount(1)
     res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-    checkIdentical(1L, res)
+    checkIdentical(bpresult(1L), res)
 
     ITER <- .lazyCount(5)
     res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-    checkIdentical(15L, res)
+    checkIdentical(bpresult(15L), res)
 }

@@ -160,7 +160,7 @@ test_BPREDO <- function()
 
             ## data fixed
             res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=res2)
-            checkIdentical(as.list(sqrt(1:3)), res3)
+            checkIdentical(bpresult(as.list(sqrt(1:3))), res3)
             closeAllConnections()
             Sys.sleep(0.25)
         }

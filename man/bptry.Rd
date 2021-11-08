@@ -38,7 +38,7 @@ bptry(expr, ..., bplist_error, bperror)
 
   \item{bperror}{
 
-    A \sQuote{handler} function of a single argument, use to catch
+    A \sQuote{handler} function of a single argument, used to catch
     \code{bperror} conditions signalled by \code{expr}. A \code{bperror}
     is a base class to all errors signaled by \pkg{BiocParallel}
     code. When missing, the default returns the condition without
