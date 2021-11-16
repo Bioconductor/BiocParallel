@@ -89,6 +89,7 @@ setMethod(
     function(x, ...)
 {
     x$backend <- .SerialBackend()
+    x$backend$BPPARAM <- x
     .bpstart_impl(x)
 })
 
@@ -143,7 +144,7 @@ setMethod(
     if (inherits(msg, "error"))
         stop(msg)
     if (msg$type == "EXEC") {
-        value <- .bpworker_EXEC(msg)
+        value <- .bpworker_EXEC(msg, bplog(backend$BPPARAM))
         list(node = 1L, value = value)
     }
 })
