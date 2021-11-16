@@ -29,13 +29,20 @@
 ### Worker loop used by SOCK, MPI and FORK.  Error handling is done in
 ### .composeTry.
 
-.bpworker_EXEC <- function(msg)
+.bpworker_EXEC <- function(msg, sink.sout = TRUE)
 {
     ## need local handler for worker read/send errors
-    sout <- character()
-    file <- textConnection("sout", "w", local=TRUE)
-    sink(file, type="message")
-    sink(file, type="output")
+    if (sink.sout) {
+        on.exit({
+            sink(NULL, type="message")
+            sink(NULL, type="output")
+            close(file)
+        })
+        file <- rawConnection(raw(), "r+")
+        sink(file, type="message")
+        sink(file, type="output")
+    }
+
     t1 <- proc.time()
     value <- tryCatch({
         do.call(msg$data$fun, msg$data$args)
@@ -44,12 +51,13 @@
         list(.error_worker_comm(e, "worker evaluation failed"))
     })
     t2 <- proc.time()
-    sink(NULL, type="message")
-    sink(NULL, type="output")
-    close(file)
+
+    if (sink.sout)
+        sout <- rawToChar(rawConnectionValue(file))
+    else
+        sout <- NULL
 
     success <- !(inherits(value, "bperror") || !all(bpok(value)))
-
     log <- .log_buffer_get()
 
     value <- .VALUE(
