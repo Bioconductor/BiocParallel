@@ -92,7 +92,8 @@ bprunMPIworker <- function() {
             "\n\nLog messages:\n",
             paste(trimws(d$value$log), collapse="\n"),
             "\n\nstderr and stdout:\n",
-            paste(noquote(d$value$sout), collapse="\n")
+            if (!is.null(d$value$sout))
+                paste(noquote(d$value$sout), collapse="\n")
         )
     }
     if (!is.null(con)) {
