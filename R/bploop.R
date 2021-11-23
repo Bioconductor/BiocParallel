@@ -52,10 +52,12 @@
     })
     t2 <- proc.time()
 
-    if (sink.sout)
+    if (sink.sout) {
         sout <- rawToChar(rawConnectionValue(file))
-    else
+        if (!nchar(sout)) sout <- NULL
+    } else {
         sout <- NULL
+    }
 
     success <- !(inherits(value, "bperror") || !all(bpok(value)))
     log <- .log_buffer_get()
