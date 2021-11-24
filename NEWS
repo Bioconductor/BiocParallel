@@ -1,3 +1,19 @@
+CHANGES IN VERSION 1.30
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (v 1.29.1) Report first remote error in its entirety.
+    https://github.com/Bioconductor/BiocParallel/issues/165
+
+BUG FIXES
+
+    o (v 1.29.2) Fix regression in use of debug() with SerialParam.
+    https://github.com/Bioconductor/BiocParallel/issues/128
+
+    o (v 1.29.3) Fix regression in progress bar display with bplapply().
+    https://github.com/Bioconductor/BiocParallel/issues/172
+
 CHANGES IN VERSION 1.28
 -----------------------
 
