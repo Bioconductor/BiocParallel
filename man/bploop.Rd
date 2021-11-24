@@ -25,7 +25,7 @@
 \S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, ...)
 
 \S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
-       REDUCE, init, reduce.in.order, ...)
+       REDUCE, init, reduce.in.order, pregress.len, ...)
 }
 
 \arguments{
@@ -56,7 +56,8 @@
     completed (\code{FALSE}).}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
-
+  
+  \item{pregress.len}{(Optional) The length of the progress bar}
 }
 
 \details{

@@ -242,7 +242,8 @@ bploop.lapply <-
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM =BPPARAM,
-        reduce.in.order = TRUE
+        reduce.in.order = TRUE,
+        pregress.len = length(X)
     )
 }
 
@@ -264,7 +265,7 @@ bploop.lapply <-
 ## - ARGS: the arguments to FUN
 bploop.iterate <-
     function(
-        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order, ...
+        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order, pregress.len, ...
     )
 {
     cl <- bpbackend(BPPARAM)
@@ -276,9 +277,9 @@ bploop.iterate <-
     running <- logical(workers)
     reducer <- .reducer(REDUCE, init, reduce.in.order)
 
-    progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
+    progress <- .progress(active=bpprogressbar(BPPARAM), iterate=missing(pregress.len))
     on.exit(progress$term(), TRUE)
-    progress$init()
+    progress$init(pregress.len)
 
     ARGFUN <- function(X, seed)
         c(
