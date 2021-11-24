@@ -44,6 +44,12 @@ BUG FIXES
     o (v 1.27.10) Typo in coercion to SerialParam when only a single worker
     specified. https://github.com/Bioconductor/BiocParallel/issues/151
 
+    o (v 1.28.1) Fix regression in use of debug() with Serialparam.
+    https://github.com/Bioconductor/BiocParallel/issues/128
+
+    o (v 1.28.2) Fix regression in progress bar display with bplapply().
+    https://github.com/Bioconductor/BiocParallel/issues/172
+
 CHANGES IN VERSION 1.26
 -----------------------
 
