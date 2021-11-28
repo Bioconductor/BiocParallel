@@ -41,7 +41,7 @@ export(
     bptry,
 
     ## accessor for the errors
-    bperror,
+    bpresult,
 
     ## helpers
     bploop,                             # worker, manager loops

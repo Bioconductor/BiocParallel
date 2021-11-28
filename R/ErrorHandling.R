@@ -5,7 +5,7 @@
 bpok <-
     function(x, type = bperrorTypes())
 {
-    x <- bperror(x)
+    x <- bpresult(x)
     type <- match.arg(type)
     !vapply(x, inherits, logical(1), type)
 }
@@ -13,14 +13,15 @@ bpok <-
 bptry <- function(expr, ..., bplist_error, bperror)
 {
     if (missing(bplist_error))
-        bplist_error <- BiocParallel::bperror
+        bplist_error <- bpresult
 
     if (missing(bperror))
         bperror <- identity
+
     tryCatch(expr, ..., bplist_error=bplist_error, bperror=bperror)
 }
 
-bperror <- function(x)
+bpresult <- function(x)
 {
     if (is(x, "bplist_error"))
         x <- attr(x, "result")

@@ -68,8 +68,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         return(.rename(list(), X))
 
     FUN <- match.fun(FUN)
-
-    BPREDO <- bperror(BPREDO)
+    BPREDO <- bpresult(BPREDO)
 
     idx <- .redo_index(X, BPREDO)
     if (any(idx))

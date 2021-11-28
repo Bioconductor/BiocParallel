@@ -2,6 +2,7 @@
 
 \alias{bpok}
 \alias{bperrorTypes}
+\alias{bpresult}
 
 
 \title{Resume computation with partial results}
@@ -18,6 +19,8 @@
   bpok(x, type = bperrorTypes())
 
   bperrorTypes()
+
+  bpresult(x)
 
 }
 
@@ -71,9 +74,16 @@
 
   }
 
+  \code{bpresult()} when applied to an object with a class of one of the
+  error types returns the list of tasks results.
+
 }
 
-\author{Michel Lang, Martin Morgan and Valerie Obenchain}
+\author{Michel Lang, Martin Morgan, Valerie Obenchain, and Jiefei Wang}
+
+\seealso{
+  \code{\link{tryCatch}}
+}
 
 \examples{
 
@@ -85,9 +95,12 @@
 ## 'stop.on.error' is TRUE an ill-fated bplapply() simply stops,
 ## displaying the error message.
 param <- SnowParam(workers = 2, stop.on.error = TRUE)
-tryCatch({
+result <- tryCatch({
     bplapply(list(1, "two", 3), sqrt, BPPARAM = param)
 }, error=identity)
+result
+class(result)
+bpresult(result)
 
 ## If 'stop.on.error' is FALSE then the computation continues. Errors
 ## are signalled but the full evaluation can be retrieved
