@@ -136,11 +136,11 @@ Usually, this means that the results of tasks 1, 2, and 3
 will be returned.
 
 <<errors_6tasksA_stopOnError_output>>=
-res <- tryCatch({
+result <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
 }, error=identity)
-res
-bperror(res)
+result
+bpresult(result)
 @
 
 Using \Rcode{stop.on.error=FALSE}, all tasks are evaluated.
@@ -148,11 +148,11 @@ Using \Rcode{stop.on.error=FALSE}, all tasks are evaluated.
 <<errors_6tasks_nonstopOnError>>=
 X <- list("1", 2, 3, 4, 5, 6)
 param <- SnowParam(3, tasks = length(X), stop.on.error = FALSE)
-res <- tryCatch({
+result <- tryCatch({
     bplapply(X, sqrt, BPPARAM = param)
 }, error=identity)
-res
-bperror(res)
+result
+bpresult(result)
 @
 
 \Rcode{bptry()} is a convenient way of trying to evaluate a
