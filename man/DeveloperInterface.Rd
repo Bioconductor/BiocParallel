@@ -27,6 +27,10 @@
 \alias{.manager_send,ANY-method}
 \alias{.manager_recv}
 \alias{.manager_recv,ANY-method}
+\alias{.manager_send_all}
+\alias{.manager_send_all,ANY-method}
+\alias{.manager_recv_all}
+\alias{.manager_recv_all,ANY-method}
 \alias{.manager_flush}
 \alias{.manager_flush,ANY-method}
 \alias{.manager_cleanup}
@@ -69,10 +73,12 @@
 .recv(worker)
 .close(worker)
 
-## optional task manager
+## task manager interface(optional)
 .manager(backend)
 .manager_send(manager, value)
 .manager_recv(manager)
+.manager_send_all(manager, value)
+.manager_recv_all(manager)
 .manager_capacity(manager)
 .manager_flush(manager)
 .manager_cleanup(manager)

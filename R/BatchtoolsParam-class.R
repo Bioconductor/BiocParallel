@@ -436,7 +436,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         res <- BPREDO
     }
 
-    if (!all(bpok(res)))
+    if (!.bpallok(res))
         stop(.error_bplist(res))
 
     res
@@ -445,7 +445,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
-             BPPARAM=bpparam())
+             BPREDO = list(), BPPARAM=bpparam())
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
@@ -460,9 +460,13 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     if (!bpschedule(BPPARAM) || bpnworkers(BPPARAM) == 1L) {
         param <- as(BPPARAM, "SerialParam")
         return(
-            bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init, BPPARAM=param)
+            bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
+                      BPREDO = BPREDO, BPPARAM=param)
         )
     }
+
+    if (!identical(BPREDO, list()))
+        stop("BPREDO is not supported by the BatchtoolsParam yet!")
 
     ## start / stop cluster
     if (!bpisup(BPPARAM)) {

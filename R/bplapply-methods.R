@@ -41,6 +41,7 @@ setMethod("bplapply", c("ANY", "list"),
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .send_to, .recv_any, .send, .recv, .close
     FUN <- match.fun(FUN)
+    BPREDO <- bpresult(BPREDO)
 
     if (!length(X))
         return(.rename(list(), X))
@@ -48,7 +49,7 @@ setMethod("bplapply", c("ANY", "list"),
     ARGS <- list(...)
 
     manager <- structure(list(), class="lapply") # dispatch
-    res <- .bpinit(
+    .bpinit(
         manager = manager,
         X = X,
         FUN = FUN,
@@ -56,10 +57,4 @@ setMethod("bplapply", c("ANY", "list"),
         BPPARAM = BPPARAM,
         BPREDO = BPREDO
     )
-
-    if (!all(bpok(res))) {
-        stop(.error_bplist(res))
-    }
-
-    res
 }

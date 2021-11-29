@@ -68,6 +68,18 @@ setGeneric(
 )
 
 setGeneric(
+  ".manager_send_all",
+  function(manager, value) standardGeneric(".manager_send_all"),
+  signature = "manager"
+)
+
+setGeneric(
+  ".manager_recv_all",
+  function(manager) standardGeneric(".manager_recv_all"),
+  signature = "manager"
+)
+
+setGeneric(
     ".manager_capacity",
     function(manager) standardGeneric(".manager_capacity"),
     signature = "manager"
@@ -163,8 +175,10 @@ setMethod(
 {
     manager <- new.env(parent = emptyenv())
     manager$backend <- backend
-    manager$workerIdx <- 1L
-    manager$availability <- rep(TRUE, length(manager$backend))
+    availability <- rep(list(TRUE), length(manager$backend))
+    names(availability) <- as.character(seq_along(manager$backend))
+    manager$availability <- as.environment(availability)
+    manager$capacity <- length(manager$backend)
     manager
 })
 
@@ -172,17 +186,12 @@ setMethod(
     ".manager_send", "ANY",
     function(manager, value)
 {
-    nworkers <- length(manager$backend)
-    ## Find the next available worker
-    workerIdx <- manager$workerIdx
-    repeat {
-        if (manager$availability[workerIdx])
-            break
-        workerIdx <- workerIdx %% nworkers + 1L
-    }
-    .send_to(manager$backend, workerIdx, value)
-    manager$availability[workerIdx] <- FALSE
-    manager$workerIdx <- workerIdx
+    availability <- manager$availability
+    stopifnot(length(availability) >=0)
+    ## send the job to the next available worker
+    worker <- names(availability)[1]
+    .send_to(manager$backend, as.integer(worker), value)
+    rm(list = worker, envir = availability)
 })
 
 setMethod(
@@ -190,15 +199,25 @@ setMethod(
     function(manager)
 {
     result <- .recv_any(manager$backend)
-    manager$availability[result$node] <- TRUE
+    manager$availability[[as.character(result$node)]] <- TRUE
     list(result)
 })
+
+setMethod(
+  ".manager_send_all", "ANY",
+  function(manager, value) .send_all(manager$backend, value)
+)
+
+setMethod(
+  ".manager_recv_all", "ANY",
+  function(manager) .recv_all(manager$backend)
+)
 
 setMethod(
     ".manager_capacity", "ANY",
     function(manager)
 {
-    length(manager$backend)
+      manager$capacity
 })
 
 setMethod(

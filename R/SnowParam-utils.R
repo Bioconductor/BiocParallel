@@ -30,7 +30,7 @@ bprunMPIworker <- function() {
 .bpfork <- function (nnodes, timeout, host, port)
 {
     nnodes <- as.integer(nnodes)
-    if (is.na(nnodes) || nnodes < 1L) 
+    if (is.na(nnodes) || nnodes < 1L)
         stop("'nnodes' must be >= 1")
 
     if (length(host) != 1L || is.na(host) || !is.character(host))
@@ -92,14 +92,17 @@ bprunMPIworker <- function() {
             "\n\nLog messages:\n",
             paste(trimws(d$value$log), collapse="\n"),
             "\n\nstderr and stdout:\n",
-            paste(noquote(d$value$sout), collapse="\n")
+            if (!is.null(d$value$sout))
+                paste(noquote(d$value$sout), collapse="\n")
         )
     }
     if (!is.null(con)) {
+        on.exit({
+            sink(NULL, type = "message")
+            sink(NULL, type = "output")
+        })
         sink(con, type = "message")
         sink(con, type = "output")
-        .log_internal()    
-        sink(NULL, type = "message")
-        sink(NULL, type = "output")
+        .log_internal()
     } else .log_internal()
 }

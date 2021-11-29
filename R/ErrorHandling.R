@@ -1,23 +1,45 @@
 ### =========================================================================
-### Error handling 
+### Error handling
 ### -------------------------------------------------------------------------
+.bpeltok <-
+    function(x, type = bperrorTypes())
+{
+    !inherits(x, type)
+}
 
 bpok <-
     function(x, type = bperrorTypes())
 {
+    x <- bpresult(x)
     type <- match.arg(type)
-    !vapply(x, inherits, logical(1), type)
+    vapply(x, .bpeltok, logical(1), type)
+}
+
+.bpallok <-
+    function(x, type = bperrorTypes(), attrOnly = FALSE)
+{
+    if (attrOnly)
+        is.null(.redo_env(x))
+    else
+        is.null(.redo_env(x)) && all(bpok(x, type))
 }
 
 bptry <- function(expr, ..., bplist_error, bperror)
 {
     if (missing(bplist_error))
-        bplist_error <- function(err)
-            attr(err, "result")
+        bplist_error <- bpresult
 
     if (missing(bperror))
         bperror <- identity
+
     tryCatch(expr, ..., bplist_error=bplist_error, bperror=bperror)
+}
+
+bpresult <- function(x)
+{
+    if (is(x, "bplist_error"))
+        x <- attr(x, "result")
+    x
 }
 
 .composeTry <- function(FUN, log, stop.on.error,
@@ -103,7 +125,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 .condition_remote <- function(x, call) {
     ## BatchJobs does not return errors
     structure(x, class = c("remote_error", "bperror", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error <- function(msg, class=NULL) {
@@ -113,7 +135,7 @@ bptry <- function(expr, ..., bplist_error, bperror)
 
 .error_remote <- function(x, call) {
     structure(x, class = c("remote_error", "bperror", "error", "condition"),
-              traceback = capture.output(traceback(call))) 
+              traceback = capture.output(traceback(call)))
 }
 
 .error_unevaluated <- function()
@@ -145,27 +167,44 @@ bperrorTypes <-
 }
 
 .error_bplist <- function(result) {
-    remote_error <-
-        !bpok(result, "remote_error") |
-        !bpok(result, "worker_comm_error")
-    idx <- which(remote_error)
-    n_remote_error <- sum(remote_error)
-    n_other_error <- sum(!bpok(result)) - n_remote_error
+    if (is.null(attr(result, "errors"))) {
+        errors <- result
+        total_error <- sum(!bpok(errors))
+        remote_error <-
+            !bpok(errors, "remote_error") |
+            !bpok(errors, "worker_comm_error")
+        remote_idx <- which(remote_error)
+        first_error <- errors[[remote_idx[1]]]
+    } else {
+        errors <- attr(result, "errors")
+        total_error <- length(errors)
+        remote_error <-
+            !bpok(errors, "remote_error") |
+            !bpok(errors, "worker_comm_error")
+        first_error <- errors[[which(remote_error)[1]]]
+        remote_idx <- as.integer(names(errors[remote_error]))
+    }
+
+    n_remote_error <- length(remote_idx)
+    n_other_error <- total_error - n_remote_error
 
     fmt = paste(
         "BiocParallel errors",
         "%d remote errors, element index: %s%s",
         "%d unevaluated and other errors",
-        "first remote error: %s",
+        "first remote error:\n%s",
         sep = "\n  "
     )
+    first_error <- result[[idx[[1]]]]
+    class(first_error) <- tail(class(first_error), 2L)
+    first_error_message <- as.character(first_error)
     message <- sprintf(
         fmt,
         n_remote_error,
-        paste(head(idx), collapse = ", "),
-        ifelse(length(idx) > 6, ", ...", ""),
+        paste(head(remote_idx), collapse = ", "),
+        ifelse(length(remote_idx) > 6, ", ...", ""),
         n_other_error,
-        conditionMessage(result[[idx[[1]]]])
+        as.character(result[[idx[[1]]]])
     )
 
     err <- structure(

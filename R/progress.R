@@ -9,7 +9,7 @@
         if (iterate) {
             list(init = function(x) {
                 message("iteration: ", appendLF=FALSE)
-            }, step = function() {
+            }, step = function(n) {
                 ntasks <<- ntasks + 1L
                 erase <- paste(rep("\b", ceiling(log10(ntasks))), collapse="")
                 message(erase, ntasks, appendLF = FALSE)
@@ -24,8 +24,8 @@
                 txt <<- txtProgressBar(max = x, style = style, ...)
                 setTxtProgressBar(txt, 0)
                 max <<- x
-            }, step = function() {
-                ntasks <<- ntasks + 1L
+            }, step = function(n) {
+                ntasks <<- ntasks + n
                 setTxtProgressBar(txt, ntasks)
                 if (ntasks == max) cat("\n")
             }, term = function() {
@@ -35,7 +35,7 @@
     } else {
         list(
             init = function(x) NULL,
-            step = function() NULL, 
+            step = function(n) NULL, 
             term = function() NULL
         )
     }

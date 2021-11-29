@@ -4,7 +4,7 @@
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
 
 .DoparParam_prototype <- .BiocParallelParam_prototype
@@ -68,6 +68,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         return(.rename(list(), X))
 
     FUN <- match.fun(FUN)
+    BPREDO <- bpresult(BPREDO)
 
     idx <- .redo_index(X, BPREDO)
     if (length(idx))
@@ -105,14 +106,14 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         res <- BPREDO
     }
 
-    if (!all(bpok(res)))
+    if (!.bpallok(res))
         stop(.error_bplist(res))
 
     res
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 {
     stop("'bpiterate' not supported for DoparParam")
 })

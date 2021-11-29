@@ -37,19 +37,6 @@
         on.exit(bpstop(BPPARAM), TRUE, FALSE)
     }
 
-    ## record the initial seed used by the BPPARAM
-    BPREDOSEED <- .RNGstream(BPPARAM)
-
-    ## If BPREDO present and contains a seed, we need to
-    ## 1. use the seed from BPREDO
-    ## 2. recover the old seed after computing the result
-    if (length(BPREDO) && !is.null(attr(BPREDO, "BPREDOSEED"))) {
-        .RNGstream(BPPARAM) <- attr(BPREDO, "BPREDOSEED")
-        on.exit({
-            .RNGstream(BPPARAM) <- BPREDOSEED
-        }, TRUE, after = FALSE)
-    }
-
     ## FUN
     FUN <- .composeTry(
         FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
@@ -66,14 +53,8 @@
         ...
     )
 
-    if (!all(bpok(res))) {
-        ## attach the seed only when no BPREDO presents
-        if (!length(BPREDO))
-            attr(res, "BPREDOSEED") <- BPREDOSEED
-    } else {
-        attr(res, "BPREDOSEED") <- NULL
-    }
-
+    if (!.bpallok(res, attrOnly = TRUE))
+        stop(.error_bplist(res))
     res
 }
 

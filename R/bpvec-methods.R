@@ -13,6 +13,7 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
 
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
+    BPREDO <- bpresult(BPREDO)
 
     if (!bpschedule(BPPARAM)) {
         param <- as(BPPARAM, "SerialParam")

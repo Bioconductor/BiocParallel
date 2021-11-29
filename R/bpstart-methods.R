@@ -69,11 +69,14 @@ setMethod("bpstart", "missing",
     function(x)
 {
     cluster <- bpbackend(x)
+    manager <- .manager(cluster)
+    on.exit({.manager_cleanup(manager)})
 
     value <- .EXEC(NULL, .log_load, list(bplog(x), bpthreshold(x), TRUE))
-    .send_all(cluster, value)
-    response <- .recv_all(cluster)
-
+    .manager_send_all(manager, value)
+    .manager_flush(manager)
+    response <- .manager_recv_all(manager)
+    
     .bpstart_error_handler(x, response, "set_logging")
     invisible(x)
 }

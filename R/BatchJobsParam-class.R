@@ -107,6 +107,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
 {
     FUN <- match.fun(FUN)
+    BPREDO <- bpresult(BPREDO)
 
     if (!length(X))
         return(.rename(list(), X))
@@ -187,7 +188,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 {
     stop("bpiterate not supported for BatchJobsParam")
 })
