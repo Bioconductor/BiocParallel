@@ -6,6 +6,10 @@ USER VISIBLE CHANGES
     o (v 1.29.1) Report first remote error in its entirety.
     https://github.com/Bioconductor/BiocParallel/issues/165
 
+    o (v 1.29.4) Add bpresult() (extract result vector from return value
+    of tryCatch(bplapply(...))) and allow direct use of tryCatch(bplapply(...))
+    return value as arugment to bplapply(BPREDO= ...). Closes #157
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.
