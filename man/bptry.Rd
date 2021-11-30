@@ -66,14 +66,16 @@ bptry(expr, ..., bplist_error, bperror)
 
 
 \seealso{
-  \code{\link{tryCatch}}, \code{\link{bplapply}}.
+  \code{\link{bpok}}, \code{\link{tryCatch}}, \code{\link{bplapply}}.
 }
 \examples{
 param = registered()[[1]]
 param
 X = list(1, "2", 3)
 bptry(bplapply(X, sqrt))                         # bplist_error handler
-bptry(bplapply(X, sqrt), bplist_error=identity)  # bperror handler
+result <- bptry(bplapply(X, sqrt), bplist_error=identity)  # bperror handler
+result
+bpresult(result)
 }
 
 \keyword{manip}

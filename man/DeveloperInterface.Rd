@@ -89,7 +89,7 @@
 .bpworker_impl(worker)
 .bplapply_impl(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
 .bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-    BPPARAM = bpparam())
+                BPREDO = list(), BPPARAM = bpparam())
 .bpstop_impl(x)
 }
 

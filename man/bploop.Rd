@@ -25,7 +25,7 @@
 \S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, BPREDO, ...)
 
 \S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
-       REDUCE, init, reduce.in.order, ...)
+       REDUCE, BPREDO, init, reduce.in.order, ...)
 }
 
 \arguments{
@@ -59,7 +59,7 @@
    or \code{bpiterate} with one or more failed elements.}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
-
+  
 }
 
 \details{

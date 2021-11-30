@@ -174,14 +174,21 @@ bperrorTypes <-
             !bpok(errors, "remote_error") |
             !bpok(errors, "worker_comm_error")
         remote_idx <- which(remote_error)
-        first_error <- errors[[remote_idx[1]]]
+        if (length(remote_idx))
+          first_error <- errors[[remote_idx[1]]]
+        else
+          first_error <- ""
     } else {
         errors <- attr(result, "errors")
         total_error <- length(errors)
         remote_error <-
             !bpok(errors, "remote_error") |
             !bpok(errors, "worker_comm_error")
-        first_error <- errors[[which(remote_error)[1]]]
+        first_error_idx <- which(remote_error)[1]
+        if (!is.null(first_error_idx))
+          first_error <- errors[[first_error_idx]]
+        else 
+          first_error <- ""
         remote_idx <- as.integer(names(errors[remote_error]))
     }
 
@@ -195,16 +202,15 @@ bperrorTypes <-
         "first remote error:\n%s",
         sep = "\n  "
     )
-    first_error <- result[[idx[[1]]]]
     class(first_error) <- tail(class(first_error), 2L)
-    first_error_message <- as.character(first_error)
+    first_error_msg <- as.character(first_error)
     message <- sprintf(
         fmt,
         n_remote_error,
         paste(head(remote_idx), collapse = ", "),
         ifelse(length(remote_idx) > 6, ", ...", ""),
         n_other_error,
-        as.character(result[[idx[[1]]]])
+        first_error_msg
     )
 
     err <- structure(

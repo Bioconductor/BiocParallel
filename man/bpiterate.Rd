@@ -20,12 +20,14 @@
 }
 
 \usage{
-bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
+bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 
-\S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., BPPARAM=bpparam())
+\S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., 
+    BPREDO = list(), BPPARAM=bpparam())
 
 \S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
-    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE, BPPARAM=bpparam()
+    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE, 
+    BPREDO = list(), BPPARAM=bpparam()
 )
 }
 
@@ -62,6 +64,10 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
   \item{reduce.in.order}{Logical. When TRUE, REDUCE is applied to the
     results from the workers in the same order the tasks were sent out.}
+    
+  \item{BPREDO}{An output from \code{bpiterate} with one or
+    more failed elements. This argument cannot be used with \code{BatchtoolsParam}
+  }
 
   \item{\dots}{Arguments to other methods, and named arguments for
     \code{FUN}.}
@@ -92,8 +98,8 @@ bpiterate(ITER, FUN, ..., BPPARAM=bpparam())
 
   By default, a \code{list} the same length as the number of chunks in
   \code{ITER()}. When \code{REDUCE} is used, the return is consistent
-  with application of the reduction.
-
+  with application of the reduction. When errors occur, the errors will
+  be attached to the result as an attribute \code{errors}
 }
 
 \author{
