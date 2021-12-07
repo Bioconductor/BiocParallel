@@ -39,6 +39,7 @@
     ## coerces seed to appropriate format for RNGkind; NULL seed (from
     ## bpRNGseed()) uses the global random number stream.
     if (!is.null(seed)) {
+        RNGkind("default", "default", "default")
         set.seed(seed)
 
         ## change kind
