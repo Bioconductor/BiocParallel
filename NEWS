@@ -50,6 +50,9 @@ BUG FIXES
     o (v 1.28.2) Fix regression in progress bar display with bplapply().
     https://github.com/Bioconductor/BiocParallel/issues/172
 
+    o (v 1.28.3) Fix default seed generation when user has non-defaultg
+    generator. https://github.com/Bioconductor/BiocParallel/pull/176
+
 CHANGES IN VERSION 1.26
 -----------------------
 
