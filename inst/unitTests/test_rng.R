@@ -384,7 +384,7 @@ test_rng_lapply_bpredo <- function()
     result1_redo2 <- unlist(bpiterate(iter_factory(11), FUN1, BPREDO = result1, BPPARAM = param))
     result3 <- unlist(bpiterate(iter_factory(11), FUN, BPPARAM = param))
     bpstop(param)
-    
+
     checkIdentical(target1, result1_redo1)
     checkIdentical(target1, result1_redo2)
     checkIdentical(target2, result2)

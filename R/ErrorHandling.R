@@ -24,7 +24,8 @@ bpok <-
         is.null(.redo_env(x)) && all(bpok(x, type))
 }
 
-bptry <- function(expr, ..., bplist_error, bperror)
+bptry <-
+    function(expr, ..., bplist_error, bperror)
 {
     if (missing(bplist_error))
         bplist_error <- bpresult
@@ -187,7 +188,7 @@ bperrorTypes <-
         first_error_idx <- which(remote_error)[1]
         if (!is.null(first_error_idx))
           first_error <- errors[[first_error_idx]]
-        else 
+        else
           first_error <- ""
         remote_idx <- as.integer(names(errors[remote_error]))
     }

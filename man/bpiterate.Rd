@@ -26,7 +26,7 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
     BPREDO = list(), BPPARAM=bpparam())
 
 \S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
-    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE, 
+    ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
     BPREDO = list(), BPPARAM=bpparam()
 )
 }
@@ -64,7 +64,7 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 
   \item{reduce.in.order}{Logical. When TRUE, REDUCE is applied to the
     results from the workers in the same order the tasks were sent out.}
-    
+
   \item{BPREDO}{An output from \code{bpiterate} with one or
     more failed elements. This argument cannot be used with \code{BatchtoolsParam}
   }

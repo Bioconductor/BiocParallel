@@ -76,7 +76,7 @@ setMethod("bpstart", "missing",
     .manager_send_all(manager, value)
     .manager_flush(manager)
     response <- .manager_recv_all(manager)
-    
+
     .bpstart_error_handler(x, response, "set_logging")
     invisible(x)
 }

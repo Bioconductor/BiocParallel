@@ -35,7 +35,7 @@
     } else {
         list(
             init = function(x) NULL,
-            step = function(n) NULL, 
+            step = function(n) NULL,
             term = function() NULL
         )
     }

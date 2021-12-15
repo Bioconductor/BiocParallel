@@ -92,7 +92,9 @@
 ### Manager loop used by SOCK, MPI and FORK
 
 ## collect the results from the workers
-.collect_result <- function(manager, reducer, progress, BPPARAM) {
+.collect_result <-
+    function(manager, reducer, progress, BPPARAM)
+{
     data_list <- .manager_recv(manager)
     success <- rep(TRUE, length(data_list))
     for(i in seq_along(data_list)){
@@ -105,10 +107,10 @@
         .reducer_add(reducer, njob, value)
         .manager_log(BPPARAM, njob, d)
         .manager_result_save(BPPARAM, njob, reducer$value())
-        
+
         ## progress
         progress$step(length(value))
-        
+
         ## whether the result is ok, or to treat the failure as success
         success[i] <- !bpstopOnError(BPPARAM) || d$value$success
     }
@@ -118,7 +120,8 @@
 ## These functions are used by all cluster types (SOCK, MPI, FORK) and
 ## run on the master. Both enable logging, writing logs/results to
 ## files and 'stop on error'.
-.clear_cluster <- function(manager, running, reducer, progress, BPPARAM)
+.clear_cluster <-
+    function(manager, running, reducer, progress, BPPARAM)
 {
     tryCatch({
         setTimeLimit(30, 30, TRUE)
@@ -133,7 +136,9 @@
     reducer
 }
 
-.manager_log <- function(BPPARAM, njob, d) {
+.manager_log <-
+    function(BPPARAM, njob, d)
+{
     if (bplog(BPPARAM)) {
         con <- NULL
         if (!is.na(bplogdir(BPPARAM))) {
@@ -148,7 +153,9 @@
     }
 }
 
-.manager_result_save <- function(BPPARAM, njob, value) {
+.manager_result_save <-
+    function(BPPARAM, njob, value)
+{
     if (is.na(bpresultdir(BPPARAM)))
         return(NULL)
 
@@ -231,31 +238,43 @@
 
 ## Accessor for the elements in the BPREDO argument
 ## Return NULL if not exists
-.redo_env <- function(x) {
+.redo_env <-
+    function(x)
+{
     attr(x, "REDOENV")
 }
 
-.redo_reducer <- function(x) {
-  .redo_env(x)$reducer
+.redo_reducer <-
+    function(x)
+{
+    .redo_env(x)$reducer
 }
 
-.redo_seed <- function(x) {
-  .redo_env(x)$rng_seed
+.redo_seed <-
+    function(x)
+{
+    .redo_env(x)$rng_seed
 }
 
-`.redo_env<-` <- function(x, value) {
+`.redo_env<-` <-
+    function(x, value)
+{
     attr(x, "REDOENV") <- value
     x
 }
 
-`.redo_reducer<-` <- function(x, value) {
-  .redo_env(x)$reducer <- value
-  x
+`.redo_reducer<-` <-
+    function(x, value)
+{
+    .redo_env(x)$reducer <- value
+    x
 }
 
-`.redo_seed<-` <- function(x, value) {
-  .redo_env(x)$rng_seed <- value
-  x
+`.redo_seed<-` <-
+    function(x, value)
+{
+    .redo_env(x)$rng_seed <- value
+    x
 }
 
 ## The core bploop implementation
@@ -332,7 +351,9 @@
 
         ## stop on error; Let running jobs finish and break
         if (!all(success)) {
-            reducer <- .clear_cluster(manager, running, reducer, progress, BPPARAM)
+            reducer <- .clear_cluster(
+                manager, running, reducer, progress, BPPARAM
+            )
             break
         }
     }
@@ -355,8 +376,11 @@
 ##
 ## bploop.lapply(): derived from snow::dynamicClusterApply.
 ##
-bploop <- function(manager, ...)
+bploop <-
+    function(manager, ...)
+{
     UseMethod("bploop")
+}
 
 ## X: the loop value after division
 ## ARGS: The function arguments for `FUN`

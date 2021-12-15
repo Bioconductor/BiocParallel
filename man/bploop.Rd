@@ -59,7 +59,6 @@
    or \code{bpiterate} with one or more failed elements.}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
-  
 }
 
 \details{

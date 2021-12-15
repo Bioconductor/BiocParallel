@@ -75,7 +75,8 @@
     }
 }
 
-.splitX <- function(X, workers, tasks)
+.splitX <-
+    function(X, workers, tasks)
 {
     tasks <- .ntask(X, workers, tasks)
     idx <- .splitIndices(length(X), tasks)

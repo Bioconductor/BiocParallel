@@ -73,7 +73,9 @@ setMethod(".reducer_ok", signature = "Reducer",
 #########################
 ## LapplyReducer
 #########################
-.lapplyReducer <- function(ntotal, reducer = NULL){
+.lapplyReducer <-
+    function(ntotal, reducer = NULL)
+{
     if (is.null(reducer)) {
         result <- rep(list(.error_unevaluated()), ntotal)
         redo.index <- seq_len(ntotal)
@@ -141,7 +143,9 @@ setMethod(".reducer_ok", signature = "LapplyReducer",
 #########################
 ## IterateReducer
 #########################
-.redo_index_iterate <- function(reducer){
+.redo_index_iterate <-
+    function(reducer)
+{
     if (is.null(reducer))
         return(integer())
     finished_idx <- as.integer(names(reducer$value.cache))
@@ -150,8 +154,7 @@ setMethod(".reducer_ok", signature = "LapplyReducer",
 }
 
 .iterateReducer <-
-    function(REDUCE, init, reduce.in.order=FALSE,
-                            reducer = NULL)
+    function(REDUCE, init, reduce.in.order=FALSE, reducer = NULL)
 {
     if (is.null(reducer)) {
         if (missing(init)){
