@@ -1,5 +1,5 @@
 ### =========================================================================
-### bpvec methods
+### bpvec methods 
 ### -------------------------------------------------------------------------
 
 ## bpvec() dispatches to bplapply() where errors and logging are
@@ -30,14 +30,12 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     on.exit(bptasks(BPPARAM) <- otasks)
 
     idx <- .redo_index(si, BPREDO)
-    if (any(idx))
-        si <- si[idx]
 
     ## FIXME: 'X' sent to all workers, but ith worker only needs X[i]
     FUN1 <- function(i, ...) FUN(X[i], ...)
-    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO[idx], BPPARAM=BPPARAM))
+    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO, BPPARAM=BPPARAM))
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO
     }

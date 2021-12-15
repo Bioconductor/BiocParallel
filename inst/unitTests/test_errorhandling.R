@@ -220,43 +220,61 @@ test_bpvec_BPREDO <- function()
     TRUE
 }
 
-test_bpiterate_errors <- function()
+test_bpiterate_BPREDO <- function()
 {
-    quiet <- suppressMessages
-    .lazyCount <- function(count) {
-        count <- count
+    n <- 100L
+    ntask <- n
+    iter_factory <- function(n){
         i <- 0L
-
-        function() {
-            if (i >= count)
-                return(NULL)
-            else
-                i <<- i + 1L
-
-            if (i == 2)
-                "2"
-            else
-                i
-        }
+        function() if(i<n) i <<- i + 1
     }
 
-    FUN <- function(count, ...) {
-        if (count == 2)
+    FUN <- function(x) {
+        if (x %in% 2:3)
+            0L
+        else
+            x
+    }
+
+    FUN1 <- function(x) {
+        if (x %in% 2:3)
             stop("hit error")
-        else count
+        else x
     }
-    params <- list(snow=SnowParam(2, stop.on.error=FALSE))
+
+    stop.on.error <- TRUE
+    params <- list(
+        serial=SerialParam(stop.on.error=stop.on.error),
+        snow=SnowParam(2, stop.on.error=stop.on.error))
     if (.Platform$OS.type != "windows")
-        params$mc <- MulticoreParam(2, stop.on.error=FALSE)
+        params$mc <- MulticoreParam(2, stop.on.error=stop.on.error)
 
-    for (p in params) {
-        ITER <- .lazyCount(3)
-        quiet(res <- bpiterate(ITER, FUN, BPPARAM=p))
-        checkTrue(is(res[[2]], "remote_error"))
-        closeAllConnections()
+    for (param in params) {
+        bptasks(param) <- ntask
+        res0 <- bpiterate(iter_factory(n), FUN,BPPARAM = param)
+        checkException(bpiterate(iter_factory(n), FUN1, BPPARAM = param))
+        res1 <- bptry(bpiterate(iter_factory(n), FUN1, BPPARAM = param))
+        res2 <- bpiterate(iter_factory(n), FUN, BPREDO = res1, BPPARAM = param)
+
+        checkIdentical(res0, res2)
     }
 
-    ## clean up
-    closeAllConnections()
-    TRUE
+    stop.on.error <- FALSE
+    params <- list(
+        serial=SerialParam(stop.on.error=stop.on.error),
+        snow=SnowParam(2, stop.on.error=stop.on.error))
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2, stop.on.error=stop.on.error)
+
+    for (param in params) {
+        bptasks(param) <- ntask
+        res0 <- bpiterate(iter_factory(n), FUN,BPPARAM = param)
+        checkException(bpiterate(iter_factory(n), FUN1, BPPARAM = param))
+        res1 <- bptry(bpiterate(iter_factory(n), FUN1, BPPARAM = param))
+        res2 <- bpiterate(iter_factory(n), FUN, BPREDO = res1, BPPARAM = param)
+
+        checkEquals(length(res0), length(res1))
+        checkIdentical(res0, res2)
+    }
+
 }

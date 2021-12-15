@@ -116,7 +116,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
 
     idx <- .redo_index(X, BPREDO)
-    if (any(idx))
+    if (length(idx))
         X <- X[idx]
     nms <- names(X)
 
@@ -169,7 +169,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     ## post-process
     names(res) <- nms
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO
     }
@@ -188,7 +188,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 {
     stop("bpiterate not supported for BatchJobsParam")
 })

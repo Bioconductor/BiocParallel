@@ -91,25 +91,44 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Manager loop used by SOCK, MPI and FORK
 
+## collect the results from the workers
+.collect_result <- function(manager, reducer, progress, BPPARAM) {
+    data_list <- .manager_recv(manager)
+    success <- rep(TRUE, length(data_list))
+    for(i in seq_along(data_list)){
+        d <- data_list[[i]]
+
+        value <- d$value$value
+        njob <- d$value$tag
+
+        ## reduce
+        .reducer_add(reducer, njob, value)
+        .manager_log(BPPARAM, njob, d)
+        .manager_result_save(BPPARAM, njob, reducer$value())
+        
+        ## progress
+        progress$step(length(value))
+        
+        ## whether the result is ok, or to treat the failure as success
+        success[i] <- !bpstopOnError(BPPARAM) || d$value$success
+    }
+    success
+}
+
 ## These functions are used by all cluster types (SOCK, MPI, FORK) and
 ## run on the master. Both enable logging, writing logs/results to
-## files and 'stop on error'. The 'cl' argument is an active cluster;
-## starting and stopping of 'cl' is done outside these functions, eg,
-## bplapply, bpmapply etc..
-.clear_cluster <- function(cl, running, reducer)
+## files and 'stop on error'.
+.clear_cluster <- function(manager, running, reducer, progress, BPPARAM)
 {
     tryCatch({
         setTimeLimit(30, 30, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
-        while (any(running)) {
-            d <- .recv_any(cl)
-            njob <- d$value$tag
-            value <- d$value$value
-            reducer$add(njob, value)
-            running[d$node] <- FALSE
+        while (running) {
+            success <- .collect_result(manager, reducer, progress, BPPARAM)
+            running <- running - length(success)
         }
     }, error=function(e) {
-        warning(.error_worker_comm(e, "stop worker failed"))
+        message("Stop worker failed with the error: ", conditionMessage(e))
     })
     reducer
 }
@@ -138,86 +157,71 @@
     save(value, file=rfile)
 }
 
-.reducer <-
-    function(REDUCE, init, reduce.in.order=FALSE)
-{
-    env <- new.env(parent=emptyenv())
-    env[["reduce"]] <- !missing(REDUCE)
-    env[["init"]] <- !missing(init)
-
-    if (env[["reduce"]])
-        env[["value"]] <- if (env[["init"]]) init else list()
-    env[["index"]] <- 1L
-
-    reduce_one <- function(idx) {
-        if (env[["reduce"]]) {
-            if (!env[["init"]] && (env[["index"]] == 1L)) {
-                env[["value"]] <- env[[idx]][[1]]
-                skip_idx <- 1L
-            } else {
-                skip_idx <- 0L
-            }
-            for (i in seq_along(env[[idx]])) {
-                if (i == skip_idx)
-                    next
-                env[["value"]] <- REDUCE(env[["value"]], env[[idx]][[i]])
-            }
-            rm(list=idx, envir=env)
-        }
-        env[["index"]] <- env[["index"]] + 1L
-        1L
-    }
-
-    add_immediate <- function(i, value) {
-        env[[as.character(i)]] <- value
-        reduce_one(as.character(i))
-    }
-
-    add_inorder <- function(i, value) {
-        status <- 0L
-        env[[as.character(i)]] <- value
-        while (exists(as.character(env[["index"]]), envir=env))
-            status <- status + reduce_one(as.character(env[["index"]]))
-        status
-    }
-
-    list(add=function(i, value) {
-        if (reduce.in.order)
-            add_inorder(i, value)
-        else add_immediate(i, value)
-    }, isComplete=function() {
-        length(setdiff(ls(env), c("reduce", "init", "value", "index"))) == 0L
-    }, value=function() {
-        if (env[["reduce"]])
-            env[["value"]]              # NULL if no values
-        else {
-            lst <- as.list(env)
-            idx <- setdiff(names(lst), c("reduce", "init", "value", "index"))
-            if (length(idx)) {
-                lst <- unname(lst[idx[order(as.integer(idx))]])
-                unlist(lst, recursive=FALSE)
-            } else {
-                list()
-            }
-        }
-    })
-}
 
 ## A dummy iterator for bploop.lapply
 .bploop_lapply_iter <-
-    function(X)
+    function(X, redo_index, elements_per_task)
 {
-    i <- 0L
-    n <- length(X)
+    redo_n <- length(redo_index)
+    redo_i <- 1L
+    x_n <- length(X)
+    x_i <- 1L
     function() {
-        if (i < n) {
-            i <<- i + 1L
-            X[[i]]
+        if (redo_i <= redo_n && x_i <= x_n) {
+            redo <- redo_index[redo_i] == x_i
+            if (redo) {
+                ## Maximize `len` such that
+                ## - 1. all elements in X[x_i:(x_i + len)] should be redone
+                ## - 2. the number of elements in the task must be
+                ##      limited by `elements_per_task`
+                len <- 1L
+                while (redo_i + len <= redo_n &&
+                       redo_index[redo_i + len] == x_i + len &&
+                       len < elements_per_task) {
+                    len <- len + 1L
+                }
+                redo_i <<- redo_i + len
+                value <- X[seq.int(x_i, length.out = len)]
+            } else {
+                len <- redo_index[redo_i] - x_i
+                value <- .bploop_rng_iter(len)
+            }
+            x_i <<- x_i + len
+            ## Do not return the last seed iterator
+            ## if no more redo element
+            if (x_i > x_n && !redo) {
+                list(NULL)
+            } else {
+                value
+            }
         } else {
             list(NULL)
         }
     }
 }
+
+## An iterator for bpiterate to handle BPREDO
+.bploop_iterate_iter <-
+    function(ITER, reducer)
+{
+    errors <- sort(.redo_index_iterate(reducer))
+    len <- reducer$total
+    if(is.null(len)) len <- 0L
+    i <- 0L
+    function(){
+        if (i < len) {
+            i <<- i + 1L
+            value <- ITER()
+            if (i%in%errors)
+                list(value)
+            else
+                .bploop_rng_iter(1L)
+        } else {
+            list(ITER())
+        }
+    }
+}
+
 
 ## This class object can force bploop.iterator to iterate
 ## the seed stream n times
@@ -225,60 +229,59 @@
     structure(as.integer(n), class = c(".bploop_rng_iter"))
 }
 
-##
-## bploop.lapply(): derived from snow::dynamicClusterApply.
-##
-bploop <- function(manager, ...)
-    UseMethod("bploop")
-
-## X: the loop value after division
-## ARGS: The function arguments for `FUN`
-bploop.lapply <-
-    function(manager, X, FUN, ARGS, BPPARAM, ...)
-{
-    ITER <- .bploop_lapply_iter(X)
-    manager <- structure(list(), class="iterate") # dispatch
-    bploop(
-        manager = manager,
-        ITER = ITER,
-        FUN = FUN,
-        ARGS = ARGS,
-        BPPARAM =BPPARAM,
-        reduce.in.order = TRUE,
-        progress.length = length(X)
-    )
+## Accessor for the elements in the BPREDO argument
+## Return NULL if not exists
+.redo_env <- function(x) {
+    attr(x, "REDOENV")
 }
 
+.redo_reducer <- function(x) {
+  .redo_env(x)$reducer
+}
 
-##
-## bploop.iterate():
-##
-## Derived from snow::dynamicClusterApply and parallel::mclapply.
-##
-## - length of 'X' is unknown (defined by ITER())
-## - results not pre-allocated; list grows each iteration if no REDUCE
-## - args wrapped in arglist with different chunks from ITER()
+.redo_seed <- function(x) {
+  .redo_env(x)$rng_seed
+}
+
+`.redo_env<-` <- function(x, value) {
+    attr(x, "REDOENV") <- value
+    x
+}
+
+`.redo_reducer<-` <- function(x, value) {
+  .redo_env(x)$reducer <- value
+  x
+}
+
+`.redo_seed<-` <- function(x, value) {
+  .redo_env(x)$rng_seed <- value
+  x
+}
+
+## The core bploop implementation
 ## Arguments
 ## - ITER: Return a list where each list element will be passed to FUN
 ##   1. if nothing to proceed, it should return list(NULL)
-##   2. if the task is iterate the seed stream only, it should return
+##   2. if the task is to iterate the seed stream only, it should return
 ##      an object from .bploop_rng_iter()
 ## - FUN: A function that will be evaluated in the worker
 ## - ARGS: the arguments to FUN
-bploop.iterate <-
-    function(
-        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, init, reduce.in.order,
-        progress.length, ...
-    )
+.bploop_impl <-
+    function(ITER, FUN, ARGS, BPPARAM, BPREDO, reducer, progress.length)
 {
     cl <- bpbackend(BPPARAM)
 
-    seed <- .RNGstream(BPPARAM)
-    on.exit(.RNGstream(BPPARAM) <- seed)
+    manager <- .manager(cl)
+    on.exit(.manager_cleanup(manager), TRUE)
 
-    workers <- length(cl)
-    running <- logical(workers)
-    reducer <- .reducer(REDUCE, init, reduce.in.order)
+    init_seed <- .redo_seed(BPREDO)
+    if (is.null(init_seed)) {
+        seed <- .RNGstream(BPPARAM)
+        on.exit(.RNGstream(BPPARAM) <- seed)
+        init_seed <- seed
+    } else {
+        seed <- init_seed
+    }
 
     progress <- .progress(
         active=bpprogressbar(BPPARAM), iterate=missing(progress.length)
@@ -291,72 +294,128 @@ bploop.iterate <-
             list(X=X), list(FUN=FUN), ARGS,
             list(BPRNGSEED = seed)
         )
-    ## initial load
-    for (i in seq_len(workers)) {
-        value <- ITER()
-        ## If the value is of the class .bploop_rng_iter, we merely iterate
-        ## the seed stream `value` times and obtain the next value. There must
-        ## be no two consecutive .bploop_rng_iter objects in the iterator, so
-        ## we can proceed without checking the class again.
-        if (inherits(value, ".bploop_rng_iter")) {
-            seed <- .rng_iterate_substream(seed, value)
+
+    total <- 0L
+    running <- 0L
+    value <- NULL
+    ## keep the loop when there exists more ITER value or running tasks
+    while (!identical(value, list(NULL)) || running) {
+        ## send tasks to the workers
+        while (running < .manager_capacity(manager)) {
             value <- ITER()
-        }
-        if (identical(value, list(NULL))) {
-            if (i == 1L)
-                warning("first invocation of 'ITER()' returned NULL")
-            break
-        }
-        value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
-        running[i] <- .send_to(cl, i, value_)
-        seed <- .rng_iterate_substream(seed, length(value))
-    }
-
-    repeat {
-        if (!any(running))
-            break
-
-        ## collect
-        d <- .recv_any(cl)
-        progress$step()
-
-        value <- d$value$value
-        njob <- d$value$tag
-        running[d$node] <- FALSE
-
-        ## reduce
-        ## FIXME: if any worker has an error - can't reduce
-        reducer$add(njob, value)
-        .manager_log(BPPARAM, njob, d)
-        .manager_result_save(BPPARAM, njob, reducer$value())
-
-        if (bpstopOnError(BPPARAM) && !d$value$success) {
-            ## stop on error; let running jobs finish, do not re-load
-            ## FIXME: harvest assigned jobs
-            reducer <- .clear_cluster(cl, running, reducer)
-            break
-        }
-
-        ## re-load
-        value <- ITER()
-        if (inherits(value, "rng_iter")) {
-            seed <- .rng_iterate_substream(seed, value)
-            value <- ITER()
-        }
-        if (!identical(value, list(NULL))) {
-            i <- i + 1L
-            value_ <- .EXEC(i, .rng_lapply, ARGFUN(value, seed))
-            running[d$node] <- .send_to(cl, d$node, value_)
+            ## If the value is of the class .bploop_rng_iter, we merely iterate
+            ## the seed stream `value` times and obtain the next value.
+            if (inherits(value, ".bploop_rng_iter")) {
+                seed <- .rng_iterate_substream(seed, value)
+                next
+            }
+            if (identical(value, list(NULL))) {
+                if (total == 0L)
+                    warning("first invocation of 'ITER()' returned NULL")
+                break
+            }
+            value_ <- .EXEC(total + 1L, .rng_lapply, ARGFUN(value, seed))
+            .manager_send(manager, value_)
             seed <- .rng_iterate_substream(seed, length(value))
+            total <- total + 1L
+            running <- running + 1L
+        }
+        .manager_flush(manager)
+
+        ## If the cluster does not have any worker, waiting for the worker
+        if (!running)
+            next
+
+        ## collect results from the workers
+        success <- .collect_result(manager, reducer, progress, BPPARAM)
+        running <- running - length(success)
+
+        ## stop on error; Let running jobs finish and break
+        if (!all(success)) {
+            reducer <- .clear_cluster(manager, running, reducer, progress, BPPARAM)
+            break
         }
     }
 
     ## return results
-    if (!is.na(bpresultdir(BPPARAM))) {
-        NULL
-    } else {
-        reducer$value()
+    if (!is.na(bpresultdir(BPPARAM)))
+        return(NULL)
+
+    res <- .reducer_value(reducer)
+    ## Attach the redo information when the error occurs
+    if(!.reducer_ok(reducer) || !.reducer_complete(reducer)) {
+        .redo_env(res) <- new.env(parent = emptyenv())
+        .redo_reducer(res) <- reducer
+        .redo_seed(res) <- init_seed
     }
+    res
+}
+
+
+##
+## bploop.lapply(): derived from snow::dynamicClusterApply.
+##
+bploop <- function(manager, ...)
+    UseMethod("bploop")
+
+## X: the loop value after division
+## ARGS: The function arguments for `FUN`
+bploop.lapply <-
+    function(manager, X, FUN, ARGS, BPPARAM, BPREDO = list(), ...)
+{
+    ## which need to be redone?
+    redo_index <- .redo_index(X, BPREDO)
+
+    ## How many elements in a task?
+    ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    elements_per_task <- ceiling(length(redo_index)/ntask)
+    ITER <- .bploop_lapply_iter(X, redo_index, elements_per_task)
+
+    ntotal <- length(X)
+    reducer <- .lapplyReducer(ntotal, reducer = .redo_reducer(BPREDO))
+
+    res <- .bploop_impl(
+        ITER = ITER,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM,
+        BPREDO = BPREDO,
+        reducer = reducer,
+        progress.length = length(redo_index)
+    )
+
+    if (!is.null(res))
+        names(res) <- names(X)
+
+    res
+}
+
+##
+## bploop.iterate():
+##
+## Derived from snow::dynamicClusterApply and parallel::mclapply.
+##
+## - length of 'X' is unknown (defined by ITER())
+## - results not pre-allocated; list grows each iteration if no REDUCE
+##
+## TODO: support for BPREDO
+bploop.iterate <-
+    function(
+        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, BPREDO,
+        init, reduce.in.order, ...
+    )
+{
+    ITER_ <- .bploop_iterate_iter(ITER, reducer = .redo_reducer(BPREDO))
+    reducer <- .iterateReducer(REDUCE, init, reduce.in.order,
+                               reducer = .redo_reducer(BPREDO))
+    .bploop_impl(
+        ITER = ITER_,
+        FUN = FUN,
+        ARGS = ARGS,
+        BPPARAM = BPPARAM,
+        BPREDO = BPREDO,
+        reducer = reducer
+    )
 }
 
 bploop.iterate_batchtools <-
@@ -365,7 +424,8 @@ bploop.iterate_batchtools <-
     ## get number of workers
     workers <- bpnworkers(BPPARAM)
     ## reduce in order
-    reducer <- .reducer(REDUCE, init, reduce.in.order)
+    reducer <- .iterateReducer(REDUCE, init, reduce.in.order,
+                               NULL)
 
     ## progress bar.
     progress <- .progress(active=bpprogressbar(BPPARAM), iterate=TRUE)
@@ -421,9 +481,9 @@ bploop.iterate_batchtools <-
     ## reduce in order
     for (job.id in ids$job.id) {
         value <- batchtools::loadResult(id = job.id, reg=BPPARAM$registry)
-        reducer$add(job.id, list(value))
+        .reducer_add(reducer, job.id, list(value))
     }
 
     ## return reducer value
-    reducer$value()
+    .reducer_value(reducer)
 }

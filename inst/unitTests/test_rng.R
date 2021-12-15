@@ -270,7 +270,7 @@ test_rng_global_and_RNGseed_independent <- function() {
         TEST_FUN(MulticoreParam)
 }
 
-.test_rng_bpredo_impl <- function(param) {
+.test_rng_lapply_bpredo_impl <- function(param) {
     FUN <- function(i) rnorm(1)
     target <- unlist(bplapply(1:11, FUN, BPPARAM = param))
 
@@ -318,7 +318,7 @@ test_rng_global_and_RNGseed_independent <- function() {
     checkIdentical(target3, result3)
 }
 
-test_rng_bpredo <- function()
+test_rng_lapply_bpredo <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
@@ -327,11 +327,84 @@ test_rng_bpredo <- function()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
     param <- SerialParam(RNGseed = 123, stop.on.error = FALSE)
-    .test_rng_bpredo_impl(param)
+    .test_rng_lapply_bpredo_impl(param)
 
     if (identical(.Platform$OS.type, "unix")) {
         param <- MulticoreParam(3, RNGseed = 123, stop.on.error = FALSE)
-        .test_rng_bpredo_impl(param)
+        .test_rng_lapply_bpredo_impl(param)
+    }
+}
+
+
+.test_rng_iterate_bpredo_impl <- function(param) {
+    FUN <- function(i) rnorm(1)
+    target <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+
+    FUN0 <- function(i) {
+        if (identical(i, 7L)) {
+            stop("i == 7")
+        } else rnorm(1)
+    }
+    iter_factory <- function(n){
+        i <- 0L
+        function() if(i<n) i <<- i + 1L
+    }
+    result <- bptry(bpiterate(iter_factory(11), FUN0, BPPARAM = param))
+    checkIdentical(unlist(result[-7]), target[-7])
+    checkTrue(is.null(result[[7]]))
+    checkTrue(inherits(attr(result,"errors")[[1]], "remote_error"))
+
+    FUN1 <- function(i) {
+        if (identical(i, 7L)) {
+            ## the random number stream should be in the same state as the
+            ## first time through the loop, and rnorm(1) should return
+            ## same result as FUN
+            rnorm(1)
+        } else {
+            ## if this branch is used, then we are incorrectly updating
+            ## already calculated elements -- '0' in the output would
+            ## indicate this error
+            0
+        }
+    }
+    result <- unlist(bpiterate(iter_factory(11), FUN1, BPREDO = result, BPPARAM = param))
+    checkIdentical(result, target)
+
+
+    bpstart(param)
+    target1 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    target2 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    target3 <- unlist(bplapply(1:11, FUN, BPPARAM = param))
+    bpstop(param)
+
+    bpstart(param)
+    result1 <- bptry(bpiterate(iter_factory(11), FUN0, BPPARAM = param))
+    result1_redo1 <- unlist(bpiterate(iter_factory(11), FUN1, BPREDO = result1, BPPARAM = param))
+    result2 <- unlist(bpiterate(iter_factory(11), FUN, BPPARAM = param))
+    result1_redo2 <- unlist(bpiterate(iter_factory(11), FUN1, BPREDO = result1, BPPARAM = param))
+    result3 <- unlist(bpiterate(iter_factory(11), FUN, BPPARAM = param))
+    bpstop(param)
+    
+    checkIdentical(target1, result1_redo1)
+    checkIdentical(target1, result1_redo2)
+    checkIdentical(target2, result2)
+    checkIdentical(target3, result3)
+}
+
+test_rng_iterate_bpredo <- function()
+{
+    .rng_get_generator <- BiocParallel:::.rng_get_generator
+    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+
+    state <- .rng_get_generator()
+    on.exit(.rng_reset_generator(state$kind, state$seed))
+
+    param <- SerialParam(RNGseed = 123, stop.on.error = FALSE)
+    .test_rng_iterate_bpredo_impl(param)
+
+    if (identical(.Platform$OS.type, "unix")) {
+        param <- MulticoreParam(3, RNGseed = 123, stop.on.error = FALSE)
+        .test_rng_iterate_bpredo_impl(param)
     }
 }
 

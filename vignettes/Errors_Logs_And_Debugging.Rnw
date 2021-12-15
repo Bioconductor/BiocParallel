@@ -131,7 +131,7 @@ param <- SnowParam(3, tasks = length(X), stop.on.error = TRUE)
 
 Tasks 1, 2, and 3 are assigned to the three workers, and are
 evaluated. Task 2 fails, stopping further computation. All
-successfully completed tasks are returned and can be accessed by `bperror`.
+successfully completed tasks are returned and can be accessed by `bpresult`.
 Usually, this means that the results of tasks 1, 2, and 3
 will be returned.
 

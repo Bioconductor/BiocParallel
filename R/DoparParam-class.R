@@ -71,7 +71,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     BPREDO <- bpresult(BPREDO)
 
     idx <- .redo_index(X, BPREDO)
-    if (any(idx))
+    if (length(idx))
         X <- X[idx]
 
     FUN <- .composeTry(
@@ -101,19 +101,19 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 
     names(res) <- names(X)
 
-    if (any(idx)) {
+    if (length(BPREDO) && length(idx)) {
         BPREDO[idx] <- res
         res <- BPREDO
     }
 
-    if (!all(bpok(res)))
+    if (!.bpallok(res))
         stop(.error_bplist(res))
 
     res
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),
-    function(ITER, FUN, ..., BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
 {
     stop("'bpiterate' not supported for DoparParam")
 })

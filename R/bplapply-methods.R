@@ -46,23 +46,10 @@ setMethod("bplapply", c("ANY", "list"),
     if (!length(X))
         return(.rename(list(), X))
 
-    ## which need to be redone?
-    redo_index <- .redo_index(X, BPREDO)
-    if (any(redo_index)) {
-        compute_element <- which(redo_index)
-        X <- X[compute_element]
-    } else {
-        compute_element <- seq_along(X)
-    }
-    nms <- names(X)
-
-    ## split into tasks
-    X <- .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM), redo_index)
-
     ARGS <- list(...)
 
     manager <- structure(list(), class="lapply") # dispatch
-    res <- .bpinit(
+    .bpinit(
         manager = manager,
         X = X,
         FUN = FUN,
@@ -70,12 +57,4 @@ setMethod("bplapply", c("ANY", "list"),
         BPPARAM = BPPARAM,
         BPREDO = BPREDO
     )
-
-    if (!is.null(res))
-        names(res)[compute_element] <- nms
-
-    if (!all(bpok(res)))
-        stop(.error_bplist(res))
-
-    res
 }

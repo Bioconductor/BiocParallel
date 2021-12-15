@@ -132,7 +132,7 @@ test_bpiterate_REDUCE_SerialParam <- function() {
     ## REDUCE == `+`
     ITER <- .lazyCount(0)
     res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
-    checkIdentical(list(), res)
+    checkIdentical(NULL, res)
 
     ITER <- .lazyCount(1)
     res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)

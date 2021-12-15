@@ -48,6 +48,55 @@ setGeneric(
     signature = "worker"
 )
 
+## task manager
+setGeneric(
+    ".manager",
+    function(backend) standardGeneric(".manager"),
+    signature = "backend"
+)
+
+setGeneric(
+    ".manager_send",
+    function(manager, value) standardGeneric(".manager_send"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_recv",
+    function(manager) standardGeneric(".manager_recv"),
+    signature = "manager"
+)
+
+setGeneric(
+  ".manager_send_all",
+  function(manager, value) standardGeneric(".manager_send_all"),
+  signature = "manager"
+)
+
+setGeneric(
+  ".manager_recv_all",
+  function(manager) standardGeneric(".manager_recv_all"),
+  signature = "manager"
+)
+
+setGeneric(
+    ".manager_capacity",
+    function(manager) standardGeneric(".manager_capacity"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_flush",
+    function(manager) standardGeneric(".manager_flush"),
+    signature = "manager"
+)
+
+setGeneric(
+    ".manager_cleanup",
+    function(manager) standardGeneric(".manager_cleanup"),
+    signature = "manager"
+)
+
 ## default implementation -- SNOW backend
 
 setMethod(
@@ -110,3 +159,73 @@ setMethod(
 {
     parallel:::closeNode(worker)
 })
+
+
+setMethod(
+    ".close", "ANY",
+    function(worker)
+{
+    parallel:::closeNode(worker)
+})
+
+## default task manager implementation
+setMethod(
+    ".manager", "ANY",
+    function(backend)
+{
+    manager <- new.env(parent = emptyenv())
+    manager$backend <- backend
+    availability <- rep(list(TRUE), length(manager$backend))
+    names(availability) <- as.character(seq_along(manager$backend))
+    manager$availability <- as.environment(availability)
+    manager$capacity <- length(manager$backend)
+    manager
+})
+
+setMethod(
+    ".manager_send", "ANY",
+    function(manager, value)
+{
+    availability <- manager$availability
+    stopifnot(length(availability) >=0)
+    ## send the job to the next available worker
+    worker <- names(availability)[1]
+    .send_to(manager$backend, as.integer(worker), value)
+    rm(list = worker, envir = availability)
+})
+
+setMethod(
+    ".manager_recv", "ANY",
+    function(manager)
+{
+    result <- .recv_any(manager$backend)
+    manager$availability[[as.character(result$node)]] <- TRUE
+    list(result)
+})
+
+setMethod(
+  ".manager_send_all", "ANY",
+  function(manager, value) .send_all(manager$backend, value)
+)
+
+setMethod(
+  ".manager_recv_all", "ANY",
+  function(manager) .recv_all(manager$backend)
+)
+
+setMethod(
+    ".manager_capacity", "ANY",
+    function(manager)
+{
+      manager$capacity
+})
+
+setMethod(
+    ".manager_flush", "ANY",
+    function(manager) manager
+)
+
+setMethod(
+    ".manager_cleanup", "ANY",
+    function(manager) manager
+)

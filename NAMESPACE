@@ -123,5 +123,9 @@ export(
     .send_to, .recv_any, .send, .recv, .close, .send_all, .recv_all,
     .bpstart_impl, .bpstop_impl, .bpworker_impl,
     .bplapply_impl, .bpiterate_impl,
-    .error_worker_comm
+    .error_worker_comm,
+    .manager, .manager_send, .manager_recv, 
+    .manager_send_all, .manager_recv_all,
+    .manager_capacity,
+    .manager_flush, .manager_cleanup
 )
