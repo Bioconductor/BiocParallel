@@ -74,9 +74,14 @@ setMethod("bplapply", c("ANY", "DoparParam"),
     if (length(idx))
         X <- X[idx]
 
+    OPTIONS <- .workerOptions(
+        log = bplog(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM),
+        timeout = bptimeout(BPPARAM),
+        exportglobals = bpexportglobals(BPPARAM)
+    )
     FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        FUN, OPTIONS = OPTIONS, SEED = NULL
     )
 
     i <- NULL

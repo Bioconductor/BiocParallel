@@ -1,57 +1,30 @@
-test_rng_fun_advances_generator <- function()
-{
-    .rng_get_generator <- BiocParallel:::.rng_get_generator
-    .rng_reset_generator <- BiocParallel:::.rng_reset_generator
-    .rng_job_fun_factory <- BiocParallel:::.rng_job_fun_factory
-    .RNGstream <- BiocParallel:::.RNGstream
-
-    state <- .rng_get_generator()
-    on.exit(.rng_reset_generator(state$kind, state$seed))
-
-    SEED <- .RNGstream(bpstart(SerialParam()))
-    checkIdentical(
-        ## independently invoked with same seed --> same result
-        .rng_job_fun_factory(function(i) rnorm(i), SEED)(2),
-        .rng_job_fun_factory(function(i) rnorm(i), SEED)(2)
-    )
-
-    SEED <- .RNGstream(bpstart(SerialParam()))
-    FUN <- .rng_job_fun_factory(function(i) rnorm(i), SEED)
-    target <- FUN(2) # two numbers from same stream
-
-    FUN <- .rng_job_fun_factory(function(i) rnorm(i), SEED)
-    obs <- c(FUN(1), FUN(1)) # two numbers from separate streams
-    checkIdentical(obs[[1]], target[[1]])
-    checkTrue(obs[[2]] != target[[2]])
-
-    checkTrue(identical(state, .rng_get_generator()))
-}
-
 test_rng_lapply <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator
     .rng_reset_generator <- BiocParallel:::.rng_reset_generator
+    .workerLapply <- BiocParallel:::.workerLapply
 
     .RNGstream <- BiocParallel:::.RNGstream
-    .rng_lapply <- BiocParallel:::.rng_lapply
     .rng_next_substream <- BiocParallel:::.rng_next_substream
-
+    
+    OPTIONS <- BiocParallel:::.workerOptions()
+    
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
     SEED <- .RNGstream(bpstart(SerialParam()))
     checkIdentical(
         ## same sequence of random number streams
-        .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED),
-        .rng_lapply(1:2, function(i) rnorm(1), BPRNGSEED = SEED)
+        .workerLapply(1:2, function(i) rnorm(1), NULL, OPTIONS, SEED),
+        .workerLapply(1:2, function(i) rnorm(1), NULL, OPTIONS, SEED)
     )
-
+    
     SEED1 <- .RNGstream(bpstart(SerialParam()))
     SEED2 <- .rng_next_substream(SEED1)
-    target <- .rng_lapply(1:2, function(i) rnorm(2), BPRNGSEED = SEED1)
+    target <- .workerLapply(1:2, function(i) rnorm(2), NULL, OPTIONS, SEED1)
     obs <- c(
-        .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED1),
-        .rng_lapply(1, function(i) rnorm(2), BPRNGSEED = SEED2)
+        .workerLapply(1, function(i) rnorm(2), NULL, OPTIONS, SEED1),
+        .workerLapply(1, function(i) rnorm(2), NULL, OPTIONS, SEED2)
     )
     checkIdentical(target, obs)
 

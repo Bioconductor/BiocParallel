@@ -11,16 +11,14 @@ checkExceptionText <- function(expr, txt, negate=FALSE, msg="")
 
 test_composeTry <- function() {
     .composeTry <- BiocParallel:::.composeTry
+    .workerOptions <- BiocParallel:::.workerOptions
+    .error_unevaluated <- BiocParallel:::.error_unevaluated
     X <- as.list(1:6); X[[2]] <- "2"; X[[6]] <- -1
-
-    ## fail hard, e.g., SerialParam()
-    tsqrt <- .composeTry(sqrt, FALSE, TRUE, TRUE, timeout=20L)
-    current <- tryCatch(lapply(X, tsqrt), error=identity)
-    target <- tryCatch(lapply(X, sqrt), error=identity)
-    checkIdentical(conditionMessage(target), conditionMessage(current))
-
-    ## fail soft, e.g., SerialParam(stop.on.error=FALSE)
-    tsqrt <- .composeTry(sqrt, FALSE, FALSE, FALSE, timeout=20L)
+    
+    ## Evaluate all jobs regardless of errors
+    ## e.g., SerialParam(stop.on.error=FALSE)
+    OPTIONS <- .workerOptions(stop.on.error = FALSE)
+    tsqrt <- .composeTry(sqrt, OPTIONS, NULL)
     current <- tryCatch(suppressWarnings(lapply(X, tsqrt)), error=identity)
     target <- list(length(X))
     for (i in seq_along(X))
@@ -31,9 +29,10 @@ test_composeTry <- function() {
                    conditionMessage(current[[which(!bpok(current))]]))
     checkIdentical(target[tok], current[bpok(current)])
 
-    ## fail soft on an individual worker; entire vector returned with
+    ## stop evaluation when error occurs; entire vector returned with
     ## 'unevaluated' components. e.g., SnowParam(stop.on.error=TRUE)
-    tsqrt <- .composeTry(sqrt, FALSE, TRUE, FALSE, timeout=20L)
+    OPTIONS <- .workerOptions(stop.on.error = TRUE)
+    tsqrt <- .composeTry(sqrt, OPTIONS, NULL)
     current <- lapply(X, tsqrt)
     checkTrue(is(current[[2]], "remote_error"))
     checkTrue(all(vapply(current[-(1:2)], is, logical(1), "unevaluated_error")))

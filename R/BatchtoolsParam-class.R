@@ -386,9 +386,15 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
     registry <- BPPARAM$registry
 
+    OPTIONS <- .workerOptions(
+        log = bplog(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM),
+        timeout = bptimeout(BPPARAM),
+        exportglobals = bpexportglobals(BPPARAM)
+    )
+    
     FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        FUN, OPTIONS = OPTIONS, SEED = NULL
     )
 
     ##  Make registry / map / submit / wait / load
@@ -474,10 +480,16 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
         on.exit(bpstop(BPPARAM))
     }
 
+    OPTIONS <- .workerOptions(
+        log = bplog(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM),
+        timeout = bptimeout(BPPARAM),
+        exportglobals = bpexportglobals(BPPARAM)
+    )
+    
     ## composeTry
     FUN <- .composeTry(
-        FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), exportglobals=bpexportglobals(BPPARAM)
+        FUN, OPTIONS = OPTIONS, SEED = NULL
     )
 
     FUN <- .composeBatchtools(FUN)

@@ -142,10 +142,16 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
     if (BPPARAM$cleanup)
         on.exit(unlink(reg.pars$file.dir, recursive=TRUE), add=TRUE)
 
+    OPTIONS <- .workerOptions(
+        log = bplog(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM),
+        timeout = bptimeout(BPPARAM),
+        exportglobals = bpexportglobals(BPPARAM),
+        as.error = FALSE
+    )
+    
     ## FUN
-    FUN <- .composeTry(FUN, bplog(BPPARAM), bpstopOnError(BPPARAM),
-                       as.error=FALSE, timeout=bptimeout(BPPARAM),
-                       exportglobals=bpexportglobals(BPPARAM))
+    FUN <- .composeTry(FUN, OPTIONS = OPTIONS, SEED = NULL)
     WRAP <- function(.x, .FUN, .MoreArgs)
         do.call(.FUN, c(list(.x), .MoreArgs))
 
