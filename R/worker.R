@@ -27,12 +27,15 @@
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker options and function to run the task
-.workerOptions <- function(log = FALSE,
-                       stop.on.error = TRUE,
-                       as.error = TRUE,        # FALSE for BatchJobs compatible
-                       timeout = .Machine$integer.max,
-                       exportglobals = TRUE,
-                       force.GC = FALSE) {
+.workerOptions <-
+    function(
+        log = FALSE,
+        stop.on.error = TRUE,
+        as.error = TRUE,        # FALSE for BatchJobs compatible
+        timeout = .Machine$integer.max,
+        exportglobals = TRUE,
+        force.GC = FALSE)
+{
     force(log)
     force(stop.on.error)
     force(as.error)
@@ -64,7 +67,8 @@
     )
 }
 
-.composeTry <- function(FUN, OPTIONS, SEED)
+.composeTry <-
+    function(FUN, OPTIONS, SEED)
 {
     FUN <- match.fun(FUN)
     ERROR_OCCURRED <- FALSE
@@ -129,7 +133,8 @@
     }
 }
 
-.workerLapply <- function(X, FUN, ARGS, OPTIONS, BPRNGSEED)
+.workerLapply <-
+    function(X, FUN, ARGS, OPTIONS, BPRNGSEED)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
@@ -143,7 +148,8 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop.  Error handling is done in .composeTry.
 
-.bpworker_EXEC <- function(msg, sink.sout = TRUE)
+.bpworker_EXEC <-
+    function(msg, sink.sout = TRUE)
 {
     ## need local handler for worker read/send errors
     if (sink.sout) {
@@ -181,7 +187,8 @@
     )
 }
 
-.bpworker_impl <- function(worker)
+.bpworker_impl <-
+    function(worker)
 {
     repeat {
         tryCatch({
@@ -201,5 +208,3 @@
         })
     }
 }
-
-

@@ -149,7 +149,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         exportglobals = bpexportglobals(BPPARAM),
         as.error = FALSE
     )
-    
+
     ## FUN
     FUN <- .composeTry(FUN, OPTIONS = OPTIONS, SEED = NULL)
     WRAP <- function(.x, .FUN, .MoreArgs)

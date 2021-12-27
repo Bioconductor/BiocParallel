@@ -14,7 +14,7 @@ test_composeTry <- function() {
     .workerOptions <- BiocParallel:::.workerOptions
     .error_unevaluated <- BiocParallel:::.error_unevaluated
     X <- as.list(1:6); X[[2]] <- "2"; X[[6]] <- -1
-    
+
     ## Evaluate all jobs regardless of errors
     ## e.g., SerialParam(stop.on.error=FALSE)
     OPTIONS <- .workerOptions(stop.on.error = FALSE)

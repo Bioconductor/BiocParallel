@@ -392,7 +392,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         timeout = bptimeout(BPPARAM),
         exportglobals = bpexportglobals(BPPARAM)
     )
-    
+
     FUN <- .composeTry(
         FUN, OPTIONS = OPTIONS, SEED = NULL
     )
@@ -486,7 +486,7 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
         timeout = bptimeout(BPPARAM),
         exportglobals = bpexportglobals(BPPARAM)
     )
-    
+
     ## composeTry
     FUN <- .composeTry(
         FUN, OPTIONS = OPTIONS, SEED = NULL

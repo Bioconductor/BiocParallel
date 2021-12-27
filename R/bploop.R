@@ -201,15 +201,15 @@
     cl <- bpbackend(BPPARAM)
     manager <- .manager(cl)
     on.exit(.manager_cleanup(manager), add = TRUE)
-    
+
     ## worker options
     OPTIONS <- .workerOptions(
         bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM), 
+        timeout=bptimeout(BPPARAM),
         exportglobals=bpexportglobals(BPPARAM),
         force.GC = bpforceGC(BPPARAM)
     )
-    
+
     init_seed <- .redo_seed(BPREDO)
     if (is.null(init_seed)) {
         seed <- .RNGstream(BPPARAM)

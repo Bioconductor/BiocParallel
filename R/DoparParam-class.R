@@ -80,6 +80,7 @@ setMethod("bplapply", c("ANY", "DoparParam"),
         timeout = bptimeout(BPPARAM),
         exportglobals = bpexportglobals(BPPARAM)
     )
+
     FUN <- .composeTry(
         FUN, OPTIONS = OPTIONS, SEED = NULL
     )

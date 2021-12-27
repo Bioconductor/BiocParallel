@@ -6,9 +6,9 @@ test_rng_lapply <- function()
 
     .RNGstream <- BiocParallel:::.RNGstream
     .rng_next_substream <- BiocParallel:::.rng_next_substream
-    
+
     OPTIONS <- BiocParallel:::.workerOptions()
-    
+
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
 
@@ -18,7 +18,7 @@ test_rng_lapply <- function()
         .workerLapply(1:2, function(i) rnorm(1), NULL, OPTIONS, SEED),
         .workerLapply(1:2, function(i) rnorm(1), NULL, OPTIONS, SEED)
     )
-    
+
     SEED1 <- .RNGstream(bpstart(SerialParam()))
     SEED2 <- .rng_next_substream(SEED1)
     target <- .workerLapply(1:2, function(i) rnorm(2), NULL, OPTIONS, SEED1)
