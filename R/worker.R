@@ -1,4 +1,62 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Utils
+## Extract the unchanged part from a task
+.task_type <-
+    function(value)
+{
+    value$type
+}
+
+.EXEC_static <-
+    function(value)
+{
+    if (value$static.fun)
+        fun <- value$data$fun
+    else
+        fun <- NULL
+
+    if (all(value$static.args %in% names(value$data$args))) {
+        args <- value$data$args[value$static.args]
+        if (!length(args)) args <- NULL
+    } else {
+        args <- NULL
+    }
+
+    if (!is.null(fun) || !is.null(args))
+        list(fun = fun, args = args)
+    else
+        NULL
+}
+
+## Extract the dynamic part from a task
+.EXEC_dynamic <-
+    function(value)
+{
+    if (value$static.fun)
+        value$data$fun <- NULL
+    if (length(value$static.args))
+        value$data$args[value$static.args] <- NULL
+
+    value$dynamic.only <- TRUE
+    value
+}
+
+## Recreate the task from the dynamic and static parts of EXEC.
+## It is safe to call the function if EXEC is complete
+## (Not extracted by `.EXEC_dynamic`).
+.remake_EXEC <-
+    function(value, static_EXEC = NULL)
+{
+    if (isTRUE(value$dynamic.only) && !is.null(static_EXEC)) {
+        if (value$static.fun)
+            value$data$fun <- static_EXEC$fun
+        if (length(value$static.args))
+            value$data$args <- c(value$data$args, static_EXEC$args)
+    }
+    value
+}
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker commands
 
 ### Support for SOCK, MPI and FORK connections.
@@ -6,9 +64,12 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 
 .EXEC <-
-    function(tag, fun, args)
+    function(tag, fun, args, static.fun = FALSE, static.args = NULL)
 {
-    list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
+    list(type = "EXEC", data = list(tag = tag,
+         fun = fun, args = args),
+         static.fun = static.fun,
+         static.args = static.args)
 }
 
 .VALUE <-
@@ -133,7 +194,7 @@
     }
 }
 
-.workerLapply <-
+.workerLapply_impl <-
     function(X, FUN, ARGS, OPTIONS, BPRNGSEED)
 {
     state <- .rng_get_generator()
@@ -144,6 +205,8 @@
     args <- c(list(X = X, FUN = composeFunc), ARGS)
     do.call(lapply, args)
 }
+
+.workerLapply <- funcFactory("BiocParallel:::.workerLapply_impl")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop.  Error handling is done in .composeTry.

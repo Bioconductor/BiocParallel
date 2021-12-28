@@ -17,32 +17,50 @@
 \alias{.send,ANY-method}
 \alias{.recv}
 \alias{.recv,ANY-method}
+\alias{.recv,SOCKnode-method}
 \alias{.close}
 \alias{.close,ANY-method}
 
 
 \alias{.manager}
 \alias{.manager,ANY-method}
+\alias{.manager,SnowParam-method}
+\alias{.manager,TransientMulticoreParam-method}
 \alias{.manager_send}
 \alias{.manager_send,ANY-method}
+\alias{.manager_send,TaskManager-method}
+\alias{.manager_send,SOCKmanager-method}
 \alias{.manager_recv}
 \alias{.manager_recv,ANY-method}
+\alias{.manager_recv,TaskManager-method}
 \alias{.manager_send_all}
 \alias{.manager_send_all,ANY-method}
+\alias{.manager_send_all,TaskManager-method}
 \alias{.manager_recv_all}
 \alias{.manager_recv_all,ANY-method}
+\alias{.manager_recv_all,TaskManager-method}
 \alias{.manager_flush}
 \alias{.manager_flush,ANY-method}
+\alias{.manager_flush,TaskManager-method}
 \alias{.manager_cleanup}
 \alias{.manager_cleanup,ANY-method}
+\alias{.manager_cleanup,TaskManager-method}
+\alias{.manager_cleanup,SOCKmanager-method}
 \alias{.manager_capacity}
 \alias{.manager_capacity,ANY-method}
+\alias{.manager_capacity,TaskManager-method}
 
 \alias{.bpstart_impl}
 \alias{.bpstop_impl}
 \alias{.bpworker_impl}
 \alias{.bplapply_impl}
 \alias{.bpiterate_impl}
+
+
+\alias{.task_type}
+\alias{.EXEC_static}
+\alias{.EXEC_dynamic}
+\alias{.remake_EXEC}
 
 \title{Developer interface}
 
@@ -74,7 +92,7 @@
 .close(worker)
 
 ## task manager interface(optional)
-.manager(backend)
+.manager(BPPARAM)
 .manager_send(manager, value)
 .manager_recv(manager)
 .manager_send_all(manager, value)
@@ -91,6 +109,13 @@
 .bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
                 BPREDO = list(), BPPARAM = bpparam())
 .bpstop_impl(x)
+
+
+## separate the static or dynamic part from an EXEC task
+.task_type(value)
+.EXEC_static(value)
+.EXEC_dynamic(value)
+.remake_EXEC(value, static_EXEC = NULL)
 }
 
 \arguments{
@@ -139,6 +164,10 @@
     For \code{.bplapply_impl()}, \code{.bpiterate_impl()}, additional
     arguments to \code{FUN()}; see \code{bplapply} and \code{bpiterate}.
 
+  }
+  
+  \item{static_EXEC}{
+    An object extracted from \code{.EXEC_static(value)}
   }
 }
 
@@ -211,6 +240,15 @@
   flushes all the cached tasks(if any) immediately. \code{.manager_cleanup()} performs
   the cleanup after the job is finished. The default methods for
   \code{.manager_flush()} and \code{.manager_cleanup()} are no-op.
+  
+  In some cases it might be worthy to cache some objects in a task and reuse them
+  in another task. This can reduce the bandwith requirement for sending the tasks
+  out to the worker. Only the EXEC task should be cached by the worker. 
+  \code{.task_type()} returns \code{"EXEC"} when an EXEC task is given. 
+  \code{EXEC_static()} can be used to extract the objects from the task which are
+  not going to change across all tasks. \code{EXEC_dynamic()} preserve only 
+  the dynamic components in a task. Given the static and dynamic task objects,
+  the complete task can be made by \code{.remake_EXEC()}. 
 
 }
 

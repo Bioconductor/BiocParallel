@@ -106,3 +106,27 @@ bprunMPIworker <- function() {
         .log_internal()
     } else .log_internal()
 }
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### EXEC command cache
+###
+
+## read/write the static value
+.load_EXEC_static <-
+    function(EXEC)
+{
+    static_EXEC <- .EXEC_static(EXEC)
+    if (is.null(static_EXEC)) {
+        static_EXEC <- options("BIOCPARALLEL_STATIC_EXEC")[[1]]
+        .remake_EXEC(EXEC, static_EXEC)
+    } else {
+        options(BIOCPARALLEL_STATIC_EXEC = static_EXEC)
+        EXEC
+    }
+}
+
+.clean_EXEC_static <-
+    function()
+{
+    options(BIOCPARALLEL_STATIC_EXEC = NULL)
+}
