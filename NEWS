@@ -10,6 +10,10 @@ USER VISIBLE CHANGES
     of tryCatch(bplapply(...))) and allow direct use of tryCatch(bplapply(...))
     return value as arugment to bplapply(BPREDO= ...). Closes #157
 
+    o (v 1.29.8) The default timeout changes from 30 days to
+    .Machine$integer.max (no timeout), allowing for performance
+    improvements when not set.
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.

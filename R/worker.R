@@ -73,7 +73,7 @@
     FUN <- match.fun(FUN)
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton
-    
+
     log <- OPTIONS$log
     stop.on.error <- OPTIONS$stop.on.error
     as.error <- OPTIONS$as.error
