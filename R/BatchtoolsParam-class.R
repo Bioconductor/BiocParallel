@@ -165,7 +165,7 @@ BatchtoolsParam <-
         template = batchtoolsTemplate(cluster),
         stop.on.error = TRUE,
         progressbar=FALSE, RNGseed = NA_integer_,
-        timeout= 30L * 24L * 60L * 60L, exportglobals=TRUE,
+        timeout= .Machine$integer.max, exportglobals=TRUE,
         log=FALSE, logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB"
     )

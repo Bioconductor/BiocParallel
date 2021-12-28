@@ -73,6 +73,13 @@
     FUN <- match.fun(FUN)
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton
+    
+    log <- OPTIONS$log
+    stop.on.error <- OPTIONS$stop.on.error
+    as.error <- OPTIONS$as.error
+    timeout <- OPTIONS$timeout
+    force.GC <- OPTIONS$force.GC
+    globalOptions <- OPTIONS$globalOptions
 
     handle_warning <- function(w) {
         .log_warn(log, "%s", w)
@@ -83,26 +90,21 @@
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
         call <- sapply(sys.calls(), deparse, nlines=3)
-        if (OPTIONS$as.error) {
+        if (as.error) {
             .error_remote(e, call)
         } else {
             .condition_remote(e, call) # BatchJobs
         }
     }
 
-    log <- OPTIONS$log
-    stop.on.error <- OPTIONS$stop.on.error
-    as.error <- OPTIONS$as.error
-    timeout <- OPTIONS$timeout
-    force.GC <- OPTIONS$force.GC
-    globalOptions <- OPTIONS$globalOptions
-
     if (!is.null(SEED))
         SEED <- .rng_reset_generator("L'Ecuyer-CMRG", SEED)$seed
 
     function(...) {
-        setTimeLimit(timeout, timeout, TRUE)
-        on.exit(setTimeLimit(Inf, Inf, FALSE))
+        if (!identical(timeout, .Machine$integer.max)) {
+            setTimeLimit(timeout, timeout, TRUE)
+            on.exit(setTimeLimit(Inf, Inf, FALSE))
+        }
 
         if (!is.null(globalOptions)) {
             base::options(globalOptions)

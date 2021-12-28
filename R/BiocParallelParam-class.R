@@ -11,7 +11,7 @@
     threshold="INFO",
     resultdir = NA_character_,
     stop.on.error=TRUE,
-    timeout=30L * 24L * 60L * 60L, # 30 days
+    timeout=.Machine$integer.max,
     exportglobals=TRUE,
     progressbar=FALSE,
     RNGseed=NULL,

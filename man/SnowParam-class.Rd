@@ -50,7 +50,7 @@
 SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, stop.on.error = TRUE,
           progressbar = FALSE, RNGseed = NULL,
-          timeout = 30L * 24L * 60L * 60L, exportglobals = TRUE,
+          timeout = .Machine$integer.max, exportglobals = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
           resultdir = NA_character_, jobname = "BPJOB",
           force.GC = FALSE,

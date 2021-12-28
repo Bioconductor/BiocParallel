@@ -178,7 +178,7 @@ test_BatchtoolsParam_bpstopOnError <- function() {
 
 ## Check bptimeout
 test_BatchtoolsParam_bptimeout <- function() {
-    checkEquals(30L * 24L * 60L * 60L, bptimeout(BatchtoolsParam()))
+    checkEquals(.Machine$integer.max, bptimeout(BatchtoolsParam()))
     checkEquals(123L, bptimeout(BatchtoolsParam(timeout=123)))
 }
 

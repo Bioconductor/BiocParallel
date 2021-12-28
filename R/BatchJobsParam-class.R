@@ -167,7 +167,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         } else BBmisc::chunk(ids, n.chunks=bpnworkers(BPPARAM), shuffle=TRUE)
         do.call(BatchJobs::submitJobs, submit.pars)
 
-        BatchJobs::waitForJobs(reg, ids, timeout=30L * 24L * 60L * 60L,
+        BatchJobs::waitForJobs(reg, ids, timeout=.Machine$integer.max,
                                stop.on.error=bpstopOnError(BPPARAM))
         BatchJobs::loadResults(reg, ids, use.names="none")
     })
