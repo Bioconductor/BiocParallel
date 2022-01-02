@@ -51,7 +51,8 @@ SerialParam <-
         logdir=logdir,
         resultdir = resultdir,
         jobname = jobname,
-        force.GC = force.GC
+        force.GC = force.GC,
+        exportglobals = FALSE
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
