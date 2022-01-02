@@ -127,5 +127,6 @@ export(
     .manager, .manager_send, .manager_recv,
     .manager_send_all, .manager_recv_all,
     .manager_capacity,
-    .manager_flush, .manager_cleanup
+    .manager_flush, .manager_cleanup,
+    .task_const, .task_dynamic, .task_remake
 )

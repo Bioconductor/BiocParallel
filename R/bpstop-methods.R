@@ -14,10 +14,8 @@ setMethod("bpstop", "missing",
 .bpstop_nodes <-
     function(x)
 {
-    cluster <- bpbackend(x)
-    for (i in seq_along(cluster))
-        .send_to(cluster, i, .DONE())
-
+    manager <- .manager(x)
+    .manager_send_all(manager, .DONE())
     TRUE
 }
 

@@ -1,4 +1,78 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Utils
+## Extract static and dynamic data from a task
+## Return NULL if no static data can be extracted
+.task_const <-
+    function(value)
+{
+    ## Supports EXEC task only
+    if (value$type != "EXEC")
+        return(NULL)
+    if (isTRUE(value$dynamic.only))
+        return(NULL)
+
+    if (value$static.fun)
+        fun <- value$data$fun
+    else
+        fun <- NULL
+
+    fullArgNames <- names(value$data$args)
+    if (all(value$static.args %in% fullArgNames)) {
+        args <- value$data$args[value$static.args]
+        if (!length(args)) args <- NULL
+    } else {
+        args <- NULL
+    }
+
+    if (!is.null(fun) || !is.null(args))
+        list(fun = fun, args = args, fullArgNames = fullArgNames)
+    else
+        NULL
+}
+
+## Extract the dynamic part from a task
+.task_dynamic <-
+    function(value)
+{
+    ## Supports EXEC task only
+    if (value$type != "EXEC")
+        return(value)
+
+    if (value$static.fun)
+        value$data$fun <- TRUE
+    if (length(value$static.args))
+        value$data$args[value$static.args] <- NULL
+
+    if (value$static.fun || length(value$static.args))
+        value$dynamic.only <- TRUE
+
+    value
+}
+
+## Recreate the task from the dynamic and static parts of the task
+## It is safe to call the function if the task is complete
+## (Not extracted by `.task_dynamic`) or `static_Data` is NULL
+.task_remake <-
+    function(value, static_data = NULL)
+{
+    if (is.null(static_data))
+        return(value)
+    if (value$type != "EXEC")
+        return(value)
+    if (!isTRUE(value$dynamic.only))
+        return(value)
+
+    if (value$static.fun)
+        value$data$fun <- static_data$fun
+    if (length(value$static.args)) {
+        value$data$args <- c(value$data$args, static_data$args)
+        value$data$args <- value$data$args[static_data$fullArgNames]
+    }
+    value$dynamic.only <- NULL
+    value
+}
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker commands
 
 ### Support for SOCK, MPI and FORK connections.
@@ -6,9 +80,12 @@
 ### Derived from parallel version 2.16.0 by R Core Team
 
 .EXEC <-
-    function(tag, fun, args)
+    function(tag, fun, args, static.fun = FALSE, static.args = NULL)
 {
-    list(type="EXEC", data=list(fun=fun, args=args, tag=tag))
+    list(type = "EXEC", data = list(tag = tag,
+         fun = fun, args = args),
+         static.fun = static.fun,
+         static.args = static.args)
 }
 
 .VALUE <-
@@ -104,9 +181,8 @@
         setTimeLimit(timeout, timeout, TRUE)
         on.exit(setTimeLimit(Inf, Inf, FALSE))
 
-        if (!is.null(globalOptions)) {
+        if (!is.null(globalOptions))
             base::options(globalOptions)
-        }
 
         if (stop.on.error && ERROR_OCCURRED) {
             UNEVALUATED
@@ -133,17 +209,25 @@
     }
 }
 
-.workerLapply <-
+.workerLapply_impl <-
     function(X, FUN, ARGS, OPTIONS, BPRNGSEED)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
     ## FUN is not compiled when using MulticoreParam
     FUN <- compiler::cmpfun(FUN)
+
+    if (!is.null(OPTIONS$globalOptions)) {
+        oldOptions <- base::options()
+        on.exit(base::options(oldOptions), add = TRUE)
+    }
+
     composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED)
     args <- c(list(X = X, FUN = composeFunc), ARGS)
     do.call(lapply, args)
 }
+
+.workerLapply <- funcFactory("BiocParallel:::.workerLapply_impl")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop.  Error handling is done in .composeTry.

@@ -1,12 +1,12 @@
-test_SnowParam_construction <- function() 
+test_SnowParam_construction <- function()
 {
-    checkException(SnowParam(logdir = tempdir())) 
+    checkException(SnowParam(logdir = tempdir()))
 
     p <- MulticoreParam(jobname = 'test')
     checkIdentical(bpjobname(p), 'test')
 }
 
-test_SnowParam_SOCK <- function() 
+test_SnowParam_SOCK <- function()
 {
     if (!requireNamespace("snow", quietly=TRUE))
         DEACTIVATED("'snow' package did not load")
@@ -24,7 +24,7 @@ test_SnowParam_SOCK_character <- function()
     bpstop(bpstart(SnowParam("localhost")))
 }
 
-test_SnowParam_MPI <- function() 
+test_SnowParam_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
         DEACTIVATED("MPI tests not run on Windows")
@@ -67,7 +67,7 @@ test_SnowParam_coerce_from_MPI <- function()
 {
     if (.Platform$OS.type == "windows")
         DEACTIVATED("MPI tests not run on Windows")
-    
+
     if (!requireNamespace("snow", quietly=TRUE) ||
          !requireNamespace("Rmpi", quietly=TRUE))
         DEACTIVATED("'snow' and/or 'Rmpi' package did not load")
@@ -119,4 +119,57 @@ test_SnowParam_bpforceGC <- function() {
     checkIdentical(TRUE, bpforceGC(SnowParam(force.GC = TRUE)))
     checkException(SnowParam(force.GC = NA), silent = TRUE)
     checkException(SnowParam(force.GC = 1:2), silent = TRUE)
+}
+
+.test_cache <- function(msg) {
+    ## No initial cache
+    msg1 <- BiocParallel:::.load_task_static(msg)
+    checkIdentical(msg, msg1)
+
+    ## Extract the dynamic part of the task
+    msg2 <- BiocParallel:::.task_dynamic(msg)
+    checkTrue(!xor(msg2$static.fun, isTRUE(msg2$data$fun)))
+    if (length(msg2$static.args))
+        checkTrue(!any(msg2$static.args %in% names(msg2$data$args)))
+    else
+        checkTrue(all(msg2$static.args %in% names(msg2$data$args)))
+
+    ## rebuild the EXEC
+    msg3 <- BiocParallel:::.load_task_static(msg2)
+    checkIdentical(msg, msg3)
+
+    ## create another different msg
+    msg4 <- BiocParallel:::.EXEC("test", function(x)x,
+                                 args = list(a=1,b=1,c=1),
+                                 static.fun = TRUE,
+                                 static.args = c("a","b")
+    )
+    msg5 <- BiocParallel:::.load_task_static(msg4)
+    checkIdentical(msg5, msg4)
+}
+
+test_SnowParam_taskCache <- function() {
+    msg1 <- BiocParallel:::.EXEC("mytag1", identity,
+                                 args = list(a=1,b=2,c=3)
+    )
+    .test_cache(msg1)
+
+    msg2 <- BiocParallel:::.EXEC("mytag2", identity,
+                                 args = list(a=1,b=2,c=3),
+                                 static.fun = TRUE
+    )
+    .test_cache(msg2)
+
+    msg3 <- BiocParallel:::.EXEC("mytag3", identity,
+                                 args = list(a=1,b=2,c=3),
+                                 static.fun = TRUE,
+                                 static.args = c("a","b")
+    )
+    .test_cache(msg3)
+
+    msg4 <- BiocParallel:::.EXEC("mytag", identity,
+                                 args = NULL,
+                                 static.fun = TRUE
+    )
+    .test_cache(msg4)
 }

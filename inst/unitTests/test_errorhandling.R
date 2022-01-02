@@ -175,7 +175,7 @@ test_BPREDO <- function()
 test_bpvec_BPREDO <- function()
 {
     if (.Platform$OS.type != "windows") {
-        f = function(i) if (2 %in% i) stop() else sqrt(i)
+        f = function(i) if (6 %in% i) stop() else sqrt(i)
         x = 1:10
 
         doParallel::registerDoParallel(2)
@@ -190,7 +190,7 @@ test_bpvec_BPREDO <- function()
             checkTrue(is(res, "bplist_error"))
             result <- attr(res, "result")
             checkIdentical(2L, length(result))
-            checkTrue(inherits(result[[1]], "condition"))
+            checkTrue(inherits(result[[2]], "condition"))
             closeAllConnections()
             Sys.sleep(0.25)
 
@@ -200,7 +200,7 @@ test_bpvec_BPREDO <- function()
             checkTrue(is(res2, "bplist_error"))
             result <- attr(res2, "result")
             checkIdentical(2L, length(result))
-            checkTrue(is(result[[1]], "remote_error"))
+            checkTrue(is(result[[2]], "remote_error"))
             closeAllConnections()
             Sys.sleep(0.25)
 
