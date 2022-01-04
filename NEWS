@@ -25,6 +25,10 @@ BUG FIXES
     o (v 1.29.5) Fix default seed generation when user has non-default
     generator. https://github.com/Bioconductor/BiocParallel/pull/176
 
+    o (v 1.29.9) Fix validity when workers, specified as character(),
+    are more numerous than (non-zero) tasks.
+    https://github.com/Bioconductor/BiocParallel/pull/181
+
 CHANGES IN VERSION 1.28
 -----------------------
 
