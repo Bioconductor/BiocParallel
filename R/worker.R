@@ -32,7 +32,7 @@
         log = FALSE,
         stop.on.error = TRUE,
         as.error = TRUE,        # FALSE for BatchJobs compatible
-        timeout = .Machine$integer.max,
+        timeout = WORKER_TIMEOUT,
         exportglobals = TRUE,
         force.GC = FALSE)
 {
@@ -101,7 +101,7 @@
         SEED <- .rng_reset_generator("L'Ecuyer-CMRG", SEED)$seed
 
     function(...) {
-        if (!identical(timeout, .Machine$integer.max)) {
+        if (!identical(timeout, WORKER_TIMEOUT)) {
             setTimeLimit(timeout, timeout, TRUE)
             on.exit(setTimeLimit(Inf, Inf, FALSE))
         }

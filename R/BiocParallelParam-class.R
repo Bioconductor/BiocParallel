@@ -11,7 +11,7 @@
     threshold="INFO",
     resultdir = NA_character_,
     stop.on.error=TRUE,
-    timeout=.Machine$integer.max,
+    timeout=WORKER_TIMEOUT,
     exportglobals=TRUE,
     progressbar=FALSE,
     RNGseed=NULL,

@@ -1,3 +1,6 @@
+## Timeout for individual worker tasks
+WORKER_TIMEOUT <- NA_integer_
+
 .prototype_update <-
     function(prototype, ...)
 {

@@ -30,7 +30,7 @@ SerialParam(
     stop.on.error = TRUE,
     progressbar = FALSE,
     RNGseed = NULL,
-    timeout = .Machine$integer.max,
+    timeout = WORKER_TIMEOUT,
     log = FALSE,
     threshold = "INFO",
     logdir = NA_character_,

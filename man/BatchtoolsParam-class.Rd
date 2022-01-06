@@ -53,7 +53,7 @@ BatchtoolsParam(
     resources = list(),
     template = batchtoolsTemplate(cluster),
     stop.on.error = TRUE, progressbar = FALSE, RNGseed = NA_integer_,
-    timeout = .Machine$integer.max, exportglobals=TRUE,
+    timeout = WORKER_TIMEOUT, exportglobals=TRUE,
     log = FALSE, logdir = NA_character_, resultdir=NA_character_,
     jobname = "BPJOB"
 )

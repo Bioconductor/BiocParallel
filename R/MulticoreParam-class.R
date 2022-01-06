@@ -19,7 +19,7 @@ multicoreWorkers <- function()
 
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
         stop.on.error=TRUE, 
-        progressbar=FALSE, RNGseed=NULL, timeout= .Machine$integer.max,
+        progressbar=FALSE, RNGseed=NULL, timeout= WORKER_TIMEOUT,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB",
