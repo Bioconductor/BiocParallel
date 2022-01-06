@@ -32,7 +32,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     }
 
     if (progressbar && missing(tasks))
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
 
     clusterargs <- c(list(spec=workers, type="FORK"), list(...))
 

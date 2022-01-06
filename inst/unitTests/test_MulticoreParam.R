@@ -7,7 +7,7 @@ test_MulticoreParam_progressbar <- function()
     checkIdentical(bptasks(MulticoreParam(tasks = 0L, progressbar = TRUE)), 0L)
     checkIdentical(
         bptasks(MulticoreParam(progressbar = TRUE)),
-        .Machine$integer.max
+        BiocParallel:::TASKS_MAXIMUM
     )
 }
 

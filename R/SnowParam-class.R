@@ -117,7 +117,7 @@ SnowParam <- function(workers=snowWorkers(type),
         stop("'workers' must be integer(1) when 'type' is MPI or FORK")
 
     if (progressbar && missing(tasks))
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
 
     clusterargs <- c(list(spec=workers, type=type), list(...))
 

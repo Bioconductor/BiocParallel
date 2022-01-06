@@ -34,7 +34,7 @@ SerialParam <-
         RNGseed <- as.integer(RNGseed)
 
     if (progressbar) {
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
     } else {
         tasks <- 0L
     }

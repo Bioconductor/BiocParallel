@@ -110,7 +110,10 @@ test_SnowParam_progressbar <- function()
 {
     checkIdentical(bptasks(SnowParam()), 0L)
     checkIdentical(bptasks(SnowParam(tasks = 0L, progressbar = TRUE)), 0L)
-    checkIdentical(bptasks(SnowParam(progressbar = TRUE)), .Machine$integer.max)
+    checkIdentical(
+        bptasks(SnowParam(progressbar = TRUE)),
+        BiocParallel:::TASKS_MAXIMUM
+    )
 }
 
 test_SnowParam_bpforceGC <- function() {
