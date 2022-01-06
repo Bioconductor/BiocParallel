@@ -15,6 +15,7 @@ test_ipclock <- function()
 
 test_ipccounter <- function()
 {
+    checkIdentical(ipcyield(ipcid()), 1L)
     id <- ipcid()
     on.exit(ipcremove(id))
     result <- bplapply(1:5, function(i, id) {

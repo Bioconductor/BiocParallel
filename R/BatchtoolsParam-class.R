@@ -407,7 +407,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
         ids = ids, resources = .bpresources(BPPARAM), reg = registry
     )
     batchtools::waitForJobs(
-        ids = ids, reg = registry, timeout = bptimeout(BPPARAM),
+        ids = ids, reg = registry, timeout = .batch_bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)
     )
     res <- batchtools::reduceResultsList(ids = ids, reg = registry)
@@ -416,7 +416,8 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
     if (bplog(BPPARAM) && !is.na(bplogdir(BPPARAM))) {
         logs <- file.path(.bpregistryargs(BPPARAM)$file.dir, "logs")
         ## Create log dir
-        dir.create(bplogdir(BPPARAM))
+        if (!file.exists(bplogdir(BPPARAM)))
+            dir.create(bplogdir(BPPARAM))
         ## Recursive copy logs
         file.copy(logs, bplogdir(BPPARAM) , recursive=TRUE, overwrite=TRUE)
     }

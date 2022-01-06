@@ -80,7 +80,8 @@ BatchJobsParam <-
         conf.pars=conf.pars, workers=workers,
         cleanup=cleanup,
         stop.on.error=stop.on.error,
-        progressbar=progressbar, jobname=jobname
+        progressbar=progressbar, jobname=jobname,
+        timeout = as.integer(timeout)
     )
 
     do.call(.BatchJobsParam, prototype)
@@ -168,7 +169,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         } else BBmisc::chunk(ids, n.chunks=bpnworkers(BPPARAM), shuffle=TRUE)
         do.call(BatchJobs::submitJobs, submit.pars)
 
-        BatchJobs::waitForJobs(reg, ids, timeout=.Machine$integer.max,
+        BatchJobs::waitForJobs(reg, ids, timeout=.batch_bptimeout(BPPARAM),
                                stop.on.error=bpstopOnError(BPPARAM))
         BatchJobs::loadResults(reg, ids, use.names="none")
     })

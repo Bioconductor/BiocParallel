@@ -29,16 +29,9 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     bptasks(BPPARAM) <- 0L
     on.exit(bptasks(BPPARAM) <- otasks)
 
-    idx <- .redo_index(si, BPREDO)
-
     ## FIXME: 'X' sent to all workers, but ith worker only needs X[i]
     FUN1 <- function(i, ...) FUN(X[i], ...)
     res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO, BPPARAM=BPPARAM))
-
-    if (length(BPREDO) && length(idx)) {
-        BPREDO[idx] <- res
-        res <- BPREDO
-    }
 
     if (is(res, "error") || !all(bpok(res)))
         stop(.error_bplist(res))
