@@ -4,6 +4,8 @@ config.log
 config.status
 autom4te.cachea
 .Rhistory
+*.Rcheck
+*.tar.gz
 *.log
 *.tex
 *.aux

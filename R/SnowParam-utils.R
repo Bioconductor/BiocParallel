@@ -110,3 +110,27 @@ bprunMPIworker <- function() {
         .log_internal()
     } else .log_internal()
 }
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### EXEC command cache
+###
+
+## read/write the static value
+.load_task_static <-
+    function(value)
+{
+    static_data <- .task_const(value)
+    if (is.null(static_data)) {
+        static_data <- options("BIOCPARALLEL_SNOW_STATIC")[[1]]
+        .task_remake(value, static_data)
+    } else {
+        options(BIOCPARALLEL_SNOW_STATIC = static_data)
+        value
+    }
+}
+
+.clean_task_static <-
+    function()
+{
+    options(BIOCPARALLEL_SNOW_STATIC = NULL)
+}

@@ -25,11 +25,11 @@
 }
 
 \usage{
-BatchJobsParam(workers, cleanup = TRUE, 
+BatchJobsParam(workers = NA_integer_, cleanup = TRUE,
     work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
     resources = NULL, conffile = NULL, cluster.functions = NULL, 
-    progressbar = TRUE, jobname = "BPJOB",
-    reg.pars=list(seed=seed, work.dir=work.dir),
+    progressbar = TRUE, jobname = "BPJOB", timeout =
+    WORKER_TIMEOUT, reg.pars=list(seed=seed, work.dir=work.dir),
     conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
     submit.pars=list(resources=resources),
     ...)
@@ -95,6 +95,9 @@ BatchJobsParam(workers, cleanup = TRUE,
 
    \item{jobname}{\code{character(1)}} Job name that is prepended
        to the output log and result files. Default is "BPJOB".
+
+   \item{timeout}{\code{integer(1)}} Timeout on each job, in
+       seconds. The default indicates no timeout.
 
    \item{reg.pars}{\code{list()}}
        List of parameters passed to \code{BatchJobs::makeRegistry()}. When

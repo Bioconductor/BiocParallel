@@ -118,3 +118,5 @@ setMethod(
 {
     stop("'.close,TransientMulticoreParam-method' not implemented")
 })
+
+setMethod(".manager", "TransientMulticoreParam", .manager_ANY)

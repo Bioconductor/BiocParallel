@@ -374,3 +374,68 @@ setAs("spawnedMPIcluster", "SnowParam",
     .SnowParam(.clusterargs=.clusterargs, cluster=from, .controlled=FALSE,
                workers=length(from))
 })
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### task dispatching interface
+###
+
+setOldClass(c("SOCK0node", "SOCKnode")) # needed for method dispatch
+
+.SOCKmanager <- setClass("SOCKmanager", contains = "TaskManager")
+
+setMethod(
+    ".manager", "SnowParam",
+    function(BPPARAM)
+{
+    manager <- callNextMethod()
+    manager$initialized <- rep(FALSE, manager$capacity)
+    as(manager, "SOCKmanager")
+})
+
+setMethod(
+    ".manager_send", "SOCKmanager",
+    function(manager, value)
+{
+    availability <- manager$availability
+    stopifnot(length(availability) >= 0L)
+    ## send the job to the next available worker
+    worker <- names(availability)[1]
+    id <- as.integer(worker)
+    ## Do the cache only when the snow worker is
+    ## created by our package.
+    if (.controlled(manager$BPPARAM)) {
+        if (manager$initialized[id])
+            value <- .task_dynamic(value)
+        else
+            manager$initialized[id] <- TRUE
+    }
+    .send_to(manager$backend, as.integer(worker), value)
+    rm(list = worker, envir = availability)
+    manager
+})
+
+setMethod(
+    ".manager_cleanup", "SOCKmanager",
+    function(manager)
+{
+    manager <- callNextMethod()
+    manager$initialized <- rep(FALSE, manager$capacity)
+    if (.controlled(manager$BPPARAM)) {
+        value <- .EXEC(tag = NULL, .clean_task_static, args = NULL)
+        .send_all(manager$backend, value)
+        msg <- .recv_all(manager$backend)
+    }
+    manager
+})
+
+## The worker class of SnowParam
+setMethod(
+    ".recv", "SOCKnode",
+    function(worker)
+{
+    msg <- callNextMethod()
+    if (inherits(msg, "error"))
+        return(msg)
+    ## read/write the static value(if any)
+    .load_task_static(msg)
+})

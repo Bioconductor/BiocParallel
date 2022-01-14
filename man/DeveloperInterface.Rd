@@ -17,32 +17,49 @@
 \alias{.send,ANY-method}
 \alias{.recv}
 \alias{.recv,ANY-method}
+\alias{.recv,SOCKnode-method}
 \alias{.close}
 \alias{.close,ANY-method}
 
 
 \alias{.manager}
 \alias{.manager,ANY-method}
+\alias{.manager,SnowParam-method}
+\alias{.manager,TransientMulticoreParam-method}
 \alias{.manager_send}
 \alias{.manager_send,ANY-method}
+\alias{.manager_send,TaskManager-method}
+\alias{.manager_send,SOCKmanager-method}
 \alias{.manager_recv}
 \alias{.manager_recv,ANY-method}
+\alias{.manager_recv,TaskManager-method}
 \alias{.manager_send_all}
 \alias{.manager_send_all,ANY-method}
+\alias{.manager_send_all,TaskManager-method}
 \alias{.manager_recv_all}
 \alias{.manager_recv_all,ANY-method}
+\alias{.manager_recv_all,TaskManager-method}
 \alias{.manager_flush}
 \alias{.manager_flush,ANY-method}
+\alias{.manager_flush,TaskManager-method}
 \alias{.manager_cleanup}
 \alias{.manager_cleanup,ANY-method}
+\alias{.manager_cleanup,TaskManager-method}
+\alias{.manager_cleanup,SOCKmanager-method}
 \alias{.manager_capacity}
 \alias{.manager_capacity,ANY-method}
+\alias{.manager_capacity,TaskManager-method}
 
 \alias{.bpstart_impl}
 \alias{.bpstop_impl}
 \alias{.bpworker_impl}
 \alias{.bplapply_impl}
 \alias{.bpiterate_impl}
+
+
+\alias{.task_const}
+\alias{.task_dynamic}
+\alias{.task_remake}
 
 \title{Developer interface}
 
@@ -74,7 +91,7 @@
 .close(worker)
 
 ## task manager interface(optional)
-.manager(backend)
+.manager(BPPARAM)
 .manager_send(manager, value)
 .manager_recv(manager)
 .manager_send_all(manager, value)
@@ -91,6 +108,12 @@
 .bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
                 BPREDO = list(), BPPARAM = bpparam())
 .bpstop_impl(x)
+
+
+## extract the static or dynamic part from a task
+.task_const(value)
+.task_dynamic(value)
+.task_remake(value, static_data = NULL)
 }
 
 \arguments{
@@ -139,6 +162,10 @@
     For \code{.bplapply_impl()}, \code{.bpiterate_impl()}, additional
     arguments to \code{FUN()}; see \code{bplapply} and \code{bpiterate}.
 
+  }
+
+  \item{static_data}{
+    An object extracted from \code{.task_const(value)}
   }
 }
 
@@ -202,15 +229,30 @@
   the \code{length(cluster)}, invoking \code{.send_to()} or
   \code{.recv_any()} on each iteration.
 
-  The task manager is an optional interface for the backend who wants
-  to have a control over the task dispatching process.
-  \code{.manager_send()} sends the task value to a worker, \code{.manager_recv()}
-  returns a list with each element being a result received from a worker.
-  \code{.manager_capacity()} instructs how many
-  tasks values can be processed simultaneously by the cluster. \code{.manager_flush()}
-  flushes all the cached tasks(if any) immediately. \code{.manager_cleanup()} performs
-  the cleanup after the job is finished. The default methods for
-  \code{.manager_flush()} and \code{.manager_cleanup()} are no-op.
+  The task manager is an optional interface for a backend that wants to
+  control the task dispatching process.  \code{.manager_send()} sends
+  the task value to a worker, \code{.manager_recv()} returns a list with
+  each element being a result received from a worker.
+  \code{.manager_capacity()} instructs how many tasks values can be
+  processed simultaneously by the cluster. \code{.manager_flush()}
+  flushes all the cached tasks(if any)
+  immediately. \code{.manager_cleanup()} performs cleanup after the job
+  is finished. The default methods for \code{.manager_flush()} and
+  \code{.manager_cleanup()} are no-op.
+
+  In some cases it might be worth-while to cache some objects in a task
+  and reuse them in another task. This can reduce the bandwith
+  requirement for sending the tasks out to the worker.
+  \code{.task_const()} can be used to extract the objects from the task
+  which are not going to change across all tasks. \code{.task_dynamic()}
+  preserve only the dynamic components in a task. Given the static and
+  dynamic task objects, the complete task can be recovered by
+  \code{.task_remake()}. When there is no static data can be
+  extracted(e.g. a task with no static component or a task which has
+  been extracted by \code{.task_dynamic()}), \code{.task_const()} simply
+  returns a \code{NULL} value. Calling \code{.task_remake()} is no-op if
+  the task haven't been extracted by \code{.task_dynamic()} or the
+  static data is \code{NULL}.
 
 }
 

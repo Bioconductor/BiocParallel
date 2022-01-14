@@ -1,9 +1,10 @@
 ##
 ## see NAMESPACE section for definitive exports
 ##
+## Manager class
+.TaskManager <- setClass("TaskManager", contains = "environment")
 
 ## server
-
 setGeneric(
     ".send_to",
     function(backend, node, value) standardGeneric(".send_to"),
@@ -51,8 +52,8 @@ setGeneric(
 ## task manager
 setGeneric(
     ".manager",
-    function(backend) standardGeneric(".manager"),
-    signature = "backend"
+    function(BPPARAM) standardGeneric(".manager"),
+    signature = "BPPARAM"
 )
 
 setGeneric(
@@ -169,18 +170,22 @@ setMethod(
 })
 
 ## default task manager implementation
-setMethod(
-    ".manager", "ANY",
-    function(backend)
+##
+## define as plain function for re-use without method dispatch
+.manager_ANY <-
+    function(BPPARAM)
 {
-    manager <- new.env(parent = emptyenv())
-    manager$backend <- backend
-    availability <- rep(list(TRUE), length(manager$backend))
+    manager <- .TaskManager()
+    manager$BPPARAM <- BPPARAM
+    manager$backend <- bpbackend(BPPARAM)
+    manager$capacity <- length(manager$backend)
+    availability <- rep(list(TRUE), manager$capacity)
     names(availability) <- as.character(seq_along(manager$backend))
     manager$availability <- as.environment(availability)
-    manager$capacity <- length(manager$backend)
     manager
-})
+}
+
+setMethod(".manager", "ANY", .manager_ANY)
 
 setMethod(
     ".manager_send", "ANY",

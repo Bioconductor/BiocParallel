@@ -198,8 +198,7 @@
 .bploop_impl <-
     function(ITER, FUN, ARGS, BPPARAM, BPREDO, OPTIONS, reducer, progress.length)
 {
-    cl <- bpbackend(BPPARAM)
-    manager <- .manager(cl)
+    manager <- .manager(BPPARAM)
     on.exit(.manager_cleanup(manager), add = TRUE)
 
     ## worker options
@@ -230,6 +229,7 @@
             X=X , FUN=FUN , ARGS = ARGS,
             OPTIONS = OPTIONS, BPRNGSEED = seed
         )
+    static.args <- c("FUN", "ARGS", "OPTIONS")
 
     total <- 0L
     running <- 0L
@@ -250,8 +250,14 @@
                     warning("first invocation of 'ITER()' returned NULL")
                 break
             }
-            value_ <- .EXEC(total + 1L, .workerLapply, ARGFUN(value, seed))
-            .manager_send(manager, value_)
+            args <- ARGFUN(value, seed)
+            task <- .EXEC(
+                total + 1L, .workerLapply,
+                args = args,
+                static.fun = TRUE,
+                static.args = static.args
+            )
+            .manager_send(manager, task)
             seed <- .rng_iterate_substream(seed, length(value))
             total <- total + 1L
             running <- running + 1L
