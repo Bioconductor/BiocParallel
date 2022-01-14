@@ -100,7 +100,7 @@ SnowParam <- function(workers=snowWorkers(type),
                       type=c("SOCK", "MPI", "FORK"), tasks=0L,
                       stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
-                      timeout=30L * 24L * 60L * 60L,
+                      timeout=WORKER_TIMEOUT,
                       exportglobals=TRUE,
                       log=FALSE, threshold="INFO", logdir=NA_character_,
                       resultdir=NA_character_, jobname = "BPJOB",
@@ -117,7 +117,7 @@ SnowParam <- function(workers=snowWorkers(type),
         stop("'workers' must be integer(1) when 'type' is MPI or FORK")
 
     if (progressbar && missing(tasks))
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
 
     clusterargs <- c(list(spec=workers, type=type), list(...))
 
@@ -236,7 +236,13 @@ setMethod("bpstart", "SnowParam",
 
     ## FORK (useRscript not relevant)
     if (x$.clusterargs$type == "FORK") {
-        bpbackend(x) <- .bpfork(nnodes, bptimeout(x), .hostname(x), .port(x))
+        socket_timeout <- getOption("timeout")
+        socket_timeout_is_valid <-
+            length(socket_timeout) == 1L && !is.na(socket_timeout) &&
+            is.integer(socket_timeout) && socket_timeout > 0L
+        if (!socket_timeout_is_valid)
+            stop("'getOption(\"timeout\")' must be positive integer(1)")
+        bpbackend(x) <- .bpfork(nnodes, .hostname(x), .port(x), socket_timeout)
     ## SOCK, MPI
     } else {
         cargs <- x$.clusterargs

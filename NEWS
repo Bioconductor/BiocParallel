@@ -10,6 +10,13 @@ USER VISIBLE CHANGES
     of tryCatch(bplapply(...))) and allow direct use of tryCatch(bplapply(...))
     return value as arugment to bplapply(BPREDO= ...). Closes #157
 
+    o (v 1.29.8) The default timeout for worker computation changes
+    from 30 days to .Machine$integer.max (no timeout), allowing for
+    performance improvements when not set.
+
+    o (v 1.29.11) The timeout for establishing a socket connection is
+    set to getOption("timeout") (default 60 seconds).
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.
@@ -20,6 +27,10 @@ BUG FIXES
 
     o (v 1.29.5) Fix default seed generation when user has non-default
     generator. https://github.com/Bioconductor/BiocParallel/pull/176
+
+    o (v 1.29.9) Fix validity when workers, specified as character(),
+    are more numerous than (non-zero) tasks.
+    https://github.com/Bioconductor/BiocParallel/pull/181
 
 CHANGES IN VERSION 1.28
 -----------------------

@@ -30,7 +30,7 @@ SerialParam(
     stop.on.error = TRUE,
     progressbar = FALSE,
     RNGseed = NULL,
-    timeout = 30L * 24L * 60L * 60L,
+    timeout = WORKER_TIMEOUT,
     log = FALSE,
     threshold = "INFO",
     logdir = NA_character_,

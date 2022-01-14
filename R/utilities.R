@@ -208,3 +208,15 @@ funcFactory <-
         )
     )
 }
+
+## BatchJobs / batchtools signal no timeout with 'Inf', rather than
+## NA; do not implement as bptimeout() method because NA is
+## appropriate in other contexts, e.g., when 'show()'ing param.
+.batch_bptimeout <-
+    function(BPPARAM)
+{
+    timeout <- bptimeout(BPPARAM)
+    if (identical(timeout, NA_integer_))
+        timeout <- Inf
+    timeout
+}

@@ -24,7 +24,7 @@ SerialParam <-
     function(stop.on.error = TRUE,
              progressbar=FALSE,
              RNGseed = NULL,
-             timeout = 30L * 24L * 60L * 60L,
+             timeout = WORKER_TIMEOUT,
              log=FALSE, threshold="INFO", logdir=NA_character_,
              resultdir = NA_character_,
              jobname = "BPJOB",
@@ -34,7 +34,7 @@ SerialParam <-
         RNGseed <- as.integer(RNGseed)
 
     if (progressbar) {
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
     } else {
         tasks <- 0L
     }
@@ -51,7 +51,8 @@ SerialParam <-
         logdir=logdir,
         resultdir = resultdir,
         jobname = jobname,
-        force.GC = force.GC
+        force.GC = force.GC,
+        exportglobals = FALSE
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)

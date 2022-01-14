@@ -118,7 +118,10 @@ test_bpiterate_REDUCE_SerialParam <- function() {
 
     ## REDUCE missing, concatenate
     ITER <- .lazyCount(0)
-    res <- bpiterate(ITER, FUN, BPPARAM=p)
+    res <- suppressWarnings({
+        ## warning: first invocation of 'ITER()' returned NULL
+        bpiterate(ITER, FUN, BPPARAM=p)
+    })
     checkIdentical(list(), res)
 
     ITER <- .lazyCount(1)
@@ -131,7 +134,10 @@ test_bpiterate_REDUCE_SerialParam <- function() {
 
     ## REDUCE == `+`
     ITER <- .lazyCount(0)
-    res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
+    res <- suppressWarnings({
+        ## warning: first invocation of 'ITER()' returned NULL
+        res <- bpiterate(ITER, FUN, BPPARAM=p, REDUCE=`+`)
+    })
     checkIdentical(NULL, res)
 
     ITER <- .lazyCount(1)

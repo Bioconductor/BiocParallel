@@ -109,7 +109,7 @@
         log = FALSE,
         stop.on.error = TRUE,
         as.error = TRUE,        # FALSE for BatchJobs compatible
-        timeout = .Machine$integer.max,
+        timeout = WORKER_TIMEOUT,
         exportglobals = TRUE,
         force.GC = FALSE)
 {
@@ -151,6 +151,13 @@
     ERROR_OCCURRED <- FALSE
     UNEVALUATED <- .error_unevaluated() # singleton
 
+    log <- OPTIONS$log
+    stop.on.error <- OPTIONS$stop.on.error
+    as.error <- OPTIONS$as.error
+    timeout <- OPTIONS$timeout
+    force.GC <- OPTIONS$force.GC
+    globalOptions <- OPTIONS$globalOptions
+
     handle_warning <- function(w) {
         .log_warn(log, "%s", w)
         w       # FIXME: muffleWarning; don't rely on capture.output()
@@ -160,26 +167,21 @@
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
         call <- sapply(sys.calls(), deparse, nlines=3)
-        if (OPTIONS$as.error) {
+        if (as.error) {
             .error_remote(e, call)
         } else {
             .condition_remote(e, call) # BatchJobs
         }
     }
 
-    log <- OPTIONS$log
-    stop.on.error <- OPTIONS$stop.on.error
-    as.error <- OPTIONS$as.error
-    timeout <- OPTIONS$timeout
-    force.GC <- OPTIONS$force.GC
-    globalOptions <- OPTIONS$globalOptions
-
     if (!is.null(SEED))
         SEED <- .rng_reset_generator("L'Ecuyer-CMRG", SEED)$seed
 
     function(...) {
-        setTimeLimit(timeout, timeout, TRUE)
-        on.exit(setTimeLimit(Inf, Inf, FALSE))
+        if (!identical(timeout, WORKER_TIMEOUT)) {
+            setTimeLimit(timeout, timeout, TRUE)
+            on.exit(setTimeLimit(Inf, Inf, FALSE))
+        }
 
         if (!is.null(globalOptions))
             base::options(globalOptions)

@@ -417,7 +417,7 @@ bploop.iterate_batchtools <-
     )
     batchtools::waitForJobs(
         ids = BPPARAM$registry$status$job.id,
-        reg = BPPARAM$registry, timeout = bptimeout(BPPARAM),
+        reg = BPPARAM$registry, timeout = .batch_bptimeout(BPPARAM),
         stop.on.error = bpstopOnError(BPPARAM)
     )
 

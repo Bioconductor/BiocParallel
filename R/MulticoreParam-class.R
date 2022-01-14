@@ -19,7 +19,7 @@ multicoreWorkers <- function()
 
 MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
         stop.on.error=TRUE, 
-        progressbar=FALSE, RNGseed=NULL, timeout= 30L * 24L * 60L * 60L,
+        progressbar=FALSE, RNGseed=NULL, timeout= WORKER_TIMEOUT,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB",
@@ -32,7 +32,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     }
 
     if (progressbar && missing(tasks))
-        tasks <- .Machine$integer.max
+        tasks <- TASKS_MAXIMUM
 
     clusterargs <- c(list(spec=workers, type="FORK"), list(...))
 

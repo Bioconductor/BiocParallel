@@ -11,7 +11,7 @@
     threshold="INFO",
     resultdir = NA_character_,
     stop.on.error=TRUE,
-    timeout=30L * 24L * 60L * 60L, # 30 days
+    timeout=WORKER_TIMEOUT,
     exportglobals=TRUE,
     progressbar=FALSE,
     RNGseed=NULL,
@@ -88,8 +88,8 @@ setValidity("BiocParallelParam", function(object)
 
     if (is.character(workers)) {
         if (length(workers) < 1L)
-            msg <- c(msg, "length(bpworkers(BPPARAM)) must be > 0") 
-        if (tasks > 0L && tasks < workers)
+            msg <- c(msg, "length(bpworkers(BPPARAM)) must be > 0")
+        if (tasks > 0L && tasks < length(workers))
             msg <- c(msg, "number of tasks is less than number of workers")
     }
 
