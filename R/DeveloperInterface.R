@@ -170,8 +170,9 @@ setMethod(
 })
 
 ## default task manager implementation
-setMethod(
-    ".manager", "ANY",
+##
+## define as plain function for re-use without method dispatch
+.manager_ANY <-
     function(BPPARAM)
 {
     manager <- .TaskManager()
@@ -182,7 +183,9 @@ setMethod(
     names(availability) <- as.character(seq_along(manager$backend))
     manager$availability <- as.environment(availability)
     manager
-})
+}
+
+setMethod(".manager", "ANY", .manager_ANY)
 
 setMethod(
     ".manager_send", "ANY",

@@ -119,8 +119,4 @@ setMethod(
     stop("'.close,TransientMulticoreParam-method' not implemented")
 })
 
-setMethod(".manager", "TransientMulticoreParam",
-          function(BPPARAM)
-{
-    selectMethod(.manager, "ANY")(BPPARAM)
-})
+setMethod(".manager", "TransientMulticoreParam", .manager_ANY)

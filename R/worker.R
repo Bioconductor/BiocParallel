@@ -1,7 +1,8 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Utils
-## Extract static and dynamic data from a task
-## Return NULL if no static data can be extracted
+
+## Extract static and dynamic data from a task Return NULL if no
+## static data can be extracted
 .task_const <-
     function(value)
 {
@@ -82,17 +83,22 @@
 .EXEC <-
     function(tag, fun, args, static.fun = FALSE, static.args = NULL)
 {
-    list(type = "EXEC", data = list(tag = tag,
-         fun = fun, args = args),
-         static.fun = static.fun,
-         static.args = static.args)
+    list(
+        type = "EXEC",
+        data = list(tag = tag, fun = fun, args = args),
+        static.fun = static.fun,
+        static.args = static.args
+    )
 }
 
 .VALUE <-
     function(tag, value, success, time, log, sout)
 {
-    list(type = "VALUE", tag = tag, value = value, success = success,
-         time = time, log = log, sout = sout)
+    list(
+        type = "VALUE",
+        tag = tag, value = value, success = success, time = time,
+        log = log, sout = sout
+    )
 }
 
 .DONE <-
@@ -229,7 +235,12 @@
     do.call(lapply, args)
 }
 
-.workerLapply <- funcFactory("BiocParallel:::.workerLapply_impl")
+## reduce the size of the serialization of .workerLapply_impl from
+## 124k to 3k
+.workerLapply <- eval(
+    parse(text = "function(...) BiocParallel:::.workerLapply_impl(...)"),
+    envir = getNamespace("base")
+)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker loop.  Error handling is done in .composeTry.

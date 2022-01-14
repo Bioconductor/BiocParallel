@@ -190,25 +190,6 @@
     stop(msg, call. = FALSE)
 }
 
-## This is only used for reducing the size of
-## the function in serialization
-funcFactory <-
-    function(funcName)
-{
-    template <-
-        "
-        FUN_ <- function(...) %funcName%(...)
-        environment(FUN_) <- getNamespace('base')
-        FUN_
-        "
-    txt <- gsub("%funcName%", funcName, template ,fixed = TRUE)
-    eval(
-        parse(
-            text=txt
-        )
-    )
-}
-
 ## BatchJobs / batchtools signal no timeout with 'Inf', rather than
 ## NA; do not implement as bptimeout() method because NA is
 ## appropriate in other contexts, e.g., when 'show()'ing param.

@@ -229,27 +229,30 @@
   the \code{length(cluster)}, invoking \code{.send_to()} or
   \code{.recv_any()} on each iteration.
 
-  The task manager is an optional interface for the backend who wants
-  to have a control over the task dispatching process.
-  \code{.manager_send()} sends the task value to a worker, \code{.manager_recv()}
-  returns a list with each element being a result received from a worker.
-  \code{.manager_capacity()} instructs how many
-  tasks values can be processed simultaneously by the cluster. \code{.manager_flush()}
-  flushes all the cached tasks(if any) immediately. \code{.manager_cleanup()} performs
-  the cleanup after the job is finished. The default methods for
-  \code{.manager_flush()} and \code{.manager_cleanup()} are no-op.
+  The task manager is an optional interface for a backend that wants to
+  control the task dispatching process.  \code{.manager_send()} sends
+  the task value to a worker, \code{.manager_recv()} returns a list with
+  each element being a result received from a worker.
+  \code{.manager_capacity()} instructs how many tasks values can be
+  processed simultaneously by the cluster. \code{.manager_flush()}
+  flushes all the cached tasks(if any)
+  immediately. \code{.manager_cleanup()} performs cleanup after the job
+  is finished. The default methods for \code{.manager_flush()} and
+  \code{.manager_cleanup()} are no-op.
 
-  In some cases it might be worthy to cache some objects in a task and reuse them
-  in another task. This can reduce the bandwith requirement for sending the tasks
-  out to the worker.
-  \code{.task_const()} can be used to extract the objects from the task which are
-  not going to change across all tasks. \code{.task_dynamic()} preserve only
-  the dynamic components in a task. Given the static and dynamic task objects,
-  the complete task can be recovered by \code{.task_remake()}. When there is no
-  static data can be extracted(e.g. a task with no static component or a task which
-  has been extracted by \code{.task_dynamic()}), \code{.task_const()} simply returns
-  a \code{NULL} value. Calling \code{.task_remake()} is no-op if the task haven't
-  been extracted by \code{.task_dynamic()} or the static data is \code{NULL}.
+  In some cases it might be worth-while to cache some objects in a task
+  and reuse them in another task. This can reduce the bandwith
+  requirement for sending the tasks out to the worker.
+  \code{.task_const()} can be used to extract the objects from the task
+  which are not going to change across all tasks. \code{.task_dynamic()}
+  preserve only the dynamic components in a task. Given the static and
+  dynamic task objects, the complete task can be recovered by
+  \code{.task_remake()}. When there is no static data can be
+  extracted(e.g. a task with no static component or a task which has
+  been extracted by \code{.task_dynamic()}), \code{.task_const()} simply
+  returns a \code{NULL} value. Calling \code{.task_remake()} is no-op if
+  the task haven't been extracted by \code{.task_dynamic()} or the
+  static data is \code{NULL}.
 
 }
 

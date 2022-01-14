@@ -378,6 +378,9 @@ setAs("spawnedMPIcluster", "SnowParam",
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### task dispatching interface
 ###
+
+setOldClass(c("SOCK0node", "SOCKnode")) # needed for method dispatch
+
 .SOCKmanager <- setClass("SOCKmanager", contains = "TaskManager")
 
 setMethod(
@@ -386,16 +389,15 @@ setMethod(
 {
     manager <- callNextMethod()
     manager$initialized <- rep(FALSE, manager$capacity)
-    manager <- as(manager, "SOCKmanager")
-    manager
+    as(manager, "SOCKmanager")
 })
 
 setMethod(
-  ".manager_send", "SOCKmanager",
-  function(manager, value)
+    ".manager_send", "SOCKmanager",
+    function(manager, value)
 {
     availability <- manager$availability
-    stopifnot(length(availability) >=0)
+    stopifnot(length(availability) >= 0L)
     ## send the job to the next available worker
     worker <- names(availability)[1]
     id <- as.integer(worker)
@@ -427,14 +429,13 @@ setMethod(
 })
 
 ## The worker class of SnowParam
-setOldClass(c("SOCK0node", "SOCKnode"))
-setMethod(".recv", "SOCKnode",
+setMethod(
+    ".recv", "SOCKnode",
     function(worker)
 {
     msg <- callNextMethod()
     if (inherits(msg, "error"))
-      return(msg)
+        return(msg)
     ## read/write the static value(if any)
-    msg <- .load_task_static(msg)
-    msg
+    .load_task_static(msg)
 })

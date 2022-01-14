@@ -251,10 +251,12 @@
                 break
             }
             args <- ARGFUN(value, seed)
-            task <- .EXEC(total + 1L, .workerLapply,
-                          args = args,
-                          static.fun = TRUE,
-                          static.args = static.args)
+            task <- .EXEC(
+                total + 1L, .workerLapply,
+                args = args,
+                static.fun = TRUE,
+                static.args = static.args
+            )
             .manager_send(manager, task)
             seed <- .rng_iterate_substream(seed, length(value))
             total <- total + 1L
