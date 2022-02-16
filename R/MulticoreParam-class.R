@@ -6,7 +6,7 @@ multicoreWorkers <- function()
     .snowCores("multicore")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
 
 .MulticoreParam_prototype <- .SnowParam_prototype
@@ -17,8 +17,8 @@ multicoreWorkers <- function()
     methods=list()
 )
 
-MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
-        stop.on.error=TRUE, 
+MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
+        stop.on.error=TRUE,
         progressbar=FALSE, RNGseed=NULL, timeout= WORKER_TIMEOUT,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
@@ -54,12 +54,13 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     prototype <- .prototype_update(
         .MulticoreParam_prototype,
         .clusterargs=clusterargs, cluster=.NULLcluster(),
-        .controlled=TRUE, workers=as.integer(workers), 
+        .controlled=TRUE, workers=as.integer(workers),
         tasks=as.integer(tasks),
-        stop.on.error=stop.on.error, 
-        progressbar=progressbar, 
+        stop.on.error=stop.on.error,
+        progressbar=progressbar,
         RNGseed=RNGseed, timeout=as.integer(timeout),
         exportglobals=exportglobals,
+        exportvariables=FALSE,
         log=log, threshold=threshold,
         logdir=logdir, resultdir=resultdir, jobname=jobname,
         force.GC = force.GC,
@@ -85,16 +86,16 @@ setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
         stop(
             "'value' exceeds ", max, " available workers; see ?multicoreWorkers"
         )
- 
-    x$workers <- value 
-    x$.clusterargs$spec <- value 
-    x 
+
+    x$workers <- value
+    x$.clusterargs$spec <- value
+    x
 })
 
 setMethod("bpschedule", "MulticoreParam",
     function(x)
 {
-    if (.Platform$OS.type == "windows") 
+    if (.Platform$OS.type == "windows")
         FALSE
     else
         TRUE

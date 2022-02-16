@@ -50,7 +50,7 @@
 SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           tasks = 0L, stop.on.error = TRUE,
           progressbar = FALSE, RNGseed = NULL,
-          timeout = WORKER_TIMEOUT, exportglobals = TRUE,
+          timeout = WORKER_TIMEOUT, exportglobals = TRUE, exportvariables = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
           resultdir = NA_character_, jobname = "BPJOB",
           force.GC = FALSE,
@@ -173,7 +173,7 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, stop.on.error = FALSE,
                       progressbar = FALSE, RNGseed = NULL,
-                      timeout = Inf, exportglobals = TRUE,
+                      timeout = Inf, exportglobals = TRUE, exportvariables = TRUE,
                       log = FALSE, threshold = "INFO", logdir = NA_character_,
                       resultdir = NA_character_, jobname = "BPJOB",
                       manager.hostname = NA_character_,
@@ -241,6 +241,11 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   \item{exportglobals}{
     \code{logical(1)} Export \code{base::options()} from manager to
     workers? Default \code{TRUE}.
+  }
+  \item{exportvariables}{
+    \code{logical(1)} Automatically export the variables which are defined in
+    the global environment and used by the function from manager to
+    workers. Default \code{TRUE}.
   }
   \item{log}{
     \code{logical(1)} Enable logging.

@@ -3,18 +3,19 @@
 ### -------------------------------------------------------------------------
 
 .BiocParallelParam_prototype <- list(
-    workers=0,
-    tasks=0L,
-    jobname="BPJOB",
-    log=FALSE,
+    workers = 0,
+    tasks = 0L,
+    jobname = "BPJOB",
+    log = FALSE,
     logdir = NA_character_,
-    threshold="INFO",
+    threshold = "INFO",
     resultdir = NA_character_,
-    stop.on.error=TRUE,
-    timeout=WORKER_TIMEOUT,
-    exportglobals=TRUE,
-    progressbar=FALSE,
-    RNGseed=NULL,
+    stop.on.error = TRUE,
+    timeout = WORKER_TIMEOUT,
+    exportglobals = TRUE,
+    exportvariables = TRUE,
+    progressbar = FALSE,
+    RNGseed = NULL,
     RNGstream = NULL,
     force.GC = FALSE
 )
@@ -22,18 +23,19 @@
 .BiocParallelParam <- setRefClass("BiocParallelParam",
     contains="VIRTUAL",
     fields=list(
-        workers="ANY",
-        tasks="integer",
-        jobname="character",
-        progressbar="logical",
+        workers = "ANY",
+        tasks = "integer",
+        jobname = "character",
+        progressbar = "logical",
         ## required for composeTry
-        log="logical",
+        log = "logical",
         logdir = "character",
-        threshold="character",
+        threshold = "character",
         resultdir = "character",
-        stop.on.error="logical",
-        timeout="integer",
-        exportglobals="logical",
+        stop.on.error = "logical",
+        timeout = "integer",
+        exportglobals = "logical",
+        exportvariables = "logical",
         RNGseed = "ANY",        # NULL or integer(1)
         RNGstream = "ANY",      # NULL or integer(); internal use only
         force.GC = "logical",
@@ -59,6 +61,7 @@
                 "; bpprogressbar: ", bpprogressbar(.self),
                 "\n",
                 "  bpexportglobals: ", bpexportglobals(.self),
+                "; bpexportvariables: ", bpexportvariables(.self),
                 "; bpforceGC: ", bpforceGC(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
@@ -76,7 +79,7 @@ setValidity("BiocParallelParam", function(object)
 
     ## workers and tasks
     workers <- bpworkers(object)
-    if (is.numeric(workers)) 
+    if (is.numeric(workers))
         if (length(workers) != 1L || workers < 0)
             msg <- c(msg, "'workers' must be integer(1) and >= 0")
 
@@ -95,6 +98,9 @@ setValidity("BiocParallelParam", function(object)
 
     if (!.isTRUEorFALSE(bpexportglobals(object)))
         msg <- c(msg, "'bpexportglobals' must be TRUE or FALSE")
+
+    if (!.isTRUEorFALSE(bpexportvariables(object)))
+        msg <- c(msg, "'bpexportvariables' must be TRUE or FALSE")
 
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog' must be logical(1)")
@@ -157,7 +163,7 @@ setReplaceMethod("bptasks", c("BiocParallelParam", "numeric"),
     function(x, value)
 {
     x$tasks <- as.integer(value)
-    x 
+    x
 })
 
 setMethod("bpjobname", "BiocParallelParam",
@@ -170,7 +176,7 @@ setReplaceMethod("bpjobname", c("BiocParallelParam", "character"),
     function(x, value)
 {
     x$jobname <- value
-    x 
+    x
 })
 
 setMethod("bplog", "BiocParallelParam",
@@ -246,6 +252,20 @@ setReplaceMethod("bpexportglobals", c("BiocParallelParam", "logical"),
     x
 })
 
+setMethod("bpexportvariables", "BiocParallelParam",
+    function(x)
+{
+    x$exportvariables
+})
+
+setReplaceMethod("bpexportvariables", c("BiocParallelParam", "logical"),
+    function(x, value)
+{
+    x$exportvariables <- value
+    validObject(x)
+    x
+})
+
 setMethod("bpstopOnError", "BiocParallelParam",
     function(x)
 {
@@ -255,9 +275,9 @@ setMethod("bpstopOnError", "BiocParallelParam",
 setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
     function(x, value)
 {
-    x$stop.on.error <- value 
+    x$stop.on.error <- value
     validObject(x)
-    x 
+    x
 })
 
 setMethod("bpprogressbar", "BiocParallelParam",

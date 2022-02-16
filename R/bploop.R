@@ -209,6 +209,7 @@
         force.GC = bpforceGC(BPPARAM)
     )
 
+    ## prepare the seed stream for the worker
     init_seed <- .redo_seed(BPREDO)
     if (is.null(init_seed)) {
         seed <- .RNGstream(BPPARAM)
@@ -218,18 +219,32 @@
         seed <- init_seed
     }
 
+    ## Progress bar
     progress <- .progress(
         active=bpprogressbar(BPPARAM), iterate=missing(progress.length)
     )
     on.exit(progress$term(), add = TRUE)
     progress$init(progress.length)
 
+    ## detect auto export variables and packages
+    globals <- NULL
+    packages <- NULL
+    if (bpexportvariables(BPPARAM)) {
+        exports <- .findvars(FUN)
+        globals <- lapply(exports$globalvars, get, envir = .GlobalEnv)
+        names(globals) <- exports$globalvars
+        packages <- exports$pkgs
+    }
+
+    ## The data that will be sent to the worker
     ARGFUN <- function(X, seed)
         list(
             X=X , FUN=FUN , ARGS = ARGS,
-            OPTIONS = OPTIONS, BPRNGSEED = seed
+            OPTIONS = OPTIONS, BPRNGSEED = seed,
+            GLOBALS = globals,
+            PACKAGES = packages
         )
-    static.args <- c("FUN", "ARGS", "OPTIONS")
+    static.args <- c("FUN", "ARGS", "OPTIONS", "GLOBALS")
 
     total <- 0L
     running <- 0L
