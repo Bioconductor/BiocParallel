@@ -17,6 +17,9 @@ USER VISIBLE CHANGES
     o (v 1.29.11) The timeout for establishing a socket connection is
     set to getOption("timeout") (default 60 seconds).
 
+    o (v 1.29.15) Check for and report failed attempts to open SnowParam
+    ports.
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.

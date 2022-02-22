@@ -25,10 +25,32 @@
     if (identical(tolower(port), "random") || is.na(port)) {
         .rng_internal_stream$set()
         on.exit(.rng_internal_stream$reset())
-        port <- as.integer(
-            11000 +
-            1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L)
-        )
+        portAvailable <- FALSE
+        for (i in 1:5) {
+            port <- as.integer(
+                11000 +
+                1000 * ((stats::runif(1L) + unclass(Sys.time()) / 300) %% 1L)
+            )
+            tryCatch(
+                {
+                    ## User should not be able to interrupt the port check
+                    ## Otherwise we might have an unclosed connection
+                    suspendInterrupts(
+                        {
+                            con <- serverSocket(port)
+                            close(con)
+                        }
+                    )
+                    portAvailable <- TRUE
+                },
+                error = function(e) {
+                    message("failed to open the port ", port,", trying a new port...")
+                }
+            )
+            if (portAvailable) break
+        }
+        if (!portAvailable)
+            .stop("cannot find an open port. For manually specifying the port, see ?SnowParam")
     } else {
         port <- as.integer(port)
     }
