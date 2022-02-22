@@ -250,13 +250,16 @@ setMethod("bpstart", "SnowParam",
             nnodes
         } else cargs$spec[seq_len(nnodes)]
 
+        ## work around devtools::load_all()
+        ##
+        ## 'inst' exists when using devtools::load_all()
         libPath <- find.package("BiocParallel")
         if (dir.exists(file.path(libPath, "inst")))
             libPath <- file.path(libPath, "inst")
 
-        if (is.null(cargs$snowlib)) {
+        if (is.null(cargs$snowlib))
             cargs$snowlib <- libPath
-        }
+
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- libPath
 
