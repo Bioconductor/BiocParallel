@@ -132,7 +132,7 @@
             "profvis.print", "restart", "reticulate.repl.hook",
             "reticulate.repl.initialize", "reticulate.repl.teardown",
             "shiny.launch.browser", "terminal.manager", "error",
-            "topLevelEnvironment"
+            "topLevelEnvironment", "connectionObserver"
         )
         globalOptions <- base::options()
         globalOptions <- globalOptions[!names(globalOptions) %in% blocklist]
