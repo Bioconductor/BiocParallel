@@ -271,10 +271,19 @@ setMethod("bpstart", "SnowParam",
         cargs$spec <- if (is.numeric(cargs$spec)) {
             nnodes
         } else cargs$spec[seq_len(nnodes)]
+
+        ## work around devtools::load_all()
+        ##
+        ## 'inst' exists when using devtools::load_all()
+        libPath <- find.package("BiocParallel")
+        if (dir.exists(file.path(libPath, "inst")))
+            libPath <- file.path(libPath, "inst")
+
         if (is.null(cargs$snowlib))
-            cargs$snowlib <- find.package("BiocParallel")
+            cargs$snowlib <- libPath
+
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
-            cargs$scriptdir <- find.package("BiocParallel")
+            cargs$scriptdir <- libPath
 
         if (x$.clusterargs$type == "SOCK") {
             cargs$master <- .hostname(x)
