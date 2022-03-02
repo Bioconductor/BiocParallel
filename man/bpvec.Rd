@@ -16,7 +16,7 @@
 }
 
 \usage{
-bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
+bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 }
 
 \arguments{
@@ -52,6 +52,9 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
     \code{bpok} is used to identify errors, tasks are rerun and inserted
     into the original results.
   }
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
 
 }
 
@@ -77,7 +80,7 @@ bpvec(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
 
 \value{
 
-  The result should be identical to \code{FUN(X, ...)} (assuming that 
+  The result should be identical to \code{FUN(X, ...)} (assuming that
   \code{AGGREGATE} is set appropriately).
 
   When evaluation of individual elements of \code{X} results in an
@@ -115,7 +118,7 @@ fun <- function(v) {
     message("working")
     sqrt(v)
 }
-system.time(result <- bpvec(1:10, fun)) 
+system.time(result <- bpvec(1:10, fun))
 result
 
 ## invalid FUN -- length(class(X)) is not equal to length(X)

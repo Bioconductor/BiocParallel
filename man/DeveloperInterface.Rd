@@ -61,6 +61,8 @@
 \alias{.task_dynamic}
 \alias{.task_remake}
 
+\alias{.registerOption}
+
 \title{Developer interface}
 
 \description{
@@ -104,9 +106,9 @@
 
 .bpstart_impl(x)
 .bpworker_impl(worker)
-.bplapply_impl(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
+.bplapply_impl(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 .bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-                BPREDO = list(), BPPARAM = bpparam())
+                BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 .bpstop_impl(x)
 
 
@@ -114,6 +116,9 @@
 .task_const(value)
 .task_dynamic(value)
 .task_remake(value, static_data = NULL)
+
+## Register an option for BPPARAM
+.registerOption(optionName, genericName)
 }
 
 \arguments{
@@ -166,6 +171,18 @@
 
   \item{static_data}{
     An object extracted from \code{.task_const(value)}
+  }
+
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
+
+  \item{optionName}{
+    Character(1), an option name for \code{BPPARAM}. The named options will be created by \code{\link{bpoptions}}
+  }
+
+  \item{genericName}{
+    Character(1), the name of the S4 generic function. It will be used to get/set the field in \code{BPPARAM}. The generic needs to support the replacement function defined by \code{\link{setReplaceMethod}}.
   }
 }
 
@@ -254,6 +271,16 @@
   the task haven't been extracted by \code{.task_dynamic()} or the
   static data is \code{NULL}.
 
+  The function \code{.registerOption} allows the developer to register the
+  generic function that can change the fields in \code{BPPARAM}. There is no
+  need to register the fields which has already been defined in
+  \code{BiocParallel}. \code{.registerOption} should only be used to support new
+  fields. For example, if the developer define a \code{BPPARAM} which has a
+  field \code{worker.password}, the developer may also define the getter/
+  setter like \code{bpworkerPassword}. Then by calling
+  \code{.registerOption("worker.password", "bpworkerPassword")}, the user
+  can change the field in \code{BPPARAM} by passing an object of
+  \code{bpoptions(worker.password = "1234")} in any apply function.
 }
 
 \value{

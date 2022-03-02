@@ -20,14 +20,14 @@
 }
 
 \usage{
-bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
+bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ..., 
-    BPREDO = list(), BPPARAM=bpparam())
+\S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ...,
+    BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 \S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
     ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
-    BPREDO = list(), BPPARAM=bpparam()
+    BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions()
 )
 }
 
@@ -72,6 +72,9 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
   \item{\dots}{Arguments to other methods, and named arguments for
     \code{FUN}.}
 
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
 }
 
 \details{

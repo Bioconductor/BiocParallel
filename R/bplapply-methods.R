@@ -5,14 +5,17 @@
 ## All params have dedicated bplapply methods.
 
 setMethod("bplapply", c("ANY", "missing"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
-    bplapply(X, FUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
+    bplapply(X, FUN, ..., BPREDO=BPREDO,
+             BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
 })
 
 setMethod("bplapply", c("ANY", "list"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
 
@@ -27,11 +30,13 @@ setMethod("bplapply", c("ANY", "list"),
           else
             function(...) FUN(..., BPPARAM=param)
         } else FUN
-    bplapply(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
+    bplapply(X, myFUN, ..., BPREDO=BPREDO,
+             BPPARAM=BPPARAM[[1]], BPOPTIONS = BPOPTIONS)
 })
 
 .bplapply_impl <-
-    function(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam())
+    function(X, FUN, ..., BPREDO = list(),
+             BPPARAM = bpparam(), BPOPTIONS = bpoptions())
 {
     ## abstract 'common' implementation using accessors only
     ##
@@ -55,6 +60,7 @@ setMethod("bplapply", c("ANY", "list"),
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS,
         BPREDO = BPREDO
     )
 }

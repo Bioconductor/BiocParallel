@@ -346,7 +346,8 @@ setMethod("bpstop", "BatchtoolsParam",
 ###
 
 setMethod("bplapply", c("ANY", "BatchtoolsParam"),
-          function(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
+          function(X, FUN, ..., BPREDO = list(),
+                   BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
 
@@ -452,7 +453,7 @@ setMethod("bplapply", c("ANY", "BatchtoolsParam"),
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
-             BPREDO = list(), BPPARAM=bpparam())
+             BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS=bpoptions())
 {
     ITER <- match.fun(ITER)
     FUN <- match.fun(FUN)
@@ -468,7 +469,7 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
         param <- as(BPPARAM, "SerialParam")
         return(
             bpiterate(ITER, FUN, ..., REDUCE=REDUCE, init=init,
-                      BPREDO = BPREDO, BPPARAM=param)
+                      BPREDO = BPREDO, BPPARAM=param, BPOPTIONS=BPOPTIONS)
         )
     }
 

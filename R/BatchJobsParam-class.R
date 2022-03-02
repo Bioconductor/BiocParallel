@@ -106,7 +106,8 @@ setMethod("bpbackend", "BatchJobsParam", function(x) BatchJobs::getConfig())
 ###
 
 setMethod("bplapply", c("ANY", "BatchJobsParam"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
     BPREDO <- bpresult(BPREDO)
@@ -115,7 +116,7 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         return(.rename(list(), X))
 
     if (!bpschedule(BPPARAM))
-        return(bplapply(X, FUN, ..., BPPARAM=SerialParam()))
+        return(bplapply(X, FUN, ..., BPPARAM=SerialParam(), BPOPTIONS = BPOPTIONS))
 
     idx <- .redo_index(X, BPREDO)
     if (length(idx))
@@ -196,7 +197,8 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "BatchJobsParam"),
-    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     stop("bpiterate not supported for BatchJobsParam")
 })

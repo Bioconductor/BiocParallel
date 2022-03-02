@@ -6,7 +6,8 @@
 ## handled.
 
 setMethod("bpvec", c("ANY", "BiocParallelParam"),
-    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     if (!length(X))
         return(.rename(list(), X))
@@ -19,7 +20,8 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
         param <- as(BPPARAM, "SerialParam")
         return(
             bpvec(
-                X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM = param
+                X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
+                BPPARAM = param, BPOPTIONS = BPOPTIONS
             )
         )
     }
@@ -30,7 +32,8 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     on.exit(bptasks(BPPARAM) <- otasks)
 
     FUN1 <- function(i, ...) FUN(X[i], ...)
-    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO, BPPARAM=BPPARAM))
+    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO,
+                          BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS))
 
     if (is(res, "error") || !all(bpok(res)))
         stop(.error_bplist(res))
@@ -42,15 +45,18 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
 })
 
 setMethod("bpvec", c("ANY", "missing"),
-    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., AGGREGATE=c, BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
     AGGREGATE <- match.fun(AGGREGATE)
-    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO, BPPARAM=BPPARAM)
+    bpvec(X, FUN, ..., AGGREGATE=AGGREGATE, BPREDO=BPREDO,
+          BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
 })
 
 setMethod("bpvec", c("ANY", "list"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(),
+             BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     FUN <- match.fun(FUN)
 
@@ -67,5 +73,5 @@ setMethod("bpvec", c("ANY", "list"),
             function(...) FUN(..., BPPARAM=param)
     } else FUN
 
-    bpvec(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]])
+    bpvec(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]], BPOPTIONS = BPOPTIONS)
 })
