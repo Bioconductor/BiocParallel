@@ -54,7 +54,9 @@ export(
 
     ## ipcmutex
     ipcid, ipcremove, ipclock, ipctrylock, ipcunlock, ipclocked,
-    ipcyield, ipcvalue, ipcreset
+    ipcyield, ipcvalue, ipcreset,
+
+    bpoptions, .registerOption
 )
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

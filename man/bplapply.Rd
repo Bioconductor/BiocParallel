@@ -20,13 +20,13 @@
 }
 
 \usage{
-bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
+bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 }
 
 \arguments{
 
   \item{X}{
-    Any object for which methods \code{length}, \code{[}, and 
+    Any object for which methods \code{length}, \code{[}, and
     \code{[[} are implemented.
   }
   \item{FUN}{
@@ -45,6 +45,9 @@ bplapply(X, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
     more failed elements. When a list is given in \code{BPREDO},
     \code{bpok} is used to identify errors, tasks are rerun and inserted
     into the original results.
+  }
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
   }
 
 }
@@ -83,7 +86,7 @@ fun <- function(v) {
     message("working") ## 10 tasks
     sqrt(v)
 }
-bplapply(1:10, fun) 
+bplapply(1:10, fun)
 }
 
 \keyword{manip}

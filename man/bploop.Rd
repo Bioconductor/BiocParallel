@@ -22,9 +22,9 @@
 }
 
 \usage{
-\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, BPREDO, ...)
+\S3method{bploop}{lapply}(manager, X, FUN, ARGS, BPPARAM, BPOPTIONS = bpoptions(), BPREDO, ...)
 
-\S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM,
+\S3method{bploop}{iterate}(manager, ITER, FUN, ARGS, BPPARAM, BPOPTIONS = bpoptions(),
        REDUCE, BPREDO, init, reduce.in.order, ...)
 }
 
@@ -59,6 +59,10 @@
    or \code{bpiterate} with one or more failed elements.}
 
   \item{\ldots}{Additional arguments, ignored in all cases.}
+
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
 }
 
 \details{

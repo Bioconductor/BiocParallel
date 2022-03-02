@@ -1,6 +1,11 @@
 .bpinit <-
-    function(manager, BPPARAM, ...)
+    function(manager, BPPARAM, BPOPTIONS, ...)
 {
+    ## temporarily change the paramters in BPPARAM
+    oldOptions <- .bpparamOptions(BPPARAM, names(BPOPTIONS))
+    on.exit(.bpparamOptions(BPPARAM) <- oldOptions)
+    .bpparamOptions(BPPARAM) <- BPOPTIONS
+
     ## Conditions for starting a cluster, or falling back to (and
     ## starting) a SerialParam
     nworkers <- bpnworkers(BPPARAM) # cache in case this requires a netowrk call

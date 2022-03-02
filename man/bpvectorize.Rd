@@ -16,12 +16,12 @@
 }
 
 \usage{
-bpvectorize(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+bpvectorize(FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+\S4method{bpvectorize}{ANY,ANY}(FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPREDO=list(), 
-    BPPARAM=bpparam())
+\S4method{bpvectorize}{ANY,missing}(FUN, ..., BPREDO=list(),
+    BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 }
 
@@ -44,6 +44,9 @@ bpvectorize(FUN, ..., BPREDO=list(), BPPARAM=bpparam())
     into the original results.
   }
 
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
 }
 
 \details{

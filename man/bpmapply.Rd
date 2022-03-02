@@ -19,13 +19,14 @@
 \usage{
 
 bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-    BPREDO=list(), BPPARAM=bpparam())
+    BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, 
-    USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
+\S4method{bpmapply}{ANY,missing}(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
+    USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL, 
-    SIMPLIFY=TRUE, USE.NAMES=TRUE, BPREDO=list(), BPPARAM=bpparam())
+\S4method{bpmapply}{ANY,BiocParallelParam}(FUN, ..., MoreArgs=NULL,
+    SIMPLIFY=TRUE, USE.NAMES=TRUE, BPREDO=list(),
+    BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 }
 
@@ -55,11 +56,14 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
     \code{bpok} is used to identify errors, tasks are rerun and inserted
     into the original results.
   }
+  \item{BPOPTIONS}{
+    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+  }
 
 }
 
 \details{
- 
+
   See \code{methods{bpmapply}} for additional methods, e.g.,
   \code{method?bpmapply("MulticoreParam")}.
 
@@ -68,7 +72,7 @@ bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
 \value{See \code{\link[base]{mapply}}.}
 
 \author{
- 
+
   Michel Lang . Original code as attributed in
   \code{\link{mclapply}}.
 

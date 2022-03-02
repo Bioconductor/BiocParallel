@@ -62,7 +62,7 @@ setMethod("bpisup", "DoparParam",
 ###
 
 setMethod("bplapply", c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam())
+    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     if (!length(X))
         return(.rename(list(), X))
@@ -119,7 +119,8 @@ setMethod("bplapply", c("ANY", "DoparParam"),
 })
 
 setMethod("bpiterate", c("ANY", "ANY", "DoparParam"),
-    function(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam())
+    function(ITER, FUN, ..., BPREDO = list(),
+             BPPARAM=bpparam(), BPOPTIONS=bpoptions())
 {
     stop("'bpiterate' not supported for DoparParam")
 })

@@ -308,7 +308,8 @@ bploop <-
 ## X: the loop value after division
 ## ARGS: The function arguments for `FUN`
 bploop.lapply <-
-    function(manager, X, FUN, ARGS, BPPARAM, BPREDO = list(), ...)
+    function(manager, X, FUN, ARGS, BPPARAM,
+             BPOPTIONS = bpoptions(), BPREDO = list(), ...)
 {
     ## which need to be redone?
     redo_index <- .redo_index(X, BPREDO)
@@ -346,7 +347,8 @@ bploop.lapply <-
 ## - results not pre-allocated; list grows each iteration if no REDUCE
 bploop.iterate <-
     function(
-        manager, ITER, FUN, ARGS, BPPARAM, REDUCE, BPREDO,
+        manager, ITER, FUN, ARGS, BPPARAM,
+        BPOPTIONS = bpoptions(), REDUCE, BPREDO,
         init, reduce.in.order, ...
     )
 {
