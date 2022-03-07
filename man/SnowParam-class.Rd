@@ -53,7 +53,7 @@ SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
           timeout = WORKER_TIMEOUT, exportglobals = TRUE,
           log = FALSE, threshold = "INFO", logdir = NA_character_,
           resultdir = NA_character_, jobname = "BPJOB",
-          force.GC = FALSE,
+          force.GC = FALSE, fallback = TRUE,
           manager.hostname = NA_character_, manager.port = NA_integer_,
           ...)
 
@@ -264,6 +264,11 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     \code{logical(1)} Whether to invoke the garbage collector after each
     call to \code{FUN}. The default (\code{FALSE}, do not explicitly
     call the garbage collection) rarely needs to be changed.
+  }
+  \item{fallback}{
+    \code{logical(1)} Whether falling back to \code{SerialParam} when the
+    \code{SnowParam} has not been started during the parallel evaluation and
+    the number of worker is no greater than 1.
   }
   \item{manager.hostname}{
     \code{character(1)} Host name of manager node. See 'Global Options',

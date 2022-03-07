@@ -3,24 +3,22 @@
 {
     ## temporarily change the paramters in BPPARAM
     oldOptions <- .bpparamOptions(BPPARAM, names(BPOPTIONS))
-    on.exit(.bpparamOptions(BPPARAM) <- oldOptions)
+    on.exit(.bpparamOptions(BPPARAM) <- oldOptions, TRUE, FALSE)
     .bpparamOptions(BPPARAM) <- BPOPTIONS
 
-    ## Conditions for starting a cluster, or falling back to (and
-    ## starting) a SerialParam
-    nworkers <- bpnworkers(BPPARAM) # cache in case this requires a netowrk call
-    fallback_condition <-
-        !inherits(BPPARAM, "SerialParam") &&
-        nworkers == 0L ||    # e.g., in dynamic cluster like RedisParam
-        !bpschedule(BPPARAM) # e.g., in nested parallel call
-    if (!bpisup(BPPARAM) || fallback_condition) {
-        if (fallback_condition || nworkers == 1L) {
-            ## use SerialParam when zero workers (e.g., in a dynaamic
-            ## cluster like RedisParam, where there are no registered
-            ## workers), or when bpschedule() is FALSE (e.g,. because
-            ## we are already in a parallel job), or when there is
-            ## only one worker (when the cost of serialization to a
-            ## remote worker can be avoided).
+    ## fallback conditions(all must be satisfied):
+    ## 1. BPPARAM has not been started
+    ## 2. fallback is allowed (bpfallback(x) == TRUE)
+    ## 3. One of the following conditions is met:
+    ##   3.1 the worker number is less than or equal to 1
+    ##   3.2 Parallel evaluation is disallowed (bpschedule(BPPARAM) == FALSE)
+    ##   3.3 BPPARAM is of MulticoreParam class
+    if (!bpisup(BPPARAM) && bpfallback(BPPARAM)) {
+        ## use cases:
+        ## bpnworkers: no worker is available or no benefit in parallel evaluation
+        ## bpschedule: in nested parallel call where the same
+        ##             BPPARAM cannot be reused
+        if (bpnworkers(BPPARAM) <= 1L || !bpschedule(BPPARAM)) {
             oldParam <- BPPARAM
             BPPARAM <- as(BPPARAM, "SerialParam")
             on.exit({
@@ -32,11 +30,17 @@
             ## started
             oldParam <- BPPARAM
             BPPARAM <- as(BPPARAM, "TransientMulticoreParam")
+            ## BPPARAM will never get started as bpisup(BPPARAM) is always TRUE
+            if (!bpisup(oldParam))
+                .bpstart_set_rng_stream(BPPARAM)
             on.exit({
                 .RNGstream(oldParam) <- .RNGstream(BPPARAM)
             }, TRUE, FALSE)
         }
+    }
 
+    ## start the BPPARAM if haven't
+    if (!bpisup(BPPARAM)) {
         ## start / stop cluster
         BPPARAM <- bpstart(BPPARAM)
         on.exit(bpstop(BPPARAM), TRUE, FALSE)

@@ -5,7 +5,7 @@
 \title{Additional options to parallel evaluation}
 
 \description{
-    This function is used to pass the additional options to the apply function. One use case is to use the argument \code{BPOPTIONS} in the apply function to temporarily change the parameter of \code{BPPARAM}(e.g. enabling the progressbar). It can also be used to change the behavior of the parallel evaluation(e.g. disabling fallback)
+    This function is used to pass the additional options to the apply function. One use case is to use the argument \code{BPOPTIONS} in the apply function to temporarily change the parameter of \code{BPPARAM}(e.g. enabling the progressbar). It can also be used to change the behavior of the parallel evaluation.
 }
 \usage{
 bpoptions(
@@ -13,7 +13,7 @@ bpoptions(
         log, logdir, threshold,
         resultdir, stop.on.error,
         timeout, exportglobals, progressbar,
-        RNGseed, force.GC, ...)
+        RNGseed, force.GC, fallback, ...)
 }
 
 \arguments{
@@ -30,6 +30,7 @@ bpoptions(
   \item{progressbar}{A parameter for \code{BPPARAM}; see \code{\link{bpprogressbar}}.}
   \item{RNGseed}{A parameter for \code{BPPARAM}; see \code{\link{bpRNGseed}}.}
   \item{force.GC}{A parameter for \code{BPPARAM}; see \code{\link{bpforceGC}}.}
+  \item{fallback}{A parameter for \code{BPPARAM}; see \code{\link{bpfallback}}.}
   \item{...}{Additional arguments which may(or may not) work for some specific type of \code{BPPARAM}.}
 
 }

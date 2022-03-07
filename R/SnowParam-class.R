@@ -127,6 +127,7 @@ SnowParam <- function(workers=snowWorkers(type),
                       log=FALSE, threshold="INFO", logdir=NA_character_,
                       resultdir=NA_character_, jobname = "BPJOB",
                       force.GC = FALSE,
+                      fallback = TRUE,
                       manager.hostname=NA_character_,
                       manager.port=NA_integer_, ...)
 {
@@ -168,6 +169,7 @@ SnowParam <- function(workers=snowWorkers(type),
         log=log, threshold=threshold, logdir=logdir,
         resultdir=resultdir, jobname=jobname,
         force.GC = force.GC,
+        fallback = fallback,
         hostname=manager.hostname, port=manager.port,
         ...
     )

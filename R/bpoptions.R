@@ -47,6 +47,7 @@
 .registerOption("progressbar", "bpprogressbar")
 .registerOption("RNGseed", "bpRNGseed")
 .registerOption("force.GC", "bpforceGC")
+.registerOption("fallback", "bpfallback")
 
 ## functions for changing the paramters in BPPARAM
 .bpparamOptions <-
@@ -103,7 +104,8 @@ bpoptions <-
         log, logdir, threshold,
         resultdir, stop.on.error,
         timeout, exportglobals, progressbar,
-        RNGseed, force.GC, ...)
+        RNGseed, force.GC,
+        fallback, ...)
 {
         dotsArgs <- list(...)
         passed <- names(as.list(match.call())[-1])

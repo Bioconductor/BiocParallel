@@ -6,7 +6,7 @@ multicoreWorkers <- function()
     .snowCores("multicore")
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Constructor 
+### Constructor
 ###
 
 .MulticoreParam_prototype <- .SnowParam_prototype
@@ -17,13 +17,14 @@ multicoreWorkers <- function()
     methods=list()
 )
 
-MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,  
-        stop.on.error=TRUE, 
+MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
+        stop.on.error=TRUE,
         progressbar=FALSE, RNGseed=NULL, timeout= WORKER_TIMEOUT,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB",
         force.GC = TRUE,
+        fallback = TRUE,
         manager.hostname=NA_character_, manager.port=NA_integer_, ...)
 {
     if (.Platform$OS.type == "windows") {
@@ -54,15 +55,16 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
     prototype <- .prototype_update(
         .MulticoreParam_prototype,
         .clusterargs=clusterargs, cluster=.NULLcluster(),
-        .controlled=TRUE, workers=as.integer(workers), 
+        .controlled=TRUE, workers=as.integer(workers),
         tasks=as.integer(tasks),
-        stop.on.error=stop.on.error, 
-        progressbar=progressbar, 
+        stop.on.error=stop.on.error,
+        progressbar=progressbar,
         RNGseed=RNGseed, timeout=as.integer(timeout),
         exportglobals=exportglobals,
         log=log, threshold=threshold,
         logdir=logdir, resultdir=resultdir, jobname=jobname,
         force.GC = force.GC,
+        fallback = fallback,
         hostname=manager.hostname, port=manager.port,
         ...
     )
@@ -85,16 +87,16 @@ setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
         stop(
             "'value' exceeds ", max, " available workers; see ?multicoreWorkers"
         )
- 
-    x$workers <- value 
-    x$.clusterargs$spec <- value 
-    x 
+
+    x$workers <- value
+    x$.clusterargs$spec <- value
+    x
 })
 
 setMethod("bpschedule", "MulticoreParam",
     function(x)
 {
-    if (.Platform$OS.type == "windows") 
+    if (.Platform$OS.type == "windows")
         FALSE
     else
         TRUE
