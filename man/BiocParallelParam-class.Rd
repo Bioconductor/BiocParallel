@@ -2,7 +2,7 @@
 \Rdversion{1.1}
 \docType{class}
 
-% Class 
+% Class
 \alias{BiocParallelParam-class}
 \alias{BiocParallelParam}
 
@@ -30,7 +30,7 @@
 \alias{bptasks}
 \alias{bptasks,BiocParallelParam-method}
 \alias{bptasks<-}
-\alias{bptasks<-,BiocParallelParam,numeric-method}
+\alias{bptasks<-,BiocParallelParam,ANY-method}
 \alias{bpstopOnError}
 \alias{bpstopOnError,BiocParallelParam-method}
 \alias{bpstopOnError<-}
@@ -86,7 +86,7 @@
 \description{
 
   The \code{BiocParallelParam} virtual class stores configuration parameters
-  for parallel execution. Concrete subclasses include \code{SnowParam}, 
+  for parallel execution. Concrete subclasses include \code{SnowParam},
   \code{MulticoreParam}, \code{BatchtoolsParam}, and \code{DoparParam}
   and \code{SerialParam}.
 
@@ -105,7 +105,7 @@
       \item{}{\code{SerialParam}: non-parallel execution}
   }
 
-  The parameter objects hold configuration parameters related to the 
+  The parameter objects hold configuration parameters related to the
   method of parallel execution such as shared memory, independent
   memory or computing with a cluster scheduler.
 
@@ -113,7 +113,7 @@
 
 \section{Construction}{
 
-  The \code{BiocParallelParam} class is virtual and has no constructor. 
+  The \code{BiocParallelParam} class is virtual and has no constructor.
   Instances of the subclasses can be created with the following:
 
   \itemize{
@@ -134,8 +134,8 @@
     \describe{
       \item{}{
         \code{bpworkers(x)}, \code{bpworkers(x, ...)}:
-        \code{integer(1)} or \code{character()}. Gets the number or names of 
-        the back-end workers. The setter is supported for SnowParam and 
+        \code{integer(1)} or \code{character()}. Gets the number or names of
+        the back-end workers. The setter is supported for SnowParam and
         MulticoreParam only.
       }
       \item{}{
@@ -145,28 +145,29 @@
       \item{}{
         \code{bptasks(x)}, \code{bptasks(x) <- value}:
         \code{integer(1)}. Get or set the number of tasks for a
-        job. \code{value} must be a scalar integer >= 0L. This argument
-        applies to \code{SnowParam} and \code{MulticoreParam} only;
+        job. \code{value} can be a scalar integer > 0L, or integer 0L for
+        matching the worker number, or \code{NA} for representing an infinite
+        task number.
         \code{DoparParam} and \code{BatchtoolsParam} have their own
         approach to dividing a job among workers.
- 
-        We define a job as a single call to a function such as \code{bplapply}, 
+
+        We define a job as a single call to a function such as \code{bplapply},
         \code{bpmapply} etc. A task is the division of the
         \code{X} argument into chunks. When \code{tasks == 0} (default),
         \code{X} is divided by the number of workers. This approach distributes
         \code{X} in (approximately) equal chunks.
- 
+
         A \code{tasks} value of > 0 dictates the total number of
         tasks. Values can range from 1 (all of \code{X} to a single
         worker) to the length of \code{X} (each element of \code{X}
         to a different worker); values greater than \code{length(X)}
         (e.g., \code{.Machine$integer.max}) are rounded to \code{length(X)}.
- 
+
         When the length of \code{X} is less than the number of workers each
         element of \code{X} is sent to a worker and \code{tasks} is ignored.
         Another case where the \code{tasks} value is ignored is when using the
         \code{bpiterate} function; the number of tasks are defined by the number
-        of data chunks returned by the \code{ITER} function. 
+        of data chunks returned by the \code{ITER} function.
       }
       \item{}{
         \code{bpstart(x)}:
@@ -184,7 +185,7 @@
         back-end if necessary.
       }
       \item{}{
-        \code{bpbackend(x)}, \code{bpbackend(x) <- value}: 
+        \code{bpbackend(x)}, \code{bpbackend(x) <- value}:
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
         be retrieved; see \code{methods("bpbackend")}.
       }
@@ -219,13 +220,13 @@
         message 'reached elapsed time limit'.
       }
       \item{}{
-        \code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}: 
+        \code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}:
         \code{logical(1)} Export \code{base::options()} from manager to
         workers? Default \code{TRUE}.
       }
       \item{}{
-        \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}: 
-        Get or set the value to enable text progress bar. 
+        \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:
+        Get or set the value to enable text progress bar.
         \code{value} must be a \code{logical(1)}.
       }
       \item{}{
@@ -234,7 +235,7 @@
         \code{numeric(1)} or \code{NULL}.
       }
       \item{}{
-        \code{bpjobname(x)}, \code{bpjobname(x) <- value}: 
+        \code{bpjobname(x)}, \code{bpjobname(x) <- value}:
         Get or set the job name.
       }
       \item{}{
@@ -253,11 +254,11 @@
         \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:
         \code{logical()}. Controls if the job stops when an error is hit.
 
-        \code{stop.on.error} controls whether the job stops after an 
-        error is thrown. When \code{TRUE}, the output contains all 
-        successfully completed results up to and including the error. 
-        When \code{stop.on.error == TRUE} all computations stop once the 
-        error is hit. When \code{FALSE}, the job runs to completion 
+        \code{stop.on.error} controls whether the job stops after an
+        error is thrown. When \code{TRUE}, the output contains all
+        successfully completed results up to and including the error.
+        When \code{stop.on.error == TRUE} all computations stop once the
+        error is hit. When \code{FALSE}, the job runs to completion
         and successful results are returned along with any error messages.
       }
     }
@@ -279,7 +280,7 @@
                        BPPARAM=bpparam())}
       }
       \item{}{
-        \code{bplapply(X, FUN, ..., 
+        \code{bplapply(X, FUN, ...,
                        BPPARAM=bpparam())}
       }
       \item{}{
@@ -328,7 +329,7 @@
 
 getClass("BiocParallelParam")
 
-## For examples see ?SnowParam, ?MulticoreParam, ?BatchtoolsParam 
+## For examples see ?SnowParam, ?MulticoreParam, ?BatchtoolsParam
 ## and ?SerialParam.
 }
 

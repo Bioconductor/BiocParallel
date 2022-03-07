@@ -76,7 +76,7 @@ setValidity("BiocParallelParam", function(object)
 
     ## workers and tasks
     workers <- bpworkers(object)
-    if (is.numeric(workers)) 
+    if (is.numeric(workers))
         if (length(workers) != 1L || workers < 0)
             msg <- c(msg, "'workers' must be integer(1) and >= 0")
 
@@ -85,12 +85,12 @@ setValidity("BiocParallelParam", function(object)
         msg <- c(msg, "bptasks(BPPARAM) must be an integer")
     if (length(tasks) > 1L)
         msg <- c(msg, "length(bptasks(BPPARAM)) must be == 1")
+    if (!is.na(tasks) && tasks < 0L)
+        msg <- c(msg, "bptasks(BPPARAM) must be >= 0 or 'NA'")
 
     if (is.character(workers)) {
         if (length(workers) < 1L)
             msg <- c(msg, "length(bpworkers(BPPARAM)) must be > 0")
-        if (tasks > 0L && tasks < length(workers))
-            msg <- c(msg, "number of tasks is less than number of workers")
     }
 
     if (!.isTRUEorFALSE(bpexportglobals(object)))
@@ -153,11 +153,12 @@ setMethod("bptasks", "BiocParallelParam",
     x$tasks
 })
 
-setReplaceMethod("bptasks", c("BiocParallelParam", "numeric"),
+setReplaceMethod("bptasks", c("BiocParallelParam", "ANY"),
     function(x, value)
 {
     x$tasks <- as.integer(value)
-    x 
+    validObject(x)
+    x
 })
 
 setMethod("bpjobname", "BiocParallelParam",
