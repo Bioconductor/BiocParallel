@@ -5,6 +5,7 @@
 \title{Additional options to parallel evaluation}
 
 \description{
+
   This function is used to pass additional options to \code{bplapply()}
   and other functions function. One use case is to use the argument
   \code{BPOPTIONS} to temporarily change the parameter of \code{BPPARAM}
@@ -14,11 +15,10 @@
 }
 \usage{
 bpoptions(
-        workers, tasks, jobname,
-        log, logdir, threshold,
-        resultdir, stop.on.error,
-        timeout, exportglobals, progressbar,
-        RNGseed, force.GC, fallback, ...)
+    workers, tasks, jobname, log, logdir, threshold, resultdir,
+    stop.on.error, timeout, exportglobals, exportvariables, progressbar,
+    RNGseed, force.GC, fallback, exports, packages, ...
+)
 }
 
 \arguments{
@@ -64,11 +64,19 @@ bpoptions(
   \item{fallback}{logical(1) parameter for \code{BPPARAM}; see
     \code{\link{bpfallback}}.}
 
+  \item{exports}{character() The names of the variables in the global
+    environment which need to be exported to the global environment of
+    the worker. This option works independently of the option
+    \code{exportvariables}.}
+
+  \item{packages}{character() The packages that needs to be attached by
+    the worker prior to the evaluation of the task. This option works
+    independently of the option \code{exportvariables}.}
+
   \item{...}{
     Additional arguments which may(or may not) work for some specific
     type of \code{BPPARAM}.
   }
-
 }
 
 \value{

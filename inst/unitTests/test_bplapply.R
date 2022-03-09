@@ -27,8 +27,8 @@ test_bplapply_Params <- function()
     f <- function(i, x, y, ...) { list(y, i, x) }
     current <- bplapply(2:1, f, c("A", "B"), x=10,
                         BPPARAM=BatchJobsParam(2, progressbar=FALSE))
-    checkTrue(all.equal(current[[1]], list(c("A", "B"), 2, 10))) 
-    checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10))) 
+    checkTrue(all.equal(current[[1]], list(c("A", "B"), 2, 10)))
+    checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10)))
 
     ## clean up
     env <- foreach:::.foreachGlobals
@@ -124,4 +124,31 @@ test_bplapply_custom_subsetting <- function(){
     checkTrue(is(res, "bplist_error"))
 
     rm(as.list.B, inherits = TRUE)
+}
+
+test_bplapply_auto_export <- function(){
+    p <- SnowParam(2, exportglobals = FALSE)
+
+    ## user defined symbols
+    assign("y", 10, envir = .GlobalEnv)
+    on.exit(rm(y, envir = .GlobalEnv))
+    fun <- function(x) y
+    environment(fun) <- .GlobalEnv
+
+    bpexportvariables(p) <- TRUE
+    res <- bplapply(1:2, fun, BPPARAM = p)
+    checkIdentical(res, rep(list(10), 2))
+
+    bpexportvariables(p) <- FALSE
+    checkException(bplapply(1:2, fun, BPPARAM = p), silent = TRUE)
+
+    ## symbols defined in a package
+    fun2 <- function(x) SerialParam()
+    environment(fun2) <- .GlobalEnv
+    bpexportvariables(p) <- TRUE
+    res <- bplapply(1:2, fun2, BPPARAM = p)
+    checkTrue(is(res[[1]], "SerialParam"))
+
+    bpexportvariables(p) <- FALSE
+    checkException(bplapply(1:2, fun2, BPPARAM = p), silent = TRUE)
 }

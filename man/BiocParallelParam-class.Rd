@@ -59,6 +59,10 @@
 \alias{bpexportglobals<-}
 \alias{bpexportglobals,BiocParallelParam-method}
 \alias{bpexportglobals<-,BiocParallelParam,logical-method}
+\alias{bpexportvariables}
+\alias{bpexportvariables<-}
+\alias{bpexportvariables,BiocParallelParam-method}
+\alias{bpexportvariables<-,BiocParallelParam,logical-method}
 \alias{bpprogressbar}
 \alias{bpprogressbar,BiocParallelParam-method}
 \alias{bpprogressbar<-}
@@ -228,6 +232,12 @@
         \code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}:
         \code{logical(1)} Export \code{base::options()} from manager to
         workers? Default \code{TRUE}.
+      }
+      \item{}{
+        \code{bpexportvariables(x)}, \code{bpexportvariables(x) <- value}:
+        \code{logical(1)} Automatically export the variables which are defined in
+        the global environment and used by the function from manager to
+        workers. Default \code{TRUE}.
       }
       \item{}{
         \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:

@@ -53,7 +53,8 @@ SerialParam <-
         jobname = jobname,
         force.GC = force.GC,
         fallback = FALSE,
-        exportglobals = FALSE
+        exportglobals = FALSE,
+        exportvariables = FALSE
     )
     x <- do.call(.SerialParam, prototype)
     validObject(x)
