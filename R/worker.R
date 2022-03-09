@@ -218,7 +218,8 @@
 }
 
 .workerLapply_impl <-
-    function(X, FUN, ARGS, OPTIONS, BPRNGSEED)
+    function(X, FUN, ARGS, OPTIONS, BPRNGSEED,
+             GLOBALS = NULL, PACKAGES = NULL)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
@@ -228,6 +229,18 @@
     if (!is.null(OPTIONS$globalOptions)) {
         oldOptions <- base::options()
         on.exit(base::options(oldOptions), add = TRUE)
+    }
+
+    for (pkg in PACKAGES) {
+        library(pkg, character.only = TRUE)
+    }
+    ## Add variables to the global space and remove them afterward
+    if (length(GLOBALS)) {
+        for (i in names(GLOBALS)) {
+            assign(i, GLOBALS[[i]], envir = .GlobalEnv)
+        }
+        on.exit(remove(list = names(GLOBALS), envir = .GlobalEnv),
+                add = TRUE)
     }
 
     composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED)

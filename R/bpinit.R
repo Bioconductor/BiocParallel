@@ -50,6 +50,7 @@
     res <- bploop(
         manager, # dispatch
         BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS,
         ...
     )
 

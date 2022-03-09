@@ -13,6 +13,7 @@
     stop.on.error=TRUE,
     timeout=WORKER_TIMEOUT,
     exportglobals=TRUE,
+    exportvariables=TRUE,
     progressbar=FALSE,
     RNGseed=NULL,
     RNGstream = NULL,
@@ -35,6 +36,7 @@
         stop.on.error="logical",
         timeout="integer",
         exportglobals="logical",
+        exportvariables="logical",
         RNGseed = "ANY",        # NULL or integer(1)
         RNGstream = "ANY",      # NULL or integer(); internal use only
         force.GC = "logical",
@@ -61,6 +63,7 @@
                 "; bpprogressbar: ", bpprogressbar(.self),
                 "\n",
                 "  bpexportglobals: ", bpexportglobals(.self),
+                "; bpexportvariables: ", bpexportvariables(.self),
                 "; bpforceGC: ", bpforceGC(.self),
                 "; bpfallback: ", bpfallback(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
@@ -98,6 +101,9 @@ setValidity("BiocParallelParam", function(object)
 
     if (!.isTRUEorFALSE(bpexportglobals(object)))
         msg <- c(msg, "'bpexportglobals' must be TRUE or FALSE")
+
+    if (!.isTRUEorFALSE(bpexportvariables(object)))
+        msg <- c(msg, "'bpexportvariables' must be TRUE or FALSE")
 
     if (!.isTRUEorFALSE(bplog(object)))
         msg <- c(msg, "'bplog' must be logical(1)")
@@ -245,6 +251,20 @@ setReplaceMethod("bpexportglobals", c("BiocParallelParam", "logical"),
     function(x, value)
 {
     x$exportglobals <- value
+    validObject(x)
+    x
+})
+
+setMethod("bpexportvariables", "BiocParallelParam",
+    function(x)
+{
+    x$exportvariables
+})
+
+setReplaceMethod("bpexportvariables", c("BiocParallelParam", "logical"),
+    function(x, value)
+{
+    x$exportvariables <- value
     validObject(x)
     x
 })

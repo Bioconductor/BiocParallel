@@ -68,8 +68,10 @@ test_bpvalidate_library <- function()
 {
     target <- BPValidate()
 
-    checkException(bpvalidate(function() library("__UNKNOWN__")), silent=TRUE)
-    checkException(bpvalidate(function() require("__UNKNOWN__")), silent=TRUE)
+    checkException(bpvalidate(function() library("__UNKNOWN__"), signal = "error"),
+                   silent=TRUE)
+    checkException(bpvalidate(function() require("__UNKNOWN__"), signal = "error"),
+                   silent=TRUE)
     checkIdentical(target, bpvalidate(function() library(BiocParallel)))
 
     ## FIXME: bpvalidate expects unquoted arg to library() / require()

@@ -73,6 +73,7 @@ export(
     bpstopOnError, "bpstopOnError<-",
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
     bptimeout, "bptimeout<-", bpexportglobals, "bpexportglobals<-",
+    bpexportvariables, "bpexportvariables<-",
     bpforceGC, "bpforceGC<-",
     bpfallback, "bpfallback<-",
     bplog, "bplog<-", bplogdir, "bplogdir<-",

@@ -52,6 +52,113 @@ setMethod("show", "BPValidate", function(object) {
     )
 })
 
+#########################
+## Utils
+#########################
+.filterDefaultPackages <- function(symbols) {
+    pkgs <- c(
+        "stats", "graphics", "grDevices", "utils", "datasets",
+        "methods", "Autoloads", "base"
+    )
+    drop <- unlist(symbols, use.names = FALSE) %in% paste0("package:", pkgs)
+    symbols[!drop]
+}
+
+## Filter the variables that will be available
+## after `fun` loads packages
+.filterLibraries <-
+    function(codes, symbols,
+             ERROR_FUN){
+    warn <- err <- NULL
+    ## 'fun' body loads libraries
+    pkgLoadFunc <- c("require", "library")
+    i <- grepl(
+        paste0("(",paste0(pkgLoadFunc, collapse = "|"),")"),
+        codes
+    )
+    xx <- lapply(
+        codes[i],
+        function(code){
+            withCallingHandlers(tryCatch({
+                ## convert character code to expression
+                expr <- parse(text = code)[[1]]
+                ## match the library/require function arguments
+                expr <- match.call(eval(expr[[1]]), expr)
+                ## get the package name from the function arguments
+                pkg <- as.character(expr[[which(names(expr) == "package")]])
+                which(symbols %in% getNamespaceExports(pkg))
+            }, error=function(e) {
+                err <<- append(err, conditionMessage(e))
+                NULL
+            }), warning=function(w) {
+                warn <<- append(warn, conditionMessage(w))
+                invokeRestart("muffleWarning")
+            })
+        }
+    )
+    if (!is.null(warn) || !is.null(err))
+        ERROR_FUN("attempt to load library failed:\n    ",
+                  paste(c(warn, err), collapse="\n    "))
+    xx <- unlist(xx)
+    if (length(xx))
+        symbols <- symbols[-xx]
+    symbols
+}
+
+## find the variables that needed to be exported
+.findvars <-
+    function(fun, ERROR_FUN = capture.output)
+{
+    unknown <- codetools::findGlobals(fun)
+    env <- environment(fun)
+    codes <- deparse(fun)
+    ## TODO: The location where the pkg is loaded is not considered here
+    ## (should we consider it??)
+    ## remove the symbols that will be loaded inside the function
+    unknown <- .filterLibraries(codes, unknown, ERROR_FUN)
+
+    ## Find the objects that will ship with the function
+    while(length(unknown)&&
+          !identical(env, emptyenv())&&
+          !identical(.GlobalEnv, env)){
+        i <- vapply(unknown,
+                    function(x)
+                        !exists(x, envir = env, inherits = FALSE),
+                    logical(1))
+        unknown <- unknown[i]
+        env <- parent.env(env)
+    }
+
+    ## Find the objects that is defined in the search path
+    ## (only if the function/expr depends on the global)
+    inpath <- list()
+    if (length(unknown) && identical(.GlobalEnv, env)) {
+        inpath <- lapply(unknown, function(x) head(find(x), 1))
+        names(inpath) <- unknown
+        i <- as.logical(lengths(inpath))
+        unknown <- unknown[!i]
+        inpath <- inpath[i]
+        inpath <- .filterDefaultPackages(inpath)
+    }
+
+    ## The package required by the worker
+    pkgs <- unique(unlist(inpath, use.names = FALSE))
+
+    ## variables defined in the global environment
+    globalvars <- names(inpath)[pkgs == ".GlobalEnv"]
+
+    pkgs <- pkgs[pkgs != ".GlobalEnv"]
+    pkgs <- gsub("package:", "", pkgs, fixed = TRUE)
+
+    list(unknown = unknown,
+         pkgs = pkgs,
+         globalvars = globalvars,
+         inpath = inpath)
+}
+
+#########################
+## validate funtions and vairables that need to be exported
+#########################
 bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
 {
     typeof <- suppressWarnings(typeof(fun))
@@ -69,64 +176,14 @@ bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
         )
     }
 
-    unknown <- codetools::findGlobals(fun)
-    f_env <- environment(fun)
-
-    ## 'fun' environment is NAMESPACE
-    if (length(unknown) && isNamespace(f_env)) {
-        f_ls <- c(
-            getNamespaceImports(f_env),
-            setNames(list(ls(f_env, all.names=TRUE)), getNamespaceName(f_env))
-        )
-        f_symbols <- unique(unlist(f_ls, use.names=FALSE))
-        unknown <- unknown[!unknown %in% f_symbols]
-    }
- 
-    ## 'fun' body loads libraries
-    warn <- err <- NULL
-    if (any(c("require", "library") %in% unknown)) {
-        xx <- withCallingHandlers(tryCatch({
-            dep <- deparse(fun)
-            i <- grepl("(library|require)", dep)
-            sapply(dep[i], function(elt) {
-                pkg <- gsub(")", "", strsplit(elt, "(", fixed=TRUE)[[1]][2])
-                unknown %in% getNamespaceExports(pkg)
-            })
-        }, error=function(e) {
-            err <<- append(err, conditionMessage(e))
-            NULL
-        }), warning=function(w) {
-            warn <<- append(warn, conditionMessage(w))
-            invokeRestart("muffleWarning")
-        })
-        if (!is.null(warn) || !is.null(err))
-            stop("\nattempt to load library failed:\n    ",
-                 paste(c(warn, err), collapse="\n    "))
-        if (!is.matrix(xx))
-            xx <- t(as.matrix(xx))
-        unknown <- unknown[rowSums(xx) == 0L]
-    }
-
-    ## look in search path
-    inpath <- structure(list(), names=character())
-    if (length(unknown)) {
-        ## exclude variables found in defining environment(s)
-        env <- environment(fun)
-        while (!identical(env, topenv(environment(fun)))) {
-            inlocal <- ls(env, all.names = TRUE)
-            unknown <- setdiff(unknown, inlocal)
-            env <- parent.env(env)
-        }
-
-        inpath <- .foundInPath(unknown)
-        unknown <- setdiff(unknown, names(inpath))
-        inpath <- .filterDefaultPackages(inpath)
-    }
+    ## Filter the symbols that is loaded via library/require
+    exports <- .findvars(fun, ERROR_FUN = ERROR_FUN)
+    inpath <- exports$inpath
 
     result <- BPValidate(
         symbol = names(inpath),
         environment = unlist(inpath, use.names = FALSE),
-        unknown = unknown
+        unknown = exports$unknown
     )
 
     ## error report
@@ -148,16 +205,5 @@ bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
     result
 }
 
-.foundInPath <- function(symbols) {
-    loc <- Map(function(elt) head(find(elt), 1), symbols)
-    loc[lengths(loc) == 1L]
-}
 
-.filterDefaultPackages <- function(symbols) {
-    pkgs <- c(
-        "stats", "graphics", "grDevices", "utils", "datasets",
-        "methods", "Autoloads", "base"
-    )
-    drop <- unlist(symbols, use.names = FALSE) %in% paste0("package:", pkgs)
-    symbols[!drop]
-}
+

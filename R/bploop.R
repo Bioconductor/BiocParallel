@@ -196,7 +196,7 @@
 ## - FUN: A function that will be evaluated in the worker
 ## - ARGS: the arguments to FUN
 .bploop_impl <-
-    function(ITER, FUN, ARGS, BPPARAM, BPREDO, OPTIONS, reducer, progress.length)
+    function(ITER, FUN, ARGS, BPPARAM, BPREDO, BPOPTIONS, reducer, progress.length)
 {
     manager <- .manager(BPPARAM)
     on.exit(.manager_cleanup(manager), add = TRUE)
@@ -209,6 +209,7 @@
         force.GC = bpforceGC(BPPARAM)
     )
 
+    ## prepare the seed stream for the worker
     init_seed <- .redo_seed(BPREDO)
     if (is.null(init_seed)) {
         seed <- .RNGstream(BPPARAM)
@@ -218,18 +219,33 @@
         seed <- init_seed
     }
 
+    ## Progress bar
     progress <- .progress(
         active=bpprogressbar(BPPARAM), iterate=missing(progress.length)
     )
     on.exit(progress$term(), add = TRUE)
     progress$init(progress.length)
 
+    ## detect auto export variables and packages
+    globalVarNames <- as.character(BPOPTIONS$exports)
+    packages <- as.character(BPOPTIONS$packages)
+    if (bpexportvariables(BPPARAM)) {
+        exports <- .findvars(FUN)
+        globalVarNames <- c(globalVarNames, exports$globalvars)
+        packages <- c(packages, exports$pkgs)
+    }
+    globalVars <- lapply(globalVarNames, get, envir = .GlobalEnv)
+    names(globalVars) <- globalVarNames
+
+    ## The data that will be sent to the worker
     ARGFUN <- function(X, seed)
         list(
             X=X , FUN=FUN , ARGS = ARGS,
-            OPTIONS = OPTIONS, BPRNGSEED = seed
+            OPTIONS = OPTIONS, BPRNGSEED = seed,
+            GLOBALS = globalVars,
+            PACKAGES = packages
         )
-    static.args <- c("FUN", "ARGS", "OPTIONS")
+    static.args <- c("FUN", "ARGS", "OPTIONS", "GLOBALS")
 
     total <- 0L
     running <- 0L
@@ -327,6 +343,7 @@ bploop.lapply <-
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS,
         BPREDO = BPREDO,
         reducer = reducer,
         progress.length = length(redo_index)
@@ -360,6 +377,7 @@ bploop.iterate <-
         FUN = FUN,
         ARGS = ARGS,
         BPPARAM = BPPARAM,
+        BPOPTIONS = BPOPTIONS,
         BPREDO = BPREDO,
         reducer = reducer
     )

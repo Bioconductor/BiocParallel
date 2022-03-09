@@ -44,6 +44,7 @@
 .registerOption("stop.on.error", "bpstopOnError")
 .registerOption("timeout", "bptimeout")
 .registerOption("exportglobals", "bpexportglobals")
+.registerOption("exportvariables", "bpexportvariables")
 .registerOption("progressbar", "bpprogressbar")
 .registerOption("RNGseed", "bpRNGseed")
 .registerOption("force.GC", "bpforceGC")
@@ -103,9 +104,12 @@ bpoptions <-
         workers, tasks, jobname,
         log, logdir, threshold,
         resultdir, stop.on.error,
-        timeout, exportglobals, progressbar,
+        timeout, exportglobals, exportvariables,
+        progressbar,
         RNGseed, force.GC,
-        fallback, ...)
+        fallback,
+        exports, packages,
+        ...)
 {
         dotsArgs <- list(...)
         passed <- names(as.list(match.call())[-1])
