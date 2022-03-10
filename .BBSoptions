@@ -1,0 +1,4 @@
+INSTALLprepend.win: set _R_INSTALL_TIME_PATCHES_=no&&
+BUILDprepend.win: set _R_INSTALL_TIME_PATCHES_=no&&
+CHECKprepend.win: set _R_INSTALL_TIME_PATCHES_=no&&
+BUILDBINprepend.win: set _R_INSTALL_TIME_PATCHES_=no&&
