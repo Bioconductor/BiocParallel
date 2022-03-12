@@ -30,7 +30,8 @@
 \alias{bptasks}
 \alias{bptasks,BiocParallelParam-method}
 \alias{bptasks<-}
-\alias{bptasks<-,BiocParallelParam,numeric-method}
+\alias{bptasks<-,BiocParallelParam-method}
+\alias{bptasks<-,BiocParallelParam,ANY-method}
 \alias{bpstopOnError}
 \alias{bpstopOnError,BiocParallelParam-method}
 \alias{bpstopOnError<-}
@@ -149,8 +150,9 @@
       \item{}{
         \code{bptasks(x)}, \code{bptasks(x) <- value}:
         \code{integer(1)}. Get or set the number of tasks for a
-        job. \code{value} must be a scalar integer >= 0L. This argument
-        applies to \code{SnowParam} and \code{MulticoreParam} only;
+        job. \code{value} can be a scalar integer > 0L, or integer 0L for
+        matching the worker number, or \code{NA} for representing an infinite
+        task number.
         \code{DoparParam} and \code{BatchtoolsParam} have their own
         approach to dividing a job among workers.
 

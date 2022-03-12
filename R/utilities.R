@@ -68,7 +68,9 @@
 .ntask <-
     function(X, workers, tasks)
 {
-    if (tasks == 0L) {
+    if (is.na(tasks)) {
+        length(X)
+    } else if (tasks == 0L) {
         workers
     } else {
         min(length(X), tasks)
