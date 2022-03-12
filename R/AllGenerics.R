@@ -1,5 +1,6 @@
 setGeneric("bplapply", signature=c("X", "BPPARAM"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
+    function(X, FUN, ...,
+             BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
     standardGeneric("bplapply"))
 
 setGeneric("bpmapply", signature=c("FUN", "BPPARAM"),
@@ -18,7 +19,8 @@ setGeneric("bpvec", signature=c("X", "BPPARAM"),
     standardGeneric("bpvec"))
 
 setGeneric("bpvectorize",
-    function(FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
+    function(FUN, ...,
+             BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
     standardGeneric("bpvectorize"))
 
 setGeneric("bpaggregate", signature=c("x", "BPPARAM"),

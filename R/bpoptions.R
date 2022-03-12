@@ -90,10 +90,12 @@
     bpoptionsArgs <- names(formals(bpoptions))
     registeredOptions <- names(.registeredOptions())
     allOptions <- c(bpoptionsArgs, registeredOptions)
-    idx <- which(!names(BPOPTIONS) %in%allOptions)
+    idx <- which(!names(BPOPTIONS) %in% allOptions)
     if (length(idx))
-        message("Unregistered options found in bpoptions:\n",
-                  paste0(names(BPOPTIONS)[idx], collapse = ", "))
+        message(
+            "unregistered options found in bpoptions:\n",
+            "  ", paste0(names(BPOPTIONS)[idx], collapse = ", ")
+        )
 }
 
 ## The function simply return a list of its arguments

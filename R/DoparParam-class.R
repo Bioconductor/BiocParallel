@@ -62,7 +62,8 @@ setMethod("bpisup", "DoparParam",
 ###
 
 setMethod("bplapply", c("ANY", "DoparParam"),
-    function(X, FUN, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
+    function(X, FUN, ...,
+             BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 {
     if (!length(X))
         return(.rename(list(), X))

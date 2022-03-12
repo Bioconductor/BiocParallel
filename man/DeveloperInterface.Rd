@@ -106,9 +106,14 @@
 
 .bpstart_impl(x)
 .bpworker_impl(worker)
-.bplapply_impl(X, FUN, ..., BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS = bpoptions())
-.bpiterate_impl(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-                BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS = bpoptions())
+.bplapply_impl(
+    X, FUN, ..., BPREDO = list(),
+    BPPARAM = bpparam(), BPOPTIONS = bpoptions()
+)
+.bpiterate_impl(
+    ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE, BPREDO = list(),
+    BPPARAM = bpparam(), BPOPTIONS = bpoptions()
+)
 .bpstop_impl(x)
 
 
@@ -174,15 +179,19 @@
   }
 
   \item{BPOPTIONS}{
-    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+    Additional options to control the behavior of parallel evaluation,
+    see \code{\link{bpoptions}}.
   }
 
   \item{optionName}{
-    Character(1), an option name for \code{BPPARAM}. The named options will be created by \code{\link{bpoptions}}
+    character(1), an option name for \code{BPPARAM}. The named options
+    will be created by \code{\link{bpoptions}}
   }
 
   \item{genericName}{
-    Character(1), the name of the S4 generic function. It will be used to get/set the field in \code{BPPARAM}. The generic needs to support the replacement function defined by \code{\link{setReplaceMethod}}.
+    character(1), the name of the S4 generic function. This will be used
+    to get or set the field in \code{BPPARAM}. The generic needs to
+    support replacement function defined by \code{\link{setReplaceMethod}}.
   }
 }
 
@@ -271,16 +280,18 @@
   the task haven't been extracted by \code{.task_dynamic()} or the
   static data is \code{NULL}.
 
-  The function \code{.registerOption} allows the developer to register the
-  generic function that can change the fields in \code{BPPARAM}. There is no
-  need to register the fields which has already been defined in
-  \code{BiocParallel}. \code{.registerOption} should only be used to support new
-  fields. For example, if the developer define a \code{BPPARAM} which has a
-  field \code{worker.password}, the developer may also define the getter/
-  setter like \code{bpworkerPassword}. Then by calling
-  \code{.registerOption("worker.password", "bpworkerPassword")}, the user
-  can change the field in \code{BPPARAM} by passing an object of
+  The function \code{.registerOption} allows the developer to register a
+  generic function that can change the fields in \code{BPPARAM}. The
+  developer does not need to register the fields that are already
+  defined in \code{BiocParallel}. \code{.registerOption} should only be
+  used to support new fields. For example, if the developer defines a
+  \code{BPPARAM} which has a field \code{worker.password}, the developer
+  may also define the getter / setter \code{bpworkerPassword} and
+  \code{bpworkerPassword<-}. Then by calling
+  \code{.registerOption("worker.password", "bpworkerPassword")}, the
+  user can change the field in \code{BPPARAM} by passing an object of
   \code{bpoptions(worker.password = "1234")} in any apply function.
+
 }
 
 \value{

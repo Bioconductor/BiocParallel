@@ -116,7 +116,9 @@ setMethod("bplapply", c("ANY", "BatchJobsParam"),
         return(.rename(list(), X))
 
     if (!bpschedule(BPPARAM))
-        return(bplapply(X, FUN, ..., BPPARAM=SerialParam(), BPOPTIONS = BPOPTIONS))
+        return(
+            bplapply(X, FUN, ..., BPPARAM=SerialParam(), BPOPTIONS = BPOPTIONS)
+        )
 
     idx <- .redo_index(X, BPREDO)
     if (length(idx))
