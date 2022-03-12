@@ -30,6 +30,7 @@
 \alias{bptasks}
 \alias{bptasks,BiocParallelParam-method}
 \alias{bptasks<-}
+\alias{bptasks<-,BiocParallelParam-method}
 \alias{bptasks<-,BiocParallelParam,ANY-method}
 \alias{bpstopOnError}
 \alias{bpstopOnError,BiocParallelParam-method}

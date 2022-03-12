@@ -91,6 +91,8 @@ setValidity("BiocParallelParam", function(object)
     if (is.character(workers)) {
         if (length(workers) < 1L)
             msg <- c(msg, "length(bpworkers(BPPARAM)) must be > 0")
+        if (!is.na(tasks) && tasks > 0L && tasks < length(workers))
+            msg <- c(msg, "number of tasks is less than number of workers")
     }
 
     if (!.isTRUEorFALSE(bpexportglobals(object)))
