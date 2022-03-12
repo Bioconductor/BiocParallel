@@ -32,8 +32,9 @@ setMethod("bpvec", c("ANY", "BiocParallelParam"),
     on.exit(bptasks(BPPARAM) <- otasks)
 
     FUN1 <- function(i, ...) FUN(X[i], ...)
-    res <- bptry(bplapply(si, FUN1, ..., BPREDO=BPREDO,
-                          BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS))
+    res <- bptry(bplapply(
+        si, FUN1, ..., BPREDO=BPREDO, BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS
+    ))
 
     if (is(res, "error") || !all(bpok(res)))
         stop(.error_bplist(res))
@@ -73,5 +74,8 @@ setMethod("bpvec", c("ANY", "list"),
             function(...) FUN(..., BPPARAM=param)
     } else FUN
 
-    bpvec(X, myFUN, ..., BPREDO=BPREDO, BPPARAM=BPPARAM[[1]], BPOPTIONS = BPOPTIONS)
+    bpvec(
+        X, myFUN, ..., BPREDO=BPREDO,
+        BPPARAM=BPPARAM[[1]], BPOPTIONS = BPOPTIONS
+    )
 })

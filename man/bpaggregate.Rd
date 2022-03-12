@@ -23,9 +23,13 @@
     simplify=TRUE, BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 \S4method{bpaggregate}{matrix,BiocParallelParam}(x, by, FUN, ...,
-    simplify=TRUE, BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
+    simplify=TRUE, BPREDO=list(),
+    BPPARAM=bpparam(), BPOPTIONS = bpoptions()
+)
 
-\S4method{bpaggregate}{ANY,missing}(x, ..., BPREDO=list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
+\S4method{bpaggregate}{ANY,missing}(x, ..., BPREDO=list(),
+    BPPARAM=bpparam(), BPOPTIONS = bpoptions()
+)
 
 }
 
