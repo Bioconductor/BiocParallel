@@ -61,6 +61,12 @@ setGeneric("bpforceGC",
 setGeneric("bpforceGC<-",
     function(x, value) standardGeneric("bpforceGC<-"))
 
+setGeneric("bpfallback",
+    function(x) standardGeneric("bpfallback"))
+
+setGeneric("bpfallback<-",
+    function(x, value) standardGeneric("bpfallback<-"))
+
 ## errors
 
 setGeneric("bpstopOnError",

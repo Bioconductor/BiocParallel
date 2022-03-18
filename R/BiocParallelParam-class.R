@@ -16,7 +16,8 @@
     progressbar=FALSE,
     RNGseed=NULL,
     RNGstream = NULL,
-    force.GC = FALSE
+    force.GC = FALSE,
+    fallback = TRUE
 )
 
 .BiocParallelParam <- setRefClass("BiocParallelParam",
@@ -37,6 +38,7 @@
         RNGseed = "ANY",        # NULL or integer(1)
         RNGstream = "ANY",      # NULL or integer(); internal use only
         force.GC = "logical",
+        fallback = "logical",
         ## cluster management
         .finalizer_env = "environment",
         .uid = "character"
@@ -60,6 +62,7 @@
                 "\n",
                 "  bpexportglobals: ", bpexportglobals(.self),
                 "; bpforceGC: ", bpforceGC(.self),
+                "; bpfallback: ", bpfallback(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")
@@ -173,7 +176,7 @@ setReplaceMethod("bpjobname", c("BiocParallelParam", "character"),
     function(x, value)
 {
     x$jobname <- value
-    x 
+    x
 })
 
 setMethod("bplog", "BiocParallelParam",
@@ -258,9 +261,9 @@ setMethod("bpstopOnError", "BiocParallelParam",
 setReplaceMethod("bpstopOnError", c("BiocParallelParam", "logical"),
     function(x, value)
 {
-    x$stop.on.error <- value 
+    x$stop.on.error <- value
     validObject(x)
-    x 
+    x
 })
 
 setMethod("bpprogressbar", "BiocParallelParam",
@@ -337,6 +340,19 @@ setReplaceMethod("bpforceGC", c("BiocParallelParam", "numeric"),
     x
 })
 
+setMethod("bpfallback", "BiocParallelParam",
+    function(x)
+{
+    x$fallback
+})
+
+setReplaceMethod("bpfallback", c("BiocParallelParam", "logical"),
+    function(x, value)
+{
+    x$fallback <- value
+    validObject(x)
+    x
+})
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Methods - evaluation
 ###

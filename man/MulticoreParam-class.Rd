@@ -44,7 +44,7 @@ MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
                timeout = WORKER_TIMEOUT, exportglobals=TRUE,
                log = FALSE, threshold = "INFO", logdir = NA_character_,
                resultdir = NA_character_, jobname = "BPJOB",
-               force.GC = TRUE,
+               force.GC = TRUE, fallback = TRUE,
                manager.hostname = NA_character_, manager.port = NA_integer_,
                ...)
 
@@ -256,6 +256,11 @@ multicoreWorkers()
     necessary when each call to \code{FUN} allocates a 'large' amount of
     memory. If \code{FUN} allocates little memory, then considerable
     performance improvements are gained by setting \code{force.GC = FALSE}.
+  }
+  \item{fallback}{
+    \code{logical(1)} When \code{TRUE}, fall back to using
+    \code{SerialParam} when \code{MulticoreParam} has not been started
+    and the number of worker is no greater than 1.
   }
   \item{manager.hostname}{
     \code{character(1)} Host name of manager node. See 'Global Options',

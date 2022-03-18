@@ -20,6 +20,9 @@ USER VISIBLE CHANGES
     o (v 1.29.15) Check for and report failed attempts to open SnowParam
     ports.
 
+    o (v 1.29.18) add bpfallback= option to control use of `lapply()`
+    (fallback) when 0 or 1 workers are available.
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.
