@@ -56,19 +56,18 @@ bpoptions(
     \code{\link{bpprogressbar}}.}
 
   \item{RNGseed}{integer(1) parameter for \code{BPPARAM}; see
-  \code{\link{bpRNGseed}}.}
+    \code{\link{bpRNGseed}}.}
 
   \item{force.GC}{logical(1) parameter for \code{BPPARAM}; see
-  \code{\link{bpforceGC}}.}
+    \code{\link{bpforceGC}}.}
 
   \item{fallback}{logical(1) parameter for \code{BPPARAM}; see
-  \code{\link{bpfallback}}.}
+    \code{\link{bpfallback}}.}
 
   \item{...}{
     Additional arguments which may(or may not) work for some specific
     type of \code{BPPARAM}.
   }
->>>>>>> master
 
 }
 

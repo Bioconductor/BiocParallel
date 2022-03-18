@@ -266,9 +266,9 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     call the garbage collection) rarely needs to be changed.
   }
   \item{fallback}{
-    \code{logical(1)} Whether falling back to \code{SerialParam} when the
-    \code{SnowParam} has not been started during the parallel evaluation and
-    the number of worker is no greater than 1.
+    \code{logical(1)} When \code{TRUE}, fall back to using
+    \code{SerialParam} when \code{SnowParam} has not been started
+    and the number of worker is no greater than 1.
   }
   \item{manager.hostname}{
     \code{character(1)} Host name of manager node. See 'Global Options',

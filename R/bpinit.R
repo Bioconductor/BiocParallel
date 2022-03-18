@@ -15,7 +15,7 @@
     ##   3.3 BPPARAM is of MulticoreParam class
     if (!bpisup(BPPARAM) && bpfallback(BPPARAM)) {
         ## use cases:
-        ## bpnworkers: no worker is available or no benefit in parallel evaluation
+        ## bpnworkers: no worker available, or no benefit in parallel evaluation
         ## bpschedule: in nested parallel call where the same
         ##             BPPARAM cannot be reused
         if (bpnworkers(BPPARAM) <= 1L || !bpschedule(BPPARAM)) {

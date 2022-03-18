@@ -341,13 +341,13 @@ setReplaceMethod("bpforceGC", c("BiocParallelParam", "numeric"),
 })
 
 setMethod("bpfallback", "BiocParallelParam",
-          function(x)
+    function(x)
 {
     x$fallback
 })
 
 setReplaceMethod("bpfallback", c("BiocParallelParam", "logical"),
-                 function(x, value)
+    function(x, value)
 {
     x$fallback <- value
     validObject(x)
