@@ -55,7 +55,9 @@ setMethod("show", "BPValidate", function(object) {
 #########################
 ## Utils
 #########################
-.filterDefaultPackages <- function(symbols) {
+.filterDefaultPackages <-
+    function(symbols)
+{
     pkgs <- c(
         "stats", "graphics", "grDevices", "utils", "datasets",
         "methods", "Autoloads", "base"
@@ -64,21 +66,21 @@ setMethod("show", "BPValidate", function(object) {
     symbols[!drop]
 }
 
-## Filter the variables that will be available
-## after `fun` loads packages
+## Filter the variables that will be available after `fun` loads
+## packages
 .filterLibraries <-
-    function(codes, symbols,
-             ERROR_FUN){
+    function(codes, symbols, ERROR_FUN)
+{
     warn <- err <- NULL
     ## 'fun' body loads libraries
     pkgLoadFunc <- c("require", "library")
     i <- grepl(
-        paste0("(",paste0(pkgLoadFunc, collapse = "|"),")"),
+        paste0("(", paste0(pkgLoadFunc, collapse = "|"), ")"),
         codes
     )
     xx <- lapply(
         codes[i],
-        function(code){
+        function(code) {
             withCallingHandlers(tryCatch({
                 ## convert character code to expression
                 expr <- parse(text = code)[[1]]
@@ -106,7 +108,7 @@ setMethod("show", "BPValidate", function(object) {
 }
 
 ## find the variables that needed to be exported
-.findvars <-
+.findVariables <-
     function(fun, ERROR_FUN = capture.output)
 {
     unknown <- codetools::findGlobals(fun)
@@ -118,13 +120,13 @@ setMethod("show", "BPValidate", function(object) {
     unknown <- .filterLibraries(codes, unknown, ERROR_FUN)
 
     ## Find the objects that will ship with the function
-    while(length(unknown)&&
-          !identical(env, emptyenv())&&
-          !identical(.GlobalEnv, env)){
-        i <- vapply(unknown,
-                    function(x)
-                        !exists(x, envir = env, inherits = FALSE),
-                    logical(1))
+    while (length(unknown) &&
+           !identical(env, emptyenv()) &&
+           !identical(.GlobalEnv, env))
+    {
+        i <- vapply(unknown, function(x) {
+            !exists(x, envir = env, inherits = FALSE)
+        }, logical(1))
         unknown <- unknown[i]
         env <- parent.env(env)
     }
@@ -150,10 +152,12 @@ setMethod("show", "BPValidate", function(object) {
     pkgs <- pkgs[pkgs != ".GlobalEnv"]
     pkgs <- gsub("package:", "", pkgs, fixed = TRUE)
 
-    list(unknown = unknown,
-         pkgs = pkgs,
-         globalvars = globalvars,
-         inpath = inpath)
+    list(
+        unknown = unknown,
+        pkgs = pkgs,
+        globalvars = globalvars,
+        inpath = inpath
+    )
 }
 
 #########################
@@ -177,7 +181,7 @@ bpvalidate <- function(fun, signal = c("warning", "error", "silent"))
     }
 
     ## Filter the symbols that is loaded via library/require
-    exports <- .findvars(fun, ERROR_FUN = ERROR_FUN)
+    exports <- .findVariables(fun, ERROR_FUN = ERROR_FUN)
     inpath <- exports$inpath
 
     result <- BPValidate(

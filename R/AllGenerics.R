@@ -96,10 +96,10 @@ setGeneric("bpexportglobals<-",
     function(x, value) standardGeneric("bpexportglobals<-"))
 
 setGeneric("bpexportvariables",
-           function(x) standardGeneric("bpexportvariables"))
+    function(x) standardGeneric("bpexportvariables"))
 
 setGeneric("bpexportvariables<-",
-           function(x, value) standardGeneric("bpexportvariables<-"))
+    function(x, value) standardGeneric("bpexportvariables<-"))
 
 setGeneric("bplog",
     function(x) standardGeneric("bplog"))

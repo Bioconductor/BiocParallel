@@ -5,7 +5,6 @@
 \title{Additional options to parallel evaluation}
 
 \description{
-
   This function is used to pass additional options to \code{bplapply()}
   and other functions function. One use case is to use the argument
   \code{BPOPTIONS} to temporarily change the parameter of \code{BPPARAM}
