@@ -76,6 +76,10 @@
 \alias{bpforceGC,BiocParallelParam-method}
 \alias{bpforceGC<-}
 \alias{bpforceGC<-,BiocParallelParam,numeric-method}
+\alias{bpfallback}
+\alias{bpfallback,BiocParallelParam-method}
+\alias{bpfallback<-}
+\alias{bpfallback<-,BiocParallelParam,logical-method}
 
 % Other methods
 \alias{show,BiocParallel-method}
@@ -243,6 +247,13 @@
         \code{bpforceGC(x)}, \code{bpforceGC(x) <- value}:
         Get or set whether 'garbage collection' should be invoked at the
         end of each call to \code{FUN}.
+      }
+      \item{}{
+        \code{bpfallback(x)}, \code{bpfallback(x) <- value}: Get or set
+        whether the fallback \code{SerialParam} should be used (e.g.,
+        for efficiency when starting a cluster) when the current
+        \code{BPPARAM} has not been started and the worker number is
+        less than or equal to 1.
       }
     }
   }

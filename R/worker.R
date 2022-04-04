@@ -185,6 +185,7 @@
 
     function(...) {
         if (!identical(timeout, WORKER_TIMEOUT)) {
+            message("setting timeout ", timeout)
             setTimeLimit(timeout, timeout, TRUE)
             on.exit(setTimeLimit(Inf, Inf, FALSE))
         }

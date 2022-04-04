@@ -176,3 +176,29 @@ test_SnowParam_taskCache <- function() {
     )
     .test_cache(msg4)
 }
+
+
+test_SnowParam_fallback <- function(){
+    ## trigger fallback
+    p <- SnowParam(1)
+    res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
+    checkTrue(res == Sys.getpid())
+
+    ## disable fallback
+    bpfallback(p) <- FALSE
+    res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
+    checkTrue(res != Sys.getpid())
+
+    ## enable fallback again
+    bpfallback(p) <- TRUE
+    res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
+    checkTrue(res == Sys.getpid())
+
+    ## no fallback
+    p <- SnowParam(2)
+    res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
+    checkTrue(res != Sys.getpid())
+}
+
+
+

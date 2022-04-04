@@ -74,6 +74,7 @@ export(
     bpprogressbar, "bpprogressbar<-", bpRNGseed, "bpRNGseed<-",
     bptimeout, "bptimeout<-", bpexportglobals, "bpexportglobals<-",
     bpforceGC, "bpforceGC<-",
+    bpfallback, "bpfallback<-",
     bplog, "bplog<-", bplogdir, "bplogdir<-",
     bpthreshold, "bpthreshold<-", bpresultdir, "bpresultdir<-",
 
