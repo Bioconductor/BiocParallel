@@ -23,6 +23,10 @@ USER VISIBLE CHANGES
     o (v 1.29.18) add bpfallback= option to control use of `lapply()`
     (fallback) when 0 or 1 workers are available.
 
+    o (v 1.29.19) add bpexportvariables= option to automatically
+    export global variables, or variables found in packages on the
+    search path, in user-provided `FUN=` functions.
+
 BUG FIXES
 
     o (v 1.29.2) Fix regression in use of debug() with SerialParam.

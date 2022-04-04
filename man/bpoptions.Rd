@@ -51,6 +51,9 @@ bpoptions(
   \item{exportglobals}{logical(1) parameter for \code{BPPARAM}; see
     \code{\link{bpexportglobals}}.}
 
+  \item{exportvariables}{A parameter for \code{BPPARAM}; see
+    \code{\link{bpexportvariables}}.}
+
   \item{progressbar}{logical(1) parameter for \code{BPPARAM}; see
     \code{\link{bpprogressbar}}.}
 

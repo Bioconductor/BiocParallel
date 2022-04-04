@@ -34,9 +34,11 @@ test_bpoptions_bplapply <- function() {
     ## check if bpoptions really works
     opts <- bpoptions(timeout = 1)
     checkException(
-        bplapply(
-            1:2, function(x) Sys.sleep(2), BPPARAM = p, BPOPTIONS = opts
-        )
+        bplapply(1:2, function(x) {
+            t <- Sys.time()
+            ## spin...
+            while(difftime(Sys.time(), t) < 2) {}
+        }, BPPARAM = p, BPOPTIONS = opts)
     )
 
     ## Random argument has no effect on bplapply

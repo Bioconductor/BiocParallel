@@ -230,7 +230,7 @@
     globalVarNames <- as.character(BPOPTIONS$exports)
     packages <- as.character(BPOPTIONS$packages)
     if (bpexportvariables(BPPARAM)) {
-        exports <- .findvars(FUN)
+        exports <- .findVariables(FUN)
         globalVarNames <- c(globalVarNames, exports$globalvars)
         packages <- c(packages, exports$pkgs)
     }
