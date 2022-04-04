@@ -147,5 +147,5 @@ print.remote_error <- function(x, ...) {
 
 `print.bplist_error` <- function(x, ...) {
     NextMethod(x)
-    cat("results and errors available as 'attr(x, \"result\")'\n")
+    cat("results and errors available as 'bpresult(x)'\n")
 }
