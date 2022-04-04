@@ -9,8 +9,8 @@
   and other functions function. One use case is to use the argument
   \code{BPOPTIONS} to temporarily change the parameter of \code{BPPARAM}
   (e.g. enabling the progressbar). A second use case is to change the
-  behavior of the parallel evaluation (e.g. disabling garbage collection
-  on the worker)
+  behavior of the parallel evaluation (e.g. manually exporting some
+  variables to the worker)
 }
 \usage{
 bpoptions(

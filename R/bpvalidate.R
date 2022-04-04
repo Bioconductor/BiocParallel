@@ -78,26 +78,23 @@ setMethod("show", "BPValidate", function(object) {
         paste0("(", paste0(pkgLoadFunc, collapse = "|"), ")"),
         codes
     )
-    xx <- lapply(
-        codes[i],
-        function(code) {
-            withCallingHandlers(tryCatch({
-                ## convert character code to expression
-                expr <- parse(text = code)[[1]]
-                ## match the library/require function arguments
-                expr <- match.call(eval(expr[[1]]), expr)
-                ## get the package name from the function arguments
-                pkg <- as.character(expr[[which(names(expr) == "package")]])
-                which(symbols %in% getNamespaceExports(pkg))
-            }, error=function(e) {
-                err <<- append(err, conditionMessage(e))
-                NULL
-            }), warning=function(w) {
-                warn <<- append(warn, conditionMessage(w))
-                invokeRestart("muffleWarning")
-            })
-        }
-    )
+    xx <- lapply(codes[i], function(code) {
+        withCallingHandlers(tryCatch({
+            ## convert character code to expression
+            expr <- parse(text = code)[[1]]
+            ## match the library/require function arguments
+            expr <- match.call(eval(expr[[1]]), expr)
+            ## get the package name from the function arguments
+            pkg <- as.character(expr[[which(names(expr) == "package")]])
+            which(symbols %in% getNamespaceExports(pkg))
+        }, error=function(e) {
+            err <<- append(err, conditionMessage(e))
+            NULL
+        }), warning=function(w) {
+            warn <<- append(warn, conditionMessage(w))
+            invokeRestart("muffleWarning")
+        })
+    })
     if (!is.null(warn) || !is.null(err))
         ERROR_FUN("attempt to load library failed:\n    ",
                   paste(c(warn, err), collapse="\n    "))
