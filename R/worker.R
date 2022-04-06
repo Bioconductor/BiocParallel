@@ -233,7 +233,7 @@
     }
 
     for (pkg in PACKAGES) {
-        library(pkg, character.only = TRUE)
+        suppressPackageStartupMessages(library(pkg, character.only = TRUE))
     }
     ## Add variables to the global space and remove them afterward
     if (length(GLOBALS)) {
