@@ -13,3 +13,5 @@ autom4te.cachea
 *.pdf
 *.toc
 vignettes/*.R
+.Rproj.user
+*.Rproj
