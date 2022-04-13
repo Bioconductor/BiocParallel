@@ -88,15 +88,42 @@
 .redo_index <-
     function(X, BPREDO)
 {
-    if (length(BPREDO)) {
-        if (length(BPREDO) != length(X))
-            stop("'length(BPREDO)' must equal 'length(X)'")
-        idx <- which(!bpok(BPREDO))
-        if (!length(idx))
-            stop("no previous error in 'BPREDO'")
-        idx
+    if (!is.function(X)) {
+        ## bplapply
+        if (length(BPREDO)) {
+            if (length(BPREDO) != length(X))
+                stop("'length(BPREDO)' must equal 'length(X)'")
+            idx <- which(!bpok(BPREDO))
+            if (!length(idx))
+                stop("no previous error in 'BPREDO'")
+            idx
+        } else {
+            seq_along(X)
+        }
     } else {
-        seq_along(X)
+        ## bpiterate
+        if (length(BPREDO)) {
+            ## The total number of the task in the last run
+            len <- .redo_reducer(BPREDO)$total
+
+            ## move to the next element
+            ## we do not know if the last run exhausted the iterator
+            if(is.null(len))
+                len <- 1L
+            else
+                len <- len + 1L
+
+            ## Find which one needs to be redone
+            errors <- attr(BPREDO, ".bperrors", exact = TRUE)
+            idx <- as.numeric(names(errors))
+            if (!length(idx))
+                stop("no previous error in 'BPREDO'")
+
+            idx <- c(idx, len)
+            idx
+        } else {
+            1L
+        }
     }
 }
 
@@ -202,4 +229,18 @@
     if (identical(timeout, NA_integer_))
         timeout <- Inf
     timeout
+}
+
+## Input: an increasing integer sequence
+## output: a function accepting the index as argument
+## If the index is out of range, extend x using the last element of x
+## plus 1,2,3...
+out_of_range_vector <- function(x){
+    force(x)
+    function(i) {
+        if (i < length(x))
+            x[i]
+        else
+            i - length(x) + tail(x, 1)
+    }
 }

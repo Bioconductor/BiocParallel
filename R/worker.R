@@ -151,7 +151,7 @@
 }
 
 .composeTry <-
-    function(FUN, OPTIONS, SEED)
+    function(FUN, OPTIONS, SEED, INDEX = NULL)
 {
     FUN <- match.fun(FUN)
     ERROR_OCCURRED <- FALSE
@@ -182,6 +182,9 @@
 
     if (!is.null(SEED))
         SEED <- .rng_reset_generator("L'Ecuyer-CMRG", SEED)$seed
+    SEED_INDEX <- 1L
+    SEED_GAPS <- diff(INDEX)
+
 
     function(...) {
         if (!identical(timeout, WORKER_TIMEOUT)) {
@@ -210,8 +213,12 @@
             ## worker trying to fill said heap, causing R to exhaust memory).
             if (force.GC)
                 gc(verbose=FALSE, full=FALSE)
-
-            SEED <<- .rng_next_substream(SEED)
+            if (SEED_INDEX <= length(SEED_GAPS)) {
+                SEED <<- .rng_iterate_substream(SEED, SEED_GAPS[SEED_INDEX])
+                SEED_INDEX <<- SEED_INDEX + 1L
+            } else {
+                SEED <<- .rng_iterate_substream(SEED, 1L)
+            }
 
             output
         }
@@ -220,7 +227,7 @@
 
 .workerLapply_impl <-
     function(X, FUN, ARGS, OPTIONS, BPRNGSEED,
-             GLOBALS = NULL, PACKAGES = NULL)
+             INDEX = NULL, GLOBALS = NULL, PACKAGES = NULL)
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
@@ -244,7 +251,7 @@
                 add = TRUE)
     }
 
-    composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED)
+    composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED, INDEX)
     args <- c(list(X = X, FUN = composeFunc), ARGS)
     do.call(lapply, args)
 }

@@ -14,18 +14,19 @@ test_reducer_lapply_1 <- function() {
     r <- .lapplyReducer(10, NULL)
     result <- rep(list(unevaluated), 10)
     checkIdentical(result, .reducer_value(r))
-    checkIdentical(result, { .reducer_add(r, 2, list(3,4)); .reducer_value(r) })
-    result[1:4] <- list(1,2,3,4)
-    checkIdentical(result, { .reducer_add(r, 1, list(1,2)); .reducer_value(r) })
+    result[3:4] <- list(3,4)
+    checkIdentical(result, { .reducer_add(r, 3:4, list(3,4)); .reducer_value(r) })
+    result[1:2] <- list(1,2)
+    checkIdentical(result, { .reducer_add(r, 1:2, list(1,2)); .reducer_value(r) })
 
     result[5:6] <- list(5,6)
-    checkIdentical(result, { .reducer_add(r, 3, list(5,6)); .reducer_value(r) })
+    checkIdentical(result, { .reducer_add(r, 5:6, list(5,6)); .reducer_value(r) })
 
     checkTrue(.reducer_ok(r))
     checkTrue(!.reducer_complete(r))
 
     result[7:10] <- list(7,8,9,10)
-    checkIdentical(result, { .reducer_add(r, 4, list(7,8,9,10)); .reducer_value(r) })
+    checkIdentical(result, { .reducer_add(r, 7:10, list(7,8,9,10)); .reducer_value(r) })
 
     checkTrue(.reducer_ok(r))
     checkTrue(.reducer_complete(r))
@@ -37,7 +38,7 @@ test_reducer_lapply_2 <- function() {
     result <- rep(list(unevaluated), 10)
     checkIdentical(result, .reducer_value(r))
     result[1:4] <- list(1,2,3,4)
-    checkIdentical(result, { .reducer_add(r, 1, list(1,2,3,4)); .reducer_value(r) })
+    checkIdentical(result, { .reducer_add(r, 1:4, list(1,2,3,4)); .reducer_value(r) })
 
     checkTrue(.reducer_ok(r))
     checkTrue(!.reducer_complete(r))
@@ -45,23 +46,24 @@ test_reducer_lapply_2 <- function() {
     values <- list(notAvailable,notAvailable,notAvailable,8,
                    notAvailable,notAvailable)
     result[5:10] <- values
-    checkIdentical(result, { .reducer_add(r, 2, values); .reducer_value(r) })
+    checkIdentical(result, { .reducer_add(r, 5:10, values); .reducer_value(r) })
 
     checkTrue(!.reducer_ok(r))
     checkTrue(.reducer_complete(r))
 
     ## REDO
     r2 <- .lapplyReducer(10, r)
-    checkIdentical(c(5:7,9:10), r2$redo.index)
+    ## 5 errors/unfinished values
+    checkIdentical(5L, r2$total)
 
     checkTrue(.reducer_ok(r2))
     checkTrue(!.reducer_complete(r2))
 
-    checkIdentical(result, { .reducer_add(r2, 2, list(7)); .reducer_value(r2) })
-    checkIdentical(result, { .reducer_add(r2, 3, list(9,10)); .reducer_value(r2) })
+    result[9:10] <- list(9,10)
+    checkIdentical(result, { .reducer_add(r2, 9:10, list(9,10)); .reducer_value(r2) })
 
-    result[c(5:7,9:10)] <- list(5,6,7,9,10)
-    checkIdentical(result, { .reducer_add(r2, 1, list(5,6)); .reducer_value(r2) })
+    result[5:7] <- list(5,6,7)
+    checkIdentical(result, { .reducer_add(r2, 5:7, list(5,6,7)); .reducer_value(r2) })
 
     checkTrue(.reducer_ok(r2))
     checkTrue(.reducer_complete(r2))
@@ -69,8 +71,8 @@ test_reducer_lapply_2 <- function() {
     ## REDO with new error
     r3 <- .lapplyReducer(10, r)
     result[5:7] <- list(5,6,notAvailable)
-    .reducer_add(r3, 1, list(5,6,notAvailable))
-    .reducer_add(r3, 2, list(9,10))
+    .reducer_add(r3, 5:7, list(5,6,notAvailable))
+    .reducer_add(r3, 9:10, list(9,10))
     checkIdentical(result, .reducer_value(r3))
 }
 
@@ -86,7 +88,7 @@ test_reducer_iterate_1 <- function() {
     checkIdentical(list(), .reducer_value(r))
 
     .reducer_add(r, 2, list(2))
-    expect <- structure(list(NULL,2), errors = list('1'=unevaluated))
+    expect <- structure(list(NULL,2), .bperrors = list('1'=unevaluated))
     checkIdentical(expect, .reducer_value(r))
 
     checkTrue(.reducer_ok(r))
@@ -104,7 +106,7 @@ test_reducer_iterate_1 <- function() {
     .reducer_add(r, 5, list(notAvailable))
     expect <- structure(
         list(1,2,3,NULL,NULL),
-        errors=list('4'=unevaluated,'5'=notAvailable)
+        .bperrors=list('4'=unevaluated,'5'=notAvailable)
     )
     checkIdentical(expect, .reducer_value(r))
 
@@ -113,39 +115,39 @@ test_reducer_iterate_1 <- function() {
 
     ## BPREDO
     r2 <- .iterateReducer(reducer = r)
-    checkIdentical(4:5, r2$redo.index)
+    checkIdentical("5", names(r2$errors))
 
     checkTrue(!.reducer_ok(r2))
     checkTrue(!.reducer_complete(r2))
 
-    .reducer_add(r2, 2, list(5))
+    .reducer_add(r2, 5, list(5))
     expect <- structure(
         list(1,2,3,NULL,5),
-        errors=list('4'=unevaluated)
+        .bperrors=list('4'=unevaluated)
     )
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(.reducer_ok(r2))
     checkTrue(!.reducer_complete(r2))
 
-    .reducer_add(r2, 1, list(4))
+    .reducer_add(r2, 4, list(4))
     expect <- list(1,2,3,4,5)
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(.reducer_ok(r2))
     checkTrue(.reducer_complete(r2))
 
-    .reducer_add(r2, 3, list(6))
+    .reducer_add(r2, 6, list(6))
     expect <- list(1,2,3,4,5,6)
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(.reducer_ok(r2))
     checkTrue(.reducer_complete(r2))
 
-    .reducer_add(r2, 4, list(notAvailable))
+    .reducer_add(r2, 7, list(notAvailable))
     expect <- structure(
         list(1,2,3,4,5,6,NULL),
-        errors=list('7'=notAvailable)
+        .bperrors=list('7'=notAvailable)
     )
     checkIdentical(expect, .reducer_value(r2))
 
@@ -155,9 +157,9 @@ test_reducer_iterate_1 <- function() {
 
     ## BPREDO 2
     r3 <- .iterateReducer(reducer = r2)
-    checkIdentical(7L, r3$redo.index)
+    checkIdentical("7", names(r3$errors))
 
-    .reducer_add(r3, 1, list(7))
+    .reducer_add(r3, 7, list(7))
     expect <- list(1,2,3,4,5,6,7)
     checkIdentical(expect, .reducer_value(r3))
 
@@ -176,7 +178,7 @@ test_reducer_iterate_2 <- function() {
     checkIdentical(expect, .reducer_value(r))
 
     .reducer_add(r, 3, list(3))
-    expect <- structure(1, errors = list('2' = unevaluated))
+    expect <- structure(1, .bperrors = list('2' = unevaluated))
     checkIdentical(expect, .reducer_value(r))
 
     checkTrue(.reducer_ok(r))
@@ -187,7 +189,7 @@ test_reducer_iterate_2 <- function() {
     checkIdentical(expect, .reducer_value(r))
 
     .reducer_add(r, 5, list(notAvailable))
-    expect <- structure(6, errors = list('4' = unevaluated, '5' = notAvailable))
+    expect <- structure(6, .bperrors = list('4' = unevaluated, '5' = notAvailable))
     checkIdentical(expect, .reducer_value(r))
 
     checkTrue(!.reducer_ok(r))
@@ -195,21 +197,21 @@ test_reducer_iterate_2 <- function() {
 
     ## BPREDO round1
     r2 <- .iterateReducer(reducer = r)
-    checkIdentical(4:5, r2$redo.index)
+    checkIdentical("5", names(r2$errors))
 
-    .reducer_add(r2, 2, list(5))
-    expect <- structure(6, errors = list('4' = unevaluated))
+    .reducer_add(r2, 5, list(5))
+    expect <- structure(6, .bperrors = list('4' = unevaluated))
     checkIdentical(expect, .reducer_value(r2))
 
-    .reducer_add(r2, 1, list(4))
+    .reducer_add(r2, 4, list(4))
     expect <- 15
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(.reducer_ok(r2))
     checkTrue(.reducer_complete(r2))
 
-    .reducer_add(r2, 3, list(notAvailable))
-    expect <- structure(15, errors = list('6' = notAvailable))
+    .reducer_add(r2, 6, list(notAvailable))
+    expect <- structure(15, .bperrors = list('6' = notAvailable))
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(!.reducer_ok(r2))
@@ -217,13 +219,13 @@ test_reducer_iterate_2 <- function() {
 
     ## BPREDO round2
     r3 <- .iterateReducer(reducer = r2)
-    checkIdentical(6L, r3$redo.index)
+    checkIdentical("6", names(r3$errors))
 
-    .reducer_add(r3, 1, list(6))
+    .reducer_add(r3, 6, list(6))
     expect <- 21
     checkIdentical(expect, .reducer_value(r3))
 
-    .reducer_add(r3, 2, list(7))
+    .reducer_add(r3, 7, list(7))
     expect <- 28
     checkIdentical(expect, .reducer_value(r3))
 
@@ -243,7 +245,7 @@ test_reducer_iterate_3 <- function() {
     checkIdentical(expect, .reducer_value(r))
 
     .reducer_add(r, 3, list(3))
-    expect <- structure(4, errors = list('2' = unevaluated))
+    expect <- structure(4, .bperrors = list('2' = unevaluated))
     checkIdentical(expect, .reducer_value(r))
 
     checkTrue(.reducer_ok(r))
@@ -254,7 +256,7 @@ test_reducer_iterate_3 <- function() {
     checkIdentical(expect, .reducer_value(r))
 
     .reducer_add(r, 5, list(notAvailable))
-    expect <- structure(6, errors = list('4' = unevaluated, '5' = notAvailable))
+    expect <- structure(6, .bperrors = list('4' = unevaluated, '5' = notAvailable))
     checkIdentical(expect, .reducer_value(r))
 
     checkTrue(!.reducer_ok(r))
@@ -262,21 +264,21 @@ test_reducer_iterate_3 <- function() {
 
     ## BPREDO round1
     r2 <- .iterateReducer(reducer = r)
-    checkIdentical(4:5, r2$redo.index)
+    checkIdentical("5", names(r2$errors))
 
-    .reducer_add(r2, 2, list(5))
-    expect <- structure(11, errors = list('4' = unevaluated))
+    .reducer_add(r2, 5, list(5))
+    expect <- structure(11, .bperrors = list('4' = unevaluated))
     checkIdentical(expect, .reducer_value(r2))
 
-    .reducer_add(r2, 1, list(4))
+    .reducer_add(r2, 4, list(4))
     expect <- 15
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(.reducer_ok(r2))
     checkTrue(.reducer_complete(r2))
 
-    .reducer_add(r2, 3, list(notAvailable))
-    expect <- structure(15, errors = list('6' = notAvailable))
+    .reducer_add(r2, 6, list(notAvailable))
+    expect <- structure(15, .bperrors = list('6' = notAvailable))
     checkIdentical(expect, .reducer_value(r2))
 
     checkTrue(!.reducer_ok(r2))
@@ -284,13 +286,13 @@ test_reducer_iterate_3 <- function() {
 
     ## BPREDO round2
     r3 <- .iterateReducer(reducer = r2)
-    checkIdentical(6L, r3$redo.index)
+    checkIdentical("6", names(r3$errors))
 
-    .reducer_add(r3, 1, list(6))
+    .reducer_add(r3, 6, list(6))
     expect <- 21
     checkIdentical(expect, .reducer_value(r3))
 
-    .reducer_add(r3, 2, list(7))
+    .reducer_add(r3, 7, list(7))
     expect <- 28
     checkIdentical(expect, .reducer_value(r3))
 
@@ -313,37 +315,7 @@ test_reducer_iterate_4 <- function() {
     checkIdentical(expect, .reducer_value(r))
 
     .reducer_add(r, 2, list(notAvailable))
-    expect <- structure(list(),errors=list('2'=notAvailable))
+    expect <- structure(list(),.bperrors=list('2'=notAvailable))
     checkIdentical(expect, .reducer_value(r))
 }
 
-test_iterator_lapply  <- function() {
-    .bploop_lapply_iter <- BiocParallel:::.bploop_lapply_iter
-    .bploop_rng_iter <- BiocParallel:::.bploop_rng_iter
-
-    X <- 1:10
-    redo_index <- c(1:2,6:8)
-    iter <- .bploop_lapply_iter(X, redo_index, 10)
-    checkIdentical(iter(), 1:2)
-    checkIdentical(iter(), .bploop_rng_iter(3L))
-    checkIdentical(iter(), 6:8)
-    checkIdentical(iter(), list(NULL))
-    checkIdentical(iter(), list(NULL))
-
-    iter <- .bploop_lapply_iter(X, redo_index, 2)
-    checkIdentical(iter(), 1:2)
-    checkIdentical(iter(), .bploop_rng_iter(3L))
-    checkIdentical(iter(), 6:7)
-    checkIdentical(iter(), 8L)
-    checkIdentical(iter(), list(NULL))
-    checkIdentical(iter(), list(NULL))
-
-    redo_index <- 6:8
-    iter <- .bploop_lapply_iter(X, redo_index, 1)
-    checkIdentical(iter(), .bploop_rng_iter(5L))
-    checkIdentical(iter(), 6L)
-    checkIdentical(iter(), 7L)
-    checkIdentical(iter(), 8L)
-    checkIdentical(iter(), list(NULL))
-    checkIdentical(iter(), list(NULL))
-}
