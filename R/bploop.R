@@ -84,20 +84,20 @@
 
 ## An iterator for bploop.lapply
 .bploop_lapply_iter <-
-    function(balancer, init_seed, redo_index)
+    function(balancer, init_seed, redo_index, ntotal)
 {
-    seed_generator <- .seed_generator(init_seed, redo_index)
+    seed_generator <- .seed_generator(init_seed)
     n <- length(redo_index)
     list(
         nextTask = function(seedOnly = FALSE) {
             if (n > 0 && !seedOnly) {
                 task <- balancer$nextTask()
                 n <<- n - length(task$index)
-                task$seed <- seed_generator(task$index)
                 task$index <- redo_index[task$index]
+                task$seed <- seed_generator(task$index)
                 task
             } else {
-                list(seed = seed_generator(NULL))
+                list(seed = seed_generator(ntotal + 1L))
             }
         },
         record = function(node, task_id, time)
@@ -125,30 +125,31 @@
 
 .bploop_iterate_iter <- function(balancer, redo_ITER,
                                  init_seed, redo_index){
-    seed_generator <- .seed_generator(init_seed, redo_index)
+    seed_generator <- .seed_generator(init_seed)
     task_original_index <- out_of_range_vector(redo_index)
     EOF <- FALSE
+    ## The maximum observed seed index
+    next_job_seed_index <- tail(redo_index, 1)
     list(
         nextTask = function(seedOnly = FALSE) {
             if (!EOF && !seedOnly) {
                 task <- balancer$nextTask()
-                if (length(task$value) == 0) {
-                    task$value <- NULL
-                    task$seed <- seed_generator(NULL)
-                } else {
-                    task$seed <- seed_generator(task$index)
+                if (length(task$value) != 0) {
+                    ## The index can be out of range
                     if (tail(task$index, 1L) <= length(redo_index))
                         task$index <- redo_index[task$index]
                     else
                         task$index <- vapply(task$index ,task_original_index, numeric(1))
+                    task$seed <- seed_generator(task$index)
+                    next_job_seed_index <<-
+                        max(next_job_seed_index, tail(task$index, 1L) + 1L)
                 }
                 ## Reach the end of the iterator
                 if (is.null(task$value))
                     EOF <<- TRUE
-
                 task
             } else {
-                list(seed = seed_generator(NULL))
+                list(seed = seed_generator(next_job_seed_index))
             }
         },
         record = function(node, task_id, time)
@@ -226,7 +227,8 @@
     )
 
     ## set the last seed stream back to BPPARAM
-    on.exit(.RNGstream(BPPARAM) <- ITER$nextTask(seedOnly = TRUE)$seed, add = TRUE)
+    if (identical(BPREDO, list()))
+        on.exit(.RNGstream(BPPARAM) <- ITER$nextTask(seedOnly = TRUE)$seed, add = TRUE)
 
     ## Progress bar
     progress <- .progress(
@@ -358,7 +360,7 @@ bploop.lapply <-
     balancerGenerator <- .findBalancer("lapply", BPOPTIONS$lapplyBalancer)
     balancer <- balancerGenerator(redo_x, BPPARAM)
     ## Iterator for bplapply
-    ITER <- .bploop_lapply_iter(balancer, init_seed, redo_index)
+    ITER <- .bploop_lapply_iter(balancer, init_seed, redo_index, length(X))
 
     ntotal <- length(X)
     reducer <- .lapplyReducer(ntotal, reducer = .redo_reducer(BPREDO))

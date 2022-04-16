@@ -9,12 +9,14 @@
     if (is.character(balancer)) {
         if (type == "lapply") {
             if (balancer == "sequential")
-                return(.lapplySequentialBalancer)
+                return(.balancerSequentialLapply)
             if (balancer == "random")
-                return(.lapplyRandomBalancer)
+                return(.balancerRandomLapply)
+            if (balancer == "stepwise")
+                return(.balancerStepwiseLapply)
         } else {
             if (balancer == "sequential")
-                return(.iterateSequentialBalancer)
+                return(.balancerSequentialIterate)
         }
     }
 
@@ -45,7 +47,7 @@
 ##################
 
 ## A simple balancer to equally divide the vector X into tasks.
-.lapplySequentialBalancer <- function(X, BPPARAM) {
+.balancerSequentialLapply <- function(X, BPPARAM) {
     force(X)
     ## How many elements in a task?
     ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
@@ -71,7 +73,7 @@
 }
 
 ## Randomly sample the vector X.
-.lapplyRandomBalancer <- function(X, BPPARAM) {
+.balancerRandomLapply <- function(X, BPPARAM) {
     force(X)
     ## How many elements in a task?
     ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
@@ -97,7 +99,30 @@
     )
 }
 
-.iterateSequentialBalancer <-
+## Randomly sample the vector X.
+.balancerStepwiseLapply <- function(X, BPPARAM) {
+    force(X)
+
+    nX <- length(X)
+    ntask <- .ntask(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
+    task_id <- 0L
+    list(
+        record = function(node, task_id, time) {
+            # message("Node:", node, ",id:", task_id, ",time:", time)
+        },
+        nextTask = function(){
+            task_id <<- task_id + 1L
+            index <- seq.int(task_id, nX, by = ntask)
+            list(
+                task_id = task_id,
+                index = index,
+                value = X[index]
+            )
+        }
+    )
+}
+
+.balancerSequentialIterate <-
     function(ITER, BPPARAM)
 {
     force(ITER)
@@ -108,10 +133,14 @@
         },
         nextTask = function(){
             task_id <<- task_id + 1L
+            ## the task value must be a list when it is not empty
+            value <- ITER()
+            if (!is.null(value))
+                value <- list(value)
             list(
                 task_id = task_id,
                 index = task_id,
-                value = list(ITER())
+                value = value
             )
         }
     )

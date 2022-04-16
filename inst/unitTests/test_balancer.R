@@ -25,6 +25,11 @@ test_balancer_lapply <-
         res2 <- bplapply(1:10, function(x) x, BPPARAM = p,
                          BPOPTIONS = opts)
         checkIdentical(res1, res2)
+
+        opts <- bpoptions(lapplyBalancer = "stepwise")
+        res3 <- bplapply(1:10, function(x) x, BPPARAM = p,
+                         BPOPTIONS = opts)
+        checkIdentical(res1, res3)
     }
 }
 
@@ -46,6 +51,12 @@ test_balancer_lapply_rng <-
         opts <- bpoptions(lapplyBalancer = "random")
         res2 <- bplapply(1:10, function(x)runif(1), BPPARAM = p)
         checkIdentical(res1, res2)
+
+        bpRNGseed(p) <- 123
+        opts <- bpoptions(lapplyBalancer = "stepwise")
+        res3 <- bplapply(1:10, function(x) runif(1), BPPARAM = p,
+                         BPOPTIONS = opts)
+        checkIdentical(res1, res3)
     }
 }
 
@@ -63,7 +74,7 @@ test_balancer_lapply_rng_redo <-
         SerialParam(),
         SnowParam(2)
     )
-    balancerTypes <- c("sequential", "random")
+    balancerTypes <- c("sequential", "random", "stepwise")
     taskNums <- c(1, 2, 5, 10)
     for (p in params) {
         for(balancerType in balancerTypes){

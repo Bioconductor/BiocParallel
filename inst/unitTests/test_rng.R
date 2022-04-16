@@ -402,13 +402,11 @@ test_rng_fallback_SerialParam <- function()
     bpstop(param2)
 }
 
-test_seed_enerator <-
+test_seed_generator <-
     function()
 {
     n <- 10000
-    n_sub <- n/2
     init_seed <- BiocParallel:::.rng_init_stream(NULL)
-    redo_index <- sort(sample(1:n, n_sub))
 
     ## Generate all seeds
     seed <- init_seed
@@ -417,51 +415,41 @@ test_seed_enerator <-
         seed <- BiocParallel:::.rng_next_substream(seed)
         seeds <- c(seeds, list(seed))
     }
-    ## Only a part of seeds will be used
-    seeds <- seeds[redo_index]
-    ## add more seeds
-    for(i in seq_len(n)){
-        seed <- BiocParallel:::.rng_next_substream(seed)
-        seeds <- c(seeds, list(seed))
-    }
 
-    generator <- BiocParallel:::.seed_generator(init_seed, redo_index)
+    generator <- BiocParallel:::.seed_generator(init_seed)
 
-    ## sequentially ask for the seed to initialize the cache
-    for(index in 1:n_sub){
+    ## sequentially ask for the seed
+    for(index in 1:(n - 1)){
         current <- generator(index)
         checkIdentical(seeds[[index]], current)
     }
 
     ## check the cache value
     env <- environment(generator)
-    checkTrue(sum(!sapply(env$seed_space, is.null)) == min(n_sub, 1000))
+    checkTrue(length(env$seed_space) == 10L)
 
     ## Randomly ask for the seed
-    for(index in sample(1:n_sub, n_sub, replace = TRUE)){
+    redo_index <- sort(sample(1:n, 1000))
+    for(index in redo_index){
         current <- generator(index)
         checkIdentical(seeds[[index]], current)
     }
 
-    generator <- BiocParallel:::.seed_generator(init_seed, redo_index)
-    ## Randomly ask for the seed without initial cache
-    for(index in sample(1:n_sub, n_sub, replace = TRUE)){
+    generator <- BiocParallel:::.seed_generator(init_seed)
+    ## Randomly ask for the seed
+    redo_index <- sort(sample(1:(n-1), 1000))
+    for(index in redo_index){
         current <- generator(index)
         checkIdentical(seeds[[index]], current)
     }
 
     ## check the cache value
     env <- environment(generator)
-    checkTrue(sum(!sapply(env$seed_space, is.null)) > 0)
+    checkTrue(length(env$seed_space) > 0L)
 
-    ## Randomly ask for the seed
-    for(index in sample(1:n_sub, n_sub, replace = TRUE)){
-        current <- generator(index)
-        checkIdentical(seeds[[index]], current)
-    }
-
-    ## ask for the seed exceeds the range
-    for(index in sample(n_sub + (1:n), 2*n, replace = TRUE)){
+    ## Randomly ask for the seed again
+    redo_index <- sort(sample(1:(n-1), 1000))
+    for(index in redo_index){
         current <- generator(index)
         checkIdentical(seeds[[index]], current)
     }
