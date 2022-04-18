@@ -58,7 +58,7 @@ setGeneric(
 
 setGeneric(
     ".manager_send",
-    function(manager, value) standardGeneric(".manager_send"),
+    function(manager, value, ...) standardGeneric(".manager_send"),
     signature = "manager"
 )
 
@@ -189,7 +189,7 @@ setMethod(".manager", "ANY", .manager_ANY)
 
 setMethod(
     ".manager_send", "ANY",
-    function(manager, value)
+    function(manager, value, ...)
 {
     availability <- manager$availability
     stopifnot(length(availability) >=0)

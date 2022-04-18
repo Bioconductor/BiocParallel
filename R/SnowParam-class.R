@@ -429,7 +429,7 @@ setMethod(
 
 setMethod(
     ".manager_send", "SOCKmanager",
-    function(manager, value)
+    function(manager, value, ...)
 {
     availability <- manager$availability
     stopifnot(length(availability) >= 0L)
