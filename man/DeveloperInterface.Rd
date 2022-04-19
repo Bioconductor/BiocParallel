@@ -94,7 +94,7 @@
 
 ## task manager interface(optional)
 .manager(BPPARAM)
-.manager_send(manager, value)
+.manager_send(manager, value, ...)
 .manager_recv(manager)
 .manager_send_all(manager, value)
 .manager_recv_all(manager)
@@ -171,6 +171,8 @@
 
     For \code{.bplapply_impl()}, \code{.bpiterate_impl()}, additional
     arguments to \code{FUN()}; see \code{bplapply} and \code{bpiterate}.
+
+    For \code{.manager_send()}, this is a placeholder for the future development.
 
   }
 
