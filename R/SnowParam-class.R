@@ -262,10 +262,10 @@ setMethod("bpstart", "SnowParam",
 
     ## FORK (useRscript not relevant)
     if (x$.clusterargs$type == "FORK") {
-        socket_timeout <- getOption("timeout")
+        socket_timeout <- as.integer(getOption("timeout"))
         socket_timeout_is_valid <-
             length(socket_timeout) == 1L && !is.na(socket_timeout) &&
-            is.integer(socket_timeout) && socket_timeout > 0L
+            socket_timeout > 0L
         if (!socket_timeout_is_valid)
             stop("'getOption(\"timeout\")' must be positive integer(1)")
         bpbackend(x) <- .bpfork(nnodes, .hostname(x), .port(x), socket_timeout)
