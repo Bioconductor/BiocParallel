@@ -310,6 +310,7 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "NULL"),
     function(x, value)
 {
     x$RNGseed <- NULL
+    .RNGstream(x) <- NULL
     validObject(x)
     x
 })
@@ -318,6 +319,7 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
     function(x, value)
 {
     x$RNGseed <- as.integer(value)
+    .RNGstream(x) <- NULL
     validObject(x)
     x
 })
@@ -325,6 +327,8 @@ setReplaceMethod("bpRNGseed", c("BiocParallelParam", "numeric"),
 .RNGstream <-
     function(x)
 {
+    if (length(x$RNGstream) == 0)
+        .RNGstream(x) <- .rng_init_stream(bpRNGseed(x))
     x$RNGstream
 }
 
