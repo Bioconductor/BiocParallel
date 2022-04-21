@@ -25,20 +25,25 @@
 \alias{.manager}
 \alias{.manager,ANY-method}
 \alias{.manager,SnowParam-method}
+\alias{.manager,DoparParam-method}
 \alias{.manager,TransientMulticoreParam-method}
 \alias{.manager_send}
 \alias{.manager_send,ANY-method}
 \alias{.manager_send,TaskManager-method}
 \alias{.manager_send,SOCKmanager-method}
+\alias{.manager_send,DoparParamManager-method}
 \alias{.manager_recv}
 \alias{.manager_recv,ANY-method}
 \alias{.manager_recv,TaskManager-method}
+\alias{.manager_recv,DoparParamManager-method}
 \alias{.manager_send_all}
 \alias{.manager_send_all,ANY-method}
 \alias{.manager_send_all,TaskManager-method}
+\alias{.manager_send_all,DoparParamManager-method}
 \alias{.manager_recv_all}
 \alias{.manager_recv_all,ANY-method}
 \alias{.manager_recv_all,TaskManager-method}
+\alias{.manager_recv_all,DoparParamManager-method}
 \alias{.manager_flush}
 \alias{.manager_flush,ANY-method}
 \alias{.manager_flush,TaskManager-method}
@@ -49,6 +54,7 @@
 \alias{.manager_capacity}
 \alias{.manager_capacity,ANY-method}
 \alias{.manager_capacity,TaskManager-method}
+\alias{.manager_capacity,DoparParamManager-method}
 
 \alias{.bpstart_impl}
 \alias{.bpstop_impl}
