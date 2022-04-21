@@ -8,6 +8,8 @@
     data_list <- .manager_recv(manager)
     success <- rep(TRUE, length(data_list))
     for(i in seq_along(data_list)){
+        ## each result is a list containing the element value passed
+        ## in `.send` and possibly other elements used by the backend
         d <- data_list[[i]]
 
         value <- d$value$value
