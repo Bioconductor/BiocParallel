@@ -401,3 +401,46 @@ test_rng_fallback_SerialParam <- function()
     checkIdentical(bplapply(1, FUN, BPPARAM = param2)[[1]], target[2])
     bpstop(param2)
 }
+
+test_rng_reproducibility_across_versions <- function()
+{
+    p <- SerialParam(RNGseed = 123)
+    bptasks(p) <- 3
+    ## This number should NEVER change across version
+    res0 <- list(14L, 14L, 6L, 17L, 20L,
+                 5L, 16L, 1L, 4L, 16L,
+                 4L, 20L, 20L, 3L, 3L,
+                 17L, 11L, 19L, 1L, 3L)
+
+    fun <- function(x) sample(1:20, 1)
+
+    res1 <- bplapply(1:20, fun, BPPARAM = p)
+    checkIdentical(res1, res0)
+
+    iter_factory <- function(n){
+        i <- 0L
+        function() if(i<n) i <<- i + 1L
+    }
+    res2 <- bpiterate(iter_factory(20), fun, BPPARAM = p)
+    checkIdentical(res2, res0)
+}
+
+
+test_rng_reset_seed <- function()
+{
+    ## the seed stream must be the same
+    ## if the seed is set to the same value
+    ## no matter if the BPPARAM has been started or not
+    p <- SerialParam()
+    bpstart(p)
+
+    opts <- bpoptions(RNGseed = 123)
+    res1 <- bplapply(1:3, function(x) runif(1),
+                     BPPARAM = p,
+                     BPOPTIONS = opts)
+
+    res2 <- bplapply(1:3, function(x) runif(1),
+                     BPPARAM = p,
+                     BPOPTIONS = opts)
+    checkIdentical(res1, res2)
+}
