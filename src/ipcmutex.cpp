@@ -2,6 +2,7 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "cpp11.hpp"
 
 static boost::uuids::random_generator uuid_generator;
 
@@ -21,7 +22,7 @@ class IpcMutex
 protected:
 
     managed_shared_memory *shm;
-    
+
 private:
 
     interprocess_mutex *mtx;
@@ -70,7 +71,7 @@ private:
     int *i;
 
 public:
-    
+
     IpcCounter(const char *id) : IpcMutex(id) {
         i = shm->find_or_construct<int>("i")();
     }
@@ -102,125 +103,82 @@ public:
 
 // internal
 
-const char *ipc_id(SEXP id_sexp)
+const char *ipc_id(cpp11::strings id)
 {
-    bool test =
-        IS_SCALAR(id_sexp, STRSXP) && (R_NaString != STRING_ELT(id_sexp, 0));
-    if (!test)
+    if (id.size() != 1 || cpp11::is_na(id[0]) )
         Rf_error("'id' must be character(1) and not NA");
-    return CHAR(STRING_ELT(id_sexp, 0));
-}
-
-int ipc_n(SEXP n_sexp)
-{
-    PROTECT(n_sexp = Rf_coerceVector(n_sexp, INTSXP));
-    bool test = IS_SCALAR(n_sexp, INTSXP) && (R_NaInt != Rf_asInteger(n_sexp));
-    if (!test)
-        Rf_error("'n' cannot be coerced to integer(1) and not NA");
-    int n = INTEGER(n_sexp)[0];
-    UNPROTECT(1);
-    return n;
+    return CHAR(static_cast<SEXP>(id[0]));
 }
 
 // utilities
-
-SEXP ipc_remove(SEXP id_sexp) {
+[[cpp11::register]]
+bool cpp_ipc_remove(cpp11::strings id_sexp) {
     const char *id = ipc_id(id_sexp);
     bool status = shared_memory_object::remove(id);
-    return Rf_ScalarLogical(status);
+    return status;
 }
 
 // uuid
-
-SEXP ipc_uuid()
+[[cpp11::register]]
+cpp11::r_string cpp_ipc_uuid()
 {
     std::string uuid = uuid_generate();
-    return Rf_mkString(uuid.c_str());
+    return cpp11::r_string(uuid);
 }
 
 // mutex
-
-SEXP ipc_locked(SEXP id_sexp)
+[[cpp11::register]]
+bool cpp_ipc_locked(cpp11::strings id_sexp)
 {
     IpcMutex mutex = IpcMutex(ipc_id(id_sexp));
     bool status = mutex.is_locked();
-    return Rf_ScalarLogical(status);
+    return status;
 }
 
-SEXP ipc_lock(SEXP id_sexp)
+[[cpp11::register]]
+bool cpp_ipc_lock(cpp11::strings id_sexp)
 {
     IpcMutex mutex = IpcMutex(ipc_id(id_sexp));
     mutex.lock();
-    return Rf_ScalarLogical(true);
+    return true;
 }
 
-SEXP ipc_try_lock(SEXP id_sexp)
+[[cpp11::register]]
+bool cpp_ipc_try_lock(cpp11::strings id_sexp)
 {
     IpcMutex mutex = IpcMutex(ipc_id(id_sexp));
     bool status = mutex.try_lock();
-    return Rf_ScalarLogical(status);
+    return status;
 }
 
-SEXP ipc_unlock(SEXP id_sexp)
+[[cpp11::register]]
+bool cpp_ipc_unlock(cpp11::strings id_sexp)
 {
     IpcMutex mutex = IpcMutex(ipc_id(id_sexp));
     bool status = mutex.unlock();
-    return Rf_ScalarLogical(status);
+    return status;
 }
 
 // count
-
-SEXP ipc_value(SEXP id_sexp)
+[[cpp11::register]]
+int cpp_ipc_value(cpp11::strings id_sexp)
 {
     IpcCounter cnt = IpcCounter(ipc_id(id_sexp));
-    return Rf_ScalarInteger(cnt.value());
+    return cnt.value();
 }
 
-SEXP ipc_reset(SEXP id_sexp, SEXP n_sexp)
+[[cpp11::register]]
+int cpp_ipc_reset(cpp11::strings id_sexp, int n)
 {
     IpcCounter cnt = IpcCounter(ipc_id(id_sexp));
-    int n = ipc_n(n_sexp);
-    return Rf_ScalarInteger(cnt.reset(n));
+    if (cpp11::is_na(n))
+        Rf_error("'n' must not be NA");
+    return cnt.reset(n);
 }
 
-SEXP ipc_yield(SEXP id_sexp)
+[[cpp11::register]]
+int cpp_ipc_yield(cpp11::strings id_sexp)
 {
     IpcCounter cnt = IpcCounter(ipc_id(id_sexp));
-    return Rf_ScalarInteger(cnt.yield());
-}
-
-// expose to R
-
-#include <R_ext/Rdynload.h>
-
-extern "C" {
-
-    static const R_CallMethodDef callMethods[] = {
-        // uuid
-        {".ipc_uuid", (DL_FUNC) & ipc_uuid, 0},
-        // lock
-        {".ipc_lock", (DL_FUNC) & ipc_lock, 1},
-        {".ipc_try_lock", (DL_FUNC) & ipc_try_lock, 1},
-        {".ipc_unlock", (DL_FUNC) & ipc_unlock, 1},
-        {".ipc_locked", (DL_FUNC) & ipc_locked, 1},
-        // counter
-        {".ipc_yield", (DL_FUNC) & ipc_yield, 1},
-        {".ipc_value", (DL_FUNC) & ipc_value, 1},
-        {".ipc_reset", (DL_FUNC) & ipc_reset, 2},
-        // cleanup
-        {".ipc_remove", (DL_FUNC) & ipc_remove, 1},
-        {NULL, NULL, 0}
-    };
-
-    void R_init_BiocParallel(DllInfo *info)
-    {
-        R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-        R_useDynamicSymbols(info, FALSE);
-    }
-
-    void R_unload_BiocParallel(DllInfo *info)
-    {
-        (void) info;
-    }
-
+    return cnt.yield();
 }
