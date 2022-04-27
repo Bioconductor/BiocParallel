@@ -22,7 +22,7 @@ biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
 Depends: methods, R (>= 3.5.0)
-Imports: stats, utils, futile.logger, parallel, snow
+Imports: stats, utils, futile.logger, parallel, snow, cpp11
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, doParallel,
     Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,
@@ -40,6 +40,7 @@ Collate: AllGenerics.R DeveloperInterface.R prototype.R
     SerialParam-class.R DoparParam-class.R SnowParam-utils.R
     BatchJobsParam-class.R BatchtoolsParam-class.R
     progress.R ipcmutex.R utilities.R rng.R bpinit.R reducer.R worker.R
-    bpoptions.R
-LinkingTo: BH
+    bpoptions.R cpp11.R
+LinkingTo: BH, cpp11
 VignetteBuilder: knitr
+RoxygenNote: 7.1.2
