@@ -27,7 +27,7 @@
 \usage{
 BatchJobsParam(workers = NA_integer_, cleanup = TRUE,
     work.dir = getwd(), stop.on.error = TRUE, seed = NULL,
-    resources = NULL, conffile = NULL, cluster.functions = NULL, 
+    resources = NULL, conffile = NULL, cluster.functions = NULL,
     progressbar = TRUE, jobname = "BPJOB", timeout =
     WORKER_TIMEOUT, reg.pars=list(seed=seed, work.dir=work.dir),
     conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
@@ -114,7 +114,7 @@ BatchJobsParam(workers = NA_integer_, cleanup = TRUE,
        present, user-supplied argument \code{resources} to
        \code{BatchJobsParam} is ignored. \code{submitJobs} parameters
        \code{reg}, \code{id} cannot be set.
-   
+
     \item{\dots}{Addition arguments, currently not handled.}
 }
 
@@ -146,10 +146,10 @@ BatchJobsParam(workers = NA_integer_, cleanup = TRUE,
 }
 
 \examples{
+\dontrun{
 p <- BatchJobsParam(progressbar=FALSE)
 bplapply(1:10, sqrt, BPPARAM=p)
 
-\dontrun{
 ## see vignette for additional explanation
 funs <- makeClusterFunctionsSLURM("~/slurm.tmpl")
 param <- BatchJobsParam(4, cluster.functions=funs)
