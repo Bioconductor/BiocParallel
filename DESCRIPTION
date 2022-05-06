@@ -22,7 +22,7 @@ biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
 Depends: methods, R (>= 3.5.0)
-Imports: stats, utils, futile.logger, parallel, snow, cpp11
+Imports: stats, utils, futile.logger, parallel, snow
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, doParallel,
     Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,

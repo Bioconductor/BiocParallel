@@ -9,6 +9,12 @@ BUG FIXES
     o (v 1.31.1) coerce timeout to integer (typically from numeric)
     https://github.com/Bioconductor/BiocParallel/issues/200
 
+    o (v 1.31.2) avoid segfault when ipcmutex() functions generate C++
+    errors. This occurs very rarely, for instance when the directly
+    used by boost for file locking (under /tmp) was created by another
+    user.
+    https://github.com/Bioconductor/BiocParallel/pull/202
+
 CHANGES IN VERSION 1.30
 -----------------------
 
