@@ -10,10 +10,14 @@ BUG FIXES
     https://github.com/Bioconductor/BiocParallel/issues/200
 
     o (v 1.31.2) avoid segfault when ipcmutex() functions generate C++
-    errors. This occurs very rarely, for instance when the directly
+    errors. This occurs very rarely, for instance when the directory
     used by boost for file locking (under /tmp) was created by another
     user.
     https://github.com/Bioconductor/BiocParallel/pull/202
+
+    o (v 1.31.2) resetting bpRNGseed() after bpstart() is reproducible
+    https://github.com/Bioconductor/BiocParallel/pull/204
+
 
 CHANGES IN VERSION 1.30
 -----------------------
