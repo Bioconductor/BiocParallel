@@ -48,6 +48,9 @@ BUG FIXES
     o (v 1.30.1) coerce timeout to integer (typically from numeric)
     https://github.com/Bioconductor/BiocParallel/issues/200
 
+    o (v 1.30.2) resetting bpRNGseed() after bpstart() is reproducible
+    https://github.com/Bioconductor/BiocParallel/pull/204
+
 CHANGES IN VERSION 1.28
 -----------------------
 
