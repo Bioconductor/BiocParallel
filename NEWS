@@ -1,6 +1,10 @@
 CHANGES IN VERSION 1.32
 -----------------------
 
+USER VISIBLE CHANGES
+
+    o (v 1.31.3) Deprecate BatchJobsParam in favor of BatchtoolsParam
+
 BUG FIXES
 
     o (v 1.31.1) suppress package startup messages on workers
