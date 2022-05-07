@@ -41,7 +41,7 @@ BatchJobsParam <-
         conf.pars=list(conffile=conffile, cluster.functions=cluster.functions),
         submit.pars=list(resources=resources), ...)
 {
-    .Deprecated("Batchtoolsparam")
+    .Deprecated("BatchtoolsParam")
     if (!requireNamespace("BatchJobs", quietly=TRUE))
         stop("BatchJobsParam() requires the 'BatchJobs' package")
 
