@@ -113,6 +113,7 @@
 .workerOptions <-
     function(
         log = FALSE,
+        threshold = "INFO",
         stop.on.error = TRUE,
         as.error = TRUE,        # FALSE for BatchJobs compatible
         timeout = WORKER_TIMEOUT,
@@ -120,6 +121,7 @@
         force.GC = FALSE)
 {
     force(log)
+    force(threshold)
     force(stop.on.error)
     force(as.error)
     force(timeout)
@@ -142,6 +144,7 @@
 
     list(
         log = log,
+        threshold = threshold,
         stop.on.error = stop.on.error,
         as.error = as.error,
         timeout = timeout,
@@ -185,7 +188,6 @@
 
     function(...) {
         if (!identical(timeout, WORKER_TIMEOUT)) {
-            message("setting timeout ", timeout)
             setTimeLimit(timeout, timeout, TRUE)
             on.exit(setTimeLimit(Inf, Inf, FALSE))
         }
@@ -224,6 +226,7 @@
 {
     state <- .rng_get_generator()
     on.exit(.rng_reset_generator(state$kind, state$seed))
+
     ## FUN is not compiled when using MulticoreParam
     FUN <- compiler::cmpfun(FUN)
 
@@ -231,6 +234,9 @@
         oldOptions <- base::options()
         on.exit(base::options(oldOptions), add = TRUE)
     }
+
+    ## Set log
+    .log_load(OPTIONS$log, OPTIONS$threshold)
 
     for (pkg in PACKAGES) {
         suppressPackageStartupMessages(library(pkg, character.only = TRUE))
@@ -292,6 +298,8 @@
 
     success <- !(inherits(value, "bperror") || !all(bpok(value)))
     log <- .log_buffer_get()
+    ## Reset the log buffer
+    .log_buffer_init()
 
     value <- .VALUE(
         msg$data$tag, value, success, t2 - t1, log, sout
