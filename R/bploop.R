@@ -203,9 +203,11 @@
 
     ## worker options
     OPTIONS <- .workerOptions(
-        bplog(BPPARAM), bpstopOnError(BPPARAM),
-        timeout=bptimeout(BPPARAM),
-        exportglobals=bpexportglobals(BPPARAM),
+        log = bplog(BPPARAM),
+        threshold = bpthreshold(BPPARAM),
+        stop.on.error = bpstopOnError(BPPARAM),
+        timeout = bptimeout(BPPARAM),
+        exportglobals = bpexportglobals(BPPARAM),
         force.GC = bpforceGC(BPPARAM)
     )
 

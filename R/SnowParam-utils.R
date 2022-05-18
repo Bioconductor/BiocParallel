@@ -79,39 +79,6 @@ bprunMPIworker <- function() {
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### logs and results
-###
-
-.bpwriteLog <- function(con, d) {
-    .log_internal <- function() {
-        message(
-            "############### LOG OUTPUT ###############\n",
-            "Task: ", d$value$tag,
-            "\nNode: ", d$node,
-            "\nTimestamp: ", Sys.time(),
-            "\nSuccess: ", d$value$success,
-            "\n\nTask duration:\n",
-            paste(capture.output(d$value$time), collapse="\n"),
-            "\n\nMemory used:\n", paste(capture.output(gc()), collapse="\n"),
-            "\n\nLog messages:\n",
-            paste(trimws(d$value$log), collapse="\n"),
-            "\n\nstderr and stdout:\n",
-            if (!is.null(d$value$sout))
-                paste(noquote(d$value$sout), collapse="\n")
-        )
-    }
-    if (!is.null(con)) {
-        on.exit({
-            sink(NULL, type = "message")
-            sink(NULL, type = "output")
-        })
-        sink(con, type = "message")
-        sink(con, type = "output")
-        .log_internal()
-    } else .log_internal()
-}
-
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### EXEC command cache
 ###
 
