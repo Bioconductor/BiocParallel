@@ -1,3 +1,5 @@
+message("Testing rng")
+
 test_rng_lapply <- function()
 {
     .rng_get_generator <- BiocParallel:::.rng_get_generator

@@ -1,3 +1,5 @@
+message("Testing logging")
+
 ## This code tests 'log' and 'progressbar'. test_errorhandling.R
 ## tests 'stop.on.error'
 
@@ -22,7 +24,6 @@ test_log <- function()
         msg <- "non-numeric argument to mathematical function"
         checkIdentical(conditionMessage(result[[2]]), msg)
         checkTrue(length(attr(result[[2]], "traceback")) > 0L)
-        closeAllConnections()
     }
 
     ## clean up

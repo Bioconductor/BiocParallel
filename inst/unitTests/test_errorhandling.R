@@ -1,3 +1,5 @@
+message("Testing errorhandling")
+
 ## NOTE: On Windows, MulticoreParam() throws a warning and instantiates
 ##       a single FORK worker using scripts from parallel. No logging or
 ##       error catching is implemented.
@@ -57,7 +59,7 @@ test_SerialParam_stop.on.error <- function()
     target <- tryCatch(lapply(X, sqrt), error=identity)
     checkIdentical(
         conditionMessage(target),
-        conditionMessage(attr(current, "result")[[2]])
+        conditionMessage(bpresult(current)[[2]])
     )
 
     result <- bptry(bplapply(X, sqrt, BPPARAM=p)) # issue #142
@@ -68,7 +70,7 @@ test_SerialParam_stop.on.error <- function()
     checkException(bplapply(X, sqrt, BPPARAM=p), silent=TRUE)
     current <- tryCatch(bplapply(X, sqrt, BPPARAM=p), error=identity)
     checkTrue(is(current, "bplist_error"))
-    result <- attr(current, "result")
+    result <- bpresult(current)
     checkIdentical(c(TRUE, FALSE, TRUE), bpok(result))
     checkTrue(is(result[[2]], "remote_error"))
     checkIdentical(list(sqrt(1), sqrt(3)), result[bpok(result)])
@@ -88,135 +90,122 @@ test_stop.on.error <- function() {
 
 test_catching_errors <- function()
 {
-    if (.Platform$OS.type != "windows") {
-        x <- 1:10
-        y <- rev(x)
-        f <- function(x, y) if (x > y) stop("whooops") else x + y
+    x <- 1:10
+    y <- rev(x)
+    f <- function(x, y) if (x > y) stop("whooops") else x + y
 
-        doParallel::registerDoParallel(2)
-        params <- list(
-            mc = MulticoreParam(2, stop.on.error=FALSE),
-            snow=SnowParam(2, stop.on.error=FALSE),
-            dopar=DoparParam(stop.on.error=FALSE),
-            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
+    cl <- parallel::makeCluster(2)
+    doParallel::registerDoParallel(cl)
+    params <- list(
+               snow=SnowParam(2, stop.on.error = FALSE),
+               dopar=DoparParam(stop.on.error = FALSE),
+               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
+               )
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 
-        for (param in params) {
-            res <- tryCatch({
-                bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
-            }, error=identity)
-            checkTrue(is(res, "bplist_error"))
-            result <- attr(res, "result")
-            checkTrue(length(result) == 3L)
-            msg <- "non-numeric argument to mathematical function"
-            checkIdentical(conditionMessage(result[[2]]), msg)
-            closeAllConnections()
-        }
+    for (param in params) {
+        res <- tryCatch({
+            bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
+        }, error=identity)
+        checkTrue(is(res, "bplist_error"))
+        result <- bpresult(res)
+        checkTrue(length(result) == 3L)
+        msg <- "non-numeric argument to mathematical function"
+        checkIdentical(conditionMessage(result[[2]]), msg)
+    }
 
-        ## clean up
-        env <- foreach:::.foreachGlobals
-        rm(list=ls(name=env), pos=env)
-        closeAllConnections()
-        TRUE
-    } else TRUE
+    ## clean up
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+    closeAllConnections()
 }
 
 test_BPREDO <- function()
 {
-    if (.Platform$OS.type != "windows") {
-        f = sqrt
-        x = list(1, "2", 3)
-        x.fix = list(1, 2, 3)
+    f = sqrt
+    x = list(1, "2", 3)
+    x.fix = list(1, 2, 3)
 
-        doParallel::registerDoParallel(2)
-        params <- list(
-            mc = MulticoreParam(2, stop.on.error=FALSE),
-            snow=SnowParam(2, stop.on.error=FALSE),
-            dopar=DoparParam(stop.on.error=FALSE),
-            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
+    cl <- parallel::makeCluster(2)
+    doParallel::registerDoParallel(cl)
+    params <- list(
+               snow=SnowParam(2, stop.on.error = FALSE),
+               dopar=DoparParam(stop.on.error = FALSE),
+               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
+               )
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 
-        for (param in params) {
-            res <- tryCatch({
-                bplapply(x, f, BPPARAM=param)
-            }, error=identity)
-            checkTrue(is(res, "bplist_error"))
-            result <- attr(res, "result")
-            checkIdentical(3L, length(result))
-            checkTrue(inherits(result[[2]], "remote_error"))
-            closeAllConnections()
-            Sys.sleep(0.25)
+    for (param in params) {
+        res <- tryCatch({
+            bplapply(x, f, BPPARAM=param)
+        }, error=identity)
+        checkTrue(is(res, "bplist_error"))
+        result <- bpresult(res)
+        checkIdentical(3L, length(result))
+        checkTrue(inherits(result[[2]], "remote_error"))
 
-            ## data not fixed
-            res2 <- tryCatch({
-                bplapply(x, f, BPPARAM=param, BPREDO=res)
-            }, error=identity)
-            checkTrue(is(res2, "bplist_error"))
-            result <- attr(res2, "result")
-            checkIdentical(3L, length(result))
-            checkTrue(is(result[[2]], "remote_error"))
-            checkIdentical(as.list(sqrt(c(1, 3))), result[c(1, 3)])
-            closeAllConnections()
-            Sys.sleep(0.25)
+        ## data not fixed
+        res2 <- tryCatch({
+            bplapply(x, f, BPPARAM=param, BPREDO=res)
+        }, error=identity)
+        checkTrue(is(res2, "bplist_error"))
+        result <- bpresult(res2)
+        checkIdentical(3L, length(result))
+        checkTrue(is(result[[2]], "remote_error"))
+        checkIdentical(as.list(sqrt(c(1, 3))), result[c(1, 3)])
 
-            ## data fixed
-            res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=res2)
-            checkIdentical(as.list(sqrt(1:3)), res3)
-            closeAllConnections()
-            Sys.sleep(0.25)
-        }
-
-        ## clean up
-        env <- foreach:::.foreachGlobals
-        rm(list=ls(name=env), pos=env)
-        closeAllConnections()
+        ## data fixed
+        res3 <- bplapply(x.fix, f, BPPARAM=param, BPREDO=res2)
+        checkIdentical(as.list(sqrt(1:3)), res3)
     }
-    TRUE
+
+    ## clean up
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+    closeAllConnections()
 }
 
 test_bpvec_BPREDO <- function()
 {
-    if (.Platform$OS.type != "windows") {
-        f = function(i) if (6 %in% i) stop() else sqrt(i)
-        x = 1:10
+    f = function(i) if (6 %in% i) stop() else sqrt(i)
+    x = 1:10
 
-        doParallel::registerDoParallel(2)
-        params <- list(
-            mc = MulticoreParam(2, stop.on.error=FALSE),
-            snow=SnowParam(2, stop.on.error=FALSE),
-            dopar=DoparParam(stop.on.error=FALSE),
-            batchjobs=BatchJobsParam(2, progressbar=FALSE, stop.on.error=FALSE))
+    cl <- parallel::makeCluster(2)
+    doParallel::registerDoParallel(cl)
+    params <- list(
+               snow=SnowParam(2, stop.on.error = FALSE),
+               dopar=DoparParam(stop.on.error = FALSE),
+               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
+               )
+    if (.Platform$OS.type != "windows")
+        params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 
-        for (param in params) {
-            res <- bptry(bpvec(x, f, BPPARAM=param), bplist_error=identity)
-            checkTrue(is(res, "bplist_error"))
-            result <- attr(res, "result")
-            checkIdentical(2L, length(result))
-            checkTrue(inherits(result[[2]], "condition"))
-            closeAllConnections()
-            Sys.sleep(0.25)
+    for (param in params) {
+        res <- bptry(bpvec(x, f, BPPARAM=param), bplist_error=identity)
+        checkTrue(is(res, "bplist_error"))
+        result <- bpresult(res)
+        checkIdentical(2L, length(result))
+        checkTrue(inherits(result[[2]], "condition"))
 
-            ## data not fixed
-            res2 <- bptry(bpvec(x, f, BPPARAM=param, BPREDO=res),
-                          bplist_error=identity)
-            checkTrue(is(res2, "bplist_error"))
-            result <- attr(res2, "result")
-            checkIdentical(2L, length(result))
-            checkTrue(is(result[[2]], "remote_error"))
-            closeAllConnections()
-            Sys.sleep(0.25)
+        ## data not fixed
+        res2 <- bptry(bpvec(x, f, BPPARAM=param, BPREDO=res),
+                      bplist_error=identity)
+        checkTrue(is(res2, "bplist_error"))
+        result <- bpresult(res2)
+        checkIdentical(2L, length(result))
+        checkTrue(is(result[[2]], "remote_error"))
 
-            ## data fixed
-            res3 <- bpvec(x, sqrt, BPPARAM=param, BPREDO=res2)
-            checkIdentical(sqrt(x), res3)
-            closeAllConnections()
-            Sys.sleep(0.25)
-        }
-
-        ## clean up
-        env <- foreach:::.foreachGlobals
-        rm(list=ls(name=env), pos=env)
-        closeAllConnections()
+        ## data fixed
+        res3 <- bpvec(x, sqrt, BPPARAM=param, BPREDO=res2)
+        checkIdentical(sqrt(x), res3)
     }
-    TRUE
+
+    ## clean up
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
+    closeAllConnections()
 }
 
 test_bpiterate_BPREDO <- function()

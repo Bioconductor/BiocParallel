@@ -1,3 +1,5 @@
+message("Testing BatchtoolsParam")
+
 .old_options <- NULL
 
 .setUp <- function()

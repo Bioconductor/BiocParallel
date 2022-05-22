@@ -1,3 +1,5 @@
+message("Testing DoparParam")
+
 test_DoparParam_orchestration_error <- function() {
     test <-
         requireNamespace("foreach", quietly = TRUE) &&

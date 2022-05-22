@@ -1,3 +1,5 @@
+message("Testing refclass")
+
 test_SnowParam_refclass <- function()
 {
     p <- SnowParam(2)

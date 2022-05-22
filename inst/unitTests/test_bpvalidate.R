@@ -1,3 +1,5 @@
+message("Testing bpvalidate")
+
 BPValidate <- BiocParallel:::BPValidate
 
 test_bpvalidate_basic_ok <- function()

@@ -1,6 +1,9 @@
+message("Testing bpvec")
+
 test_bpvec_Params <- function()
 {
-    doParallel::registerDoParallel(2)
+    cl <- parallel::makeCluster(2)
+    doParallel::registerDoParallel(cl)
     params <- list(serial=SerialParam(),
                    snow=SnowParam(2),
                    batchjobs=BatchJobsParam(2, progressbar=FALSE),
@@ -8,7 +11,7 @@ test_bpvec_Params <- function()
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
-    x <- rev(1:10) 
+    x <- rev(1:10)
     expected <- sqrt(x)
     for (param in names(params)) {
         current <- bpvec(x, sqrt, BPPARAM=params[[param]])
@@ -16,8 +19,8 @@ test_bpvec_Params <- function()
     }
 
     ## clean up
-    env <- foreach:::.foreachGlobals
-    rm(list=ls(name=env), pos=env)
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
     closeAllConnections()
     TRUE
 }
