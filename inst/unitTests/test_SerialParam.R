@@ -1,3 +1,5 @@
+message("Testing SerialParam")
+
 test_SerialParam_bpnworkers <- function() {
     checkIdentical(1L, bpnworkers(SerialParam()))
     checkIdentical(1L, bpnworkers(bpstart(SerialParam())))

@@ -1,3 +1,5 @@
+message("Testing BiocParallelParam")
+
 test_BiocParallelParam <-
     function()
 {

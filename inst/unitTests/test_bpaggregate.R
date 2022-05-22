@@ -1,3 +1,5 @@
+message("Testing bpaggregate")
+
 test_bpaggregate <- 
     function() 
 {

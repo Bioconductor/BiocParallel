@@ -1,3 +1,5 @@
+message("Testing bpexportglobals")
+
 test_bpexportglobals_params <- function()
 {
     ## Multicore

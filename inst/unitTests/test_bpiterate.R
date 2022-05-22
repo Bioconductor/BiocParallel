@@ -1,3 +1,5 @@
+message("Testing bpiterate")
+
 quiet <- suppressWarnings
 
 .lazyCount <- function(count) {
@@ -42,7 +44,8 @@ test_bpiterate_Params <- function()
         checkIdentical(expected, res)
     }
 
-    doParallel::registerDoParallel(2)
+    cl <- parallel::makeCluster(2)
+    doParallel::registerDoParallel(cl)
     params <- list(dopar=DoparParam(),
                    batchjobs=BatchJobsParam(2, progressbar=FALSE))
     for (p in params) {
@@ -51,8 +54,8 @@ test_bpiterate_Params <- function()
     }
 
     ## clean up
-    env <- foreach:::.foreachGlobals
-    rm(list=ls(name=env), pos=env)
+    foreach::registerDoSEQ()
+    parallel::stopCluster(cl)
     closeAllConnections()
     TRUE
 }

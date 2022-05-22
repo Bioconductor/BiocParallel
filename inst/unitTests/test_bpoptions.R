@@ -1,3 +1,5 @@
+message("Testing bpoptions")
+
 .checkMessage <- function(x) {
     message <- character()
     result <- withCallingHandlers(x, message = function(condition) {

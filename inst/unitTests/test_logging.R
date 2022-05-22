@@ -1,3 +1,5 @@
+message("Testing logging")
+
 ## This code tests 'log' and 'progressbar'. test_errorhandling.R
 ## tests 'stop.on.error'
 
@@ -17,12 +19,11 @@ test_log <- function()
             bplapply(list(1, "2", 3), sqrt, BPPARAM=param)
         }, error=identity))
         checkTrue(is(res, "bplist_error"))
-        result <- attr(res, "result")
+        result <- bpresult(res)
         checkTrue(length(result) == 3L)
         msg <- "non-numeric argument to mathematical function"
         checkIdentical(conditionMessage(result[[2]]), msg)
         checkTrue(length(attr(result[[2]], "traceback")) > 0L)
-        closeAllConnections()
     }
 
     ## clean up

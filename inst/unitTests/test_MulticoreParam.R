@@ -1,3 +1,5 @@
+message("Testing MulticoreParam")
+
 test_MulticoreParam_progressbar <- function()
 {
     if (.Platform$OS.type == "windows")

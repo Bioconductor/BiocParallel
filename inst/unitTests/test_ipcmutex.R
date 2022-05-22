@@ -1,3 +1,5 @@
+message("Testing ipcmutex")
+
 test_ipclock <- function()
 {
     id <- ipcid()

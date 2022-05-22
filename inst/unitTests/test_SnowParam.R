@@ -1,3 +1,5 @@
+message("Testing SnowParam")
+
 test_SnowParam_construction <- function()
 {
     checkException(SnowParam(logdir = tempdir()))
@@ -199,6 +201,3 @@ test_SnowParam_fallback <- function(){
     res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
     checkTrue(res != Sys.getpid())
 }
-
-
-
