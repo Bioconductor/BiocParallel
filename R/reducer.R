@@ -4,27 +4,24 @@
         result = "ANY",
         total = "numeric",
         reduced.num = "numeric",
-        reduced.index = "numeric",
-        value.cache = "environment",
-        redo.index = "numeric"
+        exists.error = "logical"
     )
 )
 
 .LapplyReducer <- setRefClass(
     "LapplyReducer",
-    fields = list(
-        exists.error = "logical"
-    ),
+    fields = list(),
     contains = "Reducer"
 )
 
 .IterateReducer <- setRefClass(
     "IterateReducer",
     fields = list(
-        REDUCE = "ANY",
+        last.reduced.index = "numeric",
+        value.cache = "environment",
         errors = "environment",
+        REDUCE = "ANY",
         reduce.in.order = "logical",
-        appending.offset = "numeric",
         init.missing = "logical",
         REDUCE.missing = "logical"
         ),
@@ -68,30 +65,25 @@ setMethod(".reducer_complete", signature = "Reducer",
 setMethod(".reducer_ok", signature = "Reducer",
     function(reducer)
 {
-    length(reducer$errors) == 0L
+    !reducer$exists.error
 })
 #########################
 ## LapplyReducer
 #########################
-.lapplyReducer <-
+.lapply_reducer <-
     function(ntotal, reducer = NULL)
 {
     if (is.null(reducer)) {
         result <- rep(list(.error_unevaluated()), ntotal)
-        redo.index <- seq_len(ntotal)
     } else {
         result <- reducer$result
-        redo.index <- which(!bpok(result))
-        ntotal <- length(redo.index)
+        ntotal <- sum(!bpok(result))
     }
 
     .LapplyReducer(
         result = result,
         total = ntotal,
-        reduced.index = 1L,
         reduced.num = 0L,
-        value.cache = new.env(parent = emptyenv()),
-        redo.index = redo.index,
         exists.error = FALSE
     )
 }
@@ -99,33 +91,12 @@ setMethod(".reducer_ok", signature = "Reducer",
 setMethod(".reducer_add", signature = "LapplyReducer",
     function(reducer, idx, values)
 {
-    reducer$value.cache[[as.character(idx)]] <- values
-
-    while (.reducer_reduce(reducer, reducer$reduced.index)) {}
+    reducer$result[idx] <- values
+    reducer$reduced.num <- reducer$reduced.num + length(idx)
 
     if(!all(bpok(values)))
         reducer$exists.error <- TRUE
-
     reducer
-})
-
-setMethod(".reducer_reduce", signature = "LapplyReducer",
-    function(reducer, idx)
-{
-    ## obtain the cached value
-    idx <- as.character(idx)
-    if (!exists(idx, envir = reducer$value.cache))
-        return(FALSE)
-    values <- reducer$value.cache[[idx]]
-    rm(list = idx, envir = reducer$value.cache)
-
-    ## Find the true index of the reduced value in the result
-    idx <- reducer$redo.index[reducer$reduced.num + 1L]
-    reducer$result[idx - 1L + seq_along(values)] <- values
-
-    reducer$reduced.index <- reducer$reduced.index + 1L
-    reducer$reduced.num <- reducer$reduced.num + length(values)
-    TRUE
 })
 
 setMethod(".reducer_value", signature = "LapplyReducer",
@@ -134,26 +105,20 @@ setMethod(".reducer_value", signature = "LapplyReducer",
     reducer$result
 })
 
-setMethod(".reducer_ok", signature = "LapplyReducer",
-    function(reducer)
-{
-    !reducer$exists.error
-})
-
 #########################
-## IterateReducer
+## iterate_reducer
 #########################
-.redo_index_iterate <-
+.iterate_error_index <-
     function(reducer)
 {
     if (is.null(reducer))
         return(integer())
-    finished_idx <- as.integer(names(reducer$value.cache))
+    finished_idx <- as.numeric(names(reducer$value.cache))
     missing_idx <- setdiff(seq_len(reducer$total), finished_idx)
-    c(missing_idx, as.integer(names(reducer$errors)))
+    sort(c(missing_idx, as.numeric(names(reducer$errors))))
 }
 
-.iterateReducer <-
+.iterate_reducer <-
     function(REDUCE, init, reduce.in.order=FALSE, reducer = NULL)
 {
     if (is.null(reducer)) {
@@ -174,20 +139,17 @@ setMethod(".reducer_ok", signature = "LapplyReducer",
             result = result,
             total = 0L,
             reduced.num = 0L,
-            reduced.index = 1L,
+            exists.error = FALSE,
+            last.reduced.index = 0L,
             value.cache = new.env(parent = emptyenv()),
-            redo.index = integer(),
-            REDUCE = REDUCE,
             errors = new.env(parent = emptyenv()),
+            REDUCE = REDUCE,
             reduce.in.order = reduce.in.order,
-            appending.offset = 0L,
             init.missing = init.missing,
             REDUCE.missing = REDUCE.missing
         )
     } else {
         reducer <- reducer$copy()
-        reducer$appending.offset <- reducer$total
-        reducer$redo.index <- .redo_index_iterate(reducer)
         reducer$value.cache <- as.environment(
             as.list(reducer$value.cache, all.names=TRUE)
             )
@@ -198,35 +160,27 @@ setMethod(".reducer_ok", signature = "LapplyReducer",
     }
 }
 
-setMethod(".map_index", signature = "IterateReducer",
-    function(reducer, idx)
-{
-    redo.index <- reducer$redo.index
-    if (idx <= length(redo.index))
-        idx <- redo.index[idx]
-    else
-        idx <- idx - length(redo.index) + reducer$appending.offset
-    idx
-})
-
 setMethod(".reducer_add", signature = "IterateReducer",
     function(reducer, idx, values)
 {
     reduce.in.order <- reducer$reduce.in.order
-    idx <- as.character(.map_index(reducer, idx))
+    idx <- as.character(idx)
     value <- values[[1]]
     if (.bpeltok(value)) {
-        if (exists(idx, envir = reducer$errors))
+        if (exists(idx, envir = reducer$errors)){
             rm(list = idx, envir = reducer$errors)
+            reducer$exists.error <- (length(reducer$errors) > 0L)
+        }
     } else {
-        reducer$errors[[idx]] <- idx
+        reducer$errors[[idx]] <- value
+        reducer$exists.error <- TRUE
     }
     reducer$value.cache[[idx]] <- value
 
     reducer$total <- max(reducer$total, as.numeric(idx))
 
     if (reduce.in.order)
-        while (.reducer_reduce(reducer, reducer$reduced.index)) {}
+        while (.reducer_reduce(reducer, reducer$last.reduced.index + 1L)) {}
     else
         .reducer_reduce(reducer, idx)
 
@@ -241,10 +195,10 @@ setMethod(".reducer_reduce", signature = "IterateReducer",
         return(FALSE)
     }
 
-    ## stop reducing when reduce.in.order == TRUE
-    ## and we have a pending error
+    ## Do not reduce when there is an error and reduce.in.order == TRUE
     if (!.reducer_ok(reducer) && reducer$reduce.in.order)
         return(FALSE)
+    ## The cached value is a list of length 1
     value <- reducer$value.cache[[idx]]
     ## Do not reduce the erroneous result
     if (!.bpeltok(value))
@@ -255,12 +209,12 @@ setMethod(".reducer_reduce", signature = "IterateReducer",
         } else {
             reducer$result <- reducer$REDUCE(reducer$result, value)
         }
-        ## DO NOT REMOVE, only set to NULL to keep track
-        ## of the finished results
+        ## DO NOT REMOVE the cache, only set it to NULL
+        ## this is used to keep track of the finished results
         reducer$value.cache[[idx]] <- NULL
     }
     reducer$reduced.num <- reducer$reduced.num + 1L
-    reducer$reduced.index <- reducer$reduced.index + 1L
+    reducer$last.reduced.index <- as.numeric(idx)
     TRUE
 })
 
@@ -271,9 +225,7 @@ setMethod(".reducer_value", signature = "IterateReducer",
     if (!reducer$REDUCE.missing) {
         res <- reducer$result
     } else {
-        ## remove the index of the meta elements and errors
-        idx <- names(value.cache)
-        idx <- setdiff(idx, names(reducer$errors))
+        idx <- setdiff(names(value.cache), names(reducer$errors))
         res <- rep(list(NULL), reducer$total)
         for (i in idx)
             res[[as.integer(i)]] <- value.cache[[i]]
@@ -282,14 +234,14 @@ setMethod(".reducer_value", signature = "IterateReducer",
     if (!.reducer_ok(reducer) || !.reducer_complete(reducer)) {
         ## cannot attach attribute to NULL
         if (is.null(res)) res <- list()
-        idx <- .redo_index_iterate(reducer)
-        errors <- rep(list(.error_unevaluated()), length(idx))
-        names(errors) <- as.character(idx)
-        for (i in names(reducer$errors))
-            errors[[i]] <- value.cache[[i]]
-        attr(res, "errors") <- errors
+
+        error_index <- .iterate_error_index(reducer)
+        all_errors <- rep(list(.error_unevaluated()), length(error_index))
+        names(all_errors) <- as.character(error_index)
+
+        non_missing_errors <- as.list(reducer$errors)
+        all_errors[names(non_missing_errors)] <- non_missing_errors
+        attr(res, ".bperrors") <- all_errors
     }
     res
 })
-
-

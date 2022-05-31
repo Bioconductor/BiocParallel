@@ -16,7 +16,8 @@
 bpoptions(
     workers, tasks, jobname, log, logdir, threshold, resultdir,
     stop.on.error, timeout, exportglobals, exportvariables, progressbar,
-    RNGseed, force.GC, fallback, exports, packages, ...
+    RNGseed, force.GC, fallback, exports, packages, lapplyBalancer,
+    iterateBalancer, ...
 )
 }
 
@@ -74,6 +75,10 @@ bpoptions(
   \item{packages}{character() The packages that needs to be attached by
     the worker prior to the evaluation of the task. This option works
     independently of the option \code{exportvariables}.}
+
+  \item{lapplyBalancer}{character(1) or function, the load balancer for \code{bplapply}. The build-in balancers are \code{"sequential"}, \code{"stepwise"}(default), and \code{"random"}. they can be selected by their character name. A custom balancer is also possible, see the vignette for details.}
+
+  \item{iterateBalancer}{character(1) or function, the load balancer for \code{bpiterate}. The build-in balancer is \code{"sequential"}(default). it can be selected by its character name. A custom balancer is also possible, see the vignette for details.}
 
   \item{...}{
     Additional arguments which may(or may not) work for some specific

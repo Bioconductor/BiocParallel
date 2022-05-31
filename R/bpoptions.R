@@ -111,6 +111,8 @@ bpoptions <-
         RNGseed, force.GC,
         fallback,
         exports, packages,
+        lapplyBalancer,
+        iterateBalancer,
         ...)
 {
         dotsArgs <- list(...)

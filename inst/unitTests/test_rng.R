@@ -327,7 +327,7 @@ test_rng_lapply_bpredo <- function()
     result <- bptry(bpiterate(iter_factory(11), FUN0, BPPARAM = param))
     checkIdentical(unlist(result[-7]), target[-7])
     checkTrue(is.null(result[[7]]))
-    checkTrue(inherits(attr(result,"errors")[[1]], "remote_error"))
+    checkTrue(inherits(attr(result,".bperrors")[["7"]], "remote_error"))
 
     FUN1 <- function(i) {
         if (identical(i, 7L)) {
@@ -445,4 +445,57 @@ test_rng_reset_seed <- function()
                      BPPARAM = p,
                      BPOPTIONS = opts)
     checkIdentical(res1, res2)
+}
+
+test_seed_generator <-
+    function()
+{
+    n <- 10000
+    init_seed <- BiocParallel:::.rng_init_stream(NULL)
+
+    ## Generate all seeds
+    seed <- init_seed
+    seeds <- list(seed)
+    for(i in seq_len(n-1)){
+        seed <- BiocParallel:::.rng_next_substream(seed)
+        seeds <- c(seeds, list(seed))
+    }
+
+    generator <- BiocParallel:::.seed_generator(init_seed)
+
+    ## sequentially ask for the seed
+    for(index in 1:(n - 1)){
+        current <- generator(index)
+        checkIdentical(seeds[[index]], current)
+    }
+
+    ## check the cache value
+    env <- environment(generator)
+    checkTrue(length(env$seed_space) == 10L)
+
+    ## Randomly ask for the seed
+    redo_index <- sort(sample(1:n, 1000))
+    for(index in redo_index){
+        current <- generator(index)
+        checkIdentical(seeds[[index]], current)
+    }
+
+    generator <- BiocParallel:::.seed_generator(init_seed)
+    ## Randomly ask for the seed
+    redo_index <- sort(sample(1:(n-1), 1000))
+    for(index in redo_index){
+        current <- generator(index)
+        checkIdentical(seeds[[index]], current)
+    }
+
+    ## check the cache value
+    env <- environment(generator)
+    checkTrue(length(env$seed_space) > 0L)
+
+    ## Randomly ask for the seed again
+    redo_index <- sort(sample(1:(n-1), 1000))
+    for(index in redo_index){
+        current <- generator(index)
+        checkIdentical(seeds[[index]], current)
+    }
 }
