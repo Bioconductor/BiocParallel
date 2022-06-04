@@ -108,7 +108,7 @@ setMethod("show", "BPValidate", function(object) {
 .findVariables <-
     function(fun, ERROR_FUN = capture.output)
 {
-    unknown <- codetools::findGlobals(fun)
+    unknown <- findGlobals(fun)
     env <- environment(fun)
     codes <- deparse(fun)
     ## TODO: The location where the pkg is loaded is not considered here
