@@ -22,12 +22,12 @@ biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
 Depends: methods, R (>= 3.5.0)
-Imports: stats, utils, futile.logger, parallel, snow
+Imports: stats, utils, futile.logger, parallel, snow, codetools
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, doParallel,
     Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,
-    GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr,
-    batchtools, data.table
+    GenomicAlignments, ShortRead, RUnit, BiocStyle, knitr, batchtools,
+    data.table
 Collate: AllGenerics.R DeveloperInterface.R prototype.R
     bploop.R ErrorHandling.R log.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R

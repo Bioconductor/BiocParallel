@@ -8,6 +8,8 @@ importFrom(utils, capture.output, find, head, tail, relist,
            setTxtProgressBar, txtProgressBar)
 importFrom(parallel, nextRNGStream, nextRNGSubStream)
 
+importFrom(codetools, findGlobals)
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Export S4 classes
 ###
