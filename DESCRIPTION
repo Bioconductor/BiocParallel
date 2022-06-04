@@ -3,7 +3,9 @@ Type: Package
 Title: Bioconductor facilities for parallel evaluation
 Version: 1.31.7
 Authors@R: c(
-    person("Martin", "Morgan", role=c("aut", "cre")),
+    person("Martin", "Morgan",
+        email = "mtmorgan.bioc@gmail.com",
+        role=c("aut", "cre")),
     person("Jiefei", "Wang", role = "aut"),
     person("Valerie", "Obenchain", role="aut"),
     person("Michel", "Lang", email="michellang@gmail.com", role="aut"),
