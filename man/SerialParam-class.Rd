@@ -201,10 +201,6 @@ SerialParam(
 p <- SerialParam()
 simplify2array(bplapply(1:10, sqrt, BPPARAM=p))
 bpvec(1:10, sqrt, BPPARAM=p)
-
-\dontrun{
-register(SerialParam(), default=TRUE)
-}
 }
 
 \keyword{classes}

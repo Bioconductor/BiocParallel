@@ -6,7 +6,11 @@
         as.integer(value)
     }, warning = function(w) {
         txt <- sprintf(
-            "Trying to coercing the environment variable '%s' to an integer caused a warning. The value of the environment variable was '%s'. The warning was: %s",
+            paste0(
+                "Trying to coercing the environment variable '%s' to an ",
+                "integer caused a warning. The value of the environment ",
+                "variable was '%s'. The warning was: %s"
+            ),
             variable, value, conditionMessage(w)
         )
         .warning(txt)
@@ -39,6 +43,20 @@
 
     ## respect 'mc.cores', overriding env. variables an detectCores()
     result <- getOption("mc.cores", result)
+
+    ## coerce to integer; check for valid value
+    tryCatch({
+        result <- as.integer(result)
+        if ( length(result) != 1L || is.na(result) || result < 1L )
+            stop("number of cores must be a non-negative integer")
+    }, error = function(e) {
+        msg <- paste0(
+            conditionMessage(e), ". ",
+            "Did you mis-specify R_PARALLELLY_AVAILABLECORES_FALLBACK, ",
+            "BIOCPARALLEL_WORKER_NUMBER, or options('mc.cores')?"
+        )
+        .stop(msg)
+    })
 
     ## override user settings by build-system configurations
     if (nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_")))

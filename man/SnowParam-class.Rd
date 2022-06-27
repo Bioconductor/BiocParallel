@@ -502,8 +502,7 @@ X <- 1:3
 fun <- function(x) {
     if (x == 1) {
         Sys.sleep(2)
-        if (TRUE & c(TRUE, TRUE))  ## warning
-            x
+        log(-x)                    ## warning
     } else if (x == 2) {
         x                          ## ok
     } else if (x == 3) {

@@ -153,7 +153,6 @@ bplapply(1:10, sqrt, BPPARAM=p)
 ## see vignette for additional explanation
 funs <- makeClusterFunctionsSLURM("~/slurm.tmpl")
 param <- BatchJobsParam(4, cluster.functions=funs)
-register(param)
-bplapply(1:10, function(i) sqrt)
+bplapply(1:10, function(i) sqrt, BPPARAM = param)
 }
 }
