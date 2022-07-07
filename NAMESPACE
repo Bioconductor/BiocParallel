@@ -54,6 +54,9 @@ export(
     bprunMPIslave,
     bprunMPIworker,
 
+    ## iteration
+    bpiterateAlong,
+
     ## ipcmutex
     ipcid, ipcremove, ipclock, ipctrylock, ipcunlock, ipclocked,
     ipcyield, ipcvalue, ipcreset,

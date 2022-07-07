@@ -1,6 +1,13 @@
 CHANGES IN VERSION 1.32
 -----------------------
 
+NEW FEATURES
+
+    o (v 1.31.10) bpiterate() when ITER is not a function will use
+    bpiterateAlong() to attempt to iterate over elements ITER[[1]],
+    ITER[[2]], etc.
+    https://stat.ethz.ch/pipermail/bioc-devel/2022-July/019075.html
+
 USER VISIBLE CHANGES
 
     o (v 1.31.3) Deprecate BatchJobsParam in favor of BatchtoolsParam
