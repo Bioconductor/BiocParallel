@@ -1,6 +1,9 @@
 ---
 title: "Random Numbers in BiocParallel"
-author: "Martin Morgan, https://www.roswellpark.org/martin-morgan"
+author:
+  name: Martin Morgan
+  affiliation: Roswell Park Cancer Institute, Buffalo, NY
+  email: https://www.roswellpark.org/martin-morgan
 date: "Edited:  7 September, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
