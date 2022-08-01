@@ -16,6 +16,11 @@ USER VISIBLE CHANGES
     version (thanks Madelyn Carlson!)
     https://github.com/Bioconductor/BiocParallel/pull/215
 
+    o (v 1.31.12) clarify default number of cores, and use on shared
+    clusters (thanks Dario Strbenac)
+    https://github.com/Bioconductor/BiocParallel/pull/218
+    https://github.com/Bioconductor/BiocParallel/issues/217
+
 BUG FIXES
 
     o (v 1.31.1) suppress package startup messages on workers
