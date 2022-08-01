@@ -12,6 +12,10 @@ USER VISIBLE CHANGES
 
     o (v 1.31.3) Deprecate BatchJobsParam in favor of BatchtoolsParam
 
+    o (v 1.31.11) Replace Random Number .Rnw vignette with Rmd (html)
+    version (thanks Madelyn Carlson!)
+    https://github.com/Bioconductor/BiocParallel/pull/215
+
 BUG FIXES
 
     o (v 1.31.1) suppress package startup messages on workers
