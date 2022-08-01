@@ -1,13 +1,13 @@
 ---
-title: "Random Numbers in BiocParallel"
+title: "Random Numbers in _BiocParallel_"
 author:
-  name: Martin Morgan
-  affiliation: Roswell Park Cancer Institute, Buffalo, NY
-  email: https://www.roswellpark.org/martin-morgan
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY
+  email: Martin.Morgan@RoswellPark.org
 date: "Edited:  7 September, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{BiocParallel-Random_Numbers}
+  %\VignetteIndexEntry{4. Random Numbers in BiocParallel}
   %\VignetteEncoding{UTF-8}
 output:
   BiocStyle::html_document:
@@ -16,64 +16,60 @@ output:
     toc_depth: 4
 ---
 
+[RPCI]: https://www.roswellpark.org/martin-morgan
+
 # Scope 
 
-*[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)*
-enables use of random number streams in a reproducible manner. This document 
-applies to the following `*Param()`:
+`r Biocpkg("BiocParallel")` enables use of random number streams in a
+reproducible manner. This document applies to the following
+`*Param()`:
 
 * `SerialParam()`: sequential evaluation in a single R process.
-* `SnowParam()`: parallel evaluation in multiple independent R processes.
-* `MulticoreParam())`: parallel evaluation in R sessions running in forked 
-threads. Not available on Windows.
+* `SnowParam()`: parallel evaluation in multiple independent R
+  processes.
+* `MulticoreParam())`: parallel evaluation in R sessions running in
+  forked threads. Not available on Windows.
 
 The `*Param()` can be used for evaluation with:
 
-* `bplapply()`: `lapply()`-like application of a user-supplied function `FUN` to 
-a vector or list of elements `X`.
-* `bpiterate()`: apply a user-supplied function `FUN` to an unknown number of 
-elements resulting from successive calls to a user-supplied function `ITER.`
+* `bplapply()`: `lapply()`-like application of a user-supplied
+  function `FUN` to a vector or list of elements `X`.
+* `bpiterate()`: apply a user-supplied function `FUN` to an unknown
+  number of elements resulting from successive calls to a
+  user-supplied function `ITER.`
 
 The reproducible random number implementation also supports:
 
-* `bptry()` and the `BPREDO=` argument, for re-evaluation of elements that fail 
-(e.g., because of a bug in `FUN`).
+* `bptry()` and the `BPREDO=` argument, for re-evaluation of elements
+  that fail (e.g., because of a bug in `FUN`).
 
 # Essentials
 
 ## Use of `bplapply()` and `RNGseed=`
 
-Attach *[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)*
-and ensure that the version is greater than 1.27.5
+Attach `r Biocpkg("BiocParallel")` and ensure that the version is
+greater than 1.27.5
 
-```{r eval=FALSE}
+```{r}
 library(BiocParallel)
 stopifnot(
-packageVersion("BiocParallel") > "1.27.5"
+    packageVersion("BiocParallel") > "1.27.5"
 )
 ```
 
 For reproducible calculation, use the `RNGseed=` argument in any of the 
 `*Param()`constructors.
 
-```{r eval=FALSE}
+```{r}
 result1 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
 result1
-
-## [[1]]
-## [1] 0.7393338
-##
-## [[2]]
-## [1] 0.8216743 0.7451087
-##
-## [[3]]
-## [1] 0.1962909 0.5226640 0.6857650
 ```
 
-Repeating the calculation with the same value for `RNGseed=` results in the same result; a
-different random number seed results in different results.
+Repeating the calculation with the same value for `RNGseed=` results
+in the same result; a different random number seed results in
+different results.
 
-```{r eval=FALSE}
+```{r}
 result2 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
 stopifnot(
     identical(result1, result2)
@@ -82,15 +78,6 @@ stopifnot(
 result3 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 200))
 result3
 
-## [[1]]
-## [1] 0.9757768
-##
-## [[2]]
-## [1] 0.6525851 0.6416909
-##
-## [[3]]
-## [1] 0.6710576 0.5895330 0.7686983
-
 stopifnot(
     !identical(result1, result3)
 )
@@ -98,7 +85,7 @@ stopifnot(
 
 Results are invariant across `*Param()`
 
-```{r eval=FALSE}
+```{r}
 result4 <- bplapply(1:3, runif, BPPARAM = SnowParam(RNGseed = 100))
 stopifnot(
     identical(result1, result4)
@@ -112,12 +99,13 @@ if (!identical(.Platform$OS.type, "windows")) {
 }
 ```
 
-Parallel backends can adjust the number of `workers` (processes performing the 
-evaluation) and `tasks` (how elements of `X` are distributed between workers). 
-Results are invariant to these parameters. This is illustrated with 
-`SnowParam()`, but applies also to `MulticoreParam()`.
+Parallel backends can adjust the number of `workers` (processes
+performing the evaluation) and `tasks` (how elements of `X` are
+distributed between workers).  Results are invariant to these
+parameters. This is illustrated with `SnowParam()`, but applies also
+to `MulticoreParam()`.
 
-```{r eval=FALSE}
+```{r}
 result6 <- bplapply(1:3, runif, BPPARAM = SnowParam(workers = 2, RNGseed = 100))
 result7 <- bplapply(1:3, runif, BPPARAM = SnowParam(workers = 3, RNGseed = 100))
 result8 <- bplapply(
@@ -136,14 +124,16 @@ results are obtained with `SnowParam()` and `MulticoreParam()`.
 
 ## Use with `bpiterate()`
 
-`bpiterate()` allows parallel processing of a ’stream’ of data as a series of 
-tasks, with a task consisting of a portion of the overall data. It is useful 
-when the data size is not known or easily partitioned into elements of a vector 
-or list. A real use case might involve iterating through a BAM file, where a 
-task represents successive records (perhaps 100,000 per task) in the file. Here 
-we illustrate with a simple example – iterating through a vector `x = 1:3`
+`bpiterate()` allows parallel processing of a ’stream’ of data as a
+series of tasks, with a task consisting of a portion of the overall
+data. It is useful when the data size is not known or easily
+partitioned into elements of a vector or list. A real use case might
+involve iterating through a BAM file, where a task represents
+successive records (perhaps 100,000 per task) in the file. Here we
+illustrate with a simple example – iterating through a vector `x =
+1:3`
 
-```{r eval=FALSE}
+```{r}
 ITER_FUN_FACTORY <- function() {
     x <- 1:3
     i <- 0L
@@ -161,30 +151,22 @@ returns the next task (here, an element of `x`; in a real example, perhaps
 100000 records from a BAM file). When there are no more tasks, the function 
 returns `NULL`
 
-```{r eval=FALSE}
+```{r, collapse = TRUE}
 ITER <- ITER_FUN_FACTORY()
 ITER()
 
-## [1] 1
+ITER()
 
 ITER()
 
-## [1] 2
-
 ITER()
-
-## [1] 3
-
-ITER()
-
-## NULL
 ```
 
-In our simple example, `bpiterate()` is performing the same computations as 
-`bplapply()` so the results, including the random number streams used by each 
-task in `bpiterate()`, are the same
+In our simple example, `bpiterate()` is performing the same
+computations as `bplapply()` so the results, including the random
+number streams used by each task in `bpiterate()`, are the same
 
-```{r eval=FALSE}
+```{r}
 result9 <- bpiterate(
     ITER_FUN_FACTORY(), runif,
     BPPARAM = SerialParam(RNGseed = 100)
@@ -196,13 +178,13 @@ stopifnot(
 
 ## Use with `bptry()`
 
-`bptry()` in conjunction with the `BPREDO=` argument to `bplapply()` or 
-`bpiterate()` allows for graceful recovery from errors. Here a buggy `FUN1()` 
-produces an error for the second element. `bptry()` allows evaluation to 
-continue for other elements of `X`, despite the error. This is shown in the 
-result.
+`bptry()` in conjunction with the `BPREDO=` argument to `bplapply()`
+or `bpiterate()` allows for graceful recovery from errors. Here a
+buggy `FUN1()` produces an error for the second element. `bptry()`
+allows evaluation to continue for other elements of `X`, despite the
+error. This is shown in the result.
 
-```{r eval=FALSE}
+```{r}
 FUN1 <- function(i) {
     if (identical(i, 2L)) {
         ## error when evaluating the second element
@@ -214,28 +196,16 @@ result10 <- bptry(bplapply(
     BPPARAM = SerialParam(RNGseed = 100, stop.on.error = FALSE)
 ))
 result10
-
-## [[1]]
-## [1] 0.7393338
-##
-## [[2]]
-## <remote_error in FUN(...): i == 2>
-## traceback() available as 'attr(x, "traceback")'
-##
-## [[3]]
-## [1] 0.1962909 0.5226640 0.6857650
-##
-## attr(,"REDOENV")
-## <environment: 0x559c13d2e898>
 ```
 
-`FUN2()` illustrates the flexibility of `bptry()` by fixing the bug when 
-`i == 2`, but also generating incorrect results if invoked for previously 
-correct values. The identity of the result to the original computation shows 
-that only the error task is re-computed, and that the random number stream used 
-by the task is identical to the original stream.
+`FUN2()` illustrates the flexibility of `bptry()` by fixing the bug
+when `i == 2`, but also generating incorrect results if invoked for
+previously correct values. The identity of the result to the original
+computation shows that only the error task is re-computed, and that
+the random number stream used by the task is identical to the original
+stream.
 
-```{r eval=FALSE}
+```{r}
 FUN2 <- function(i) {
     if (identical(i, 2L)) {
         ## the random number stream should be in the same state as the
@@ -261,11 +231,11 @@ stopifnot(
 
 ## Relationship between` RNGseed=` and `set.seed()`
 
-The global random number stream (influenced by `set.seed()`) is ignored by *[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)*,
-and *[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)* 
-does NOT increment the global stream.
+The global random number stream (influenced by `set.seed()`) is
+ignored by `r Biocpkg("BiocParallel")`, and `r Biocpkg("BiocParallel")` does 
+NOT increment the global stream.
 
-```{r eval=FALSE}
+```{r}
 set.seed(200)
 value <- runif(1)
 
@@ -277,10 +247,11 @@ stopifnot(
 )
 ```
 
-When `RNGseed=` is not used, an internal stream (not accessible to the user) is 
-used and *[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)* does NOT increment the global stream.
+When `RNGseed=` is not used, an internal stream (not accessible to the
+user) is used and `r Biocpkg("BiocParallel")` does NOT increment the
+global stream.
 
-```{r eval=FALSE}
+```{r}
 set.seed(100)
 value <- runif(1)
 
@@ -294,15 +265,16 @@ stopifnot(
 
 ## `bpstart()` and random number streams
 
-In all of the examples so far `*Param()` objects are passed to `bplapply()` or 
-`bpiterate()` in the ’stopped’ state. Internally, `bplapply()` and `bpiterate()`
-invoke `bpstart()` to establish the computational environment (e.g., starting 
-workers for `SnowParam()`). `bpstart()` can be called explicitly, e.g., to allow 
+In all of the examples so far `*Param()` objects are passed to
+`bplapply()` or `bpiterate()` in the ’stopped’ state. Internally,
+`bplapply()` and `bpiterate()` invoke `bpstart()` to establish the
+computational environment (e.g., starting workers for
+`SnowParam()`). `bpstart()` can be called explicitly, e.g., to allow
 workers to be used across calls to `bplapply()`.
 
 The cluster random number stream is initiated with `bpstart()`. Thus
 
-```{r eval=FALSE}
+```{r}
 param <- bpstart(SerialParam(RNGseed = 100))
 result16 <- bplapply(1:3, runif, BPPARAM = param)
 bpstop(param)
@@ -311,11 +283,11 @@ stopifnot(
 )
 ```
 
-This allows a second call to `bplapply` to represent a continuation of a random 
-number computation – the second call to `bplapply()` results in different random 
-number streams for each element of `X`.
+This allows a second call to `bplapply` to represent a continuation of
+a random number computation – the second call to `bplapply()` results
+in different random number streams for each element of `X`.
 
-```{r eval=FALSE}
+```{r}
 param <- bpstart(SerialParam(RNGseed = 100))
 result16 <- bplapply(1:3, runif, BPPARAM = param)
 result17 <- bplapply(1:3, runif, BPPARAM = param)
@@ -326,21 +298,21 @@ stopifnot(
 )
 ```
 
-The results from `bplapply()` are different from the results from `lapply()`, 
-even with the same random number seed. This is because correctly implemented 
-parallel random streams require use of a particular random number generator 
-invoked in specific ways for each element of `X`, as outlined in the 
-Implementation notes section.
+The results from `bplapply()` are different from the results from
+`lapply()`, even with the same random number seed. This is because
+correctly implemented parallel random streams require use of a
+particular random number generator invoked in specific ways for each
+element of `X`, as outlined in the Implementation notes section.
 
 ## Relationship between `bplapply()` and `lapply()`
 
-The results from `bplapply()` are different from the results from `lapply()`, 
-even with the same random number seed. This is because correctly implemented 
-parallel random streams require use of a particular random number generator 
-invoked in specific ways for each element of `X`, as outlined in the 
-Implementation notes section.
+The results from `bplapply()` are different from the results from
+`lapply()`, even with the same random number seed. This is because
+correctly implemented parallel random streams require use of a
+particular random number generator invoked in specific ways for each
+element of `X`, as outlined in the Implementation notes section.
 
-```{r eval=FALSE}
+```{r}
 set.seed(100)
 result20 <- lapply(1:3, runif)
 stopifnot(
@@ -350,90 +322,23 @@ stopifnot(
 
 # Implementation notes
 
-The implementation uses the L’Ecuyer-CMRG random number generator (see `?RNGkind` 
-and `?parallel::clusterSetRNGStream` for additional details). This random number 
-generates independent streams and substreams of random numbers. In *[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)*, 
-each call to `bp start()` creates a new stream from the L’Ecuyer-CMRG generator. 
-Each element in `bplap` `ply()` or `bpiterate()` creates a new substream. Each 
-application of `FUN` is therefore using the L’Ecuyer-CMRG random number 
-generator, with a substream that is independent of the substreams of all other 
-elements.
+The implementation uses the L’Ecuyer-CMRG random number generator (see
+`?RNGkind` and `?parallel::clusterSetRNGStream` for additional
+details). This random number generates independent streams and
+substreams of random numbers. In `r Biocpkg("BiocParallel")`, each
+call to `bp start()` creates a new stream from the L’Ecuyer-CMRG
+generator.  Each element in `bplap` `ply()` or `bpiterate()` creates a
+new substream. Each application of `FUN` is therefore using the
+L’Ecuyer-CMRG random number generator, with a substream that is
+independent of the substreams of all other elements.
 
-Within the user-supplied `FUN` of `bplapply()` or `bpiterate()`, it is a mistake 
-to use `RNGkind()` to set a different random number generator, or to use 
-`set.seed()`. This would in principle compromise the independence of the streams 
-across elements.
+Within the user-supplied `FUN` of `bplapply()` or `bpiterate()`, it is
+a mistake to use `RNGkind()` to set a different random number
+generator, or to use `set.seed()`. This would in principle compromise
+the independence of the streams across elements.
 
 # `sessionInfo()`
 
-```{r eval=FALSE}
-## R version 4.2.0 Patched (2022-06-02 r82447)
-## Platform: x86_64-pc-linux-gnu (64-bit)
-## Running under: Ubuntu 20.04.4 LTS
-##
-## Matrix products: default
-## BLAS: /home/biocbuild/bbs-3.16-bioc/R/lib/libRblas.so
-## LAPACK: /home/biocbuild/bbs-3.16-bioc/R/lib/libRlapack.so
-##
-## locale:
-## [1] LC_CTYPE=en_US.UTF-8           LC_NUMERIC=C
-## [3] LC_TIME=en_GB                  LC_COLLATE=C
-## [5] LC_MONETARY=en_US.UTF-8        LC_MESSAGES=en_US.UTF-8
-## [7] LC_PAPER=en_US.UTF-8           LC_NAME=C
-## [9] LC_ADDRESS=C                   LC_TELEPHONE=C
-## [11] LC_MEASUREMENT=en_US.UTF-8    LC_IDENTIFICATION=C
-##
-## attached base packages:
-## [1] stats4    stats    graphics    grDevices    utils    datasets    methods
-## [8] base
-##
-## other attached packages:
-## [1] TxDb.Hsapiens.UCSC.hg19.knownGene_3.2.2
-## [2] GenomicFeatures_1.49.5
-## [3] AnnotationDbi_1.59.1
-## [4] RNAseqData.HNRNPC.bam.chr14_0.35.0
-## [5] GenomicAlignments_1.33.0
-## [6] VariantAnnotation_1.43.2
-## [7] Rsamtools_2.13.3
-## [8] Biostrings_2.65.1
-## [9] XVector_0.37.0
-## [10] SummarizedExperiment_1.27.1
-## [11] Biobase_2.57.1
-## [12] GenomicRanges_1.49.0
-## [13] GenomeInfoDb_1.33.3
-## [14] IRanges_2.31.0
-## [15] S4Vectors_0.35.1
-## [16] MatrixGenerics_1.9.1
-## [17] matrixStats_0.62.0
-## [18] BiocGenerics_0.43.0
-## [19] BiocParallel_1.31.10
-##
-## loaded via a namespace (and not attached):
-## [1] httr_1.4.3               bit64_4.0.5          assertthat_0.2.1
-## [4] BiocManager_1.30.18      highr_0.9            BiocFileCache_2.5.0
-## [7] base64url_1.4            blob_1.2.3           BSgenome_1.65.1
-## [10] GenomeInfoDbData_1.2.8  yaml_2.3.5           progress_1.2.2
-## [13] pillar_1.7.0            RSQLite_2.2.14       backports_1.4.1
-## [16] lattice_0.20-45         glue_1.6.2           digest_0.6.29
-## [19] checkmate_2.1.0         htmltools_0.5.2      Matrix_1.4-1
-## [22] XML_3.99-0.10           pkgconfig_2.0.3      biomaRt_2.53.2
-## [25] zlibbioc_1.43.0         purrr_0.3.4          snow_0.4-4
-## [28] brew_1.0-7              tibble_3.1.7         KEGGREST_1.37.2
-## [31] generics_0.1.3          ellipsis_0.3.2       cachem_1.0.6
-## [34] withr_2.5.0             cli_3.3.0            magrittr_2.0.3
-## [37] crayon_1.5.1            memoise_2.0.1        evaluate_0.15
-## [40] fs_1.5.2.               fansi_1.0.3          xml2_1.3.3
-## [43] tools_4.2.0             data.table_1.14.2    prettyunits_1.1.1
-## [46] hms_1.1.1               BiocStyle_2.25.0     BiocIO_1.7.1
-## [49] lifecycle_1.0.1         stringr_1.4.0        DelayedArray_0.23.0
-## [52] compiler_4.2.0          rlang_1.0.3          debugme_1.1.0
-## [55] grid_4.2.0              RCurl_1.98-1.7       rjson_0.2.21
-## [58] rappdirs_0.3.3          bitops_1.0-7         rmarkdown_2.14
-## [61] restfulr_0.0.15         codetools_0.2-18     curl_4.3.2
-## [64] DBI_1.1.3               R6_2.5.1             rtracklayer_1.57.0
-## [67] dplyr_1.0.9             knitr_1.39           fastmap_1.1.0
-## [70] bit_4.0.4               utf8_1.2.2           filelock_1.0.2
-## [73] stringi_1.7.6           parallel_4.2.0       Rcpp_1.0.8.3
-## [76] vctrs_0.4.1             png_0.1-7            tidyselect_1.1.2
-## [79] dbplyr_2.2.1            batchtools_0.9.15    xfun_0.31
+```{r, echo = FALSE}
+sessionInfo()
 ```
