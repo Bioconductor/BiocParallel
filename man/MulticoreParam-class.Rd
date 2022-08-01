@@ -178,10 +178,10 @@ multicoreWorkers()
 \arguments{
 
   \item{workers}{
-    \code{integer(1)} Number of workers. Defaults to the maximum of 1 or the 
-    number of cores determined by \code{detectCores} minus 2 unless environment
-    variables \code{R_PARALLELLY_AVAILABLECORES_FALLBACK}
-    or \code{BIOCPARALLEL_WORKER_NUMBER} are set otherwise.
+    \code{integer(1)} Number of workers. Defaults to the maximum of 1 or
+    the number of cores determined by \code{detectCores} minus 2 unless
+    environment variables \code{R_PARALLELLY_AVAILABLECORES_FALLBACK} or
+    \code{BIOCPARALLEL_WORKER_NUMBER} are set otherwise.
   }
   \item{tasks}{
     \code{integer(1)}. The number of tasks per job. \code{value} must be a
