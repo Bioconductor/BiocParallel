@@ -66,15 +66,15 @@ test_DoparParam_stop_on_error <- function() {
     doParallel::registerDoParallel(cl)
 
     fun <- function(x) {
-        if (x == 2) stop()
+        if (x == 3) stop()
         x
     }
-    res1 <- bptry(bplapply(1:4, fun, BPPARAM = DoparParam(stop.on.error = F)))
-    checkEquals(res1[c(1,3,4)], as.list(c(1,3,4)))
-    checkTrue(is(res1[[2]], "error"))
+    res1 <- bptry(bplapply(1:6, fun, BPPARAM = DoparParam(stop.on.error = F)))
+    checkEquals(res1[c(1,2,4:6)], as.list(c(1,2,4:6)))
+    checkTrue(is(res1[[3]], "error"))
 
     res2 <- bptry(bplapply(1:6, fun, BPPARAM = DoparParam(stop.on.error = T)))
-    checkEquals(res2[c(1,4:6)], as.list(c(1,4:6)))
-    checkTrue(is(res2[[2]], "error"))
-    checkTrue(is(res2[[3]], "error"))
+    checkEquals(res2[c(1,2,4,6)], as.list(c(1,2,4,6)))
+    checkTrue(is(res2[[3]], "remote_error"))
+    checkTrue(is(res2[[5]], "unevaluated_error"))
 }

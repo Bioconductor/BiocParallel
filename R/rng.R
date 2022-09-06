@@ -104,3 +104,51 @@
         .rng_reset_generator(state$kind, state$seed)
     })
 })
+
+## A seed generator which accept a vector 'index' as input
+## return the seed stream corresponding to index[1]
+## For example, if index = {8, 9},
+## The generator should iterate the initial seed 7 times and
+## return the 8th seed stream
+.seed_generator <- function(init_seed){
+    seed <- init_seed
+    seed_index <- 1L
+
+    ## Cache a few seeds for random seed index
+    seed_space <- new.env(parent = emptyenv())
+    cache_range <- 1000
+    seed_space[["0"]] <- init_seed
+
+    ## input: an increasing index of seed
+    ##        if the index is NULL, return the last seed iterated by 1
+    ## output: the seed corresponding to the first index
+    function(index){
+        first_index <- index[[1]]
+        if (first_index < seed_index) {
+            cache_id <- (first_index - 1L) %/% cache_range
+            iter_start_index <- cache_id * cache_range + 1L
+            iter_seed <- seed_space[[as.character(cache_id)]]
+        } else {
+            iter_start_index <- seed_index
+            iter_seed <- seed
+        }
+
+        ## iterate the seed
+        for (i in seq_len(first_index - iter_start_index)) {
+            iter_seed <- .rng_next_substream(iter_seed)
+            iter_index <- iter_start_index + i
+
+            ## Cache the seed value if it hits the cache point
+            if ((iter_index - 1L)%%cache_range == 0)
+                seed_space[[as.character((iter_index - 1L)/cache_range)]] <<- iter_seed
+        }
+
+        ## the variable seed always holds the latest seed
+        ## and the largest length
+        if (first_index >= seed_index) {
+            seed_index <<- first_index
+            seed <<- iter_seed
+        }
+        return(iter_seed)
+    }
+}
