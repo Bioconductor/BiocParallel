@@ -18,7 +18,7 @@ output:
     toc: yes
     toc_depth: 4
 ---
-
+ 
 # Introduction
 
 The class is an interface to `batchtools` the package from within `BiocParallel`. This aims to
