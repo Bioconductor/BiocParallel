@@ -128,11 +128,17 @@ setMethod("show", "BPValidate", function(object) {
         env <- parent.env(env)
     }
 
-    ## Find the objects that is defined in the search path
+    ## Find the objects that are defined in the search path
     ## (only if the function/expr depends on the global)
     inpath <- list()
     if (length(unknown) && identical(.GlobalEnv, env)) {
-        inpath <- lapply(unknown, function(x) head(find(x), 1))
+        inpath <- lapply(unknown, function(x) {
+            where <- find(x)
+            ## Includes only packages and variables in the global
+            ## environment
+            keep <-  startsWith(where, "package:") | where == ".GlobalEnv"
+            head(where[keep], 1L)
+        })
         names(inpath) <- unknown
         i <- as.logical(lengths(inpath))
         unknown <- unknown[!i]
