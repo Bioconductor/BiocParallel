@@ -132,7 +132,12 @@ setMethod("show", "BPValidate", function(object) {
     ## (only if the function/expr depends on the global)
     inpath <- list()
     if (length(unknown) && identical(.GlobalEnv, env)) {
-        inpath <- lapply(unknown, function(x) head(find(x), 1))
+        inpath <- lapply(unknown, function(x) {
+            finds <- find(x)
+            ## Includes only packages and variables in the global environment
+            finds <- finds[startsWith(finds, "package:") | finds == ".GlobalEnv"]
+            head(finds, 1)
+        })
         names(inpath) <- unknown
         i <- as.logical(lengths(inpath))
         unknown <- unknown[!i]
