@@ -51,6 +51,10 @@ BUG FIXES
     o (v 1.30.2) resetting bpRNGseed() after bpstart() is reproducible
     https://github.com/Bioconductor/BiocParallel/pull/204
 
+    o (v 1.30.4) only export variables in `.GlobalEnv` or `package:`
+    <https://github.com/Bioconductor/BiocParallel/issues/223>
+    <https://github.com/Bioconductor/BiocParallel/pull/224>
+
 CHANGES IN VERSION 1.28
 -----------------------
 
