@@ -38,12 +38,12 @@ test_bpvalidate_basic_fail <- function()
 
 test_bpvalidate_search_path <- function()
 {
-    target <- BPValidate(symbol = "x", environment = ".test_env")
+    target <- BPValidate(symbol = "x", environment = "package:.test_env")
 
     .test_env <- new.env(parent=emptyenv())
     .test_env$x <- NULL
-    attach(.test_env)
-    on.exit(detach(.test_env))
+    attach(.test_env, name = "package:.test_env")
+    on.exit(detach("package:.test_env"))
 
     checkIdentical(target, bpvalidate(function() x            ))
     checkIdentical(target, bpvalidate(function(...) x         ))
