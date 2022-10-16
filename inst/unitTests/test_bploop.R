@@ -1,3 +1,5 @@
+message("Testing bploop")
+
 .lapplyReducer <- BiocParallel:::.lapplyReducer
 .iterateReducer <- BiocParallel:::.iterateReducer
 

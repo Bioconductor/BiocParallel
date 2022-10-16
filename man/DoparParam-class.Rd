@@ -105,7 +105,8 @@ p <- DoparParam()
 bplapply(1:10, sqrt, BPPARAM=p)
 bpvec(1:10, sqrt, BPPARAM=p)
 
-register(DoparParam(), default=TRUE)
+## set DoparParam() as the default for BiocParallel
+## register(DoparParam(), default=TRUE)
 }
 }
 

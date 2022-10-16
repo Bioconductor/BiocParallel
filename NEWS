@@ -1,9 +1,25 @@
 CHANGES IN VERSION 1.32
 -----------------------
 
+NEW FEATURES
+
+    o (v 1.31.10) bpiterate() when ITER is not a function will use
+    bpiterateAlong() to attempt to iterate over elements ITER[[1]],
+    ITER[[2]], etc.
+    https://stat.ethz.ch/pipermail/bioc-devel/2022-July/019075.html
+
 USER VISIBLE CHANGES
 
     o (v 1.31.3) Deprecate BatchJobsParam in favor of BatchtoolsParam
+
+    o (v 1.31.11) Replace Random Number .Rnw vignette with Rmd (html)
+    version (thanks Madelyn Carlson!)
+    https://github.com/Bioconductor/BiocParallel/pull/215
+
+    o (v 1.31.12) clarify default number of cores, and use on shared
+    clusters (thanks Dario Strbenac)
+    https://github.com/Bioconductor/BiocParallel/pull/218
+    https://github.com/Bioconductor/BiocParallel/issues/217
 
 BUG FIXES
 
@@ -21,6 +37,15 @@ BUG FIXES
 
     o (v 1.31.2) resetting bpRNGseed() after bpstart() is reproducible
     https://github.com/Bioconductor/BiocParallel/pull/204
+
+    o (v 1.31.5) enable logs for multiple managers sharing the same
+    workers.
+    https://github.com/Bioconductor/BiocParallel/pull/207
+
+    o (v 1.31.13 / v 1.30.4) only export variables in `.GlobalEnv` or
+    `package:`
+    <https://github.com/Bioconductor/BiocParallel/issues/223>
+    <https://github.com/Bioconductor/BiocParallel/pull/224>
 
 
 CHANGES IN VERSION 1.30
@@ -175,7 +200,7 @@ USER VISIBLE CHANGES
     o (v 1.17.6) Initial use of registered BPPARAM does not advance
     random number seed, see
     https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014526.html
-    
+
     o (v 1.17.7) Loading package does not advance random number seed, see
     https://stat.ethz.ch/pipermail/bioc-devel/2019-January/014535.html
 
@@ -278,7 +303,7 @@ BUG FIXES
 
     o (v. 1.7.4) Allow more than 125 MPI nodes,
       https://github.com/Bioconductor/BiocParallel/issues/55
-      
+
 NEW FEATURES
 
     o Throttle number of cores used on Bioconductor build systems
@@ -323,7 +348,7 @@ CHANGES IN VERSION 1.2.0
 
 NEW FEATURES
 
-    o Add support for iterative REDUCE in .bpiterate_serial() 
+    o Add support for iterative REDUCE in .bpiterate_serial()
 
     o Refactor BiocParallelParam class:
       - add 'log', 'tasks', 'threshold', 'logdir', 'resultdir' fields
@@ -331,11 +356,11 @@ NEW FEATURES
 
     o MulticoreParam now uses SnowParam(..., type=FORK)
 
-    o Add bpvalidate() 
+    o Add bpvalidate()
 
 MODIFICATIONS
 
-    o Add check to bipiterate() for Windows 
+    o Add check to bipiterate() for Windows
 
     o Invoke REDUCE without '...' in .bpiterate_serial()
 
@@ -343,7 +368,7 @@ MODIFICATIONS
 
     o Change default BPPARAM to SnowParam() for Windows
 
-    o Update bpiterate() man pages for Windows 
+    o Update bpiterate() man pages for Windows
 
     o Add note to vignette re: module load in template file
       from Thomas Girke
@@ -358,7 +383,7 @@ MODIFICATIONS
     o Lighten the NAMESPACE by importing only parallel, snow
 
     o Modify which params are registered at load time:
-      - Windows: SnowParam(), SerialParam() 
+      - Windows: SnowParam(), SerialParam()
       - Non-Windows: MulticoreParam(), SnowParam(), SerialParam()
 
     o bpvalidate() looks for symbols in 'fun' environment, NAMESPACE
@@ -366,7 +391,7 @@ MODIFICATIONS
 
 BUG FIXES
 
-    o Bug fix in bpiterate_multicore(); update doc examples 
+    o Bug fix in bpiterate_multicore(); update doc examples
 
     o Bug fix in bpiterate() in ordering results from Martin
 
@@ -380,7 +405,7 @@ NEW FEATURES
 
     o Add vignette sections for cluster managers, AMI
 
-    o Add bpiterate generic and methods 
+    o Add bpiterate generic and methods
 
     o Add REDUCE to bpiterate()
 
@@ -389,7 +414,7 @@ NEW FEATURES
 
 MODIFICATIONS
 
-    o Update vignette examples, reorganize sections 
+    o Update vignette examples, reorganize sections
 
     o Allow 'workers' in BiocParallelParam to be character or integer
 
@@ -404,6 +429,6 @@ MODIFICATIONS
 
 BUG FIXES
 
-    o Fix recursion problem for BPPARAM as list 
+    o Fix recursion problem for BPPARAM as list
 
     o Modify bpaggregate() to run in parallel

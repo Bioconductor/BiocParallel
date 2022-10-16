@@ -1,3 +1,5 @@
+message("Testing utilities")
+
 test_splitIndicies <- function()
 {
     .splitIndices <- BiocParallel:::.splitIndices

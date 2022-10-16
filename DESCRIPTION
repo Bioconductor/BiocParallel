@@ -1,11 +1,11 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.31.4
+Version: 1.31.13
 Authors@R: c(
-    person("Bioconductor Package Maintainer",
-        email="maintainer@bioconductor.org", role="cre"),
-    person("Martin", "Morgan", role="aut"),
+    person("Martin", "Morgan",
+        email = "mtmorgan.bioc@gmail.com",
+        role=c("aut", "cre")),
     person("Jiefei", "Wang", role = "aut"),
     person("Valerie", "Obenchain", role="aut"),
     person("Michel", "Lang", email="michellang@gmail.com", role="aut"),
@@ -22,12 +22,12 @@ biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
 Depends: methods, R (>= 3.5.0)
-Imports: stats, utils, futile.logger, parallel, snow
+Imports: stats, utils, futile.logger, parallel, snow, codetools
 Suggests: BiocGenerics, tools, foreach, BatchJobs, BBmisc, doParallel,
     Rmpi, GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,
-    GenomicAlignments, ShortRead, codetools, RUnit, BiocStyle, knitr,
-    batchtools, data.table
+    GenomicAlignments, ShortRead, RUnit, BiocStyle, knitr, batchtools,
+    data.table
 Collate: AllGenerics.R DeveloperInterface.R prototype.R
     bploop.R ErrorHandling.R log.R
     bpbackend-methods.R bpisup-methods.R bplapply-methods.R

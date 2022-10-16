@@ -351,16 +351,8 @@ setReplaceMethod("bpbackend", c("SnowParam", "cluster"),
 setReplaceMethod("bplog", c("SnowParam", "logical"),
     function(x, value)
 {
-    if (x$.controlled) {
-        x$log <- value
-        if (bpisup(x)) {
-            bpstop(x)
-            bpstart(x)
-        }
-        x
-    } else {
-        stop("'bplog' not available; instance from outside BiocParallel?")
-    }
+    x$log <- value
+    x
 })
 
 setReplaceMethod("bpthreshold", c("SnowParam", "character"),

@@ -812,11 +812,9 @@ unlist(x)
 @
 %%
 This will use the back-end returned by \Rcode{bpparam()}, by default a
-\Rcode{MulticoreParam()} instance or the user's preferred back-end if
-they have used \Rcode{register()}.  The \Rcode{MulticoreParam} back-end
-does not require any special configuration or set-up and is therefore
-the safest option for developers. Unfortunately,
-\Rcode{MulticoreParam} provides only serial evaluation on Windows.
+\Rcode{MulticoreParam()} on Linux / macOS, \Rcode{SnowParam()} on
+Windows, or the user's preferred back-end if they have used
+\Rcode{register()}.
 
 Developers should document that their function uses \BiocParallel{}
 functions on the man page, and should perhaps include in their
@@ -827,15 +825,46 @@ just their package.
 
 Developers wishing to invoke back-ends other than
 \Rcode{MulticoreParam}, or to write code that works across Windows,
-macOS and Linux, need to take special care to ensure that required
-packages, data, and functions are available and loaded on the remote
-nodes.
+macOS and Linux, no longer need to take special care to ensure that
+required packages, data, and functions are available and loaded on the
+remote nodes. By default, \Rcode{SnowParam} will export global
+variables to the workers due to the default
+\Rcode{exportglobals=TRUE}. Nonetheless, a good practice during
+development is to use independent processes (via
+\Rcode{register(SnowParam())}) rather than relying on forked (via
+\Rcode{MulticoreParam()}) processes. For instance, \Rcode{SnowParam()}
+clusters include the costs of setting up the computational environment
+(loading required packages, for instance) that may discourage use of
+parallelization when parallelization provides only marginal
+performance gains from the computation \emph{per se}. Likewise,
+\Rcode{SnowParam()} may be more sensitive to inappropriate calls to
+shared libraries, revealing errors that are only transient under
+\Rcode{MulticoreParam()}.
 
 In \Rcode{bplapply()}, the environment of \Rcode{FUN} (other than the
 global environment) is serialized to the workers. A consequence is
 that, when \Rcode{FUN} is inside a package name space, other functions
 available in the name space are available to \Rcode{FUN} on the
 workers.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{For server administrators}
+\label{sec:administrators}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+If the package is installed on a server used by multiple users, then
+the default value of cores used can sometimes lead to many more tasks
+being run than the server has cores if two or more users run a
+parallel-enabled function simultaneously. A more conservative number
+of cores than all of them minus 2 may be desirable, so that one user
+does not take all of the cores unless they explicitly specify so. This
+can be implemented with environment variables. Setting
+\Rcode{R\_PARALLELLY\_AVAILABLECORES\_FALLBACK} or
+\Rcode{BIOCPARALLEL\_WORKER\_NUMBER} for all system users to the number
+of cores divided by the typical number of concurrent users is a
+reasonable approach to avoiding this scenario.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,3 +1,18 @@
+bpiterateAlong <-
+    function(X)
+{
+    n <- length(X)
+    i <- 0L
+    function() {
+        if (i >= n)
+            NULL
+        else {
+            i <<- i + 1L
+            X[[i]]
+        }
+    }
+}
+
 ### =========================================================================
 ### bpiterate methods
 ### -------------------------------------------------------------------------
@@ -8,7 +23,11 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
     function(ITER, FUN, ..., BPREDO=list(),
              BPPARAM=bpparam(), BPOPTIONS=bpoptions())
 {
-    ITER <- match.fun(ITER)
+    ITER <- tryCatch({
+        match.fun(ITER)
+    }, error = function(e) {
+        bpiterateAlong(ITER)
+    })
     FUN <- match.fun(FUN)
     bpiterate(ITER, FUN, ..., BPREDO = BPREDO,
               BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
@@ -17,14 +36,18 @@ setMethod("bpiterate", c("ANY", "ANY", "missing"),
 ## TODO: support BPREDO
 .bpiterate_impl <-
     function(ITER, FUN, ..., REDUCE, init, reduce.in.order = FALSE,
-              BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS=bpoptions())
+             BPREDO = list(), BPPARAM = bpparam(), BPOPTIONS=bpoptions())
 {
     ## Required API
     ##
     ## - BiocParallelParam()
     ## - bpschedule(), bpisup(), bpstart(), bpstop()
     ## - .sendto, .recvfrom, .recv, .close
-    ITER <- match.fun(ITER)
+    ITER <- tryCatch({
+        match.fun(ITER)
+    }, error = function(e) {
+        bpiterateAlong(ITER)
+    })
     FUN <- match.fun(FUN)
 
     if (missing(REDUCE)) {

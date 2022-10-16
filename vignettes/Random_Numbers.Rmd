@@ -1,0 +1,344 @@
+---
+title: "Random Numbers in _BiocParallel_"
+author:
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY
+  email: Martin.Morgan@RoswellPark.org
+date: "Edited:  7 September, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{4. Random Numbers in BiocParallel}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+---
+
+[RPCI]: https://www.roswellpark.org/martin-morgan
+
+# Scope 
+
+`r Biocpkg("BiocParallel")` enables use of random number streams in a
+reproducible manner. This document applies to the following
+`*Param()`:
+
+* `SerialParam()`: sequential evaluation in a single R process.
+* `SnowParam()`: parallel evaluation in multiple independent R
+  processes.
+* `MulticoreParam())`: parallel evaluation in R sessions running in
+  forked threads. Not available on Windows.
+
+The `*Param()` can be used for evaluation with:
+
+* `bplapply()`: `lapply()`-like application of a user-supplied
+  function `FUN` to a vector or list of elements `X`.
+* `bpiterate()`: apply a user-supplied function `FUN` to an unknown
+  number of elements resulting from successive calls to a
+  user-supplied function `ITER.`
+
+The reproducible random number implementation also supports:
+
+* `bptry()` and the `BPREDO=` argument, for re-evaluation of elements
+  that fail (e.g., because of a bug in `FUN`).
+
+# Essentials
+
+## Use of `bplapply()` and `RNGseed=`
+
+Attach `r Biocpkg("BiocParallel")` and ensure that the version is
+greater than 1.27.5
+
+```{r}
+library(BiocParallel)
+stopifnot(
+    packageVersion("BiocParallel") > "1.27.5"
+)
+```
+
+For reproducible calculation, use the `RNGseed=` argument in any of the 
+`*Param()`constructors.
+
+```{r}
+result1 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
+result1
+```
+
+Repeating the calculation with the same value for `RNGseed=` results
+in the same result; a different random number seed results in
+different results.
+
+```{r}
+result2 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
+stopifnot(
+    identical(result1, result2)
+)
+
+result3 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 200))
+result3
+
+stopifnot(
+    !identical(result1, result3)
+)
+```
+
+Results are invariant across `*Param()`
+
+```{r}
+result4 <- bplapply(1:3, runif, BPPARAM = SnowParam(RNGseed = 100))
+stopifnot(
+    identical(result1, result4)
+)
+
+if (!identical(.Platform$OS.type, "windows")) {
+    result5 <- bplapply(1:3, runif, BPPARAM = MulticoreParam(RNGseed = 100))
+    stopifnot(
+        identical(result1, result5)
+    )
+}
+```
+
+Parallel backends can adjust the number of `workers` (processes
+performing the evaluation) and `tasks` (how elements of `X` are
+distributed between workers).  Results are invariant to these
+parameters. This is illustrated with `SnowParam()`, but applies also
+to `MulticoreParam()`.
+
+```{r}
+result6 <- bplapply(1:3, runif, BPPARAM = SnowParam(workers = 2, RNGseed = 100))
+result7 <- bplapply(1:3, runif, BPPARAM = SnowParam(workers = 3, RNGseed = 100))
+result8 <- bplapply(
+    1:3, runif,
+    BPPARAM = SnowParam(workers = 2, tasks = 3, RNGseed = 100)
+)
+stopifnot(
+    identical(result1, result6),
+    identical(result1, result7),
+    identical(result1, result8)
+)
+```
+
+Subsequent sections illustrate results with `SerialParam()`, but identical 
+results are obtained with `SnowParam()` and `MulticoreParam()`.
+
+## Use with `bpiterate()`
+
+`bpiterate()` allows parallel processing of a ’stream’ of data as a
+series of tasks, with a task consisting of a portion of the overall
+data. It is useful when the data size is not known or easily
+partitioned into elements of a vector or list. A real use case might
+involve iterating through a BAM file, where a task represents
+successive records (perhaps 100,000 per task) in the file. Here we
+illustrate with a simple example – iterating through a vector `x =
+1:3`
+
+```{r}
+ITER_FUN_FACTORY <- function() {
+    x <- 1:3
+    i <- 0L
+    function() {
+        i <<- i + 1L
+        if (i > length(x))
+            return(NULL)
+        x[[i]]
+    }
+}
+```
+
+`ITER_FUN_FACTORY()` is used to create a function that, on each invocation, 
+returns the next task (here, an element of `x`; in a real example, perhaps 
+100000 records from a BAM file). When there are no more tasks, the function 
+returns `NULL`
+
+```{r, collapse = TRUE}
+ITER <- ITER_FUN_FACTORY()
+ITER()
+
+ITER()
+
+ITER()
+
+ITER()
+```
+
+In our simple example, `bpiterate()` is performing the same
+computations as `bplapply()` so the results, including the random
+number streams used by each task in `bpiterate()`, are the same
+
+```{r}
+result9 <- bpiterate(
+    ITER_FUN_FACTORY(), runif,
+    BPPARAM = SerialParam(RNGseed = 100)
+)
+stopifnot(
+    identical(result1, result9)
+)
+```
+
+## Use with `bptry()`
+
+`bptry()` in conjunction with the `BPREDO=` argument to `bplapply()`
+or `bpiterate()` allows for graceful recovery from errors. Here a
+buggy `FUN1()` produces an error for the second element. `bptry()`
+allows evaluation to continue for other elements of `X`, despite the
+error. This is shown in the result.
+
+```{r}
+FUN1 <- function(i) {
+    if (identical(i, 2L)) {
+        ## error when evaluating the second element
+        stop("i == 2")
+    } else runif(i)
+}
+result10 <- bptry(bplapply(
+    1:3, FUN1,
+    BPPARAM = SerialParam(RNGseed = 100, stop.on.error = FALSE)
+))
+result10
+```
+
+`FUN2()` illustrates the flexibility of `bptry()` by fixing the bug
+when `i == 2`, but also generating incorrect results if invoked for
+previously correct values. The identity of the result to the original
+computation shows that only the error task is re-computed, and that
+the random number stream used by the task is identical to the original
+stream.
+
+```{r}
+FUN2 <- function(i) {
+    if (identical(i, 2L)) {
+        ## the random number stream should be in the same state as the
+        ## first time through the loop, and rnorm(i) should return
+        ## same result as FUN
+        runif(i)
+    } else {
+        ## if this branch is used, then we are incorrectly updating
+        ## already calculated elements -- '0' in the output would
+        ## indicate this error
+        0
+    }
+}
+result11 <- bplapply(
+    1:3, FUN2,
+    BPREDO = result10,
+    BPPARAM = SerialParam(RNGseed = 100, stop.on.error = FALSE)
+)
+stopifnot(
+    identical(result1, result11)
+)
+```
+
+## Relationship between` RNGseed=` and `set.seed()`
+
+The global random number stream (influenced by `set.seed()`) is
+ignored by `r Biocpkg("BiocParallel")`, and `r Biocpkg("BiocParallel")` does 
+NOT increment the global stream.
+
+```{r}
+set.seed(200)
+value <- runif(1)
+
+set.seed(200)
+result12 <- bplapply(1:3, runif, BPPARAM = SerialParam(RNGseed = 100))
+stopifnot(
+    identical(result1, result12),
+    identical(value, runif(1))
+)
+```
+
+When `RNGseed=` is not used, an internal stream (not accessible to the
+user) is used and `r Biocpkg("BiocParallel")` does NOT increment the
+global stream.
+
+```{r}
+set.seed(100)
+value <- runif(1)
+
+set.seed(100)
+result13 <- bplapply(1:3, runif, BPPARAM = SerialParam())
+stopifnot(
+    !identical(result1, result13),
+    identical(value, runif(1))
+)
+```
+
+## `bpstart()` and random number streams
+
+In all of the examples so far `*Param()` objects are passed to
+`bplapply()` or `bpiterate()` in the ’stopped’ state. Internally,
+`bplapply()` and `bpiterate()` invoke `bpstart()` to establish the
+computational environment (e.g., starting workers for
+`SnowParam()`). `bpstart()` can be called explicitly, e.g., to allow
+workers to be used across calls to `bplapply()`.
+
+The cluster random number stream is initiated with `bpstart()`. Thus
+
+```{r}
+param <- bpstart(SerialParam(RNGseed = 100))
+result16 <- bplapply(1:3, runif, BPPARAM = param)
+bpstop(param)
+stopifnot(
+    identical(result1, result16)
+)
+```
+
+This allows a second call to `bplapply` to represent a continuation of
+a random number computation – the second call to `bplapply()` results
+in different random number streams for each element of `X`.
+
+```{r}
+param <- bpstart(SerialParam(RNGseed = 100))
+result16 <- bplapply(1:3, runif, BPPARAM = param)
+result17 <- bplapply(1:3, runif, BPPARAM = param)
+bpstop(param)
+stopifnot(
+    identical(result1, result16),
+    !identical(result1, result17)
+)
+```
+
+The results from `bplapply()` are different from the results from
+`lapply()`, even with the same random number seed. This is because
+correctly implemented parallel random streams require use of a
+particular random number generator invoked in specific ways for each
+element of `X`, as outlined in the Implementation notes section.
+
+## Relationship between `bplapply()` and `lapply()`
+
+The results from `bplapply()` are different from the results from
+`lapply()`, even with the same random number seed. This is because
+correctly implemented parallel random streams require use of a
+particular random number generator invoked in specific ways for each
+element of `X`, as outlined in the Implementation notes section.
+
+```{r}
+set.seed(100)
+result20 <- lapply(1:3, runif)
+stopifnot(
+    !identical(result1, result20)
+)
+```
+
+# Implementation notes
+
+The implementation uses the L’Ecuyer-CMRG random number generator (see
+`?RNGkind` and `?parallel::clusterSetRNGStream` for additional
+details). This random number generates independent streams and
+substreams of random numbers. In `r Biocpkg("BiocParallel")`, each
+call to `bp start()` creates a new stream from the L’Ecuyer-CMRG
+generator.  Each element in `bplap` `ply()` or `bpiterate()` creates a
+new substream. Each application of `FUN` is therefore using the
+L’Ecuyer-CMRG random number generator, with a substream that is
+independent of the substreams of all other elements.
+
+Within the user-supplied `FUN` of `bplapply()` or `bpiterate()`, it is
+a mistake to use `RNGkind()` to set a different random number
+generator, or to use `set.seed()`. This would in principle compromise
+the independence of the streams across elements.
+
+# `sessionInfo()`
+
+```{r, echo = FALSE}
+sessionInfo()
+```

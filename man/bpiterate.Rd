@@ -7,6 +7,7 @@
 \alias{bpiterate,ANY,ANY,BatchJobsParam-method}
 \alias{bpiterate,ANY,ANY,DoparParam-method}
 \alias{bpiterate,ANY,ANY,BatchtoolsParam-method}
+\alias{bpiterateAlong}
 
 \title{Parallel iteration over an indeterminate number of data chunks}
 
@@ -17,21 +18,37 @@
   in an asynchronous fashion; as each worker finishes it receives a
   new chunk. Data are traversed a single time.
 
+  When provided with a vector-like argument \code{ITER = X},
+  \code{bpiterate} uses \code{bpiterateAlong} to produce the sequence of
+  elements \code{X[[1]]}, \code{X[[2]]}, etc.
+
 }
 
 \usage{
-bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
-\S4method{bpiterate}{ANY,ANY,missing}(ITER, FUN, ...,
+bpiterate(
+    ITER, FUN, ...,
+    BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions()
+)
+
+\S4method{bpiterate}{ANY,ANY,missing}(
+    ITER, FUN, ...,
     BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions())
 
 \S4method{bpiterate}{ANY,ANY,BatchtoolsParam}(
     ITER, FUN, ..., REDUCE, init, reduce.in.order=FALSE,
     BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpoptions()
 )
+
+bpiterateAlong(X)
 }
 
 \arguments{
+
+  \item{X}{
+    An object (e.g., vector or list) with `length()` and `[[` methods
+    available.
+  }
 
   \item{ITER}{
     A function with no arguments that returns an object to process,
@@ -65,15 +82,16 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpopti
   \item{reduce.in.order}{Logical. When TRUE, REDUCE is applied to the
     results from the workers in the same order the tasks were sent out.}
 
-  \item{BPREDO}{An output from \code{bpiterate} with one or
-    more failed elements. This argument cannot be used with \code{BatchtoolsParam}
+  \item{BPREDO}{An output from \code{bpiterate} with one or more failed
+    elements. This argument cannot be used with \code{BatchtoolsParam}
   }
 
   \item{\dots}{Arguments to other methods, and named arguments for
     \code{FUN}.}
 
   \item{BPOPTIONS}{
-    Additional options to control the behavior of the parallel evaluation, see \code{\link{bpoptions}}.
+    Additional options to control the behavior of the parallel
+    evaluation, see \code{\link{bpoptions}}.
   }
 }
 
@@ -94,6 +112,10 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpopti
   should continue to return NULL reguardless of the number of times
   it is invoked after reaching the end of the file. \code{FUN}
   is applied to each object (data chunk) returned by \code{ITER}.
+
+  \code{bpiterateAlong()} provides an interator for a vector or other
+  object with \code{length()} and \code{[[} methods defined. It is used
+  in place of the first argument \code{ITER=}
 
 }
 
@@ -123,6 +145,12 @@ bpiterate(ITER, FUN, ..., BPREDO = list(), BPPARAM=bpparam(), BPOPTIONS = bpopti
 }
 
 \examples{
+## A simple iterator
+ITER <- bpiterateAlong(1:10)
+result <- bpiterate(ITER, sqrt)
+## alteernatively, result <- bpiterate(1:10, sqrt)
+unlist(result)
+
 \dontrun{
 if (require(Rsamtools) && require(RNAseqData.HNRNPC.bam.chr14) &&
     require(GenomicAlignments) && require(ShortRead)) {

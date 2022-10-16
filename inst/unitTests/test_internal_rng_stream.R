@@ -1,3 +1,5 @@
+message("Testing internal_rng_stream")
+
 test_internal_rng_stream <-
     function()
 {

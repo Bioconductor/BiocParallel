@@ -65,20 +65,6 @@ setMethod("bpstart", "missing",
     invisible(.RNGstream(x))
 }
 
-.bpstart_set_logging <-
-    function(x)
-{
-    manager <- .manager(x)
-    on.exit({.manager_cleanup(manager)})
-
-    value <- .EXEC(NULL, .log_load, list(bplog(x), bpthreshold(x), TRUE))
-    .manager_send_all(manager, value)
-    .manager_flush(manager)
-    response <- .manager_recv_all(manager)
-
-    .bpstart_error_handler(x, response, "set_logging")
-    invisible(x)
-}
 
 .bpstart_set_finalizer <-
     function(x)
@@ -102,10 +88,6 @@ setMethod("bpstart", "missing",
 
     ## initialize the random number stream
     .bpstart_set_rng_stream(x)
-
-    ## logging
-    if (bplog(x))
-        .bpstart_set_logging(x)
 
     ## clean up when x left open
     .bpstart_set_finalizer(x)

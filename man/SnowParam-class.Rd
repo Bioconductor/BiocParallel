@@ -192,9 +192,12 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   \item{workers}{
 
-    \code{integer(1)} Number of workers. Defaults to all cores available as
-    determined by \code{detectCores}. For a \code{SOCK} cluster \code{workers}
-    can be a \code{character()} vector of host names.
+    \code{integer(1)} Number of workers. Defaults to the maximum of 1 or
+    the number of cores determined by \code{detectCores} minus 2 unless
+    environment variables \code{R_PARALLELLY_AVAILABLECORES_FALLBACK} or
+    \code{BIOCPARALLEL_WORKER_NUMBER} are set otherwise. For a
+    \code{SOCK} cluster, \code{workers} can be a \code{character()}
+    vector of host names.
 
   }
   \item{type}{
@@ -502,8 +505,7 @@ X <- 1:3
 fun <- function(x) {
     if (x == 1) {
         Sys.sleep(2)
-        if (TRUE & c(TRUE, TRUE))  ## warning
-            x
+        log(-x)                    ## warning
     } else if (x == 2) {
         x                          ## ok
     } else if (x == 3) {
