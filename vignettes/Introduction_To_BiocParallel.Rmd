@@ -1,6 +1,12 @@
 ---
 title: "**Introduction to *BiocParallel***"
-author: "Phyllis Atieno"
+author:
+- name: "Valerie Obenchain"
+- name: "Vincent Carey"
+- name: "Michael Lawrence"
+- name: "Martin Morgan"
+  email: Martin.Morgan@RoswellPark.org
+date: "Edited: January 23, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 date: "Compiled: 18 October, 2022"
 package: BiocParallel
 vignette: >
