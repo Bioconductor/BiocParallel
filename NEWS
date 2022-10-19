@@ -23,6 +23,8 @@ USER VISIBLE CHANGES
 
 BUG FIXES
 
+    o (v 1.31.14) Reduce bpmapply memory usage
+
     o (v 1.31.1) suppress package startup messages on workers
     https://github.com/Bioconductor/BiocParallel/issues/198
 
