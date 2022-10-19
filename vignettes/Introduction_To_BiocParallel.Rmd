@@ -24,7 +24,7 @@ Introduction
 Numerous approaches are available for parallel computing in R. The CRAN Task View for
 high performance and parallel computing provides useful high-level summaries and [package
 categorization.](http://cran.r-project.org/web/views/HighPerformanceComputing.html)
-Most Task View packages cite or identify one or more of **snow** , **Rmpi**, **multicore** or **foreach** as
+Most Task View packages cite or identify one or more of [*snow*](https://cran.r-project.org/package=snow) , [*Rmpi*](https://cran.r-project.org/package=Rmpi),[*multicore*](https://cran.r-project.org/package=multicore)  or [*foreach*](https://cran.r-project.org/package=foreach) as
 relevant parallelization infrastructure. Direct support in *R* for *parallel* computing started
 with release 2.14.0 with inclusion of the parallel package which contains modified versions of
 *multicore* and *snow* .
