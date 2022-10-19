@@ -26,19 +26,19 @@ high performance and parallel computing provides useful high-level summaries and
 categorization.](http://cran.r-project.org/web/views/HighPerformanceComputing.html)
 Most Task View packages cite or identify one or more of [*snow*](https://cran.r-project.org/package=snow) , [*Rmpi*](https://cran.r-project.org/package=Rmpi),[*multicore*](https://cran.r-project.org/package=multicore)  or [*foreach*](https://cran.r-project.org/package=foreach) as
 relevant parallelization infrastructure. Direct support in *R* for *parallel* computing started
-with release 2.14.0 with inclusion of the parallel package which contains modified versions of
-*multicore* and *snow* .
+with release 2.14.0 with inclusion of the [parallel](https://cran.r-project.org/package=parallel) package which contains modified versions of
+[*multicore*](https://cran.r-project.org/package=multicore) and [*snow*](https://cran.r-project.org/package=snow) .
 
 
-A basic objective of *BiocParallel* is to reduce the complexity faced when developing
+A basic objective of [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) is to reduce the complexity faced when developing
 and using software that performs parallel computations. With the
-introduction of the `BiocParallelParam` object, *BiocParallel* aims to provide a unified interface to
+introduction of the `BiocParallelParam` object, [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) aims to provide a unified interface to
 existing parallel infrastructure where code can be easily executed in
 different environments. The `BiocParallelParam` specifies the environment of choice as well
 as computing resources and is invoked by 'registration' or passed as an
-argument to the *BiocParallel* functions.
+argument to the [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) functions.
 
-*BiocParallel* offers the following conveniences over the 'roll your own' approach to
+[*BiocParallel*](http://bioconductor.org/packages/BiocParallel) offers the following conveniences over the 'roll your own' approach to
 parallel programming.
 
 -   unified interface: `BiocParallelParam` instances define the method of parallel
@@ -50,10 +50,10 @@ parallel programming.
     through files distributing chunks to parallel workers.
 
 -   cluster scheduling: When the parallel environment is managed by a
-    cluster scheduler through *batchtools*, job management and result retrieval are
+    cluster scheduler through [*batchtools](https://cran.r-project.org/package=batchtools), job management and result retrieval are
     considerably simplified.
 
--   support of `foreach` : The *foreach* and *iterators* packages are fully supported. Registration of
+-   support of `foreach` : The [*foreach*](https://cran.r-project.org/package=foreach) and [*iterators*](https://cran.r-project.org/package=iterators) packages are fully supported. Registration of
     the parallel back end uses `BiocParallelParam` instances.
 
 Quick start
@@ -67,7 +67,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("BiocParallel")
 ```
 
-Load *BiocParallel*
+Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)
 
 `library(BiocParallel)`
 
@@ -77,7 +77,7 @@ The test function simply returns the square root of "x".
 `FUN <- function(x) { round(sqrt(x), 4) }`
 
 
-Functions in `BiocParallel` use the registered back-ends for parallel evaluation. The
+Functions in [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) use the registered back-ends for parallel evaluation. The
 default is the top entry of the registry list.
 
 ```
@@ -119,7 +119,7 @@ named after the back ends in an `.RProfile` file, e.g.,
 `options(MulticoreParam=quote(MulticoreParam(workers=4)))`
 
 
-When a *BiocParallel* function is invoked with no `BPPARAM` argument the default back-end is
+When a [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) function is invoked with no `BPPARAM` argument the default back-end is
 used. 
 
 `bplapply(1:4, FUN)`
@@ -196,29 +196,29 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
     post](https://support.bioconductor.org/p/70196/#70509) for
     additional details.
 
-    `MulticoreParam` is based on facilities originally implemented in the [multicore](https://cran.r-project.org/package=multicore)     package and subsequently the [parallel](https://cran.r-project.org/package=parallel) package in base .
+    `MulticoreParam` is based on facilities originally implemented in the [*multicore*](https://cran.r-project.org/package=multicore)     package and subsequently the [*parallel*](https://cran.r-project.org/package=parallel) package in base .
 
 -   `SnowParam`:
 
     Supported on all platforms.
 
-    Evaluate [BiocParallel](http://bioconductor.org/packages/BiocParallel)-enabled code across several distinct instances, on one or
+    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code across several distinct instances, on one or
     several computers. This is a straightforward approach for executing
     parallel code on one or several computers, and is based on
-    facilities originally implemented in the [snow](https://cran.r-project.org/package=snow) package. Different types of [snow](https://cran.r-project.org/package=snow) 'back-ends' are supported, including socket and MPI clusters.
+    facilities originally implemented in the [*snow*](https://cran.r-project.org/package=snow) package. Different types of [*snow*](https://cran.r-project.org/package=snow) 'back-ends' are supported, including socket and MPI clusters.
 
 -   `BatchtoolsParam`:
 
     Applicable to clusters with formal schedulers.
 
-    Evaluate [BiocParallel](http://bioconductor.org/packages/BiocParallel)-enabled code by submitting to a cluster scheduler like
+    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code by submitting to a cluster scheduler like
     SGE.
 
 -   `DoparParam`:
 
     Supported on all platforms.
 
-    Register a parallel back-end supported by the [foreach](https://cran.r-project.org/package=foreach) package for use with [BiocParallel](http://bioconductor.org/packages/BiocParallel).
+    Register a parallel back-end supported by the [*foreach*](https://cran.r-project.org/package=foreach) package for use with [*BiocParallel*](http://bioconductor.org/packages/BiocParallel).
 
 The simplest illustration of creating `BiocParallelParam` is
 ```
@@ -491,7 +491,7 @@ MulticoreParam()
 ```
 
 
-The [BiocParallel](http://bioconductor.org/packages/BiocParallel)functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
+The [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
 appropriate back-end and pass relevant arguments to low-level functions.
 
     > bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
@@ -506,7 +506,7 @@ appropriate back-end and pass relevant arguments to low-level functions.
 
 Shared memory environments eliminate the need to pass large data between
 workers or load common packages. Note that in this code the GRanges data
-was not passed to all workers in `bplapply` and FUN did not need to load [GenomicAlignments[](http://bioconductor.org/packages/GenomicAlignments)for access
+was not passed to all workers in `bplapply` and FUN did not need to load [*GenomicAlignments*[](http://bioconductor.org/packages/GenomicAlignments)for access
 to the `readGAlign
 ments` function.
 
@@ -542,7 +542,7 @@ bplapply(X, FUN, ..., BPPARAM = MulticoreParam())
 ### Clusters of independent processes with `SnowParam`
 
 Both Windows and non-Windows machines can use the cluster approach to
-spawn processes. [BiocParallel](http://bioconductor.org/packages/BiocParallel)back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
+spawn processes. [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
 
 To re-run the counting example, FUN needs to modified such that 'gr' is
 passed as a formal argument and required libraries are loaded on each
@@ -580,7 +580,7 @@ bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
 ```
 
 The FUN written for the cluster adds some overhead due to the passing of
-the GRanges and the loading of [GenomicAlignments](http://bioconductor.org/packages/GenomicAlignments) on each worker. This approach, however, has the advantage that it works on most platforms and does not require a
+the GRanges and the loading of [*GenomicAlignments*](http://bioconductor.org/packages/GenomicAlignments) on each worker. This approach, however, has the advantage that it works on most platforms and does not require a
 coding change when switching between windows and non-windows machines.
 
 If several `bplapply()` statements are likely to require the same resource, it often
@@ -655,7 +655,7 @@ machine.
 
     mpiexec --np 1 --hostfile hostfile R --vanilla
 
-Load [BiocParallel](http://bioconductor.org/packages/BiocParallel) and create an MPI Snow cluster. The number `workers` of in should match the
+Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) and create an MPI Snow cluster. The number `workers` of in should match the
 number of slots requested in the hostfile. Using a smaller number of
 workers uses a subset of the slots.
 
@@ -751,7 +751,7 @@ The entire session is as follows:
 $ salloc -N 4 orterun -n 1 R --vanilla -f BiocParallel-MPI.R
 salloc: Job is in held state, pending scheduler release
 salloc: Pending job allocation 6762292
-salloc: job 6762292 queued and waiting for resources
+salloc: job 6762292 queued and waiting for resources 
 salloc: job 6762292 has been allocated resources
 salloc: Granted job allocation 6762292
 ## ...
@@ -793,7 +793,7 @@ mpi.quit()
 ### R-centric
 
 A more *R*-centric approach might start an *R* script on the head node, and use
-*bashtools* to submit jobs from within *R* the session. One way of doing this is to
+*batchtools* to submit jobs from within *R* the session. One way of doing this is to
 create a file containing a template for the job submission step, e.g.,
 for SLURM; a starting point might be found at 
 
@@ -879,7 +879,7 @@ in a 'functional programming' manner, such that all data required for
 the function is passed in as arguments or (for large data) loaded
 implicitly or explicitly (e.g., via an *R* library) from disk.
 
-Analyzing genomic data in 
+Analyzing genomic data in *Bioconductor*
 =========================
 
 General strategies exist for handling large genomic data that are well
@@ -898,7 +898,7 @@ genomics problems in *R*.
 For developers {#sec:developers}
 ==============
 
-Developers wishing to use [BiocParallel](http://bioconductor.org/packages/BiocParallel) in their own packages should include [BiocParallel](http://bioconductor.org/packages/BiocParallel) in the
+Developers wishing to use [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in their own packages should include [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in the
 `DESCRIPTION` file
 
         Imports: BiocParallel
@@ -925,7 +925,8 @@ back-end if they have used `register()`.
 
 The `MulticoreParam` back-end does not require any special configuration or set-up and is therefore the safest option for
 developers. Unfortunately, `MulticoreParam` provides only serial evaluation on Windows.
-Developers should document that their function uses [BiocParallel](http://bioconductor.org/packages/BiocParallel) functions on the main
+
+Developers should document that their function uses [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) functions on the main
 page, and should perhaps include in their function signature an argument `BPPARAM=bpparam()`.
 Developers should NOT use 'register()' in package code -- this sets a
 preference that influences use of 'bplapply()' and friends in all
@@ -965,3 +966,5 @@ is a reasonable approach to avoiding this scenario.
 
 ### sessionInfo
 `toLatex(sessionInfo())`
+
+
