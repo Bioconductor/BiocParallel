@@ -4,6 +4,11 @@
 
 ## bpmapply() dispatches to bplapply() where errors and logging are handled.
 
+.wrap <- function(.i, .FUN, .ddd, .MoreArgs) {
+    dots <- lapply(.ddd, `[`, .i)
+    .mapply(.FUN, dots, .MoreArgs)[[1L]]
+}
+
 setMethod("bpmapply", c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
              USE.NAMES=TRUE, BPREDO=list(),
@@ -15,12 +20,8 @@ setMethod("bpmapply", c("ANY", "BiocParallelParam"),
         return(.mrename(list(), ddd, USE.NAMES))
 
     FUN <- match.fun(FUN)
-    wrap <- function(.i, .FUN, .ddd, .MoreArgs) {
-        dots <- lapply(.ddd, `[`, .i)
-        .mapply(.FUN, dots, .MoreArgs)[[1L]]
-    }
 
-    res <- bplapply(X=seq_along(ddd[[1L]]), wrap, .FUN=FUN, .ddd=ddd,
+    res <- bplapply(X=seq_along(ddd[[1L]]), .wrap, .FUN=FUN, .ddd=ddd,
                     .MoreArgs=MoreArgs, BPREDO=BPREDO,
                     BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
     .simplify(.mrename(res, ddd, USE.NAMES), SIMPLIFY)
