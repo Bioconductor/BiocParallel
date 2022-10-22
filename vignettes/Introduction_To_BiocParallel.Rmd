@@ -83,34 +83,6 @@ default is the top entry of the registry list.
 ```
 registered()
 
-## $MulticoreParam
-## class: MulticoreParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: FALSE; bpforceGC: TRUE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: FORK
-##
-## $SnowParam
-## class: SnowParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: TRUE; bpforceGC: FALSE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: SOCK
-##
-## $SerialParam
-## class: SerialParam
-## bpisup: FALSE; bpnworkers: 1; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: FALSE; bpexportvariables: FALSE; bpforceGC: FALSE; bpfallback: FALSE
-## bplogdir: NA
-## bpresultdir: NA
 ```
 
 Configure your R session to always use a particular back-end configure by setting options
@@ -131,17 +103,7 @@ entries. This example uses a 2-worker SOCK cluster.
 ```
 param <- SnowParam(workers = 2, type = "SOCK")
 bplapply(1:4, FUN, BPPARAM = param)
-## [[1]]
-## [1] 1
-##
-## [[2]]
-## [1] 1.4142
-##
-## [[3]]
-## [1] 1.7321
-##
-## [[4]]
-## [1] 2
+
 ```
 
 The *BiocParallel* Interface
@@ -224,13 +186,7 @@ The simplest illustration of creating `BiocParallelParam` is
 ```
 serialParam <- SerialParam()
 serialParam
-## class: SerialParam
-## bpisup: FALSE; bpnworkers: 1; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: FALSE; bpexportvariables: FALSE; bpforceGC: FALSE; bpfallback: FALSE
-## bplogdir: NA
-## bpresultdir: NA
+
 ```
 
 Most parameters have additional arguments influencing behavior, e.g.,
@@ -239,14 +195,7 @@ specifying the number of 'cores' to use when creating a `MulticoreParam` instanc
 ```
 multicoreParam <- MulticoreParam(workers = 8)
 multicoreParam
-## class: MulticoreParam
-## bpisup: FALSE; bpnworkers: 8; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: FALSE; bpforceGC: TRUE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: FORK
+
 ```
 Arguments are described on the corresponding help page, e.g., `?MulticoreParam.`.
 
@@ -264,47 +213,13 @@ default).
 `registered` invoked with no arguments lists all back-ends.
 ```
 registered()
-## $MulticoreParam
-## class: MulticoreParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: FALSE; bpforceGC: TRUE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: FORK
-##
-## $SnowParam
-## class: SnowParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: TRUE; bpforceGC: FALSE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: SOCK
-##
-## $SerialParam
-## class: SerialParam
-## bpisup: FALSE; bpnworkers: 1; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: FALSE; bpexportvariables: FALSE; bpforceGC: FALSE; bpfallback: FALSE
-## bplogdir: NA
-## bpresultdir: NA
+
 ```
 `bpparam` returns the default from the top of the list. 
 
 ```
 bpparam()
-## class: MulticoreParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: FALSE; bpforceGC: TRUE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: FORK
+
 ```
 
 Add a specialized instance with `register` . When `default` is TRUE, the new instance becomes
@@ -320,27 +235,7 @@ default.
 
 ```
 names(registered())
-## [1] "BatchtoolsParam" "MulticoreParam" "SnowParam" "SerialParam"
-bpparam()
-## class: BatchtoolsParam
-## bpisup: FALSE; bpnworkers: 10; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: NA; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: TRUE; bpforceGC: FALSE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: multicore
-## template: NA
-## registryargs:
-## file.dir: /tmp/RtmpwXDnbb/Rbuild125f8c661ffc03/BiocParallel/vignettes/file1269f66d167c61
-## work.dir: getwd()
-## packages: character(0)
-## namespaces: character(0)
-## source: character(0)
-## load: character(0)
-## make.default: FALSE
-## saveregistry: FALSE
-## resources:
+
 ```
 
 
@@ -480,14 +375,7 @@ are specified in the *MulticoreParam* instance.
 
 ```
 MulticoreParam()
-## class: MulticoreParam
-## bpisup: FALSE; bpnworkers: 4; bptasks: 0; bpjobname: BPJOB
-## bplog: FALSE; bpthreshold: INFO; bpstopOnError: TRUE
-## bpRNGseed: ; bptimeout: NA; bpprogressbar: FALSE
-## bpexportglobals: TRUE; bpexportvariables: FALSE; bpforceGC: TRUE; bpfallback: TRUE
-## bplogdir: NA
-## bpresultdir: NA
-## cluster type: FORK
+
 ```
 
 
@@ -569,14 +457,7 @@ A call to `bplapply` with the *SnowParam* creates the cluster and distributes th
 
 ```
 bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
-## $ERR127306
-## [1] 1185
-##
-## $ERR127307
-## [1] 1123
-##
-## $ERR127308
-## [1] 1241
+
 ```
 
 The FUN written for the cluster adds some overhead due to the passing of
@@ -800,55 +681,7 @@ for SLURM; a starting point might be found at
 ```
 tmpl <- system.file(package="batchtools", "templates", "slurm-simple.tmpl")
 noquote(readLines(tmpl))
-## [1] #!/bin/bash
-## [2]
-## [3] ## Job Resource Interface Definition
-## [4] ##
-## [5] ## ntasks [integer(1)]: Number of required tasks,
-## [6] ## Set larger than 1 if you want to further parallelize
-## [7] ## with MPI within your job.
-## [8] ## ncpus [integer(1)]: Number of required cpus per task,
-## [9] ## Set larger than 1 if you want to further parallelize
-## [10] ## with multicore/parallel within each task.
-## [11] ## walltime [integer(1)]: Walltime for this job, in seconds.
-## [12] ## Must be at least 60 seconds for Slurm to work properly.
-## [13] ## memory [integer(1)]: Memory in megabytes for each cpu.
-## [14] ## Must be at least 100 (when I tried lower values my
-## [15] ## jobs did not start at all).
-## [16] ##
-## [17] ## Default resources can be set in your .batchtools.conf.R by defining the variable
-## [18] ## 'default.resources' as a named list.
-## [19]
-## [20] <%
-## [21] # relative paths are not handled well by Slurm
-## [22] log.file = fs::path_expand(log.file)
-## [23] -%>
-## [24]
-## [25]
-## [26] #SBATCH --job-name=<%= job.name %>
-## [27] #SBATCH --output=<%= log.file %>
-## [28] #SBATCH --error=<%= log.file %>
-## [29] #SBATCH --time=<%= ceiling(resources$walltime / 60) %>
-## [30] #SBATCH --ntasks=1
-## [31] #SBATCH --cpus-per-task=<%= resources$ncpus %>
-## [32] #SBATCH --mem-per-cpu=<%= resources$memory %>
-## [33] <%= if (!is.null(resources$partition)) sprintf(paste0("#SBATCH --partition='", resources$partition, "
-## [34] <%= if (array.jobs) sprintf("#SBATCH --array=1-%i", nrow(jobs)) else "" %>
-## [35]
-## [36] ## Initialize work environment like
-## [37] ## source /etc/profile
-## [38] ## module add ...
-## [39]
-## [40] ## Export value of DEBUGME environemnt var to slave
-## [41] export DEBUGME=<%= Sys.getenv("DEBUGME") %>
-## [42]
-## [43] <%= sprintf("export OMP_NUM_THREADS=%i", resources$omp.threads) -%>
-## [44] <%= sprintf("export OPENBLAS_NUM_THREADS=%i", resources$blas.threads) -%>
-## [45] <%= sprintf("export MKL_NUM_THREADS=%i", resources$blas.threads) -%>
-## [46]
-## [47] ## Run R:
-## [48] ## we merge R output with stdout from SLURM, which gets then logged via --output option
-## [49] Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
+
 ```
 
 The *R* script, run
@@ -911,10 +744,9 @@ Then invoke the desired function in the code, e.g.,
 
 ```
 system.time(x <- bplapply(1:3, function(i) { Sys.sleep(i); i }))
-## user system elapsed
-## 0.086 0.136 3.122
+
 unlist(x)
-## [1] 1 2 3
+
 ```
 
 
