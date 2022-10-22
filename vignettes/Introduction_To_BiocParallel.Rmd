@@ -69,18 +69,27 @@ BiocManager::install("BiocParallel")
 
 Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)
 
-`library(BiocParallel)`
+```
+{r}
+library(BiocParallel)
+
+```
 
 
 The test function simply returns the square root of "x".
 
-`FUN <- function(x) { round(sqrt(x), 4) }`
+```
+{r quick_start FUN}
+FUN <- function(x) { round(sqrt(x), 4) }
+
+```
 
 
 Functions in [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) use the registered back-ends for parallel evaluation. The
 default is the top entry of the registry list.
 
 ```
+{r quick_start registry}
 registered()
 
 ```
@@ -88,19 +97,27 @@ registered()
 Configure your R session to always use a particular back-end configure by setting options
 named after the back ends in an `.RProfile` file, e.g.,
 
-`options(MulticoreParam=quote(MulticoreParam(workers=4)))`
+```
+{r configure_registry, eval=FALSE}
+optionsoptions(MulticoreParam=quote(MulticoreParam(workers=4)))
+```
 
 
 When a [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) function is invoked with no `BPPARAM` argument the default back-end is
 used. 
 
-`bplapply(1:4, FUN)`
+```
+{r quickstart_bplapply_default, eval=FALSE}
+bplapply(1:4, FUN)
+
+```
 
 
 Environment specific back-ends can be defined for any of the registry
 entries. This example uses a 2-worker SOCK cluster.
 
 ```
+{r quickstart_snow}
 param <- SnowParam(workers = 2, type = "SOCK")
 bplapply(1:4, FUN, BPPARAM = param)
 
@@ -119,7 +136,7 @@ or `register()` ing a '`Param`' allows the same code to be used in different par
 environments without a code re-write. Params listed are supported on all
 of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
--   `SerialParam`:
+-  `SerialParam`:
 
     Supported on all platforms.
 
@@ -183,7 +200,9 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
     Register a parallel back-end supported by the [*foreach*](https://cran.r-project.org/package=foreach) package for use with [*BiocParallel*](http://bioconductor.org/packages/BiocParallel).
 
 The simplest illustration of creating `BiocParallelParam` is
+
 ```
+{r BiocParallelParam_SerialParam}
 serialParam <- SerialParam()
 serialParam
 
@@ -193,6 +212,7 @@ Most parameters have additional arguments influencing behavior, e.g.,
 specifying the number of 'cores' to use when creating a `MulticoreParam` instance
 
 ```
+{r BiocParallelParam_MulticoreParam}
 multicoreParam <- MulticoreParam(workers = 8)
 multicoreParam
 
@@ -212,12 +232,14 @@ default).
 
 `registered` invoked with no arguments lists all back-ends.
 ```
+{r register_registered}
 registered()
 
 ```
 `bpparam` returns the default from the top of the list. 
 
 ```
+{r register_bpparam}
 bpparam()
 
 ```
@@ -226,6 +248,7 @@ Add a specialized instance with `register` . When `default` is TRUE, the new ins
 the default. 
 
 ```
+{r register_BatchtoolsParam}
 default <- registered()
 register(BatchtoolsParam(workers = 10), default = TRUE
 ```
@@ -234,7 +257,9 @@ BatchtoolsParam has been moved to the top of the list and is now the
 default. 
 
 ```
+{r register_BatchtoolsParam2}
 names(registered())
+bpparam()
 
 ```
 
@@ -242,8 +267,10 @@ names(registered())
 Restore the original registry
 
 ```
+{r register_restore}
 for (param in rev(default))
 register(param)
+
 ```
 
 Functions
@@ -307,7 +334,11 @@ For a more details see the vignette titled "Error Handling and
 Logging":
 
 
-` browseVignettes("BiocParallel")`
+```
+{r error-vignette, eval=FALSE}
+browseVignettes("BiocParallel")
+
+```
 
 
 ### Locks and counters
@@ -325,6 +356,7 @@ available in the *RNAse-
 qData.HNRNPC.bam.chr14* package.
 
 ```
+{r use_cases_data}
 library(RNAseqData.HNRNPC.bam.chr14)
 fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
 ```
@@ -351,6 +383,7 @@ ranges. First create a GRanges with regions of interest (in practice
 this could be large). 
 
 ```
+{r forking_gr, message=FALSE}
 library(GenomicAlignments) ## for GenomicRanges and readGAlignments()
 gr <- GRanges("chr14", IRanges((1000:3999)*5000, width=1000))
 ```
@@ -358,12 +391,14 @@ gr <- GRanges("chr14", IRanges((1000:3999)*5000, width=1000))
 A *ScanBamParam* defines regions to extract from the files. 
 
 ```
+{r forking_param}
 param <- ScanBamParam(which=range(gr))
 ```
 
 FUN counts overlaps between the ranges in 'gr' and the files.
 
 ```
+{r forking_FUN}
 FUN <- function(fl, param) {
 gal <- readGAlignments(fl, param = param)
 sum(countOverlaps(gr, gal))
@@ -374,6 +409,7 @@ All parameters necessary for running a job in a multi-core environment
 are specified in the *MulticoreParam* instance. 
 
 ```
+{r forking_default_multicore}
 MulticoreParam()
 
 ```
@@ -381,8 +417,8 @@ MulticoreParam()
 
 The [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
 appropriate back-end and pass relevant arguments to low-level functions.
-
-    > bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
+```{verbatim}
+> bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
     $ERR127306
     [1] 1185
 
@@ -391,6 +427,9 @@ appropriate back-end and pass relevant arguments to low-level functions.
 
     $ERR127308
     [1] 1241
+ ```  
+    
+    
 
 Shared memory environments eliminate the need to pass large data between
 workers or load common packages. Note that in this code the GRanges data
@@ -404,6 +443,7 @@ by forked processes. One example is the database connection underlying
 Bioconductor's `org.*` packages. This pseudo-code 
 
 ```
+{r db_problems, eval = FALSE}
 library(org.Hs.eg.db)
 FUN <- function(x, ...) {
 ...
@@ -440,6 +480,7 @@ Section [6](#sec:developers){reference-type="ref"
 reference="sec:developers"}.)
 
 ```
+{r cluster_FUN}
 FUN <- function(fl, param, gr) {
 suppressPackageStartupMessages({
 library(GenomicAlignments)
@@ -451,11 +492,15 @@ sum(countOverlaps(gr, gal))
 
 Define a 2-worker SOCK Snow cluster. 
 
-`snow <- SnowParam(workers = 2, type = "SOCK")`
+```
+{r cluster_snow_param}
+snow <- SnowParam(workers = 2, type = "SOCK")
+```
 
 A call to `bplapply` with the *SnowParam* creates the cluster and distributes the work.
 
 ```
+{r cluster_bplapply}
 bplapply(fls[1:3], FUN, BPPARAM = snow, param = param, gr = gr)
 
 ```
@@ -469,6 +514,7 @@ makes sense to create a cluster once using  `bpstart()`. The workers are re-used
 each call to `bplapply()`, so they do not have to re-load packages, etc.
 
 ```
+{r db_solution_2, eval = FALSE}
 register(SnowParam()) # default evaluation
 bpstart() # start the cluster
 ...
@@ -502,6 +548,7 @@ param <- SnowParam(workers = hosts, type = "SOCK")
 ```
 Execute FUN 4 times across the workers.
 
+```{verbatim}
     > FUN <- function(i) system("hostname", intern=TRUE)
     > bplapply(1:4, FUN, BPPARAM = param)
     [[1]]
@@ -515,6 +562,7 @@ Execute FUN 4 times across the workers.
 
     [[4]]
     [1] "rhino01"
+```
 
 When creating a cluster across Windows machines must be IP addresses
 (e.g., \"140.107.218.57\") instead of machine names.
@@ -526,28 +574,30 @@ from the command line or a script. A list of machine names provided as
 the -hostfile argument defines the mpi universe.
 
 The hostfile requests 2 processors on 3 different machines.
-
+```{verbatim}
     rhino01 slots=2
     rhino02 slots=2
     rhino03 slots=2
+```
 
 From the command line, start a single interactive process on the current
 machine.
-
+```{verbatim}
     mpiexec --np 1 --hostfile hostfile R --vanilla
-
+```
 Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) and create an MPI Snow cluster. The number `workers` of in should match the
 number of slots requested in the hostfile. Using a smaller number of
 workers uses a subset of the slots.
-
+```{verbatim}
     > library(BiocParallel)
     > param <- SnowParam(workers = 6, type = "MPI")
-
+```
 Execute FUN 6 times across the workers.
-
+```{verbatim}
     > FUN <- function(i) system("hostname", intern=TRUE)
     > bplapply(1:6, FUN, BPPARAM = param)
     bplapply(1:6, FUN, BPPARAM = param)
+ ```   
             6 slaves are spawned successfully. 0 failed.
     [[1]]
     [1] "rhino01"
@@ -569,9 +619,9 @@ Execute FUN 6 times across the workers.
 
 Batch jobs can be launched with mpiexec and R CMD BATCH. Code to be
 executed is in 'Rcode.R'.
-
+```{verbatim}
     mpiexec --hostfile hostfile R CMD BATCH Rcode.R
-
+```
 Clusters with schedulers
 ------------------------
 
@@ -597,12 +647,15 @@ For SLURM, we might request space for 4 tasks (with `salloc` or
 a single node in that universe run an script `BiocParallel-MPI.R`. The
 command is
 
+```{verbatim}
     $ salloc -N 4 orterun -n 1 R -f BiocParallel-MPI.R
+```
 
 The *R* script might do the following, using MPI for parallel evaluation.
 Start by loading necessary packages and defining `FUN` work to be done
 
 ```
+{r cluster-MPI-work, eval=FALSE}
 library(BiocParallel)
 library(Rmpi)
 FUN <- function(i) system("hostname", intern=TRUE)
@@ -613,6 +666,7 @@ universe minus 1 (let one node dispatch jobs to workers), and register
 this instance as the default 
 
 ```
+{r cluster-MPI, eval=FALSE}
 param <- SnowParam(mpi.universe.size() - 1, "MPI")
 register(param)
 ```
@@ -621,6 +675,7 @@ Evaluate
 the work in parallel, process the results, clean up, and quit
 
 ```
+{r cluster-MPI-do, eval=FALSE}
 xx <- bplapply(1:100, FUN)
 table(unlist(xx))
 mpi.quit()
@@ -628,7 +683,8 @@ mpi.quit()
 
 The entire session is as follows:
 
-```
+```{knitrout}
+{verbatim}
 $ salloc -N 4 orterun -n 1 R --vanilla -f BiocParallel-MPI.R
 salloc: Job is in held state, pending scheduler release
 salloc: Pending job allocation 6762292
@@ -664,6 +720,7 @@ Notice that workers are spawned within the `bplapply` function; it might often m
 sense to more explicitly manage workers with `bpstart` and `bpstop`, e.g.,
 
 ```
+{r cluster-MPI-bpstart, eval=FALSE}
 param <- bpstart(SnowParam(mpi.universe.size() - 1, "MPI"))
 register(param)
 xx <- bplapply(1:100, FUN)
@@ -679,6 +736,7 @@ create a file containing a template for the job submission step, e.g.,
 for SLURM; a starting point might be found at 
 
 ```
+{r slurm}
 tmpl <- system.file(package="batchtools", "templates", "slurm-simple.tmpl")
 noquote(readLines(tmpl))
 
@@ -688,6 +746,7 @@ The *R* script, run
 interactively or from the command line, might then look like
 
 ```
+{r cluster-batchtools, eval=FALSE}
 ## define work to be done
 FUN <- function(i) system("hostname", intern=TRUE)
 library(BiocParallel)
@@ -733,16 +792,19 @@ For developers {#sec:developers}
 
 Developers wishing to use [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in their own packages should include [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in the
 `DESCRIPTION` file
-
+```{verbatim}
         Imports: BiocParallel
+```
 
 and import the functions they wish to use in the `NAMESPACE` file, e.g.,
-
+```{verbatim}
         importFrom(BiocParallel, bplapply)
+```
 
 Then invoke the desired function in the code, e.g.,
 
 ```
+{r devel-bplapply}
 system.time(x <- bplapply(1:3, function(i) { Sys.sleep(i); i }))
 
 unlist(x)
@@ -797,6 +859,9 @@ to the number of cores divided by the typical number of concurrent users
 is a reasonable approach to avoiding this scenario.
 
 ### sessionInfo
-`toLatex(sessionInfo())`
+```
+{r sessionInfo, results="asis"}
+toLatex(sessionInfo())
+```
 
 
