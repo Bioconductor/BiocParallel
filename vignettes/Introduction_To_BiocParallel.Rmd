@@ -53,7 +53,7 @@ parallel programming.
     through files distributing chunks to parallel workers.
 
 -   cluster scheduling: When the parallel environment is managed by a
-    cluster scheduler through [*batchtools](https://cran.r-project.org/package=batchtools), job management and result retrieval are
+    cluster scheduler through [*batchtools*](https://cran.r-project.org/package=batchtools), job management and result retrieval are
     considerably simplified.
 
 -   support of `foreach` : The [*foreach*](https://cran.r-project.org/package=foreach) and [*iterators*](https://cran.r-project.org/package=iterators) packages are fully supported. Registration of
@@ -406,7 +406,7 @@ appropriate back-end and pass relevant arguments to low-level functions.
 
 Shared memory environments eliminate the need to pass large data between
 workers or load common packages. Note that in this code the GRanges data
-was not passed to all workers in `bplapply` and FUN did not need to load [*GenomicAlignments*](http://bioconductor.org/packages/GenomicAlignments)for access
+was not passed to all workers in `bplapply` and FUN did not need to load [*GenomicAlignments*](http://bioconductor.org/packages/GenomicAlignments) for access
 to the `readGAlign
 ments` function.
 
@@ -534,7 +534,7 @@ Execute FUN 4 times across the workers.
 When creating a cluster across Windows machines must be IP addresses
 (e.g., \"140.107.218.57\") instead of machine names.
 
-### MPI
+ ### MPI
 
 An MPI cluster across machines is created with *mpirun* or *mpiexec*
 from the command line or a script. A list of machine names provided as
