@@ -6,8 +6,11 @@ author:
 - name: "Michael Lawrence"
 - name: "Martin Morgan"
   email: Martin.Morgan@RoswellPark.org
+- name: "Phyllis Atieno"
+  affiliation: "Vignette translation from Sweave to Rmarkdown / HTML"
+
 date: "Edited: January 23, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
-date: "Compiled: 18 October, 2022"
+
 package: BiocParallel
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
@@ -30,15 +33,15 @@ with release 2.14.0 with inclusion of the [parallel](https://cran.r-project.org/
 [*multicore*](https://cran.r-project.org/package=multicore) and [*snow*](https://cran.r-project.org/package=snow) .
 
 
-A basic objective of [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) is to reduce the complexity faced when developing
+A basic objective of [*BiocParallel*][] is to reduce the complexity faced when developing
 and using software that performs parallel computations. With the
-introduction of the `BiocParallelParam` object, [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) aims to provide a unified interface to
+introduction of the `BiocParallelParam` object, [*BiocParallel*][] aims to provide a unified interface to
 existing parallel infrastructure where code can be easily executed in
 different environments. The `BiocParallelParam` specifies the environment of choice as well
 as computing resources and is invoked by 'registration' or passed as an
-argument to the [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) functions.
+argument to the [*BiocParallel*][] functions.
 
-[*BiocParallel*](http://bioconductor.org/packages/BiocParallel) offers the following conveniences over the 'roll your own' approach to
+[*BiocParallel*][] offers the following conveniences over the 'roll your own' approach to
 parallel programming.
 
 -   unified interface: `BiocParallelParam` instances define the method of parallel
@@ -67,7 +70,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("BiocParallel")
 ```
 
-Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)
+Load [*BiocParallel*][]
 
 ```
 {r}
@@ -85,7 +88,7 @@ FUN <- function(x) { round(sqrt(x), 4) }
 ```
 
 
-Functions in [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) use the registered back-ends for parallel evaluation. The
+Functions in [*BiocParallel*][] use the registered back-ends for parallel evaluation. The
 default is the top entry of the registry list.
 
 ```
@@ -103,7 +106,7 @@ optionsoptions(MulticoreParam=quote(MulticoreParam(workers=4)))
 ```
 
 
-When a [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) function is invoked with no `BPPARAM` argument the default back-end is
+When a [*BiocParallel*][] function is invoked with no `BPPARAM` argument the default back-end is
 used. 
 
 ```
@@ -140,7 +143,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Supported on all platforms.
 
-    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code with parallel evaluation disabled. This
+    Evaluate [*BiocParallel*][]-enabled code with parallel evaluation disabled. This
     approach is useful when writing new scripts and trying to debug
     code.
 
@@ -148,7 +151,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Supported on Unix and Mac. On Windows, `MulticoreParam` dispatches to `SerialParam`.
 
-    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code using multiple cores on a single computer.
+    Evaluate [*BiocParallel*][]-enabled code using multiple cores on a single computer.
     When available, this is the most efficient and least troublesome way
     to parallelize code. Windows does not support multi-core evaluation
     (the `MulticoreParam` object can be used, but evaluation is serial). On other
@@ -181,7 +184,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Supported on all platforms.
 
-    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code across several distinct instances, on one or
+    Evaluate [*BiocParallel*][]-enabled code across several distinct instances, on one or
     several computers. This is a straightforward approach for executing
     parallel code on one or several computers, and is based on
     facilities originally implemented in the [*snow*](https://cran.r-project.org/package=snow) package. Different types of [*snow*](https://cran.r-project.org/package=snow) 'back-ends' are supported, including socket and MPI clusters.
@@ -190,14 +193,14 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Applicable to clusters with formal schedulers.
 
-    Evaluate [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)-enabled code by submitting to a cluster scheduler like
+    Evaluate [*BiocParallel*][]-enabled code by submitting to a cluster scheduler like
     SGE.
 
 -   `DoparParam`:
 
     Supported on all platforms.
 
-    Register a parallel back-end supported by the [*foreach*](https://cran.r-project.org/package=foreach) package for use with [*BiocParallel*](http://bioconductor.org/packages/BiocParallel).
+    Register a parallel back-end supported by the [*foreach*](https://cran.r-project.org/package=foreach) package for use with [*BiocParallel*][].
 
 The simplest illustration of creating `BiocParallelParam` is
 
@@ -415,7 +418,7 @@ MulticoreParam()
 ```
 
 
-The [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
+The [*BiocParallel*][] functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
 appropriate back-end and pass relevant arguments to low-level functions.
 ```{verbatim}
 > bplapply(fls[1:3], FUN, BPPARAM = MulticoreParam(), param = param)
@@ -470,7 +473,7 @@ bplapply(X, FUN, ..., BPPARAM = MulticoreParam())
 ### Clusters of independent processes with `SnowParam`
 
 Both Windows and non-Windows machines can use the cluster approach to
-spawn processes. [*BiocParallel*](http://bioconductor.org/packages/BiocParallel)back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
+spawn processes. [*BiocParallel*][] back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
 
 To re-run the counting example, FUN needs to modified such that 'gr' is
 passed as a formal argument and required libraries are loaded on each
@@ -585,7 +588,7 @@ machine.
 ```{verbatim}
     mpiexec --np 1 --hostfile hostfile R --vanilla
 ```
-Load [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) and create an MPI Snow cluster. The number `workers` of in should match the
+Load [*BiocParallel*][] and create an MPI Snow cluster. The number `workers` of in should match the
 number of slots requested in the hostfile. Using a smaller number of
 workers uses a subset of the slots.
 ```{verbatim}
@@ -790,7 +793,7 @@ genomics problems in *R*.
 For developers {#sec:developers}
 ==============
 
-Developers wishing to use [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in their own packages should include [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) in the
+Developers wishing to use [*BiocParallel*][] in their own packages should include [*BiocParallel*][] in the
 `DESCRIPTION` file
 ```{verbatim}
         Imports: BiocParallel
@@ -820,7 +823,7 @@ back-end if they have used `register()`.
 The `MulticoreParam` back-end does not require any special configuration or set-up and is therefore the safest option for
 developers. Unfortunately, `MulticoreParam` provides only serial evaluation on Windows.
 
-Developers should document that their function uses [*BiocParallel*](http://bioconductor.org/packages/BiocParallel) functions on the main
+Developers should document that their function uses [*BiocParallel*]:http://bioconductor.org/packages/BiocParallel functions on the main
 page, and should perhaps include in their function signature an argument `BPPARAM=bpparam()`.
 Developers should NOT use 'register()' in package code -- this sets a
 preference that influences use of 'bplapply()' and friends in all
