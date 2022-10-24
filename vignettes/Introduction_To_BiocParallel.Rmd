@@ -33,15 +33,15 @@ with release 2.14.0 with inclusion of the [parallel](https://cran.r-project.org/
 [*multicore*](https://cran.r-project.org/package=multicore) and [*snow*](https://cran.r-project.org/package=snow) .
 
 
-A basic objective of [*BiocParallel*][] is to reduce the complexity faced when developing
+A basic objective of [*BiocParallel*]() is to reduce the complexity faced when developing
 and using software that performs parallel computations. With the
-introduction of the `BiocParallelParam` object, [*BiocParallel*][] aims to provide a unified interface to
+introduction of the `BiocParallelParam` object, [*BiocParallel*]() aims to provide a unified interface to
 existing parallel infrastructure where code can be easily executed in
 different environments. The `BiocParallelParam` specifies the environment of choice as well
 as computing resources and is invoked by 'registration' or passed as an
-argument to the [*BiocParallel*][] functions.
+argument to the [*BiocParallel*]() functions.
 
-[*BiocParallel*][] offers the following conveniences over the 'roll your own' approach to
+[*BiocParallel*]() offers the following conveniences over the 'roll your own' approach to
 parallel programming.
 
 -   unified interface: `BiocParallelParam` instances define the method of parallel
@@ -70,7 +70,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("BiocParallel")
 ```
 
-Load [*BiocParallel*][]
+Load [*BiocParallel*]()
 
 ```{r}
 library(BiocParallel)
@@ -84,7 +84,7 @@ FUN <- function(x) { round(sqrt(x), 4) }
 ```
 
 
-Functions in [*BiocParallel*][] use the registered back-ends for parallel evaluation. The
+Functions in [*BiocParallel*]() use the registered back-ends for parallel evaluation. The
 default is the top entry of the registry list.
 
 ```{r quick_start registry}
@@ -99,7 +99,7 @@ optionsoptions(MulticoreParam=quote(MulticoreParam(workers=4)))
 ```
 
 
-When a [*BiocParallel*][] function is invoked with no `BPPARAM` argument the default back-end is
+When a [*BiocParallel*]() function is invoked with no `BPPARAM` argument the default back-end is
 used. 
 
 ```{r quickstart_bplapply_default, eval=FALSE}
@@ -132,7 +132,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Supported on all platforms.
 
-    Evaluate [*BiocParallel*][]-enabled code with parallel evaluation disabled. This
+    Evaluate [*BiocParallel*]()-enabled code with parallel evaluation disabled. This
     approach is useful when writing new scripts and trying to debug
     code.
 
@@ -140,7 +140,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Supported on Unix and Mac. On Windows, `MulticoreParam` dispatches to `SerialParam`.
 
-    Evaluate [*BiocParallel*][]-enabled code using multiple cores on a single computer.
+    Evaluate [*BiocParallel*]()-enabled code using multiple cores on a single computer.
     When available, this is the most efficient and least troublesome way
     to parallelize code. Windows does not support multi-core evaluation
     (the `MulticoreParam` object can be used, but evaluation is serial). On other
@@ -167,13 +167,13 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
     post](https://support.bioconductor.org/p/70196/#70509) for
     additional details.
 
-    `MulticoreParam` is based on facilities originally implemented in the [*multicore*](https://cran.r-project.org/package=multicore)     package and subsequently the [*parallel*](https://cran.r-project.org/package=parallel) package in base .
+    `MulticoreParam` is based on facilities originally implemented in the [*multicore*](https://cran.r-project.org/package=multicore) package and subsequently the [*parallel*](https://cran.r-project.org/package=parallel) package in base .
 
 -   `SnowParam`:
 
     Supported on all platforms.
 
-    Evaluate [*BiocParallel*][]-enabled code across several distinct instances, on one or
+    Evaluate [*BiocParallel*]()-enabled code across several distinct instances, on one or
     several computers. This is a straightforward approach for executing
     parallel code on one or several computers, and is based on
     facilities originally implemented in the [*snow*](https://cran.r-project.org/package=snow) package. Different types of [*snow*](https://cran.r-project.org/package=snow) 'back-ends' are supported, including socket and MPI clusters.
@@ -182,7 +182,7 @@ of Unix, Mac and Windows except `MulticoreParam` which is Unix and Mac only.
 
     Applicable to clusters with formal schedulers.
 
-    Evaluate [*BiocParallel*][]-enabled code by submitting to a cluster scheduler like
+    Evaluate [*BiocParallel*]()-enabled code by submitting to a cluster scheduler like
     SGE.
 
 -   `DoparParam`:
@@ -234,7 +234,7 @@ the default.
 
 ```{r register_BatchtoolsParam}
 default <- registered()
-register(BatchtoolsParam(workers = 10), default = TRUE
+register(BatchtoolsParam(workers = 10), default = TRUE)
 ```
 
 BatchtoolsParam has been moved to the top of the list and is now the
@@ -387,7 +387,7 @@ MulticoreParam()
 ```
 
 
-The [*BiocParallel*][] functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
+The [*BiocParallel*]() functions, such as `bplapply`, use information in the *MulticoreParam* to set up the
 appropriate back-end and pass relevant arguments to low-level functions.
 
 ```
@@ -442,7 +442,7 @@ bplapply(X, FUN, ..., BPPARAM = MulticoreParam())
 ### Clusters of independent processes with `SnowParam`
 
 Both Windows and non-Windows machines can use the cluster approach to
-spawn processes. [*BiocParallel*][] back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
+spawn processes. [*BiocParallel*]() back-end choices for clusters on a single machine are *SnowParam* for configuring a Snow cluster or the *DoparParam* for use with the *foreach* package.
 
 To re-run the counting example, FUN needs to modified such that 'gr' is
 passed as a formal argument and required libraries are loaded on each
@@ -552,7 +552,7 @@ machine.
 ```
      mpiexec --np 1 --hostfile hostfile R --vanilla
 ```
-Load [*BiocParallel*][] and create an MPI Snow cluster. The number `workers` of in should match the
+Load [*BiocParallel*]() and create an MPI Snow cluster. The number `workers` of in should match the
 number of slots requested in the hostfile. Using a smaller number of
 workers uses a subset of the slots.
 ```
@@ -749,7 +749,7 @@ genomics problems in *R*.
 For developers {#sec:developers}
 ==============
 
-Developers wishing to use [*BiocParallel*][] in their own packages should include [*BiocParallel*][] in the
+Developers wishing to use [*BiocParallel*]() in their own packages should include [*BiocParallel*][] in the
 `DESCRIPTION` file
 ```
         Imports: BiocParallel
