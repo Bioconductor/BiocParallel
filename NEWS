@@ -21,6 +21,10 @@ USER VISIBLE CHANGES
     https://github.com/Bioconductor/BiocParallel/pull/218
     https://github.com/Bioconductor/BiocParallel/issues/217
 
+    o (v 1.31.15) Replace Introduction to BiocParallel .Rnw vignette
+    with Rmd (html) version (thanks Phylis Atieno!)
+    https://github.com/Bioconductor/BiocParallel/pull/226
+
 BUG FIXES
 
     o (v 1.31.1) suppress package startup messages on workers
