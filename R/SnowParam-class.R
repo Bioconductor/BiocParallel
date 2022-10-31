@@ -70,12 +70,12 @@
     if (type == "multicore" && .Platform$OS.type == "windows")
         return(1L)
 
-    min(.detectCores(), .snowCoresMax(type))
+    min(.defaultWorkers(), .snowCoresMax(type))
 }
 
 snowWorkers <- function(type = c("SOCK", "MPI", "FORK")) {
     type <- match.arg(type)
-    .snowCores(type)
+    min(.defaultWorkers(), .snowCores(type))
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,7 +176,10 @@ SnowParam <- function(workers=snowWorkers(type),
         ...
     )
 
-    do.call(.SnowParam, prototype)
+    param <- do.call(.SnowParam, prototype)
+    bpworkers(param) <- workers # enforce worker number
+    validObject(param)
+    param
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -212,19 +215,16 @@ setReplaceMethod("bpworkers", c("SnowParam", "numeric"),
     function(x, value)
 {
     value <- as.integer(value)
-    max <- .snowCoresMax(x$.clusterargs$type)
-    if (value > max)
-        stop("'value' exceeds ", max, " available workers; see ?snowWorkers")
-
-    x$workers <- value
-    x$.clusterargs$spec <- value
+    value <- .enforceWorkers(value, x$.clusterargs$type)
+    x$workers <- x$.clusterargs$spec <- value
     x
 })
 
 setReplaceMethod("bpworkers", c("SnowParam", "character"),
     function(x, value)
 {
-    x$workers <- x$.clusterargs$spec <- value
+    nworkers <- .enforceWorkers(length(value), x$.clusterargs$type)
+    x$workers <- x$.clusterargs$spec <- head(value, nworkers)
     x
 })
 

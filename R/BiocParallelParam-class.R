@@ -65,7 +65,8 @@
                 "  bpexportglobals: ", bpexportglobals(.self),
                 "; bpexportvariables: ", bpexportvariables(.self),
                 "; bpforceGC: ", bpforceGC(.self),
-                "; bpfallback: ", bpfallback(.self),
+                "\n",
+                "  bpfallback: ", bpfallback(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")

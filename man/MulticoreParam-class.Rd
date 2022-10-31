@@ -61,23 +61,8 @@ multicoreWorkers()
   the cluster is created with \code{makeCluster(..., type ="FORK")} from
   the \code{parallel} package.
 
-  The default number of workers is determined by
-  \code{multicoreWorkers()}. On windows, the number of multicore workers
-  is always 1. Otherwise, the default is determined by an environment
-  variable \code{R_PARALLELLY_AVAILABLECORES_FALLBACK} (see the
-  parallely package) or \code{BIOCPARALLEL_WORKER_NUMBER} or, if those
-  are not set, the maximum of 1 and \code{parallel::detectCores() -
-  2}. Machines with 3 or fewer cores, or machines where number of cores
-  cannot be determined, are assigned a single worker. Machines with more
-  than 127 cores are limited to the number of \emph{R} connections
-  available when the workers start; this is 128 (a hard-coded limit in
-  \emph{R}) minus the number of open connections as returned by
-  \code{nrow(showConnections(all=TRUE))}. The option \code{mc.cores} can
-  be used to specify an arbitrary number of workers, e.g.,
-  \code{options(mc.cores=4L)}. The \emph{Bioconductor} build system
-  enforces a maximum of 4 workers. The environment variable
-  \code{_R_CHECK_LIMIT_CORES_} (as on CRAN) enforces a maximum of 2
-  workers.
+  See \code{?BIOCPARALLEL_WORKER_NUMBER} to control the default and
+  maximum number of workers.
 
   A FORK transport starts workers with the \code{mcfork} function and
   communicates between master and workers using socket connections.
