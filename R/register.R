@@ -29,7 +29,7 @@
 .registered <- .registry$registered
 
 .registry_init <- function() {
-    multicore <- .detectCores() > 1L
+    multicore <- .defaultWorkers() > 1L
     tryCatch({
         if ((.Platform$OS.type == "windows") && multicore) {
             .register(getOption(
