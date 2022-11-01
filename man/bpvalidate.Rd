@@ -37,10 +37,10 @@ bpvalidate(fun, signal = c("warning", "error", "silent"))
   loaded in \code{fun}, and along the search path to identify any symbols 
   outside the scope of \code{fun}.
 
-  \code{bpvalidate} can be used to check functions passed to the bp* family
-  of functions in \code{BiocParallel} or other packages that support parallel
-  evaluation on clusters such as \code{snow}, \code{BatchJobs}, \code{Rmpi}, 
-  etc.
+  \code{bpvalidate} can be used to check functions passed to the bp*
+  family of functions in \code{BiocParallel} or other packages that
+  support parallel evaluation on clusters such as \code{snow},
+  \code{Rmpi}, etc.
 
   \describe{
     \item{testing package functions}{

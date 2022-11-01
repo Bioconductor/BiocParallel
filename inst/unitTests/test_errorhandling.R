@@ -97,10 +97,9 @@ test_catching_errors <- function()
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
     params <- list(
-               snow=SnowParam(2, stop.on.error = FALSE),
-               dopar=DoparParam(stop.on.error = FALSE),
-               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
-               )
+        snow=SnowParam(2, stop.on.error = FALSE),
+        dopar=DoparParam(stop.on.error = FALSE)
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 
@@ -130,10 +129,9 @@ test_BPREDO <- function()
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
     params <- list(
-               snow=SnowParam(2, stop.on.error = FALSE),
-               dopar=DoparParam(stop.on.error = FALSE),
-               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
-               )
+        snow=SnowParam(2, stop.on.error = FALSE),
+        dopar=DoparParam(stop.on.error = FALSE)
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 
@@ -176,9 +174,8 @@ test_bpvec_BPREDO <- function()
     doParallel::registerDoParallel(cl)
     params <- list(
                snow=SnowParam(2, stop.on.error = FALSE),
-               dopar=DoparParam(stop.on.error = FALSE),
-               batchjobs=BatchJobsParam(2, progressbar=FALSE,stop.on.error = FALSE)
-               )
+               dopar=DoparParam(stop.on.error = FALSE)
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2, stop.on.error = FALSE)
 

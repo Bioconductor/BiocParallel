@@ -3,7 +3,6 @@
 \alias{bplapply,ANY,list-method}
 \alias{bplapply,ANY,missing-method}
 \alias{bplapply,ANY,BiocParallelParam-method}
-\alias{bplapply,ANY,BatchJobsParam-method}
 \alias{bplapply,ANY,DoparParam-method}
 \alias{bplapply,ANY,SerialParam-method}
 \alias{bplapply,ANY,SnowParam-method}

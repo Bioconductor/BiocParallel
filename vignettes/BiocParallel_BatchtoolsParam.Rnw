@@ -37,9 +37,9 @@ suppressPackageStartupMessages({
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The \Rcode{BatchtoolsParam} class is an interface to the
-\CRANpkg{batchtools} package from within \BiocParallel{}. This aims to
-replace BatchjobsParam as \BiocParallel{}'s class for computing on a
-high performance cluster such as SGE, TORQUE, LSF, SLURM, OpenLava.
+\CRANpkg{batchtools} package from within \BiocParallel{}, for
+computing on a high performance cluster such as SGE, TORQUE, LSF,
+SLURM, OpenLava.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,9 +76,8 @@ mean(unlist(result))
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The \Rcode{BatchtoolsParam} interface allows you to replace the
-BatchJobsParam interface, and allow more intuitive usage of your high
-performance cluster with \BiocParallel{}.
+The \Rcode{BatchtoolsParam} interface allows intuitive usage of your
+high performance cluster with \BiocParallel{}.
 
 The \Rcode{BatchtoolsParam} class allows the user to specify many
 arguments to customize their jobs. Applicable to clusters with formal

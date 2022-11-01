@@ -115,7 +115,7 @@
         log = FALSE,
         threshold = "INFO",
         stop.on.error = TRUE,
-        as.error = TRUE,        # FALSE for BatchJobs compatible
+        as.error = TRUE,
         timeout = WORKER_TIMEOUT,
         exportglobals = TRUE,
         force.GC = FALSE)
@@ -176,11 +176,7 @@
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
         call <- sapply(sys.calls(), deparse, nlines=3)
-        if (as.error) {
-            .error_remote(e, call)
-        } else {
-            .condition_remote(e, call) # BatchJobs
-        }
+        .error_remote(e, call)
     }
 
     if (!is.null(SEED))

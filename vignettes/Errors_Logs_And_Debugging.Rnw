@@ -92,8 +92,7 @@ res <- bplapply(1:2, function(i) {
 This could be confusing when multiple workers write messages at the
 same time --the messages will be interleaved in an arbitrary way -- or
 when the workers are not all running on the same computer (e.g., with
-\Rcode{SnowParam()} or \Rcode{BatchjobsParaam()}) so should not be
-used in package code.
+\Rcode{SnowParam()}) so should not be used in package code.
 
 \subsection{Catching errors}
 

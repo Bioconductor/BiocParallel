@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.34
+-----------------------
+
+USER VISIBLE CHANGES
+
+    o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
+
 CHANGES IN VERSION 1.32
 -----------------------
 

@@ -14,10 +14,11 @@ test_bpmapply_Params <- function()
 {
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
-    params <- list(serial=SerialParam(),
-                   snow=SnowParam(2),
-                   dopar=DoparParam(),
-                   batchjobs=BatchJobsParam(2, progressbar=FALSE))
+    params <- list(
+        serial=SerialParam(),
+        snow=SnowParam(2),
+        dopar=DoparParam()
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
