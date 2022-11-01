@@ -11,7 +11,7 @@ author:
 date: "Edited: October, 2022; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 package: BiocParallel
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Introduction to BiocParallel}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
