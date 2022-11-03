@@ -1,6 +1,11 @@
 CHANGES IN VERSION 1.34
 -----------------------
 
+NEW FEATURES
+
+    o (1.33.2) limit worker number via environment variables.
+    https://github.com/Bioconductor/BiocParallel/issues/229
+
 USER VISIBLE CHANGES
 
     o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
