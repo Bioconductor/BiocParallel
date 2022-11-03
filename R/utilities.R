@@ -57,29 +57,6 @@
     results
 }
 
-## re-apply the names on, e.g., mapply(FUN, X) to the return value;
-## see test_mrename for many edge cases
-.mrename <-
-    function(results, dots, USE.NAMES=TRUE)
-{
-    ## dots: a list() containing one element for each ... argument
-    ## passed to mapply
-    if (USE.NAMES) {
-        ## extract the first argument; if there are no arguments, then
-        ## dots is (unnamed) list(0)
-        if (length(dots))
-            dots <- dots[[1L]]
-        if (is.character(dots) && is.null(names(dots))) {
-            names(results) <- dots
-        } else {
-            names(results) <- names(dots)
-        }
-    } else {
-        results <- unname(results)
-    }
-    results
-}
-
 .simplify <-
     function(results, SIMPLIFY=FALSE)
 {
