@@ -2,12 +2,45 @@
 ### bpmapply methods
 ### -------------------------------------------------------------------------
 
-## bpmapply() dispatches to bplapply() where errors and logging are handled.
+# see test_utilities.R:test_transposeArgsWithIterations() for all
+# USE.NAMES corner cases
+.transposeArgsWithIterations <- function(nestedList, USE.NAMES) {
+    num_arguments <- length(nestedList)
+    if (num_arguments == 0L) {
+        return(list())
+    }
 
-.wrap <- function(.i, .FUN, .ddd, .MoreArgs) {
-    dots <- lapply(.ddd, `[`, .i)
-    .mapply(.FUN, dots, .MoreArgs)[[1L]]
+    ## nestedList[[1L]] has the values for the first argument in all
+    ## iterations
+    num_iterations <- length(nestedList[[1L]])
+
+    ## count the iterations, and name them if needed
+    iterations <- seq_len(num_iterations)
+    if (USE.NAMES) {
+        first_arg <- nestedList[[1L]]
+        if (is.character(first_arg) && is.null(names(first_arg))) {
+            names(iterations) <- first_arg
+        } else {
+            names(iterations) <- names(first_arg)
+        }
+    }
+
+    ## argnames:
+    argnames <- names(nestedList)
+
+    ## on iteration `i` we get the i-th element from each list. Note
+    ## that .getDotsForMapply() has taken care already of ensuring
+    ## that nestedList elements are recycled properly
+    lapply(iterations, function(i) {
+        x <- lapply(nestedList, function(argi) {
+            unname(argi[i])
+        })
+        names(x) <- argnames
+        x
+    })
 }
+
+## bpmapply() dispatches to bplapply() where errors and logging are handled.
 
 setMethod("bpmapply", c("ANY", "BiocParallelParam"),
     function(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
@@ -16,15 +49,27 @@ setMethod("bpmapply", c("ANY", "BiocParallelParam"),
 {
     ## re-package for lapply
     ddd <- .getDotsForMapply(...)
-    if (!length(ddd) || !length(ddd[[1L]]))
-        return(.mrename(list(), ddd, USE.NAMES))
-
     FUN <- match.fun(FUN)
 
-    res <- bplapply(X=seq_along(ddd[[1L]]), .wrap, .FUN=FUN, .ddd=ddd,
-                    .MoreArgs=MoreArgs, BPREDO=BPREDO,
-                    BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS)
-    .simplify(.mrename(res, ddd, USE.NAMES), SIMPLIFY)
+    if (!length(ddd))
+      return(list())
+     
+    ddd <- .transposeArgsWithIterations(ddd, USE.NAMES)
+    if (!length(ddd))
+      return(ddd)
+
+    .wrapMapplyNotShared <- local({
+        function(dots, .FUN, .MoreArgs) {
+            .mapply(.FUN, dots, .MoreArgs)[[1L]]
+        }
+    }, envir = baseenv())
+
+    res <- bplapply(
+        X=ddd, .wrapMapplyNotShared, .FUN=FUN,
+        .MoreArgs=MoreArgs, BPREDO=BPREDO,
+        BPPARAM=BPPARAM, BPOPTIONS = BPOPTIONS
+    )
+    .simplify(res, SIMPLIFY)
 })
 
 setMethod("bpmapply", c("ANY", "missing"),
@@ -61,3 +106,4 @@ setMethod("bpmapply", c("ANY", "list"),
              USE.NAMES=USE.NAMES, BPREDO=BPREDO,
              BPPARAM=BPPARAM[[1L]], BPOPTIONS = BPOPTIONS)
 })
+

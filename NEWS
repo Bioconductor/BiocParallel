@@ -6,6 +6,11 @@ NEW FEATURES
     o (1.33.2) limit worker number via environment variables.
     https://github.com/Bioconductor/BiocParallel/issues/229
 
+    o (v1.33.3) bpmapply() does not send the whole list of arguments
+    to all workers. Instead, it takes the arguments and slices them,
+    passing the corresponding slice to each worker. Thanks Sergio Oller!
+    https://github.com/Bioconductor/BiocParallel/issues/229
+
 USER VISIBLE CHANGES
 
     o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
