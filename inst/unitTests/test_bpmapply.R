@@ -141,8 +141,14 @@ test_transposeArgsWithIterations <- function() {
     .transposeArgsWithIterations <- BiocParallel:::.transposeArgsWithIterations
 
     ## list() when `mapply()` invoked with no arguments, `mapply(identity)`
-    checkIdentical(list(), .transposeArgsWithIterations(list(), USE.NAMES = TRUE))
-    checkIdentical(list(), .transposeArgsWithIterations(list(), USE.NAMES = FALSE))
+    checkIdentical(
+        list(),
+        .transposeArgsWithIterations(list(), USE.NAMES = TRUE)
+    )
+    checkIdentical(
+        list(),
+        .transposeArgsWithIterations(list(), USE.NAMES = FALSE)
+    )
 
     ## list(X) when `mapply()` invoked with one argument, `mapply(identity, X)`
     X <- list()
@@ -153,7 +159,10 @@ test_transposeArgsWithIterations <- function() {
     ## `mapply(identity, character())` returns a _named_ list()
     X <- character()
     XX <- list(X)
-    checkIdentical(setNames(list(), character()), .transposeArgsWithIterations(XX, TRUE))
+    checkIdentical(
+        setNames(list(), character()),
+        .transposeArgsWithIterations(XX, TRUE)
+    )
     checkIdentical(list(), .transposeArgsWithIterations(XX, FALSE))
 
     ## named arguments to mapply() are _not_ names of return value...
@@ -165,7 +174,10 @@ test_transposeArgsWithIterations <- function() {
     ## ...except if the argument is a character()
     X <- character()
     XX <- list(x = X)
-    checkIdentical(setNames(list(), character()), .transposeArgsWithIterations(XX, TRUE))
+    checkIdentical(
+        setNames(list(), character()),
+        .transposeArgsWithIterations(XX, TRUE)
+    )
     checkIdentical(list(), .transposeArgsWithIterations(XX, FALSE))
 
     ## with multiple arguments, names are from the first argument
@@ -190,10 +202,13 @@ test_transposeArgsWithIterations <- function() {
         .transposeArgsWithIterations(XX, FALSE)
     )
 
-    ## when the first argument is an unnamed character vector, names are values
+    ## when the first argument is an unnamed character vector, names
+    ## are values
     XX <- list(A = c("a", "b", "c"), B = 1:3)
     checkIdentical(
-        list(a = list(A="a", B=1L), b = list(A="b", B=2L), c = list(A="c", B=3L)),
+        list(
+            a = list(A="a", B=1L), b = list(A="b", B=2L), c = list(A="c", B=3L)
+        ),
         .transposeArgsWithIterations(XX, TRUE)
     )
     checkIdentical(
@@ -204,7 +219,9 @@ test_transposeArgsWithIterations <- function() {
     ## ...except if there are names on the first vector...
     XX <- list(A = setNames(letters[1:3], LETTERS[1:3]), B = 1:3)
     checkIdentical(
-        list(A = list(A="a", B=1L), B = list(A="b", B=2L), C = list(A="c", B=3L)),
+        list(
+            A = list(A="a", B=1L), B = list(A="b", B=2L), C = list(A="c", B=3L)
+        ),
         .transposeArgsWithIterations(XX, TRUE)
     )
     checkIdentical(

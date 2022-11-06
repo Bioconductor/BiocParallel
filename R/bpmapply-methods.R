@@ -10,10 +10,11 @@
         return(list())
     }
 
-    # nestedList[[1L]] has the values for the first argument in all iterations
+    ## nestedList[[1L]] has the values for the first argument in all
+    ## iterations
     num_iterations <- length(nestedList[[1L]])
 
-    # count the iterations, and name them if needed
+    ## count the iterations, and name them if needed
     iterations <- seq_len(num_iterations)
     if (USE.NAMES) {
         first_arg <- nestedList[[1L]]
@@ -24,24 +25,19 @@
         }
     }
 
-    # argnames:
+    ## argnames:
     argnames <- names(nestedList)
 
-    # on iteration `i` we get the i-th element from each list.
-    # note that .getDotsForMapply() has taken care already of ensuring that
-    # nestedList elements are recycled properly
-    lapply(
-        iterations,
-        function(i) {
-            x <- lapply(
-                nestedList,
-                function(argi) {
-                    unname(argi[i])
-                })
-            names(x) <- argnames
-            x
-        }
-    )
+    ## on iteration `i` we get the i-th element from each list. Note
+    ## that .getDotsForMapply() has taken care already of ensuring
+    ## that nestedList elements are recycled properly
+    lapply(iterations, function(i) {
+        x <- lapply(nestedList, function(argi) {
+            unname(argi[i])
+        })
+        names(x) <- argnames
+        x
+    })
 }
 
 ## bpmapply() dispatches to bplapply() where errors and logging are handled.
@@ -62,13 +58,11 @@ setMethod("bpmapply", c("ANY", "BiocParallelParam"),
     if (!length(ddd))
       return(ddd)
 
-    .wrapMapplyNotShared <- local(
-        {
+    .wrapMapplyNotShared <- local({
         function(dots, .FUN, .MoreArgs) {
             .mapply(.FUN, dots, .MoreArgs)[[1L]]
-        }},
-        envir = baseenv()
-    )
+        }
+    }, envir = baseenv())
 
     res <- bplapply(
         X=ddd, .wrapMapplyNotShared, .FUN=FUN,

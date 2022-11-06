@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.33.2
+Version: 1.33.3
 Authors@R: c(
     person("Martin", "Morgan",
         email = "mtmorgan.bioc@gmail.com",
@@ -16,8 +16,12 @@ Authors@R: c(
     person("Madelyn", "Carlson", role = "ctb",
         comment = "Translated 'Random Numbers' vignette from Sweave to RMarkdown / HTML."
     ),
-    person("Phylis", "Atieno",role = "ctb",
+    person("Phylis", "Atieno", role = "ctb",
         comment = "Translated 'Introduction to BiocParallel' vignette from Sweave to Rmarkdown / HTML."
+    ),
+    person(
+        "Sergio", "Oller", role = "ctb",
+        comment = "Improved bpmapply() efficiency."
     ))
 Description: This package provides modified versions and novel
     implementation of functions for parallel evaluation, tailored to
