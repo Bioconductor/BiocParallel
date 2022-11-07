@@ -61,7 +61,7 @@
     ## override user settings by build-system configurations
     if (nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_")))
         result <- min(result, 2L)
-    if (nzchar(Sys.getenv("BBS_HOME")))
+    if (identical(Sys.getenv("IS_BIOC_BUILD_MACHINE"), "true"))
         result <- min(result, 4L)
 
     result
