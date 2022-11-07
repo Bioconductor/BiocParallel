@@ -69,7 +69,7 @@
     })
 
     ## override user settings by build-system configurations
-    if (nzchar(Sys.getenv("BBS_HOME")))
+    if (identical(Sys.getenv("IS_BIOC_BUILD_MACHINE"), "true"))
         result <- min(result, 4L)
 
     ## from R-ints.texi
@@ -115,9 +115,11 @@
     }
 
     ## Bioconductor build system
-    if (workers > 4L && nzchar(Sys.getenv("BBS_HOME"))) {
+    test <-
+        (workers > 4L) && identical(Sys.getenv("IS_BIOC_BUILD_MACHINE"), "true")
+    if (test) {
         .warning(
-            "'BBS_HOME' environment variable detected, ",
+            "'IS_BIOC_BUILD_MACHINE' environment variable detected, ",
             "setting BiocParallel workers to 4 (was ", workers, ")"
         )
         workers <- 4L
