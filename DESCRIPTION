@@ -21,7 +21,10 @@ Authors@R: c(
     ),
     person(
         "Sergio", "Oller", role = "ctb",
-        comment = "Improved bpmapply() efficiency."
+        comment = c(
+            "Improved bpmapply() efficiency.",
+            "ORCID" = "0000-0002-8994-1549"
+        )
     ))
 Description: This package provides modified versions and novel
     implementation of functions for parallel evaluation, tailored to
