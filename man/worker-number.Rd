@@ -29,8 +29,9 @@
       (\code{RShowDoc("R-ints")}). If defined and not equal to
       \code{"false"} or \code{"FALSE"}, default to 2 workers.}
 
-    \item{\code{BBS_HOME}:}{Environment variable used by the
-      Bioconductor build system; when defined, default to 4 workers.}
+    \item{\code{IS_BIOC_BUILD_MACHINE}:}{Environment variable used by
+      the Bioconductor build system; when defined, default to 4
+      workers.}
 
     \item{\code{getOption("mc.cores")}:}{Global R option (initialized
       from the environment variable \code{MC_CORES}) with non-negative
@@ -66,9 +67,9 @@
       warning; \code{"false"}, or \code{"FALSE"} does not limit worker
       number; any other value generates an error.}
 
-    \item{\code{BBS_HOME}:}{Environment variable used by the
-      Bioconductor build system. When set, limit the number of workers
-      to 4.}
+    \item{\code{IS_BIOC_BUILD_MACHINE}:}{Environment variable used by
+      the Bioconductor build system. When set, limit the number of
+      workers to 4.}
 
     \item{\code{BIOCPARALLEL_WORKER_MAX:}}{Environment variable,
       non-negative integer.}
