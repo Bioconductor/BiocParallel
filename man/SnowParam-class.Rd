@@ -44,14 +44,14 @@
 ## ------------------------------------
 
 SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
-          tasks = 0L, stop.on.error = TRUE,
-          progressbar = FALSE, RNGseed = NULL,
-          timeout = WORKER_TIMEOUT, exportglobals = TRUE, exportvariables = TRUE,
-          log = FALSE, threshold = "INFO", logdir = NA_character_,
-          resultdir = NA_character_, jobname = "BPJOB",
-          force.GC = FALSE, fallback = TRUE,
-          manager.hostname = NA_character_, manager.port = NA_integer_,
-          ...)
+    tasks = 0L, stop.on.error = TRUE,
+    progressbar = FALSE, RNGseed = NULL,
+    timeout = WORKER_TIMEOUT, exportglobals = TRUE, exportvariables = TRUE,
+    log = FALSE, threshold = "INFO", logdir = NA_character_,
+    resultdir = NA_character_, jobname = "BPJOB",
+    force.GC = FALSE, fallback = TRUE,
+    manager.hostname = NA_character_, manager.port = NA_integer_,
+    ...)
 
 ## coercion
 ## ------------------------------------
@@ -148,17 +148,17 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 \section{Constructor}{
 
   \describe{
-    \item{}{
+    \item{
       \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
                       tasks = 0L, stop.on.error = FALSE,
                       progressbar = FALSE, RNGseed = NULL,
-                      timeout = Inf, exportglobals = TRUE, exportvariables = TRUE,
+                      timeout = Inf, exportglobals = TRUE,
+                      exportvariables = TRUE,
                       log = FALSE, threshold = "INFO", logdir = NA_character_,
                       resultdir = NA_character_, jobname = "BPJOB",
                       manager.hostname = NA_character_,
                       manager.port = NA_integer_,
-                      ...)}:
-
+                      ...)}:}{
         Return an object representing a SNOW cluster. The cluster is not
         created until \code{bpstart} is called. Named arguments in \code{...}
         are passed to \code{makeCluster}.
@@ -275,41 +275,34 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   In the following code, \code{x} is a \code{SnowParam} object.
   \describe{
-    \item{}{
-      \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:
+    \item{\code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:}{
       Get or set the value to enable text progress bar.
       \code{value} must be a \code{logical(1)}.
     }
-    \item{}{
-      \code{bpjobname(x)}, \code{bpjobname(x) <- value}:
+    \item{\code{bpjobname(x)}, \code{bpjobname(x) <- value}:}{
       Get or set the job name.
     }
-    \item{}{
-      \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:
+    \item{\code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:}{
       Get or set the seed for random number generaton. \code{value} must be a
       \code{numeric(1)} or \code{NULL}.
     }
-    \item{}{
-      \code{bplog(x)}, \code{bplog(x) <- value}:
+    \item{\code{bplog(x)}, \code{bplog(x) <- value}:}{
       Get or set the value to enable logging. \code{value} must be a
       \code{logical(1)}.
     }
-    \item{}{
-      \code{bpthreshold(x)}, \code{bpthreshold(x) <- value}:
+    \item{\code{bpthreshold(x)}, \code{bpthreshold(x) <- value}:}{
       Get or set the logging threshold. \code{value} must be a
       \code{character(1)} string of one of the levels defined in the
       \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
       \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
     }
-    \item{}{
-      \code{bplogdir(x)}, \code{bplogdir(x) <- value}:
+    \item{\code{bplogdir(x)}, \code{bplogdir(x) <- value}:}{
       Get or set the directory for the log file. \code{value} must be a
       \code{character(1)} path, not a file name. The file is written out as
       BPLOG.out. If no \code{logdir} is provided and \code{bplog=TRUE} log
       messages are sent to stdout.
     }
-    \item{}{
-      \code{bpresultdir(x)}, \code{bpresultdir(x) <- value}:
+    \item{\code{bpresultdir(x)}, \code{bpresultdir(x) <- value}:}{
       Get or set the directory for the result files. \code{value} must be a
       \code{character(1)} path, not a file name. Separate files are written for
       each job with the prefix TASK (e.g., TASK1, TASK2, etc.).  When no
@@ -324,14 +317,14 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   In the code below \code{x} is a \code{SnowParam} object.  See the
   ?\code{BiocParallelParam} man page for details on these accessors.
-  \describe{
-    \item{}{\code{bpworkers(x)}, \code{bpworkers(x) <- value},
-      \code{bpnworkers(x)}}
-    \item{}{\code{bptasks(x)}, \code{bptasks(x) <- value}}
-    \item{}{\code{bpstart(x)}}
-    \item{}{\code{bpstop(x)}}
-    \item{}{\code{bpisup(x)}}
-    \item{}{\code{bpbackend(x)}, \code{bpbackend(x) <- value}}
+  \itemize{
+    \item \code{bpworkers(x)}, \code{bpworkers(x) <- value},
+      \code{bpnworkers(x)}
+    \item \code{bptasks(x)}, \code{bptasks(x) <- value}
+    \item \code{bpstart(x)}
+    \item \code{bpstop(x)}
+    \item \code{bpisup(x)}
+    \item \code{bpbackend(x)}, \code{bpbackend(x) <- value}
   }
 
 }
@@ -340,8 +333,8 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   In the code below \code{x} is a \code{SnowParam} object. See the
   ?\code{BiocParallelParam} man page for details on these accessors.
-  \describe{
-    \item{}{\code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}}
+  \itemize{
+    \item \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}
   }
 
 }
@@ -352,23 +345,19 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
   Full documentation for these functions are on separate man pages: see
   ?\code{bpmapply}, ?\code{bplapply}, ?\code{bpvec}, ?\code{bpiterate} and
   ?\code{bpaggregate}.
-  \describe{
-    \item{}{
-      \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
-                     USE.NAMES=TRUE, BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bplapply(X, FUN, ..., BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
-    }
-    \item{}{
-      \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
-    }
+  \itemize{
+
+    \item \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
+      USE.NAMES=TRUE, BPPARAM=bpparam())}
+
+    \item \code{bplapply(X, FUN, ..., BPPARAM=bpparam())}
+
+    \item \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
+
+    \item \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
+
+    \item \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
+
   }
 
 }
@@ -377,12 +366,8 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   In the code below \code{x} is a \code{SnowParam} object.
   \describe{
-    \item{}{
-      \code{show(x)}:
-      Displays the \code{SnowParam} object.
-    }
-    \item{}{
-      \code{bpok(x)}:
+    \item{\code{show(x)}:}{Displays the \code{SnowParam} object.}
+    \item{\code{bpok(x)}:}{
       Returns a \code{logical()} vector: FALSE for any jobs that resulted in
       an error. \code{x} is the result list output by a \code{BiocParallel}
       function such as \code{bplapply} or \code{bpmapply}.
@@ -394,8 +379,7 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 \section{Coercion}{
 
   \describe{
-    \item{}{
-      \code{as(from, "SnowParam")}:
+    \item{\code{as(from, "SnowParam")}:}{
       Creates a \code{SnowParam} object from a \code{SOCKcluster} or
       \code{spawnedMPIcluster} object. Instances created in this way
       cannot be started or stopped.

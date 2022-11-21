@@ -114,9 +114,7 @@ SerialParam(
 \section{Constructor}{
 
   \describe{
-    \item{}{
-      \code{SerialParam()}:
-
+    \item{\code{SerialParam()}:}{
       Return an object to be used for serial evaluation of otherwise
       parallel functions such as \code{\link{bplapply}},
       \code{\link{bpvec}}.
