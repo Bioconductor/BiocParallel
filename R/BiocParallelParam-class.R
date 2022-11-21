@@ -3,7 +3,7 @@
 ### -------------------------------------------------------------------------
 
 .BiocParallelParam_prototype <- list(
-    workers=0,
+    workers=0L,
     tasks=0L,
     jobname="BPJOB",
     log=FALSE,

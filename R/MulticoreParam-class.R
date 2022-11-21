@@ -83,6 +83,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
 setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
     function(x, value)
 {
+    value <- as.integer(value)
     nworkers <- .enforceWorkers(value, x$.clusterargs$type)
     x$workers <- x$.clusterargs$spec <- nworkers
     x

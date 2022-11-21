@@ -111,3 +111,26 @@ test_enforceWorkers <- function()
     checkException(SnowParam(6), silent = TRUE)
     .resetEnv("_R_CHECK_LIMIT_CORES_", o_check_limits)
 }
+
+test_bpnworkers_integer_valued <- function()
+{
+    ## https://github.com/Bioconductor/BiocParallel/issues/232
+    checkTrue(inherits(snowWorkers(), "integer")) # default
+    checkIdentical(3L, bpnworkers(SnowParam(c("foo", "bar", "baz"))))
+    checkIdentical(2L, bpnworkers(SnowParam(2)))
+    checkIdentical(2L, bpnworkers(SnowParam(2.1)))
+    checkIdentical(2L, bpnworkers(SnowParam(2.9)))
+
+    p <- SnowParam(2); bpworkers(p) <- 2
+    checkIdentical(2L, bpnworkers(p))
+    bpworkers(p) <- c("foo", "bar", "baz")
+    checkIdentical(3L, bpnworkers(p))
+
+    if (!identical(.Platform$OS.type, "windows")) {
+        checkIdentical(2L, bpnworkers(MulticoreParam(2.1)))
+        checkIdentical(2L, bpnworkers(MulticoreParam(2.9)))
+        checkIdentical(2L, bpnworkers(MulticoreParam(2)))
+        p <- MulticoreParam(2); bpworkers(p) <- 2
+        checkIdentical(2L, bpnworkers(p))
+    }
+}
