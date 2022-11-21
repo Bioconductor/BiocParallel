@@ -76,9 +76,9 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Worker commands
 
-### Support for SOCK, MPI and FORK connections.
-### Derived from snow version 0.3-13 by Luke Tierney
-### Derived from parallel version 2.16.0 by R Core Team
+### Support for PSOCK, SOCK, MPI and FORK connections.  Derived from
+### snow version 0.3-13 by Luke Tierney Derived from parallel version
+### 2.16.0 by R Core Team
 
 .EXEC <-
     function(tag, fun, args, static.fun = FALSE, static.args = NULL)

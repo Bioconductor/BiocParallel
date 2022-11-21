@@ -1,5 +1,5 @@
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-### Manager loop used by SOCK, MPI and FORK
+### Manager loop used by PSOCK, SOCK, MPI and FORK
 
 ## collect the results from the workers
 .collect_result <-
@@ -29,9 +29,9 @@
     success
 }
 
-## These functions are used by all cluster types (SOCK, MPI, FORK) and
-## run on the master. Both enable logging, writing logs/results to
-## files and 'stop on error'.
+## These functions are used by all cluster types (PSOCK, SOCK, MPI,
+## FORK) and run on the master. Both enable logging, writing
+## logs/results to files and 'stop on error'.
 .clear_cluster <-
     function(manager, running, reducer, progress, BPPARAM)
 {

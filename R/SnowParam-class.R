@@ -73,7 +73,7 @@
     min(.defaultWorkers(), .snowCoresMax(type))
 }
 
-snowWorkers <- function(type = c("SOCK", "MPI", "FORK")) {
+snowWorkers <- function(type = c("PSOCK", "SOCK", "MPI", "FORK")) {
     type <- match.arg(type)
     min(.defaultWorkers(), .snowCores(type))
 }
@@ -95,7 +95,7 @@ setOldClass(c("NULLcluster", "cluster"))
 .SnowParam_prototype <- c(
     list(
         cluster = .NULLcluster(),
-        .clusterargs = list(spec=0, type="SOCK"),
+        .clusterargs = list(spec=0, type="PSOCK"),
         .controlled = TRUE,
         hostname = NA_character_, port = NA_integer_
     ),
@@ -119,7 +119,7 @@ setOldClass(c("NULLcluster", "cluster"))
 )
 
 SnowParam <- function(workers=snowWorkers(type),
-                      type=c("SOCK", "MPI", "FORK"), tasks=0L,
+                      type=c("PSOCK", "SOCK", "MPI", "FORK"), tasks=0L,
                       stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
                       timeout=WORKER_TIMEOUT,
@@ -283,7 +283,7 @@ setMethod("bpstart", "SnowParam",
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- libPath
 
-        if (x$.clusterargs$type == "SOCK") {
+        if (x$.clusterargs$type %in% c("PSOCK", "SOCK")) {
             cargs$master <- .hostname(x)
             cargs$port <- .port(x)
         }
