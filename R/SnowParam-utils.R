@@ -115,3 +115,28 @@ bprunMPIworker <- function() {
 {
     options(BIOCPARALLEL_SNOW_STATIC = NULL)
 }
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### loop injection
+###
+### use parallel::makeCluster to start the cluster, but then inject
+### our own worker loop with clusterCall(..., .bploop_inject, ...)
+### during bpstart,SnowParam-method
+
+.bploop_inject <-
+    function(master, port)
+{
+    ## discover the connection to the manager
+    connections <- showConnections()
+    row <- grep(paste0("->", master, ":", port), connections[,"description"])
+    what <- as.integer(rownames(connections)[row])
+    con <- getConnection(what)
+    worker <- structure(list(con = con), class = "SOCKnode")
+
+    ## iterate until done; do not close the connection (this is
+    ## handled by the original loop)
+    .bpworker_impl(worker, close.on.done = FALSE)
+
+    ## hand off back to parallel::workLoop
+    "DONE .bploop_inject"
+}

@@ -311,7 +311,7 @@
 }
 
 .bpworker_impl <-
-    function(worker)
+    function(worker, close.on.done = TRUE)
 {
     repeat {
         tryCatch({
@@ -320,7 +320,8 @@
                 ## FIXME: try to return error to manager
                 break                   # lost socket connection?
             if (msg$type == "DONE") {
-                .close(worker)
+                if (close.on.done)
+                    .close(worker)
                 break
             } else if (msg$type == "EXEC") {
                 value <- .bpworker_EXEC(msg)

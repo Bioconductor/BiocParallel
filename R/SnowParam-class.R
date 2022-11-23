@@ -270,25 +270,27 @@ setMethod("bpstart", "SnowParam",
             nnodes
         } else cargs$spec[seq_len(nnodes)]
 
-        ## work around devtools::load_all()
-        ##
-        ## 'inst' exists when using devtools::load_all()
-        libPath <- find.package("BiocParallel")
-        if (dir.exists(file.path(libPath, "inst")))
-            libPath <- file.path(libPath, "inst")
-
-        if (is.null(cargs$snowlib))
-            cargs$snowlib <- libPath
-
-        if (!is.null(cargs$useRscript) && !cargs$useRscript)
-            cargs$scriptdir <- libPath
-
         if (x$.clusterargs$type %in% c("PSOCK", "SOCK")) {
             cargs$master <- .hostname(x)
             cargs$port <- .port(x)
         }
 
         bpbackend(x) <- .bpstart_makeCluster(cargs)
+
+        ## send the '.bploop_inject' task to the worker, swapping in
+        ## our loop for theirs... control returns to their loop in
+        ## bpstop,SnowParam-method
+        task <- list(
+            type = "EXEC",
+            data = list(
+                fun = .bploop_inject,
+                args = list(cargs$master, cargs$port),
+                return = FALSE,
+                tag = NULL
+            ),
+            tag = NULL
+        )
+        .send_all(bpbackend(x), task)
     }
 
     .bpstart_impl(x)
@@ -305,11 +307,14 @@ setMethod("bpstop", "SnowParam",
         return(invisible(x))
 
     x <- .bpstop_impl(x)
-    cluster <- bpbackend(x)
-    for (i in seq_along(cluster))
-        .close(cluster[[i]])
-    bpbackend(x) <- .NULLcluster()
 
+    ## collect return value of .bploop_inject and stop cluster using
+    ## their method
+    .recv_all(bpbackend(x))
+    parallel::stopCluster(bpbackend(x))
+
+    ## tidy up
+    bpbackend(x) <- .NULLcluster()
     invisible(x)
 })
 

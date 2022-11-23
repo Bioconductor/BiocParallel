@@ -65,7 +65,6 @@ setMethod("bpstart", "missing",
     invisible(.RNGstream(x))
 }
 
-
 .bpstart_set_finalizer <-
     function(x)
 {
