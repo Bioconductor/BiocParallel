@@ -238,12 +238,20 @@
         suppressPackageStartupMessages(library(pkg, character.only = TRUE))
     }
     ## Add variables to the global space and remove them afterward
+    ## Recover the replaced variables at the end if necessary
+    replaced_variables <- new.env(parent = emptyenv())
     if (length(GLOBALS)) {
         for (i in names(GLOBALS)) {
+            if (exists(i, envir = .GlobalEnv))
+                replaced_variables[[i]] <- .GlobalEnv[[i]]
             assign(i, GLOBALS[[i]], envir = .GlobalEnv)
         }
-        on.exit(remove(list = names(GLOBALS), envir = .GlobalEnv),
-                add = TRUE)
+        on.exit({
+            remove(list = names(GLOBALS), envir = .GlobalEnv)
+            for (i in names(replaced_variables))
+                assign(i, replaced_variables[[i]], envir = .GlobalEnv)
+        },
+        add = TRUE)
     }
 
     composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED)

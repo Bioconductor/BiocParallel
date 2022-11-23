@@ -102,4 +102,10 @@ test_bpoptions_manually_export <- function(){
     opts <- bpoptions(packages = c("BiocParallel"))
     res <- bplapply(1:2, foo2, BPPARAM = p, BPOPTIONS = opts)
     checkTrue(is(res[[1]], "SerialParam"))
+
+    ## https://github.com/Bioconductor/BiocParallel/issues/234
+    opts <- bpoptions(exports = "x")
+    res <- bplapply(1:2, foo, BPPARAM = SerialParam(), BPOPTIONS = opts)
+    checkIdentical(res, rep(list(10), 2))
+    checkIdentical(.GlobalEnv[["x"]], 10)
 }

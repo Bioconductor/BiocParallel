@@ -15,6 +15,11 @@ USER VISIBLE CHANGES
 
     o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
 
+BUG FIXES
+
+    o (1.33.6) Restore 'exported' global variables in SerialParam()
+    https://github.com/Bioconductor/BiocParallel/issues/234
+
 CHANGES IN VERSION 1.32
 -----------------------
 
