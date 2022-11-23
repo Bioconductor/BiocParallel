@@ -54,6 +54,9 @@ BUG FIXES
     o (v 1.31.14) Reduce bpmapply memory usage. Thanks Sergio Oller.
     <https://github.com/Bioconductor/BiocParallel/pull/227>
 
+    o (v 1.32.3) Restore 'exported' global variables in SerialParam()
+    <https://github.com/Bioconductor/BiocParallel/issues/234>
+
 CHANGES IN VERSION 1.30
 -----------------------
 
