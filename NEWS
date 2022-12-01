@@ -57,6 +57,10 @@ BUG FIXES
     o (v 1.32.3) Restore 'exported' global variables in SerialParam()
     <https://github.com/Bioconductor/BiocParallel/issues/234>
 
+    o (v 1.32.4) 'configure.ac' uses C++ compiler and checks for existence
+    of required header
+    <https://github.com/Bioconductor/BiocParallel/pull/236>
+
 CHANGES IN VERSION 1.30
 -----------------------
 
