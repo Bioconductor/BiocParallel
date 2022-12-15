@@ -1,3 +1,29 @@
+CHANGES IN VERSION 1.34
+-----------------------
+
+NEW FEATURES
+
+    o (1.33.2) limit worker number via environment variables.
+    https://github.com/Bioconductor/BiocParallel/issues/229
+
+    o (v1.33.3) bpmapply() does not send the whole list of arguments
+    to all workers. Instead, it takes the arguments and slices them,
+    passing the corresponding slice to each worker. Thanks Sergio Oller!
+    https://github.com/Bioconductor/BiocParallel/issues/229
+
+USER VISIBLE CHANGES
+
+    o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
+
+BUG FIXES
+
+    o (1.33.6) Restore 'exported' global variables in SerialParam()
+    https://github.com/Bioconductor/BiocParallel/issues/234
+
+    o (1.33.7) 'configure.ac' uses C++ compiler and checks for existence
+    of required header
+    <https://github.com/Bioconductor/BiocParallel/pull/236>
+
 CHANGES IN VERSION 1.32
 -----------------------
 
@@ -20,6 +46,10 @@ USER VISIBLE CHANGES
     clusters (thanks Dario Strbenac)
     https://github.com/Bioconductor/BiocParallel/pull/218
     https://github.com/Bioconductor/BiocParallel/issues/217
+
+    o (v 1.31.15) Replace Introduction to BiocParallel .Rnw vignette
+    with Rmd (html) version (thanks Phylis Atieno!)
+    https://github.com/Bioconductor/BiocParallel/pull/226
 
 BUG FIXES
 
@@ -47,6 +77,8 @@ BUG FIXES
     <https://github.com/Bioconductor/BiocParallel/issues/223>
     <https://github.com/Bioconductor/BiocParallel/pull/224>
 
+    o (v 1.31.14) Reduce bpmapply memory usage. Thanks Sergio Oller.
+    <https://github.com/Bioconductor/BiocParallel/pull/227>
 
 CHANGES IN VERSION 1.30
 -----------------------

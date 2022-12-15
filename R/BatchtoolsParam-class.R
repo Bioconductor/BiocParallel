@@ -179,6 +179,8 @@ BatchtoolsParam <-
     if (length(resources)  && is.null(names(resources)))
         stop("'resources' must be a named list")
 
+    workers <- .enforceWorkers(workers)
+
     prototype <- .prototype_update(
         .BatchtoolsParam_prototype,
         workers = as.integer(workers), cluster = cluster,
@@ -192,9 +194,9 @@ BatchtoolsParam <-
         RNGseed = as.integer(RNGseed), template = template
     )
 
-    x <- do.call(.BatchtoolsParam, prototype)
-    validObject(x)
-    x
+    param <- do.call(.BatchtoolsParam, prototype)
+    validObject(param)
+    param
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

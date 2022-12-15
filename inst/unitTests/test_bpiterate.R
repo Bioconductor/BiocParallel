@@ -46,8 +46,7 @@ test_bpiterate_Params <- function()
 
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
-    params <- list(dopar=DoparParam(),
-                   batchjobs=BatchJobsParam(2, progressbar=FALSE))
+    params <- list(dopar=DoparParam())
     for (p in params) {
         ITER <- .lazyCount(length(x))
         checkException(bpiterate(ITER, FUN, BPPARAM=p), silent=TRUE)

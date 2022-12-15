@@ -4,10 +4,11 @@ test_bpvectorize_Params <- function()
 {
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
-    params <- list(serial=SerialParam(),
-                   snow=SnowParam(2),
-                   batchjobs=BatchJobsParam(2, progressbar=FALSE),
-                   dopar=DoparParam())
+    params <- list(
+        serial=SerialParam(),
+        snow=SnowParam(2),
+        dopar=DoparParam()
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 

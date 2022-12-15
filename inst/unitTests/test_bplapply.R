@@ -6,10 +6,11 @@ test_bplapply_Params <- function()
 {
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
-    params <- list(serial=SerialParam(),
-                   snow=SnowParam(2),
-                   dopar=DoparParam(),
-                   batchjobs=BatchJobsParam(2, progressbar=FALSE))
+    params <- list(
+        serial=SerialParam(),
+        snow=SnowParam(2),
+        dopar=DoparParam()
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 
@@ -26,13 +27,6 @@ test_bplapply_Params <- function()
         checkIdentical(list(), current)
     }
 
-    # unnamed args for BatchJobs -> dispatches to batchMap
-    f <- function(i, x, y, ...) { list(y, i, x) }
-    current <- bplapply(2:1, f, c("A", "B"), x=10,
-                        BPPARAM=BatchJobsParam(2, progressbar=FALSE))
-    checkTrue(all.equal(current[[1]], list(c("A", "B"), 2, 10)))
-    checkTrue(all.equal(current[[2]], list(c("A", "B"), 1, 10)))
-
     ## clean up
     foreach::registerDoSEQ()
     parallel::stopCluster(cl)
@@ -44,11 +38,11 @@ test_bplapply_symbols <- function()
 {
     cl <- parallel::makeCluster(2)
     doParallel::registerDoParallel(cl)
-    params <- list(serial=SerialParam(),
-                   snow=SnowParam(2),
-                   dopar=DoparParam()
-                   ## FIXME, batchjobs=BatchJobsParam(2, progressbar=FALSE))
-                   )
+    params <- list(
+        serial=SerialParam(),
+        snow=SnowParam(2),
+        dopar=DoparParam()
+    )
     if (.Platform$OS.type != "windows")
         params$mc <- MulticoreParam(2)
 

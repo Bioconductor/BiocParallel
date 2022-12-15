@@ -4,7 +4,6 @@
 \alias{bpiterate,ANY,ANY,SerialParam-method}
 \alias{bpiterate,ANY,ANY,BiocParallelParam-method}
 \alias{bpiterate,ANY,ANY,SnowParam-method}
-\alias{bpiterate,ANY,ANY,BatchJobsParam-method}
 \alias{bpiterate,ANY,ANY,DoparParam-method}
 \alias{bpiterate,ANY,ANY,BatchtoolsParam-method}
 \alias{bpiterateAlong}

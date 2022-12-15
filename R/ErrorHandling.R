@@ -43,12 +43,6 @@ bpresult <- function(x)
     x
 }
 
-.condition_remote <- function(x, call) {
-    ## BatchJobs does not return errors
-    structure(x, class = c("remote_error", "bperror", "condition"),
-              traceback = capture.output(traceback(call)))
-}
-
 .error <- function(msg, class=NULL) {
     structure(list(message=msg),
               class = c(class, "bperror", "error", "condition"))

@@ -70,9 +70,10 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         ...
     )
 
-    x <- do.call(.MulticoreParam, prototype)
-    validObject(x)
-    x
+    param <- do.call(.MulticoreParam, prototype)
+    bpworkers(param) <- workers # enforce worker number
+    validObject(param)
+    param
 }
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -83,14 +84,8 @@ setReplaceMethod("bpworkers", c("MulticoreParam", "numeric"),
     function(x, value)
 {
     value <- as.integer(value)
-    max <- .snowCoresMax("multicore")
-    if (value > max)
-        stop(
-            "'value' exceeds ", max, " available workers; see ?multicoreWorkers"
-        )
-
-    x$workers <- value
-    x$.clusterargs$spec <- value
+    nworkers <- .enforceWorkers(value, x$.clusterargs$type)
+    x$workers <- x$.clusterargs$spec <- nworkers
     x
 })
 

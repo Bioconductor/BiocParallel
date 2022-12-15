@@ -3,7 +3,7 @@
 ### -------------------------------------------------------------------------
 
 .BiocParallelParam_prototype <- list(
-    workers=0,
+    workers=0L,
     tasks=0L,
     jobname="BPJOB",
     log=FALSE,
@@ -65,7 +65,8 @@
                 "  bpexportglobals: ", bpexportglobals(.self),
                 "; bpexportvariables: ", bpexportvariables(.self),
                 "; bpforceGC: ", bpforceGC(.self),
-                "; bpfallback: ", bpfallback(.self),
+                "\n",
+                "  bpfallback: ", bpfallback(.self),
                 "\n", .prettyPath("  bplogdir", bplogdir(.self)),
                 "\n", .prettyPath("  bpresultdir", bpresultdir(.self)),
                 "\n", sep="")

@@ -107,11 +107,11 @@
   parameter objects build. There are 5 concrete subclasses:
 
   \describe{
-      \item{}{\code{SnowParam}: distributed memory computing}
-      \item{}{\code{MulticoreParam}: shared memory computing}
-      \item{}{\code{BatchtoolsParam}: scheduled cluster computing}
-      \item{}{\code{DoparParam}: foreach computing}
-      \item{}{\code{SerialParam}: non-parallel execution}
+      \item{\code{SnowParam}:}{distributed memory computing}
+      \item{\code{MulticoreParam}:}{shared memory computing}
+      \item{\code{BatchtoolsParam}:}{scheduled cluster computing}
+      \item{\code{DoparParam}:}{foreach computing}
+      \item{\code{SerialParam}:}{non-parallel execution}
   }
 
   The parameter objects hold configuration parameters related to the
@@ -141,18 +141,15 @@
     In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
     \describe{
-      \item{}{
-        \code{bpworkers(x)}, \code{bpworkers(x, ...)}:
+      \item{\code{bpworkers(x)}, \code{bpworkers(x, ...)}:}{
         \code{integer(1)} or \code{character()}. Gets the number or names of
         the back-end workers. The setter is supported for SnowParam and
         MulticoreParam only.
       }
-      \item{}{
-        \code{bpnworkers(x)}:
+      \item{\code{bpnworkers(x)}:}{
         \code{integer(1)}. Gets the number of the back-end workers.
       }
-      \item{}{
-        \code{bptasks(x)}, \code{bptasks(x) <- value}:
+      \item{\code{bptasks(x)}, \code{bptasks(x) <- value}:}{
         \code{integer(1)}. Get or set the number of tasks for a
         job. \code{value} can be a scalar integer > 0L, or integer 0L for
         matching the worker number, or \code{NA} for representing an infinite
@@ -178,92 +175,77 @@
         \code{bpiterate} function; the number of tasks are defined by the number
         of data chunks returned by the \code{ITER} function.
       }
-      \item{}{
-        \code{bpstart(x)}:
+      \item{\code{bpstart(x)}:}{
         \code{logical(1)}. Starts the back-end, if necessary.
       }
-      \item{}{
-        \code{bpstop(x)}:
+      \item{\code{bpstop(x)}:}{
         \code{logical(1)}. Stops the back-end, if necessary and possible.
       }
-      \item{}{
-        \code{bpisup(x)}:
+      \item{\code{bpisup(x)}:}{
         \code{logical(1)}. Tests whether the back-end is available for
         processing, returning a scalar logical value. \code{bp*}
         functions such as \code{bplapply} automatically start the
         back-end if necessary.
       }
-      \item{}{
-        \code{bpbackend(x)}, \code{bpbackend(x) <- value}:
+      \item{\code{bpbackend(x)}, \code{bpbackend(x) <- value}:}{
         Gets or sets the parallel \code{bpbackend}. Not all back-ends can
         be retrieved; see \code{methods("bpbackend")}.
       }
-      \item{}{
-        \code{bplog(x)}, \code{bplog(x) <- value}:
+      \item{\code{bplog(x)}, \code{bplog(x) <- value}:}{
         Get or enable logging, if available.  \code{value} must be a
         \code{logical(1)}.
       }
-      \item{}{
-        \code{bpthreshold(x)}, \code{bpthreshold(x) <- value}: Get or
-        set the logging threshold. \code{value} must be a
+      \item{\code{bpthreshold(x)}, \code{bpthreshold(x) <- value}:}{
+        Get or set the logging threshold. \code{value} must be a
         \code{character(1)} string of one of the levels defined in the
         \code{futile.logger} package: \dQuote{TRACE}, \dQuote{DEBUG},
         \dQuote{INFO}, \dQuote{WARN}, \dQuote{ERROR}, or \dQuote{FATAL}.
       }
-      \item{}{
-        \code{bplogdir(x)}, \code{bplogdir(x) <- value}: Get or set an
-        optional directory for saving log files. The directory must
-        already exist with read / write ability.
-      }
-      \item{}{
-        \code{bpresultdir(x)}, \code{bpresultdir(x) <- value}: Get or
-        set an optional directory for saving results as 'rda' files. The
+      \item{\code{bplogdir(x)}, \code{bplogdir(x) <- value}:}{
+        Get or set an optional directory for saving log files. The
         directory must already exist with read / write ability.
       }
-      \item{}{
-        \code{bptimeout(x)}, \code{bptimeout(x) <- value}:
+      \item{\code{bpresultdir(x)}, \code{bpresultdir(x) <- value}:}{
+        Get or set an optional directory for saving results as 'rda'
+        files. The directory must already exist with read / write
+        ability.
+      }
+      \item{\code{bptimeout(x)}, \code{bptimeout(x) <- value}:}{
         \code{numeric(1)} Time (in seconds) allowed for worker to
         complete a task.  This value is passed to base::setTimeLimit()
         as both the \code{cpu} and \code{elapsed} arguments. If the
         computation exceeds \code{timeout} an error is thrown with
         message 'reached elapsed time limit'.
       }
-      \item{}{
-        \code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}:
+      \item{\code{bpexportglobals(x)}, \code{bpexportglobals(x) <- value}:}{
         \code{logical(1)} Export \code{base::options()} from manager to
         workers? Default \code{TRUE}.
       }
-      \item{}{
-        \code{bpexportvariables(x)}, \code{bpexportvariables(x) <- value}:
-        \code{logical(1)} Automatically export the variables which are defined in
-        the global environment and used by the function from manager to
-        workers. Default \code{TRUE}.
+      \item{\code{bpexportvariables(x)}, \code{bpexportvariables(x) <- value}:}{
+        \code{logical(1)} Automatically export the variables which are
+        defined in the global environment and used by the function from
+        manager to workers. Default \code{TRUE}.
       }
-      \item{}{
-        \code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:
+      \item{\code{bpprogressbar(x)}, \code{bpprogressbar(x) <- value}:}{
         Get or set the value to enable text progress bar.
         \code{value} must be a \code{logical(1)}.
       }
-      \item{}{
-        \code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:
+      \item{\code{bpRNGseed(x)}, \code{bpRNGseed(x) <- value}:}{
         Get or set the seed for random number generaton. \code{value} must be a
         \code{numeric(1)} or \code{NULL}.
       }
-      \item{}{
-        \code{bpjobname(x)}, \code{bpjobname(x) <- value}:
+      \item{\code{bpjobname(x)}, \code{bpjobname(x) <- value}:}{
         Get or set the job name.
       }
-      \item{}{
-        \code{bpforceGC(x)}, \code{bpforceGC(x) <- value}:
+      \item{\code{bpforceGC(x)}, \code{bpforceGC(x) <- value}:}{
         Get or set whether 'garbage collection' should be invoked at the
         end of each call to \code{FUN}.
       }
-      \item{}{
-        \code{bpfallback(x)}, \code{bpfallback(x) <- value}: Get or set
-        whether the fallback \code{SerialParam} should be used (e.g.,
-        for efficiency when starting a cluster) when the current
-        \code{BPPARAM} has not been started and the worker number is
-        less than or equal to 1.
+      \item{\code{bpfallback(x)}, \code{bpfallback(x) <- value}:}{
+        Get or set whether the fallback \code{SerialParam} should be
+        used (e.g., for efficiency when starting a cluster) when the
+        current \code{BPPARAM} has not been started and the worker
+        number is less than or equal to 1.
       }
     }
   }
@@ -272,8 +254,7 @@
     In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
     \describe{
-      \item{}{
-        \code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:
+      \item{\code{bpstopOnError(x)}, \code{bpstopOnError(x) <- value}:}{
         \code{logical()}. Controls if the job stops when an error is hit.
 
         \code{stop.on.error} controls whether the job stops after an
@@ -296,34 +277,26 @@
     ?\code{bpmapply}, ?\code{bplapply}, ?\code{bpvec}, ?\code{bpiterate} and
     ?\code{bpaggregate}.
 
-    \describe{
-      \item{}{
-        \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE, USE.NAMES=TRUE,
-                       BPPARAM=bpparam())}
-      }
-      \item{}{
-        \code{bplapply(X, FUN, ...,
-                       BPPARAM=bpparam())}
-      }
-      \item{}{
-        \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
-      }
-      \item{}{
-        \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
-      }
-      \item{}{
-        \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
-      }
+    \itemize{
+
+      \item \code{bpmapply(FUN, ..., MoreArgs=NULL, SIMPLIFY=TRUE,
+        USE.NAMES=TRUE, BPPARAM=bpparam())}
+
+      \item \code{bplapply(X, FUN, ..., BPPARAM=bpparam())}
+
+      \item \code{bpvec(X, FUN, ..., AGGREGATE=c, BPPARAM=bpparam())}
+
+      \item \code{bpiterate(ITER, FUN, ..., BPPARAM=bpparam())}
+
+      \item \code{bpaggregate(x, data, FUN, ..., BPPARAM=bpparam())}
     }
   }
 
   \subsection{Other}{
     In the code below \code{BPPARAM} is a \code{BiocParallelParam} object.
 
-    \describe{
-      \item{}{
-        \code{show(x)}
-      }
+    \itemize{
+      \item \code{show(x)}
     }
   }
 

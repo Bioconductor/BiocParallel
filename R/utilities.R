@@ -1,72 +1,3 @@
-.getEnvironmentVariable <-
-    function(variable, default = NA_integer_)
-{
-    result <- withCallingHandlers({
-        value <- Sys.getenv(variable, default)
-        as.integer(value)
-    }, warning = function(w) {
-        txt <- sprintf(
-            paste0(
-                "Trying to coercing the environment variable '%s' to an ",
-                "integer caused a warning. The value of the environment ",
-                "variable was '%s'. The warning was: %s"
-            ),
-            variable, value, conditionMessage(w)
-        )
-        .warning(txt)
-        invokeRestart("muffleWarning")
-    })
-
-    if (!is.na(result) && (result <= 0L)) {
-        txt <- sprintf(
-            "The environment variable '%s' must be > 0. The value was '%d'.",
-            variable, result
-        )
-        .stop(txt)
-    }
-
-    result
-}
-
-.detectCores <- function() {
-    ## environment variables; least to most compelling
-    result <- .getEnvironmentVariable("R_PARALLELLY_AVAILABLECORES_FALLBACK")
-    result <- .getEnvironmentVariable("BIOCPARALLEL_WORKER_NUMBER", result)
-
-    ## fall back to detectCores() if necessary
-    if (is.na(result)) {
-        result <- parallel::detectCores()
-        if (is.na(result))
-            result <- 1L
-        result <- max(1L, result - 2L)
-    }
-
-    ## respect 'mc.cores', overriding env. variables an detectCores()
-    result <- getOption("mc.cores", result)
-
-    ## coerce to integer; check for valid value
-    tryCatch({
-        result <- as.integer(result)
-        if ( length(result) != 1L || is.na(result) || result < 1L )
-            stop("number of cores must be a non-negative integer")
-    }, error = function(e) {
-        msg <- paste0(
-            conditionMessage(e), ". ",
-            "Did you mis-specify R_PARALLELLY_AVAILABLECORES_FALLBACK, ",
-            "BIOCPARALLEL_WORKER_NUMBER, or options('mc.cores')?"
-        )
-        .stop(msg)
-    })
-
-    ## override user settings by build-system configurations
-    if (nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_")))
-        result <- min(result, 2L)
-    if (nzchar(Sys.getenv("BBS_HOME")))
-        result <- min(result, 4L)
-
-    result
-}
-
 .splitIndices <- function (nx, tasks)
 {
     ## derived from parallel
@@ -123,29 +54,6 @@
     function(results, X)
 {
     names(results) <- names(X)
-    results
-}
-
-## re-apply the names on, e.g., mapply(FUN, X) to the return value;
-## see test_mrename for many edge cases
-.mrename <-
-    function(results, dots, USE.NAMES=TRUE)
-{
-    ## dots: a list() containing one element for each ... argument
-    ## passed to mapply
-    if (USE.NAMES) {
-        ## extract the first argument; if there are no arguments, then
-        ## dots is (unnamed) list(0)
-        if (length(dots))
-            dots <- dots[[1L]]
-        if (is.character(dots) && is.null(names(dots))) {
-            names(results) <- dots
-        } else {
-            names(results) <- names(dots)
-        }
-    } else {
-        results <- unname(results)
-    }
     results
 }
 
@@ -210,9 +118,9 @@
     stop(msg, call. = FALSE)
 }
 
-## BatchJobs / batchtools signal no timeout with 'Inf', rather than
-## NA; do not implement as bptimeout() method because NA is
-## appropriate in other contexts, e.g., when 'show()'ing param.
+## batchtools signals no timeout with 'Inf', rather than NA; do not
+## implement as bptimeout() method because NA is appropriate in other
+## contexts, e.g., when 'show()'ing param.
 .batch_bptimeout <-
     function(BPPARAM)
 {

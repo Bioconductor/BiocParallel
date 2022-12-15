@@ -115,7 +115,7 @@
         log = FALSE,
         threshold = "INFO",
         stop.on.error = TRUE,
-        as.error = TRUE,        # FALSE for BatchJobs compatible
+        as.error = TRUE,
         timeout = WORKER_TIMEOUT,
         exportglobals = TRUE,
         force.GC = FALSE)
@@ -176,11 +176,7 @@
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
         call <- sapply(sys.calls(), deparse, nlines=3)
-        if (as.error) {
-            .error_remote(e, call)
-        } else {
-            .condition_remote(e, call) # BatchJobs
-        }
+        .error_remote(e, call)
     }
 
     if (!is.null(SEED))
@@ -242,12 +238,20 @@
         suppressPackageStartupMessages(library(pkg, character.only = TRUE))
     }
     ## Add variables to the global space and remove them afterward
+    ## Recover the replaced variables at the end if necessary
+    replaced_variables <- new.env(parent = emptyenv())
     if (length(GLOBALS)) {
         for (i in names(GLOBALS)) {
+            if (exists(i, envir = .GlobalEnv))
+                replaced_variables[[i]] <- .GlobalEnv[[i]]
             assign(i, GLOBALS[[i]], envir = .GlobalEnv)
         }
-        on.exit(remove(list = names(GLOBALS), envir = .GlobalEnv),
-                add = TRUE)
+        on.exit({
+            remove(list = names(GLOBALS), envir = .GlobalEnv)
+            for (i in names(replaced_variables))
+                assign(i, replaced_variables[[i]], envir = .GlobalEnv)
+        },
+        add = TRUE)
     }
 
     composeFunc <- .composeTry(FUN, OPTIONS, BPRNGSEED)

@@ -82,10 +82,7 @@ SerialParam(
       The log output includes additional statistics such as memory use
       and task runtime. Memory use is computed by calling gc(reset=TRUE)
       before code evaluation and gc() (no reseet) after. The output of the
-      second gc() call is sent to the log file. There are many ways to
-      track memory use - this particular approach was taken because it is
-      consistent with how the BatchJobs package reports memory on the
-      workers.
+      second gc() call is sent to the log file.
     }
     \item{log and result files:}{
       Results and logs can be written to a file instead of returned to
@@ -117,9 +114,7 @@ SerialParam(
 \section{Constructor}{
 
   \describe{
-    \item{}{
-      \code{SerialParam()}:
-
+    \item{\code{SerialParam()}:}{
       Return an object to be used for serial evaluation of otherwise
       parallel functions such as \code{\link{bplapply}},
       \code{\link{bpvec}}.
