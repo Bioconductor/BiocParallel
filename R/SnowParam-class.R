@@ -260,17 +260,11 @@ setMethod("bpstart", "SnowParam",
              128L - nrow(showConnections(all=TRUE)),
              " connections available in this session")
 
-    ## FORK (useRscript not relevant)
     if (x$.clusterargs$type == "FORK") {
-        socket_timeout <- as.integer(getOption("timeout"))
-        socket_timeout_is_valid <-
-            length(socket_timeout) == 1L && !is.na(socket_timeout) &&
-            socket_timeout > 0L
-        if (!socket_timeout_is_valid)
-            stop("'getOption(\"timeout\")' must be positive integer(1)")
-        bpbackend(x) <- .bpfork(nnodes, .hostname(x), .port(x), socket_timeout)
-    ## SOCK, MPI
+        ## FORK (useRscript not relevant)
+        bpbackend(x) <- .bpfork(nnodes, .hostname(x), .port(x))
     } else {
+        ## SOCK, MPI
         cargs <- x$.clusterargs
         cargs$spec <- if (is.numeric(cargs$spec)) {
             nnodes

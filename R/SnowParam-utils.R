@@ -1,3 +1,14 @@
+.connect_timeout <-
+    function()
+{
+    timeout <- getOption("timeout")
+    timeout_is_valid <-
+        length(timeout) == 1L && !is.na(timeout) &&
+        timeout > 0L
+    if (!timeout_is_valid)
+        stop("'getOption(\"timeout\")' must be positive integer(1)")
+    timeout
+}
 
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +38,7 @@ bprunMPIworker <- function() {
 ### parallel::FORK
 ###
 
-.bpfork <- function (nnodes, host, port, socket_timeout)
+.bpfork <- function (nnodes, host, port)
 {
     nnodes <- as.integer(nnodes)
     if (is.na(nnodes) || nnodes < 1L)
@@ -38,10 +49,15 @@ bprunMPIworker <- function() {
     if (length(port) != 1L || is.na(port) || !is.integer(port))
         stop("'port' must be integer(1)")
 
+    connect_timeout <- .connect_timeout()
+    idle_timeout <- IDLE_TIMEOUT
+
     cl <- vector("list", nnodes)
     for (rank in seq_along(cl)) {
-        .bpforkChild(host, port, rank, socket_timeout)
-        cl[[rank]] <- .bpforkConnect(host, port, rank, socket_timeout)
+        .bpforkChild(host, port, rank, connect_timeout, idle_timeout)
+        cl[[rank]] <- .bpforkConnect(
+            host, port, rank, connect_timeout, idle_timeout
+        )
     }
 
     class(cl) <- c("SOCKcluster", "cluster")
@@ -49,7 +65,7 @@ bprunMPIworker <- function() {
 }
 
 .bpforkChild <-
-    function(host, port, rank, socket_timeout)
+    function(host, port, rank, connect_timeout, idle_timeout)
 {
     parallel::mcparallel({
         con <- NULL
@@ -58,10 +74,11 @@ bprunMPIworker <- function() {
                 con <- tryCatch({
                     socketConnection(
                         host, port, FALSE, TRUE, "a+b",
-                        timeout = socket_timeout
+                        timeout = connect_timeout
                     )
                 }, error=function(e) {})
             }
+            socketTimeout(con, idle_timeout)
         })
         node <- structure(list(con = con), class = "SOCK0node")
         .bpworker_impl(node)
@@ -69,11 +86,13 @@ bprunMPIworker <- function() {
 }
 
 .bpforkConnect <-
-    function(host, port, rank, socket_timeout)
+    function(host, port, rank, connect_timeout, idle_timeout)
 {
+    idle_timeout <- IDLE_TIMEOUT
     con <- socketConnection(
-        host, port, TRUE, TRUE, "a+b", timeout = socket_timeout
+        host, port, TRUE, TRUE, "a+b", timeout = connect_timeout
     )
+    socketTimeout(con, idle_timeout)
     structure(list(con = con, host = host, rank = rank),
               class = c("forknode", "SOCK0node"))
 }

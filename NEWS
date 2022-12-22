@@ -61,6 +61,11 @@ BUG FIXES
     of required header
     <https://github.com/Bioconductor/BiocParallel/pull/236>
 
+    o (v 1.32.5) set socket idle timeout to a large value, to avoid
+    premature worker termination and to be consistent with snow /
+    parallel defaults.
+    <https://github.com/Bioconductor/BiocParallel/issues/237>
+
 CHANGES IN VERSION 1.30
 -----------------------
 
