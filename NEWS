@@ -15,6 +15,9 @@ USER VISIBLE CHANGES
 
     o (1.33.1) Mark BatchJobsParam, bprunMPIslave as defunct.
 
+    o (1.33.9) Change default force.GC= to FALSE in MulticoreParam().
+    <https://github.com/Bioconductor/BiocParallel/issues/238>
+
 BUG FIXES
 
     o (1.33.6) Restore 'exported' global variables in SerialParam()

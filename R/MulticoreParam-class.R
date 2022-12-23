@@ -23,7 +23,7 @@ MulticoreParam <- function(workers=multicoreWorkers(), tasks=0L,
         exportglobals=TRUE,
         log=FALSE, threshold="INFO", logdir=NA_character_,
         resultdir=NA_character_, jobname = "BPJOB",
-        force.GC = TRUE,
+        force.GC = FALSE,
         fallback = TRUE,
         manager.hostname=NA_character_, manager.port=NA_integer_, ...)
 {

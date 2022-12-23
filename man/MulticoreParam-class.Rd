@@ -44,7 +44,7 @@ MulticoreParam(workers = multicoreWorkers(), tasks = 0L,
                timeout = WORKER_TIMEOUT, exportglobals=TRUE,
                log = FALSE, threshold = "INFO", logdir = NA_character_,
                resultdir = NA_character_, jobname = "BPJOB",
-               force.GC = TRUE, fallback = TRUE,
+               force.GC = FALSE, fallback = TRUE,
                manager.hostname = NA_character_, manager.port = NA_integer_,
                ...)
 
@@ -232,11 +232,12 @@ multicoreWorkers()
   }
   \item{force.GC}{
     \code{logical(1)} Whether to invoke the garbage collector after each
-    call to \code{FUN}. The default (\code{TRUE}, explicitly
-    call the garbage collection) can slow parallel computation, but is
-    necessary when each call to \code{FUN} allocates a 'large' amount of
+    call to \code{FUN}. The value \code{TRUE}, explicitly call the
+    garbage collection, can slow parallel computation, but is necessary
+    when each call to \code{FUN} allocates a 'large' amount of
     memory. If \code{FUN} allocates little memory, then considerable
-    performance improvements are gained by setting \code{force.GC = FALSE}.
+    performance improvements are gained by the default setting
+    \code{force.GC = TRUE}.
   }
   \item{fallback}{
     \code{logical(1)} When \code{TRUE}, fall back to using
