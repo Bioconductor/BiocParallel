@@ -12,7 +12,11 @@ Authors@R: c(
     person("Ryan", "Thompson", email="rct@thompsonclan.org", role="aut"),
     person("Nitesh", "Turaga", role="aut"),
     person("Aaron", "Lun", role = "ctb"),
-    person("Henrik", "Bengtsson", role = "ctb"))
+    person("Henrik", "Bengtsson", role = "ctb")
+    person("Paul", "Villafuerte",
+        role = "ctb",
+        comment = "'BiocParallel_BatchtoolsParam' vignette translation from Sweave to Rmarkdown / HTML"
+    ))
 Description: This package provides modified versions and novel
     implementation of functions for parallel evaluation, tailored to
     use with Bioconductor objects.
