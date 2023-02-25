@@ -42,3 +42,14 @@ test_bpexportglobals_bplapply <- function()
     current <- bplapply(1:2, function(i) getOption("BAR"), BPPARAM=param)
     checkIdentical("baz", unique(unlist(current)))
 }
+
+test_bpexportglobals_lazyEvaluation <- function(){
+    foo <- function(k){
+        param <- SnowParam(2L, exportglobals=TRUE)
+        bplapply(1:2, function(x){
+            k
+        }, BPPARAM = param)
+    }
+    k <- 1
+    checkIdentical(foo(k), list(1, 1))
+}
