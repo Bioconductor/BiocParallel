@@ -7,7 +7,8 @@
 TransientMulticoreParam <-
     function(param)
 {
-    as(param, "TransientMulticoreParam")
+    param <- as(param, "TransientMulticoreParam")
+    bpstart(param)
 }
 
 .TRANSIENTMULTICOREPARAM_JOBNODE <- new.env(parent=emptyenv())
