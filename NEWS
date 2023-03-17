@@ -66,6 +66,11 @@ BUG FIXES
     parallel defaults.
     <https://github.com/Bioconductor/BiocParallel/issues/237>
 
+    o (v 1.32.6) be sure to clean up TransientMulticoreParam state at
+    start of each job.
+    <https://github.com/Bioconductor/BiocParallel/issues/243>
+    
+
 CHANGES IN VERSION 1.30
 -----------------------
 
