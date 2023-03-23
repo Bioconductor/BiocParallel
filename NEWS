@@ -18,6 +18,11 @@ USER VISIBLE CHANGES
     o (1.33.9) Change default force.GC= to FALSE in MulticoreParam().
     <https://github.com/Bioconductor/BiocParallel/issues/238>
 
+    o (1.33.11) change content of 'traceback' on error to include the
+    stack from the location of the error up to the invokation of
+    FUN. Previously, the traceback was from FUN to the top-level of
+    worker code, providing limited insight into nested errors.
+
 BUG FIXES
 
     o (1.33.6) Restore 'exported' global variables in SerialParam()

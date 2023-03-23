@@ -215,8 +215,12 @@ with the \Rcode{attr} function. This is possible because errors are returned
 as \Rcode{condition} objects with the traceback as an attribute.
 
 <<errors_traceback>>=
-tail(attr(result[[which(!bpok(result))]], "traceback"))
+attr(result[[which(!bpok(result))]], "traceback")
 @
+
+Note that the traceback has been modified from the full traceback
+provided by *R* to include only the calls from the time the
+\Rcode{bplapply} \Rcode{FUN} is evaluated.
 
 \subsection{Rerun failed tasks with \Rcode{BPREDO}}
 
@@ -455,9 +459,8 @@ Calling ``fun1'' with a character throws an error:
 param <- SnowParam(stop.on.error=FALSE)
 result <- bptry({
     bplapply(list(c(1,3), 5, "6"), fun1, BPPARAM = param)
-}, error=identity)
+})
 result
-
 ## [[1]]
 ## [1] 1.000000 1.732051
 ##
@@ -467,6 +470,9 @@ result
 ## [[3]]
 ## <remote_error in abs(x): non-numeric argument to mathematical function>
 ## traceback() available as 'attr(x, "traceback")'
+##
+## attr(,"REDOENV")
+## <environment: 0x11bdb3a18>
 \end{verbatim}
 
 Identify which elements failed with \Rcode{bpok}:
@@ -490,15 +496,19 @@ The traceback is an attribute of the \Rcode{condition} and can be accessed with
 the \Rcode{attr} function.
 
 \begin{verbatim}
-noquote(tail(attr(result[[3]], "traceback")))
-
-## [1]        call <- sapply(sys.calls(), deparse)
-## [2]        e <- structure(e, class = c("remote_error", "condition"),
-## [3]            traceback = capture.output(traceback(call)))
-## [4]        invokeRestart("abort", e)
-## [5]    }, "non-numeric argument to mathematical function", quote(abs(x)))
-## [6] 1: h(simpleError(msg, call))
+cat(attr(result[[3]], "traceback"), sep = "\n")
+## 4: handle_error(e)
+## 3: h(simpleError(msg, call))
+## 2: .handleSimpleError(function (e)
+##    {
+##        annotated_condition <- handle_error(e)
+##        stop(annotated_condition)
+##    }, "non-numeric argument to mathematical function", base::quote(abs(x))) at #2
+## 1: FUN(...)
 \end{verbatim}
+
+In this example the error occurs in \Rcode{FUN}; lines 2, 3, 4 involve
+error handling.
 
 \subsection{Adding debug messages}
 
@@ -550,15 +560,44 @@ Create a param that logs at a threshold level of {\it DEBUG}.
 param <- SnowParam(3, log = TRUE, threshold = "DEBUG")
 @
 
-The debug messages reveal the problem occurs when `x' is \Rcode{numeric()}.
-The index for \Rcode{sapply} is along `v' which in this case has length 0.
-This forces `i' to take values of `1' and `0' giving an output of length 2 for
-the second element (i.e., \Rcode{NA} and \Rcode{numeric(0)}).
-
 <<debug_DEBUG>>=
 res <- bplapply(list(c(1,3), numeric(), 6), fun2, BPPARAM = param)
 res
 @
+
+The debug messages require close inspection, but focusing on task 2 we
+see
+
+\begin{verbatim}
+res
+## ############### LOG OUTPUT ###############
+## Task: 2
+## Node: 2
+## Timestamp: 2023-03-23 12:17:28.969158
+## Success: TRUE
+##
+## Task duration:
+##    user  system elapsed
+##   0.156   0.005   0.163
+##
+## Memory used:
+##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+## Ncells  942951 50.4    1848364 98.8         NA  1848364 98.8
+## Vcells 1941375 14.9    8388608 64.0      32768  2446979 18.7
+##
+## Log messages:
+## INFO [2023-03-23 12:17:28] loading futile.logger package
+## DEBUG [2023-03-23 12:17:28] 'x' = : length(v) = 0
+## INFO [2023-03-23 12:17:28] 'i' = 1
+## INFO [2023-03-23 12:17:28] 'i' = 0
+##
+## stderr and stdout:
+\end{verbatim}
+
+This reveals the problem.  The index for \Rcode{sapply} is along `v'
+which in this case has length 0.  This forces `i' to take values of
+`1' and `0' giving an output of length 2 for the second element (i.e.,
+\Rcode{NA} and \Rcode{numeric(0)}).
 
 ``fun2'' can be fixed by using \Rcode{seq\_along(v)} to create the index
 instead of \Rcode{1:length(v)}.
