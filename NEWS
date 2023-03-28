@@ -23,6 +23,10 @@ USER VISIBLE CHANGES
     FUN. Previously, the traceback was from FUN to the top-level of
     worker code, providing limited insight into nested errors.
 
+    o (1.33.12) 'force' function arguments to avoid consequences of
+    lazy evaluation discussed in
+    <https://github.com/Bioconductor/BiocParallel/issues/241#issuecomment-1445006892>
+
 BUG FIXES
 
     o (1.33.6) Restore 'exported' global variables in SerialParam()

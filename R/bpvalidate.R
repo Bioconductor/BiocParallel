@@ -127,7 +127,8 @@ setMethod("show", "BPValidate", function(object) {
         ## Force evaluation of the known arguments to
         ## make sure they will be exported correctly
         known <- unknown[-i]
-        for(nm in known) force(env[[nm]])
+        for (nm in known)
+            force(env[[nm]])
         unknown <- unknown[i]
         env <- parent.env(env)
     }
