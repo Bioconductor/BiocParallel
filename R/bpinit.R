@@ -29,10 +29,7 @@
             ## use TransientMulticoreParam when MulticoreParam has not
             ## started
             oldParam <- BPPARAM
-            BPPARAM <- as(BPPARAM, "TransientMulticoreParam")
-            ## BPPARAM will never get started as bpisup(BPPARAM) is always TRUE
-            if (!bpisup(oldParam))
-                .bpstart_set_rng_stream(BPPARAM)
+            BPPARAM <- TransientMulticoreParam(BPPARAM)
             on.exit({
                 .RNGstream(oldParam) <- .RNGstream(BPPARAM)
             }, TRUE, FALSE)

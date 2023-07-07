@@ -158,6 +158,8 @@
 {
     FUN <- match.fun(FUN)
     ERROR_OCCURRED <- FALSE
+    ## use `ERROR_CALL_DEPTH` to trim call stack. default: show all
+    ERROR_CALL_DEPTH <- -.Machine$integer.max
     UNEVALUATED <- .error_unevaluated() # singleton
 
     log <- OPTIONS$log
@@ -175,7 +177,7 @@
     handle_error <- function(e) {
         ERROR_OCCURRED <<- TRUE
         .log_error(log, "%s", e)
-        call <- sapply(sys.calls(), deparse, nlines=3)
+        call <- rev(tail(sys.calls(), -ERROR_CALL_DEPTH))
         .error_remote(e, call)
     }
 
@@ -196,11 +198,34 @@
         } else {
             .rng_reset_generator("L'Ecuyer-CMRG", SEED)
 
-            output <- withCallingHandlers({
-                tryCatch({
+            ## capture warnings and errors. Both are initially handled
+            ## by `withCallingHandlers()`.
+            ##
+            ## 'error' conditions are logged (via `handle_error()`),
+            ## annotated, and then re-signalled via `stop()`.  The
+            ## condition needs to be handled first by
+            ## `withCallingHandlers()` so that the full call stack to
+            ## the error can be recovered.  The annotated condition
+            ## needs to be resignalled so that it can be returned as
+            ## 'output'; but the condition needs to be silenced by the
+            ## outer `tryCatch()`.
+            ##
+            ## 'warning' conditions are logged (via
+            ## `handle_warning()`). The handler returns the original
+            ## condition, and the 'muffleWarning' handler is invoked
+            ## somewhere above this point.
+            output <- tryCatch({
+                withCallingHandlers({
+                    ## emulate call depth from 'inside' FUN, to
+                    ## account for frames from tryCatch,
+                    ## withCallingHandlers
+                    ERROR_CALL_DEPTH <<- (\() sys.nframe() - 1L)()
                     FUN(...)
-                }, error=handle_error)
-            }, warning=handle_warning)
+                }, error = function(e) {
+                    annotated_condition <- handle_error(e)
+                    stop(annotated_condition)
+                }, warning = handle_warning)
+            }, error = identity)
 
             ## Trigger garbage collection to cut down on memory usage within
             ## each worker in shared memory contexts. Otherwise, each worker is

@@ -124,6 +124,11 @@ setMethod("show", "BPValidate", function(object) {
         i <- vapply(unknown, function(x) {
             !exists(x, envir = env, inherits = FALSE)
         }, logical(1))
+        ## Force evaluation of the known arguments to
+        ## make sure they will be exported correctly
+        known <- unknown[-i]
+        for (nm in known)
+            force(env[[nm]])
         unknown <- unknown[i]
         env <- parent.env(env)
     }

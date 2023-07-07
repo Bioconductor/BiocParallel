@@ -18,14 +18,8 @@
 DoparParam <-
     function(stop.on.error=TRUE, RNGseed = NULL)
 {
-    if (!"package:foreach" %in% search()) {
-        tryCatch({
-            loadNamespace("foreach")
-        }, error=function(err) {
-            stop(conditionMessage(err), "\n",
-                 "  DoparParam() requires the 'foreach' package")
-        })
-    }
+    if (!requireNamespace("foreach", quietly = TRUE))
+        stop("DoparParam() requires the 'foreach' package", call. = FALSE)
 
     prototype <- .prototype_update(
         .DoparParam_prototype,
