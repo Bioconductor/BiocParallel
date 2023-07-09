@@ -1,5 +1,5 @@
 ---
-title: "Introduction to *BiocParallel*"
+title: "1. Introduction to *BiocParallel*"
 author:
 - name: "Valerie Obenchain"
 - name: "Vincent Carey"
@@ -11,7 +11,7 @@ author:
 date: "Edited: October, 2022; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 package: BiocParallel
 vignette: >
-  %\VignetteIndexEntry{Introduction to BiocParallel}
+  %\VignetteIndexEntry{1. Introduction to BiocParallel}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
