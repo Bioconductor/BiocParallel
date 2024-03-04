@@ -237,7 +237,7 @@ multicoreWorkers()
     when each call to \code{FUN} allocates a 'large' amount of
     memory. If \code{FUN} allocates little memory, then considerable
     performance improvements are gained by the default setting
-    \code{force.GC = TRUE}.
+    \code{force.GC = FALSE}.
   }
   \item{fallback}{
     \code{logical(1)} When \code{TRUE}, fall back to using
