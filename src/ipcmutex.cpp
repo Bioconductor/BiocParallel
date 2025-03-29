@@ -11,7 +11,7 @@ std::string uuid_generate()
     return boost::uuids::to_string(uuid_generator());
 }
 
-#include <boost/interprocess/managed_shared_memory.hpp>
+#include "boost_patch_1_87/interprocess/managed_shared_memory.hpp"
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 
 using namespace boost::interprocess;

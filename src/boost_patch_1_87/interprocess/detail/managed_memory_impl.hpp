@@ -27,7 +27,7 @@
 #include <boost/interprocess/detail/os_file_functions.hpp>
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/exceptions.hpp>
-#include <boost/interprocess/segment_manager.hpp>
+#include <boost_patch_1_87/interprocess/segment_manager.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/detail/nothrow.hpp>
 #include <boost/interprocess/detail/simple_swap.hpp>
