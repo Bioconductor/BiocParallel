@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.40
+-----------------------
+
+BUG FIXES
+
+    o (1.40.1) Patch a compiler error under Apple clang 17.0.0; see
+    <https://github.com/Bioconductor/BiocParallel/issues/271>
+
 CHANGES IN VERSION 1.34
 -----------------------
 

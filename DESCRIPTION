@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.40.0
+Version: 1.40.1
 Authors@R: c(
     person("Martin", "Morgan",
         email = "mtmorgan.bioc@gmail.com",
@@ -34,7 +34,7 @@ BugReports: https://github.com/Bioconductor/BiocParallel/issues
 biocViews: Infrastructure
 License: GPL-2 | GPL-3
 SystemRequirements: C++11
-Depends: methods, R (>= 3.5.0)
+Depends: methods, R (>= 4.1.0)
 Imports: stats, utils, futile.logger, parallel, snow, codetools
 Suggests: BiocGenerics, tools, foreach, BBmisc, doParallel,
     GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
@@ -56,6 +56,6 @@ Collate: AllGenerics.R DeveloperInterface.R prototype.R
     progress.R ipcmutex.R worker-number.R
     utilities.R rng.R bpinit.R reducer.R worker.R
     bpoptions.R cpp11.R BiocParallel-defunct.R
-LinkingTo: BH, cpp11
+LinkingTo: BH (>= 1.87.0), cpp11
 VignetteBuilder: knitr
 RoxygenNote: 7.1.2
