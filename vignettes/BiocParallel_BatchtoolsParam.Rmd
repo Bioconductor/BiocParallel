@@ -1,0 +1,224 @@
+---
+title: "Introduction to BatchtoolsParam"
+author: 
+  - "Nitesh Turaga"
+  - "Martin Morgan"
+date: "Edited: March 22, 2018; Compiled: `r format(Sys.time(), '%B %d, %Y')`; Converted to Rmd: May 20, 2025"
+vignette: >
+  %\VignetteIndexEntry{2. Introduction to BatchtoolsParam}
+  %\VignetteKeywords{parallel, Infrastructure}
+  %\VignettePackage{BiocParallel}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output: 
+  BiocStyle::html_document:
+    number_sections: true
+    toc: true
+package: BiocParallel
+---
+
+# Introduction
+
+The `BatchtoolsParam` class is an interface to the `r CRANpkg("batchtools")`
+package from within `r Biocpkg("BiocParallel")`, for computing on a high
+performance cluster such as SGE, TORQUE, LSF, SLURM, OpenLava.
+
+# Quick start
+
+```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
+library(BiocParallel)
+```
+
+This example demonstrates the easiest way to launch a 100000 jobs using
+batchtools. The first step involves creating a `BatchtoolsParam` class. You can
+compute using 'bplapply' and then the result is stored.
+
+```{r intro_example}
+## Pi approximation
+piApprox <- function(n) {
+    nums <- matrix(runif(2 * n), ncol = 2)
+    d <- sqrt(nums[, 1]^2 + nums[, 2]^2)
+    4 * mean(d <= 1)
+}
+
+piApprox(1000)
+
+## Apply piApprox over
+param <- BatchtoolsParam()
+result <- bplapply(rep(10e5, 10), piApprox, BPPARAM=param)
+mean(unlist(result))
+```
+
+# *BatchtoolsParam* interface
+
+The `BatchtoolsParam` interface allows intuitive usage of your high performance
+cluster with `BiocParallel`.
+
+The `BatchtoolsParam` class allows the user to specify many arguments to
+customize their jobs. Applicable to clusters with formal schedulers.
+
+* **workers** - The number of workers used by the job.
+
+* **cluster** - We currently support, SGE, SLURM, LSF, TORQUE and OpenLava. The
+'cluster' argument is supported only if the R environment knows how to find the
+job scheduler. Each cluster type uses a template to pass the job to the
+scheduler. If the template is not given we use the default templates as given in
+the 'batchtools' package. The cluster can be accessed by 'bpbackend(param)'.
+
+* **registryargs** - The 'registryargs' argument takes a list of arguments to
+create a new job registry for you `BatchtoolsParam`. The job registry is a
+data.table which stores all the required information to process your jobs. The
+arguments we support for registryargs are:
+
+    * **file.dir** - Path where all files of the registry are saved. Note that
+    some templates do not handle relative paths well. If nothing is given, a
+    temporary directory will be used in your current working directory.
+    
+    * **work.dir** - Working directory for R process for running jobs.
+    
+    * **packages** - Packages that will be loaded on each node.
+    
+    * **namespaces** - Namespaces that will be loaded on each node.
+    
+    * **source** - Files that are sourced before executing a job.
+    
+    * **load** - Files that are loaded before executing a job.
+
+```{r}
+registryargs <- batchtoolsRegistryargs(
+    file.dir = "mytempreg",
+    work.dir = getwd(),
+    packages = character(0L),
+    namespaces = character(0L),
+    source = character(0L),
+    load = character(0L)
+)
+param <- BatchtoolsParam(registryargs = registryargs)
+param
+```
+
+* **resources** - A named list of key-value pairs to be substituted into the
+template file; see `?batchtools::submitJobs`.
+
+* **template** - The template argument is unique to the `BatchtoolsParam` class.
+It is required by the job scheduler. It defines how the jobs are submitted to
+the job scheduler. If the template is not given and the cluster is chosen, a
+default template is selected from the batchtools package.
+
+* **log** - The log option is logical, TRUE/FALSE. If it is set to TRUE, then
+the logs which are in the registry are copied to directory given by the user
+using the `logdir` argument.
+
+* **logdir** - Path to the logs. It is given only if `log=TRUE`.
+
+* **resultdir** - Path to the directory is given when the job has files to be
+saved in a directory.
+
+# Defining templates
+
+The job submission template controls how the job is processed by the job
+scheduler on the cluster. Obviously, the format of the template will differ
+depending on the type of job scheduler. Let's look at the default SLURM template
+as an example:
+
+```{r}
+fname <- batchtoolsTemplate("slurm")
+cat(readLines(fname), sep="\n")
+```
+
+The `<%= =>` blocks are automatically replaced by the values of the elements in
+the `resources` argument in the `BatchtoolsParam` constructor. Failing to
+specify critical parameters properly (e.g., wall time or memory limits too low)
+will cause jobs to crash, usually rather cryptically. We suggest setting
+parameters explicitly to provide robustness to changes to system defaults. Note
+that the `<%= =>` blocks themselves do not usually need to be modified in the
+template.
+
+The part of the template that is most likely to require explicit customization
+is the last line containing the call to `Rscript`. A more customized call may be
+necessary if the R installation is not standard, e.g., if multiple versions of R
+have been installed on a cluster. For example, one might use instead:
+
+```
+echo 'batchtools::doJobCollection("<%= uri %>")' |
+    ArbitraryRcommand --no-save --no-echo
+```
+
+If such customization is necessary, we suggest making a local copy of the
+template, modifying it as required, and then constructing a `BiocParallelParam`
+object with the modified template using the `template` argument. However, we
+find that the default templates accessible with `batchtoolsTemplate` are
+satisfactory in most cases.
+
+# Use cases
+
+As an example for a BatchtoolParam job being run on an SGE cluster, we use the
+same `piApprox` function as defined earlier. The example runs the function on 5
+workers and submits 100 jobs to the SGE cluster.
+
+Example of SGE with minimal code:
+
+```{r simple_sge_example, eval=FALSE}
+library(BiocParallel)
+
+## Pi approximation
+piApprox <- function(n) {
+    nums <- matrix(runif(2 * n), ncol = 2)
+    d <- sqrt(nums[, 1]^2 + nums[, 2]^2)
+    4 * mean(d <= 1)
+}
+
+template <- system.file(
+    package = "BiocParallel",
+    "unitTests", "test_script", "test-sge-template.tmpl"
+)
+param <- BatchtoolsParam(workers=5, cluster="sge", template=template)
+
+## Run parallel job
+result <- bplapply(rep(10e5, 100), piApprox, BPPARAM=param)
+```
+
+Example of SGE demonstrating some of `BatchtoolsParam` methods.
+
+```{r demo_sge, eval=FALSE}
+library(BiocParallel)
+
+## Pi approximation
+piApprox <- function(n) {
+    nums <- matrix(runif(2 * n), ncol = 2)
+    d <- sqrt(nums[, 1]^2 + nums[, 2]^2)
+    4 * mean(d <= 1)
+}
+
+template <- system.file(
+    package = "BiocParallel",
+    "unitTests", "test_script", "test-sge-template.tmpl"
+)
+param <- BatchtoolsParam(workers=5, cluster="sge", template=template)
+
+## start param
+bpstart(param)
+
+## Display param
+param
+
+## To show the registered backend
+bpbackend(param)
+
+## Register the param
+register(param)
+
+## Check the registered param
+registered()
+
+## Run parallel job
+result <- bplapply(rep(10e5, 100), piApprox)
+
+bpstop(param)
+```
+
+# Session info
+
+```{r sessionInfo}
+sessionInfo()
+```
