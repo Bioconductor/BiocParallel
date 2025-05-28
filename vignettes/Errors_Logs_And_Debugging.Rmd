@@ -1,7 +1,7 @@
 ---
 title: "Errors, Logs and Debugging in BiocParallel"
 author: "Valerie Obenchain and Martin Morgan"
-date: "Edited: December 16, 2015; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
+date: "Edited: December 16, 2015; Compiled: `r format(Sys.time(), '%B %d, %Y')`; Converted to Rmd: May 20, 2025"
 vignette: >
   %\VignetteIndexEntry{3. Errors, Logs and Debugging}
   %\VignetteKeywords{parallel, Infrastructure}

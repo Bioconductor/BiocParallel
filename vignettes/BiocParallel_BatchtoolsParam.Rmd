@@ -3,7 +3,7 @@ title: "Introduction to BatchtoolsParam"
 author: 
   - "Nitesh Turaga"
   - "Martin Morgan"
-date: "Edited: March 22, 2018; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
+date: "Edited: March 22, 2018; Compiled: `r format(Sys.time(), '%B %d, %Y')`; Converted to Rmd: May 20, 2025"
 vignette: >
   %\VignetteIndexEntry{2. Introduction to BatchtoolsParam}
   %\VignetteKeywords{parallel, Infrastructure}
