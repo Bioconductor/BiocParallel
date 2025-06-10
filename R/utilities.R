@@ -104,6 +104,13 @@
     all(file.access(x, 6L) == 0L)
 }
 
+.message <- function(...) {
+    msg <- paste(
+        strwrap(paste0("\n", ...), indent = 2, exdent = 2), collapse="\n"
+    )
+    message(msg)
+}
+
 .warning <- function(...) {
     msg <- paste(
         strwrap(paste0("\n", ...), indent = 2, exdent = 2), collapse="\n"

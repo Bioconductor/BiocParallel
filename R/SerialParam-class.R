@@ -128,6 +128,21 @@ setReplaceMethod(
 })
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+### Setters
+###
+
+setReplaceMethod("bpworkers", c("SerialParam", "numeric"),
+    function(x, value)
+{
+    value <- as.integer(value)
+    if (!identical(value, 1L))
+        .message(
+            "Number of workers limited to one for 'SerialParam'"
+        )
+    x
+})
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ### Backend method
 ###
 .SerialBackend <- setClass("SerialBackend", contains = "environment")
