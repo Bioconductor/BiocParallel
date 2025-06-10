@@ -98,7 +98,8 @@ who <- c("sun", "moon")
 
 param <- bpparam()
 original <- bpworkers(param)
-bpworkers(param) <- 2
+if (!is(param, "SerialParam"))
+    bpworkers(param) <- 2
 result <- bpmapply(fun, greet, who, BPPARAM = param)
 cat(paste(result, collapse="\n"), "\n")
 bpworkers(param) <- original
