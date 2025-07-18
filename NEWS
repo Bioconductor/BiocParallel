@@ -3,6 +3,13 @@ CHANGES IN VERSION 1.42
 
 BUG FIXES
 
+    o (1.42.2) Allow SerialParam to call bpworkers<- (no-op) 
+
+CHANGES IN VERSION 1.41
+-----------------------
+
+BUG FIXES
+
     o (1.41.3) Patch a compiler error under Apple clang 17.0.0; see
     <https://github.com/Bioconductor/BiocParallel/issues/271>
 
