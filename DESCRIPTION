@@ -1,7 +1,7 @@
 Package: BiocParallel
 Type: Package
 Title: Bioconductor facilities for parallel evaluation
-Version: 1.47.0
+Version: 1.47.1
 Authors@R: c(
     person("Jiefei", "Wang", 
         email = "jiefei0804@gmail.com", 
@@ -36,7 +36,7 @@ License: GPL-2 | GPL-3 | BSL-1.0
 SystemRequirements: C++11
 Depends: methods, R (>= 4.1.0)
 Imports: stats, utils, futile.logger, parallel, snow, codetools
-Suggests: BiocGenerics, tools, foreach, BBmisc, doParallel,
+Suggests: BiocGenerics, tools, parallelly (>= 1.48.0), foreach, BBmisc, doParallel,
     GenomicRanges, RNAseqData.HNRNPC.bam.chr14,
     TxDb.Hsapiens.UCSC.hg19.knownGene, VariantAnnotation, Rsamtools,
     GenomicAlignments, ShortRead, RUnit, BiocStyle, knitr, batchtools,

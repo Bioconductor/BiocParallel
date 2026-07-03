@@ -12,7 +12,7 @@
     if (isTRUE(value$dynamic.only))
         return(NULL)
 
-    if (value$static.fun)
+    if (isTRUE(value$static.fun))
         fun <- value$data$fun
     else
         fun <- NULL
@@ -39,12 +39,12 @@
     if (value$type != "EXEC")
         return(value)
 
-    if (value$static.fun)
+    if (isTRUE(value$static.fun))
         value$data$fun <- TRUE
     if (length(value$static.args))
         value$data$args[value$static.args] <- NULL
 
-    if (value$static.fun || length(value$static.args))
+    if (isTRUE(value$static.fun) || length(value$static.args))
         value$dynamic.only <- TRUE
 
     value
@@ -63,7 +63,7 @@
     if (!isTRUE(value$dynamic.only))
         return(value)
 
-    if (value$static.fun)
+    if (isTRUE(value$static.fun))
         value$data$fun <- static_data$fun
     if (length(value$static.args)) {
         value$data$args <- c(value$data$args, static_data$args)

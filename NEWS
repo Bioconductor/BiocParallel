@@ -1,3 +1,13 @@
+CHANGES IN VERSION 1.47
+-----------------------
+
+NEW FEATURES
+
+    o (1.47.1) Add support for SnowParam(..., type = "RPSOCK"), which
+    creates a parallel cluster using parallel::makeCluster(..., type
+    = "RPSOCK") via the 'parallelly' package.
+
+
 CHANGES IN VERSION 1.44
 -----------------------
 

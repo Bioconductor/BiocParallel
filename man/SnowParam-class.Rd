@@ -43,7 +43,7 @@
 ## constructor
 ## ------------------------------------
 
-SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
+SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK", "RPSOCK"),
     tasks = 0L, stop.on.error = TRUE,
     progressbar = FALSE, RNGseed = NULL,
     timeout = WORKER_TIMEOUT, exportglobals = TRUE, exportvariables = TRUE,
@@ -62,13 +62,13 @@ SnowParam(workers = snowWorkers(type), type=c("SOCK", "MPI", "FORK"),
 ## detect workers
 ## ------------------------------------
 
-snowWorkers(type = c("SOCK", "MPI", "FORK"))
+snowWorkers(type = c("SOCK", "MPI", "FORK", "RPSOCK"))
 }
 
 \details{
 
   \code{SnowParam} is used for distributed memory computing and supports
-  2 cluster types: \sQuote{SOCK} (default) and \sQuote{MPI}. The
+  cluster types: \sQuote{SOCK} (default), \sQuote{MPI}, and \sQuote{RPSOCK}. The
   \code{SnowParam} builds on infrastructure in the \code{snow} and
   \code{parallel} packages and provides the additional features of error
   handling, logging and writing out results.
@@ -149,7 +149,7 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
 
   \describe{
     \item{
-      \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI"),
+      \code{SnowParam(workers = snowWorkers(), type=c("SOCK", "MPI", "FORK", "RPSOCK"),
                       tasks = 0L, stop.on.error = FALSE,
                       progressbar = FALSE, RNGseed = NULL,
                       timeout = Inf, exportglobals = TRUE,
@@ -175,13 +175,13 @@ snowWorkers(type = c("SOCK", "MPI", "FORK"))
     the number of cores determined by \code{detectCores} minus 2 unless
     environment variables \code{R_PARALLELLY_AVAILABLECORES_FALLBACK} or
     \code{BIOCPARALLEL_WORKER_NUMBER} are set otherwise. For a
-    \code{SOCK} cluster, \code{workers} can be a \code{character()}
+    \code{SOCK} or \code{RPSOCK} cluster, \code{workers} can be a \code{character()}
     vector of host names.
 
   }
   \item{type}{
     \code{character(1)} Type of cluster to use. Possible values are
-    \code{SOCK} (default) and \code{MPI}. Instead of \code{type=FORK} use
+    \code{SOCK} (default), \code{MPI}, and \code{RPSOCK}. Instead of \code{type=FORK} use
     \code{MulticoreParam}.
   }
   \item{tasks}{
