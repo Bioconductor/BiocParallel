@@ -73,7 +73,7 @@
     min(.defaultWorkers(), .snowCoresMax(type))
 }
 
-snowWorkers <- function(type = c("SOCK", "MPI", "FORK")) {
+snowWorkers <- function(type = c("SOCK", "MPI", "FORK", "RPSOCK")) {
     type <- match.arg(type)
     min(.defaultWorkers(), .snowCores(type))
 }
@@ -119,7 +119,7 @@ setOldClass(c("NULLcluster", "cluster"))
 )
 
 SnowParam <- function(workers=snowWorkers(type),
-                      type=c("SOCK", "MPI", "FORK"), tasks=0L,
+                      type=c("SOCK", "MPI", "FORK", "RPSOCK"), tasks=0L,
                       stop.on.error=TRUE,
                       progressbar=FALSE, RNGseed=NULL,
                       timeout=WORKER_TIMEOUT,
@@ -277,13 +277,30 @@ setMethod("bpstart", "SnowParam",
         if (dir.exists(file.path(libPath, "inst")))
             libPath <- file.path(libPath, "inst")
 
-        if (is.null(cargs$snowlib))
-            cargs$snowlib <- libPath
+        if (x$.clusterargs$type %in% c("SOCK", "MPI")) {
+            if (is.null(cargs$snowlib))
+                cargs$snowlib <- libPath
+        }
 
         if (!is.null(cargs$useRscript) && !cargs$useRscript)
             cargs$scriptdir <- libPath
 
-        if (x$.clusterargs$type == "SOCK") {
+        if (x$.clusterargs$type == "RPSOCK") {
+            if (!"rscript_call" %in% names(formals(parallelly::makeNodePSOCK))) {
+                stop("parallelly::makeNodePSOCK() does not support 'rscript_call'")
+            }
+            if (is.null(cargs$rscript_libs))
+                cargs$rscript_libs <- unique(c(dirname(find.package("BiocParallel")), .libPaths()))
+            cargs$rscript_call <- quote(quote({
+              workCommand <- function(master) {
+                BiocParallel::.bpworker_impl(master)
+                FALSE
+              }
+              parallelly:::workRPSOCK(workCommand)
+            }))
+        }
+
+        if (x$.clusterargs$type %in% c("SOCK", "RPSOCK")) {
             cargs$master <- .hostname(x)
             cargs$port <- .port(x)
         }
@@ -363,6 +380,7 @@ setReplaceMethod("bpthreshold", c("SnowParam", "character"),
 ### parallel::SOCKcluster types
 
 setOldClass(c("SOCKcluster", "cluster"))
+setOldClass(c("RichSOCKcluster", "SOCKcluster"))
 
 stopCluster.SOCKcluster <-
     parallel:::stopCluster.default
@@ -370,8 +388,11 @@ stopCluster.SOCKcluster <-
 setAs("SOCKcluster", "SnowParam",
     function(from)
 {
+    type <- sub("cluster$", "", class(from)[1L])
+    if (type == "RichSOCK")
+        type <- "RPSOCK"
     .clusterargs <-
-        list(spec=length(from), type=sub("cluster$", "", class(from)[1L]))
+        list(spec=length(from), type=type)
     prototype <- .prototype_update(
         .SnowParam_prototype,
         .clusterargs = .clusterargs,
@@ -401,6 +422,7 @@ setAs("spawnedMPIcluster", "SnowParam",
 ###
 
 setOldClass(c("SOCK0node", "SOCKnode")) # needed for method dispatch
+setOldClass(c("RichSOCKnode", "SOCK0node"))
 
 .SOCKmanager <- setClass("SOCKmanager", contains = "TaskManager")
 

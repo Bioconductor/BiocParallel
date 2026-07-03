@@ -201,3 +201,45 @@ test_SnowParam_fallback <- function(){
     res <- bplapply(1, function(x) Sys.getpid(), BPPARAM = p)[[1]]
     checkTrue(res != Sys.getpid())
 }
+
+test_SnowParam_RPSOCK <- function()
+{
+    if (!requireNamespace("snow", quietly=TRUE))
+        DEACTIVATED("'snow' package did not load")
+    if (!requireNamespace("parallelly", quietly=TRUE))
+        DEACTIVATED("'parallelly' package did not load")
+
+    param <- SnowParam(2, "RPSOCK", tasks=2)
+    checkIdentical(FALSE, bpisup(param))
+
+    exp <- bplapply(1:2, function(i) Sys.getpid(), BPPARAM=param)
+    checkIdentical(2L, length(unique(unlist(exp))))
+    checkIdentical(FALSE, bpisup(param))
+}
+
+test_SnowParam_coerce_from_RPSOCK <- function()
+{
+    if (!requireNamespace("snow", quietly=TRUE))
+        DEACTIVATED("'snow' package did not load")
+    if (!requireNamespace("parallelly", quietly=TRUE))
+        DEACTIVATED("'parallelly' package did not load")
+
+    cl <- parallel::makeCluster(2L, type = "RPSOCK")
+    p <- as(cl, "SnowParam")
+    checkTrue(validObject(p))
+
+    obs <- tryCatch(bpstart(p), error=conditionMessage)
+    exp <- "'bpstart' not available; instance from outside BiocParallel?"
+    checkIdentical(exp, obs)
+
+    obs <- tryCatch(bpstop(p), warning=conditionMessage)
+    exp <- "'bpstop' not available; instance from outside BiocParallel?"
+    checkIdentical(exp, obs)
+
+    exp <- bplapply(1:2, function(i) Sys.getpid(), BPPARAM=p)
+    checkIdentical(2L, length(unique(unlist(exp))))
+    checkIdentical(TRUE, bpisup(p))
+
+    parallel::stopCluster(cl)
+}
+
