@@ -423,10 +423,23 @@ test_BatchtoolsParam_bpiterate <- function() {
     target <- list(105, 205, 305, 405, 505)
     checkIdentical(target, res)
 
+    ## Test ordered results without REDUCE on multicore
+    param <- BatchtoolsParam()
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5,
+                     reduce.in.order=TRUE,
+                     BPPARAM=param)
+    checkIdentical(target, res)
+
     ## socket cluster
     param <- BatchtoolsParam(cluster="socket")
     res <- bpiterate(ITER=ITER(), FUN=FUN, k=5, BPPARAM=param)
     ## Check Identical result
+    checkIdentical(target, res)
+
+    ## Test ordered results without REDUCE on socket
+    res <- bpiterate(ITER=ITER(), FUN=FUN, k=5,
+                     reduce.in.order=TRUE,
+                     BPPARAM=param)
     checkIdentical(target, res)
 
     ## Test REDUCE on socket

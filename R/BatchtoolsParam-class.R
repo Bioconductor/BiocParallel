@@ -461,8 +461,6 @@ setMethod("bpiterate", c("ANY", "ANY", "BatchtoolsParam"),
     FUN <- match.fun(FUN)
 
     if (missing(REDUCE)) {
-        if (reduce.in.order)
-            stop("REDUCE must be provided when 'reduce.in.order = TRUE'")
         if (!missing(init))
             stop("REDUCE must be provided when 'init' is given")
     }
